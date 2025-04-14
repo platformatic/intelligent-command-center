@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base"
+  ],
+  "rangeStrategy": "update-lockfile",
+  "ignoreDeps": [
+    "camelcase",
+    "mysql",
+    "swagger-ui-react",
+    "leven",
+    "ora",
+    "graphiql"
+  ],
+  "prHourlyLimit": 10,
+  "packageRules": [
+    {
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
+      "automerge": true
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true
+  },
+  "timezone": "Europe/Rome",
+  "schedule": [
+    "* 0-6 * * 6,0"
+  ],
+  "rebaseWhen": "conflicted"
+}
