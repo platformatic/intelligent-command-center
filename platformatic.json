@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/runtime/2.16.0.json",
+  "entrypoint": "main",
+  "autoload": {
+    "path": "services"
+  },
+  "server": {
+    "hostname": "0.0.0.0",
+    "port": "{PORT}"
+  },
+  "logger": {
+    "level": "info"
+  },
+  "metrics": {
+    "port": 9090
+  },
+  "managementApi": true
+}

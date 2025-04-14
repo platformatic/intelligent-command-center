@@ -1,0 +1,85 @@
+services:
+  activities-postgresql:
+    ports:
+      - "127.0.0.1:5435:5432"
+    image: "postgres"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: activities
+      PGDATA: /data/postgres
+
+  control-plane-postgresql:
+    ports:
+      - "127.0.0.1:5433:5432"
+    image: "postgres"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: control_plane
+      PGDATA: /data/postgres
+
+  risk-valkey:
+    ports:
+      - "6379:6379"
+    image: "valkey/valkey:8.1"
+
+  http-cache-valkey:
+    ports:
+      - "6342:6379"
+    image: "valkey/valkey:8.1"
+
+  risk-cold-storage-postgresql:
+    ports:
+      - "5442:5432"
+    image: "postgres"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=risk-cold-storage
+
+  risk-manager-postgresql:
+    ports:
+      - "5443:5432"
+    image: "postgres"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=risk-manager
+
+  compliance-postgresql:
+    ports:
+      - "127.0.0.1:5438:5432"
+    image: "postgres"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: compliance
+      PGDATA: /data/postgres
+
+  cluster-manager-postgresql:
+    ports:
+      - "127.0.0.1:5439:5432"
+    image: "postgres"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cluster_manager
+      PGDATA: /data/postgres
+
+  cron-postgresql:
+    ports:
+      - "127.0.0.1:5440:5432"
+    image: "postgres"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cron
+      PGDATA: /data/postgres
+
+  trafficante-valkey:
+    ports:
+      - "6349:6379"
+    image: "valkey/valkey:8.1"
+
+  trafficante-postgresql:
+    ports:
+      - "127.0.0.1:5441:5432"
+    image: "postgres"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: trafficante
+      PGDATA: /data/postgres

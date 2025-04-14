@@ -51,7 +51,6 @@ CREATE TABLE deployments (
 CREATE TABLE detected_pods (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   application_id uuid NOT NULL REFERENCES applications(id),
-  -- TODO: think about removing a deployment_id from here
   deployment_id uuid REFERENCES deployments(id),
   pod_id VARCHAR(255) NOT NULL,
   status deployment_status NOT NULL,
