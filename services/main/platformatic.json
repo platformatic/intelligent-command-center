@@ -21,6 +21,12 @@
         "proxy": {
           "prefix": "control-plane"
         }
+      },
+      {
+        "id": "user-manager",
+        "proxy": {
+          "prefix": "user-manager"
+        }
       }
     ]
   },
