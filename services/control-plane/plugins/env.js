@@ -1,0 +1,61 @@
+'use strict'
+
+const fp = require('fastify-plugin')
+const fastifyEnv = require('@fastify/env')
+
+const schema = {
+  type: 'object',
+  required: [
+    'PLT_ZIO_MAIN_PORT',
+    'PLT_ZIO_MANAGEMENT_PORT',
+    'PLT_CONTROL_PLANE_REDIS_CACHE_CONNECTION_STRING',
+    'PLT_CONTROL_PLANE_DEFAULT_THREADS',
+    'PLT_CONTROL_PLANE_DEFAULT_HEAP',
+    'PLT_EXTERNAL_CRON_URL',
+    'PLT_EXTERNAL_COMPLIANCE_URL',
+    'PLT_EXTERNAL_TRAFFICANTE_URL',
+    'PLT_EXTERNAL_USER_MANAGER_URL',
+    'PLT_EXTERNAL_RISK_MANAGER_URL',
+    'PLT_EXTERNAL_RISK_SERVICE_URL',
+    'PLT_EXTERNAL_ACTIVITIES_URL',
+    'PLT_EXTERNAL_METRICS_URL'
+  ],
+
+  properties: {
+    PLT_ZIO_MAIN_PORT: { type: 'number' },
+    PLT_ZIO_MANAGEMENT_PORT: { type: 'number' },
+    PLT_CONTROL_PLANE_REDIS_CACHE_CONNECTION_STRING: { type: 'string' },
+    PLT_CONTROL_PLANE_DEFAULT_THREADS: { type: 'number', default: 1 },
+    PLT_CONTROL_PLANE_DEFAULT_HEAP: { type: 'number', default: 1024 },
+    PLT_EXTERNAL_CRON_URL: { type: 'string' },
+    PLT_EXTERNAL_TRAFFICANTE_URL: { type: 'string' },
+    PLT_EXTERNAL_USER_MANAGER_URL: { type: 'string' },
+    PLT_EXTERNAL_RISK_MANAGER_URL: { type: 'string' },
+    PLT_EXTERNAL_RISK_SERVICE_URL: { type: 'string' },
+    PLT_EXTERNAL_COMPLIANCE_URL: { type: 'string' },
+    PLT_EXTERNAL_ACTIVITIES_URL: { type: 'string' },
+    PLT_EXTERNAL_METRICS_URL: { type: 'string' }
+  }
+}
+
+const fastifyEnvOpts = {
+  schema,
+  confKey: 'env',
+  dotenv: true
+}
+
+async function envPlugin (app) {
+  await app.register(fastifyEnv, fastifyEnvOpts)
+  app.decorate('iccServicesUrls', {
+    cron: app.env.PLT_EXTERNAL_CRON_URL,
+    trafficante: app.env.PLT_EXTERNAL_TRAFFICANTE_URL,
+    userManager: app.env.PLT_EXTERNAL_USER_MANAGER_URL,
+    riskManager: app.env.PLT_EXTERNAL_RISK_MANAGER_URL,
+    riskService: app.env.PLT_EXTERNAL_RISK_SERVICE_URL,
+    compliance: app.env.PLT_EXTERNAL_COMPLIANCE_URL,
+    activities: app.env.PLT_EXTERNAL_ACTIVITIES_URL,
+    metrics: app.env.PLT_EXTERNAL_METRICS_URL
+  })
+}
+
+module.exports = fp(envPlugin, { name: 'env' })
