@@ -1,0 +1,62 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/composer/2.59.0.json",
+  "server": {
+    "logger": {
+      "level": "{PLT_MAIN_LOGGER_LEVEL}"
+    },
+    "healthCheck": {
+      "exposeStatusRoute": {
+        "routeOpts": {
+          "logLevel": "error"
+        },
+        "url": "/api/status"
+      }
+    }
+  },
+  "composer": {
+    "openapi": {},
+    "services": [
+      {
+        "id": "control-plane",
+        "proxy": {
+          "prefix": "control-plane"
+        }
+      }
+    ]
+  },
+  "watch": "{DEV_K8S}",
+  "plugins": {
+    "paths": [
+      {
+        "path": "./lib/plugins"
+      },
+      {
+        "path": "./lib/routes",
+        "options": {
+          "prefix": "/api"
+        }
+      },
+      {
+        "path": "./lib/routes/login",
+        "options": {
+          "GITHUB_OAUTH_CLIENT_ID": "{PLT_GITHUB_OAUTH_CLIENT_ID}",
+          "GITHUB_OAUTH_CLIENT_SECRET": "{PLT_GITHUB_OAUTH_CLIENT_SECRET}",
+          "GOOGLE_OAUTH_CLIENT_ID": "{PLT_GOOGLE_OAUTH_CLIENT_ID}",
+          "GOOGLE_OAUTH_CLIENT_SECRET": "{PLT_GOOGLE_OAUTH_CLIENT_SECRET}",
+          "PLT_MAIN_URL": "{PLT_MAIN_URL}"
+        }
+      },
+      {
+        "path": "./lib/resources"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "schema": "../../clients/activities/activities.openapi.json",
+      "name": "activities",
+      "type": "openapi",
+      "serviceId": "activities"
+    }
+  ]
+}
