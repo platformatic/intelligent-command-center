@@ -11,9 +11,9 @@ test('should list all ICC services name', async (t) => {
     // 'activities',
     'control-plane',
     // 'frontend',
-    'main'
+    'main',
     // 'metrics',
-    // 'user-manager'
+    'user-manager'
   ])
 })
 
@@ -22,9 +22,9 @@ test('should list all ICC services name excluding \'main\'', async (t) => {
 
   assert.deepEqual(svcs, [
     // 'activities',
-    'control-plane'
+    'control-plane',
     // 'frontend',
     // 'metrics',
-    // 'user-manager'
+    'user-manager'
   ])
 })
