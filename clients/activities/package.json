@@ -1,0 +1,5 @@
+{
+  "name": "activities",
+  "types": "./activities.d.ts",
+  "main": "./activities.cjs"
+}
