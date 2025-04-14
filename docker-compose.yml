@@ -1,4 +1,13 @@
 services:
+  user-manager-postgresql:
+    ports:
+      - "127.0.0.1:5432:5432"
+    image: "postgres"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: user_manager
+      PGDATA: /data/postgres
+
   activities-postgresql:
     ports:
       - "127.0.0.1:5435:5432"
