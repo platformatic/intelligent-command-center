@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.16.0.json",
+  "server": {
+    "logger": {
+      "level": "{PLT_CONTROL_PLANE_LOG_LEVEL}"
+    },
+    "pluginTimeout": 60000
+  },
+  "db": {
+    "connectionString": "{PLT_CONTROL_PLANE_DATABASE_URL}",
+    "graphql": true,
+    "openapi": true,
+    "events": false,
+    "schemalock": true,
+    "limit": {
+      "default": 100,
+      "max": 1000
+    }
+  },
+  "migrations": {
+    "dir": "migrations",
+    "autoApply": true
+  },
+  "types": {
+    "autogenerate": true
+  },
+  "plugins": {
+    "paths": [
+      "./plugins",
+      "./routes"
+    ],
+    "typescript": false
+  },
+  "watch": "{DEV_K8S}"
+}
