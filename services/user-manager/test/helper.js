@@ -8,7 +8,7 @@ const { buildServer } = require('@platformatic/db')
 async function getServer (t, users = []) {
   process.env.PLT_USER_MANAGER_SESSION_SECRET_KEY = randomBytes(32).toString('base64url')
 
-  const connectionString = 'postgres://postgres:postgres@127.0.0.1:5432/user_manager'
+  const connectionString = 'postgres://postgres:postgres@127.0.0.1:5433/user_manager'
 
   const config = JSON.parse(await readFile(join(__dirname, '..', 'platformatic.json'), 'utf8'))
   // Add your config customizations here. For example you want to set
