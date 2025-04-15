@@ -6,8 +6,6 @@ const fastifyEnv = require('@fastify/env')
 const schema = {
   type: 'object',
   required: [
-    'PLT_ZIO_MAIN_PORT',
-    'PLT_ZIO_MANAGEMENT_PORT',
     'PLT_CONTROL_PLANE_REDIS_CACHE_CONNECTION_STRING',
     'PLT_CONTROL_PLANE_DEFAULT_THREADS',
     'PLT_CONTROL_PLANE_DEFAULT_HEAP',
@@ -22,8 +20,6 @@ const schema = {
   ],
 
   properties: {
-    PLT_ZIO_MAIN_PORT: { type: 'number' },
-    PLT_ZIO_MANAGEMENT_PORT: { type: 'number' },
     PLT_CONTROL_PLANE_REDIS_CACHE_CONNECTION_STRING: { type: 'string' },
     PLT_CONTROL_PLANE_DEFAULT_THREADS: { type: 'number', default: 1 },
     PLT_CONTROL_PLANE_DEFAULT_HEAP: { type: 'number', default: 1024 },

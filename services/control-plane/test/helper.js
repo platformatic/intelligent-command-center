@@ -7,11 +7,6 @@ const fastify = require('fastify')
 const { readFile } = require('node:fs/promises')
 
 const defaultEnv = {
-  PLT_ZIO_MAIN_PORT: 4041,
-  PLT_ZIO_MANAGEMENT_PORT: 4042,
-
-  PLT_MAIN_APPS_PUBLIC_DOMAIN: 'public.main.plt',
-
   PLT_CONTROL_PLANE_DATABASE_URL: 'postgres://postgres:postgres@127.0.0.1:5433/control_plane',
   PLT_CONTROL_PLANE_LOG_LEVEL: 'info',
 

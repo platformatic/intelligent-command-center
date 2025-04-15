@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.16.0.json",
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.59.0.json",
   "server": {
     "logger": {
       "level": "{PLT_CONTROL_PLANE_LOG_LEVEL}"
