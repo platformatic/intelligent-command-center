@@ -27,6 +27,12 @@
         "proxy": {
           "prefix": "user-manager"
         }
+      },
+      {
+        "id": "activities",
+        "proxy": {
+          "prefix": "activities"
+        }
       }
     ]
   },
