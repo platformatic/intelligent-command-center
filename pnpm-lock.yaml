@@ -139,6 +139,31 @@ importers:
         specifier: ^17.1.2
         version: 17.1.2
 
+  services/updates:
+    dependencies:
+      '@fastify/env':
+        specifier: ^5.0.1
+        version: 5.0.2
+      '@fastify/websocket':
+        specifier: ^11.0.2
+        version: 11.0.2
+      '@platformatic/service':
+        specifier: ^2.59.1
+        version: 2.59.1
+      fastify-plugin:
+        specifier: ^5.0.1
+        version: 5.0.1
+      mqemitter-redis:
+        specifier: ^6.1.0
+        version: 6.1.0
+    devDependencies:
+      borp:
+        specifier: ^0.19.0
+        version: 0.19.0
+      fastify:
+        specifier: ^5.0.0
+        version: 5.2.2
+
   services/user-manager:
     dependencies:
       '@fastify/cookie':
