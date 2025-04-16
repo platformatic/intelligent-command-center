@@ -99,7 +99,7 @@ jobs:
       #     - 5433:5432
     steps:
       - name: configure postgres
-        run: cat .github/workflows/ci/docker-entrypoint-initdb.d/docker-postgres-init.sql | docker exec -i icc-postgres bash
+        run: cat pg-init/docker-postgres-init.sql | docker exec -i icc-postgres bash
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
