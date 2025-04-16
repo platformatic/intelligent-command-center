@@ -98,6 +98,17 @@ jobs:
       #   ports:
       #     - 5433:5432
     steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: 20
+          cache: 'pnpm'
+      - name: Configure postgres
+        run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres bash
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -109,8 +120,6 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create session-key
         run: node ./services/main/node_modules/@fastify/secure-session/genkey.js > .session-key
-      - name: configure postgres
-        run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres bash
       - name: Run test suite
         run: cd services/main && pnpm run test
 
