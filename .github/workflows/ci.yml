@@ -76,12 +76,13 @@ jobs:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: control_plane
+          POSTGRES_DB: root
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          -v /__w/pg-init:/docker-entrypoint-initdb.d
         ports:
           - 5433:5432
       # compliance-postgres:
@@ -95,7 +96,7 @@ jobs:
       #     --health-timeout 5s
       #     --health-retries 5
       #   ports:
-      #     - 5438:5432
+      #     - 5433:5432
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4.1.0
@@ -133,7 +134,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - 5433:5432
     needs: setup-node_modules
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -172,7 +173,7 @@ jobs:
   #         --health-timeout 5s
   #         --health-retries 5
   #       ports:
-  #         - 5441:5432
+  #         - 5433:5432
   #     control-plane-postgres:
   #       image: postgres
   #       env:
@@ -228,7 +229,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5435:5432
+          - 5433:5432
     needs: setup-node_modules
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -259,16 +260,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
-      control-plane-postgres:
+      icc-postgres:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: control_plane
+          POSTGRES_DB: root
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          -v /__w/pg-init:/docker-entrypoint-initdb.d
         ports:
           - 5433:5432
       # compliance-postgres:
@@ -282,7 +284,7 @@ jobs:
       #     --health-timeout 5s
       #     --health-retries 5
       #   ports:
-      #     - 5438:5432
+      #     - 5433:5432
       valkey:
         image: 'valkey/valkey:8.1'
         ports:
@@ -326,7 +328,7 @@ jobs:
   #         --health-timeout 5s
   #         --health-retries 5
   #       ports:
-  #         - 15442:5432
+  #         - 5433:5432
   #
   #     valkey:
   #       image: 'valkey/valkey:8.1'
@@ -369,7 +371,7 @@ jobs:
   #         --health-timeout 5s
   #         --health-retries 5
   #       ports:
-  #         - 5442:5432
+  #         - 5433:5432
   #
   #     valkey:
   #       image: 'valkey/valkey:8.1'
@@ -412,7 +414,7 @@ jobs:
   #         --health-timeout 5s
   #         --health-retries 5
   #       ports:
-  #         - 5443:5432
+  #         - 5433:5432
   #
   #     valkey:
   #       image: 'valkey/valkey:8.1'
@@ -501,7 +503,7 @@ jobs:
   #         --health-timeout 5s
   #         --health-retries 5
   #       ports:
-  #         - 5439:5432
+  #         - 5433:5432
   #     control-plane-postgres:
   #       image: postgres
   #       env:
@@ -550,7 +552,7 @@ jobs:
   #         --health-timeout 5s
   #         --health-retries 5
   #       ports:
-  #         - 5438:5432
+  #         - 5433:5432
   #   needs: setup-node_modules
   #   runs-on: ubuntu-latest
   #   timeout-minutes: 15
@@ -645,7 +647,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5440:5432
+          - 5433:5432
     needs: setup-node_modules
     runs-on: ubuntu-latest
     timeout-minutes: 15
