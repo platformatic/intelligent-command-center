@@ -16,6 +16,7 @@ test('should get activities\' types', async (t) => {
   assert.deepEqual(res.json(), {
     USER_LOGIN: 'User Login',
     APPLICATION_CREATE: 'Application Create',
+    APPLICATION_DEPLOY: 'Application Deploy',
     APPLICATION_RESOURCES_UPDATE: 'Application Resources Update'
   })
 })
