@@ -33,6 +33,12 @@
         "proxy": {
           "prefix": "activities"
         }
+      },
+      {
+        "id": "cron",
+        "proxy": {
+          "prefix": "cron"
+        }
       }
     ]
   },
