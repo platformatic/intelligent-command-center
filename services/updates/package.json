@@ -13,7 +13,8 @@
     "@fastify/websocket": "^11.0.2",
     "@platformatic/service": "^2.59.1",
     "fastify-plugin": "^5.0.1",
-    "mqemitter-redis": "^6.1.0"
+    "mqemitter-redis": "^6.1.0",
+    "ws": "^8.18.1"
   },
   "engines": {
     "node": "^18.8.0 || >=20.6.0"
