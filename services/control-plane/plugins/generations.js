@@ -37,6 +37,7 @@ module.exports = fp(async function (app) {
 
     const { sql } = app.platformatic
 
+    const lastGeneration = await app.getLatestGeneration(ctx)
     const [newGeneration] = await tx.query(sql`
       INSERT INTO generations (version)
       SELECT COALESCE(MAX(version), 0) + 1 FROM generations
@@ -49,6 +50,13 @@ module.exports = fp(async function (app) {
     await callback(newGeneration, ctx)
 
     ctx.logger.debug('Generating new generation refs')
+
+    if (lastGeneration !== null) {
+      app.getBaseGraph(lastGeneration, ctx)
+        .catch((err) => {
+          ctx.logger.error({ err }, 'Failed to get base graph')
+        })
+    }
 
     await Promise.all([
       generateGenerationDeploymentsRefs(newGeneration.id, tx),
