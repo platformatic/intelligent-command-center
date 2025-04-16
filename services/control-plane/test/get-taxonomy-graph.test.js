@@ -5,36 +5,11 @@ const { test } = require('node:test')
 const {
   startControlPlane,
   startMetrics,
-  generateGeneration,
-  generateApplication,
-  generateApplicationState,
-  generateDeployment,
-  generateGraph
+  startActivities,
+  generateApplicationState
 } = require('./helper')
 
-test.skip('should get a generation graph', async (t) => {
-  const generation = generateGeneration()
-
-  const application1 = generateApplication('test-app-1')
-  const application2 = generateApplication('test-app-2')
-
-  const applicationState1 = generateApplicationState(application1.id)
-  const applicationState2 = generateApplicationState(application2.id)
-
-  const deployment1 = generateDeployment(
-    application1.id,
-    applicationState1.id
-  )
-  const deployment2 = generateDeployment(
-    application2.id,
-    applicationState2.id
-  )
-
-  const app1Service1TelemetryId = `${application1.name}-service1`
-  const app1Service2TelemetryId = `${application1.name}-service2`
-  const app2Service1TelemetryId = `${application2.name}-service1`
-  const app2Service2TelemetryId = `${application2.name}-service2`
-
+test('should get a generation graph', async (t) => {
   await startMetrics(t, {
     postServices: () => {
       return {
@@ -71,17 +46,46 @@ test.skip('should get a generation graph', async (t) => {
     }
   })
 
-  const controlPlane = await startControlPlane(t, {
-    generations: [generation],
-    applications: [application1, application2],
-    applicationStates: [applicationState1, applicationState2],
-    deployments: [deployment1, deployment2]
+  const controlPlane = await startControlPlane(t)
+
+  const {
+    application: application1,
+    deployment: deployment1
+  } = await controlPlane.testApi.saveDetectedPod(
+    'test-app-1',
+    'test-image-1',
+    'test-pod-1'
+  )
+
+  const {
+    generation,
+    application: application2,
+    deployment: deployment2
+  } = await controlPlane.testApi.saveDetectedPod(
+    'test-app-2',
+    'test-image-2',
+    'test-pod-2'
+  )
+
+  const applicationState1 = generateApplicationState(application1.id)
+  const applicationState2 = generateApplicationState(application2.id)
+
+  await controlPlane.platformatic.entities.applicationState.insert({
+    inputs: [applicationState1, applicationState2]
+  })
+  await controlPlane.platformatic.entities.deployment.save({
+    input: { id: deployment1.id, applicationStateId: applicationState1.id }
+  })
+  await controlPlane.platformatic.entities.deployment.save({
+    input: { id: deployment2.id, applicationStateId: applicationState2.id }
   })
 
-  const { statusCode, body } = await controlPlane.inject({
-    method: 'GET',
-    url: '/graph'
-  })
+  const app1Service1TelemetryId = `${application1.name}-service1`
+  const app1Service2TelemetryId = `${application1.name}-service2`
+  const app2Service1TelemetryId = `${application2.name}-service1`
+  const app2Service2TelemetryId = `${application2.name}-service2`
+
+  const { statusCode, body } = await controlPlane.inject({ url: '/graph' })
 
   assert.strictEqual(statusCode, 200, body)
 
@@ -94,7 +98,6 @@ test.skip('should get a generation graph', async (t) => {
   assert.deepStrictEqual(application1Node, {
     id: application1.id,
     name: 'test-app-1',
-    path: '/test-app-1',
     services: [
       {
         ...application1State.services[0],
@@ -118,7 +121,6 @@ test.skip('should get a generation graph', async (t) => {
   assert.deepStrictEqual(application2Node, {
     id: application2.id,
     name: 'test-app-2',
-    path: null,
     services: [
       {
         ...application2State.services[0],
@@ -134,31 +136,49 @@ test.skip('should get a generation graph', async (t) => {
     ]
   })
 
-  assert.strictEqual(links.length, 4)
+  assert.strictEqual(links.length, 5)
 
   {
     const incomeLinks = links.filter(
       (link) => link.source.telemetryId === 'X'
     )
 
-    assert.strictEqual(incomeLinks.length, 1)
+    assert.strictEqual(incomeLinks.length, 2)
 
-    assert.deepStrictEqual(incomeLinks, [
-      {
-        source: {
-          applicationId: null,
-          serviceId: null,
-          telemetryId: 'X'
+    assert.deepStrictEqual(
+      incomeLinks.sort(
+        (l1, l2) => l1.target.telemetryId.localeCompare(l2.target.telemetryId)
+      ),
+      [
+        {
+          source: {
+            applicationId: null,
+            serviceId: null,
+            telemetryId: 'X'
+          },
+          target: {
+            applicationId: application1.id,
+            serviceId: 'service1',
+            telemetryId: app1Service1TelemetryId
+          },
+          requestsAmount: 'no_requests',
+          responseTime: 'no_requests'
         },
-        target: {
-          applicationId: application1.id,
-          serviceId: 'service1',
-          telemetryId: app1Service1TelemetryId
-        },
-        requestsAmount: 'no_requests',
-        responseTime: 'no_requests'
-      }
-    ])
+        {
+          source: {
+            applicationId: null,
+            serviceId: null,
+            telemetryId: 'X'
+          },
+          target: {
+            applicationId: application2.id,
+            serviceId: 'service1',
+            telemetryId: app2Service1TelemetryId
+          },
+          requestsAmount: 'no_requests',
+          responseTime: 'no_requests'
+        }
+      ])
   }
 
   {
@@ -221,12 +241,10 @@ test.skip('should get a generation graph', async (t) => {
     ])
   }
 
-  const graphs = await controlPlane.platformatic.entities.graph.find({
-    skipAuth: true
-  })
-  assert.strictEqual(graphs.length, 1)
+  const graphs = await controlPlane.platformatic.entities.graph.find()
+  assert.strictEqual(graphs.length, 2)
 
-  const graph = graphs[0]
+  const graph = graphs.find((g) => g.generationId === generation.id)
   assert.strictEqual(graph.generationId, generation.id)
 
   const linksWithoutMetrics = links.map((link) => {
@@ -235,20 +253,72 @@ test.skip('should get a generation graph', async (t) => {
   assert.deepStrictEqual(graph.graph, { applications, links: linksWithoutMetrics })
 })
 
-test.skip('should get a previous generation graph', async (t) => {
-  const generation1 = generateGeneration()
-  const generation2 = generateGeneration()
-  const graph = generateGraph(generation1.id)
+test('should get a previous generation graph', async (t) => {
+  const app1Service1TelemetryId = 'test-app-1-service1'
+  const app1Service2TelemetryId = 'test-app-1-service2'
 
-  const controlPlane = await startControlPlane(t, {
-    generations: [generation1],
-    graphs: [graph]
+  await startActivities(t)
+
+  await startMetrics(t, {
+    postServices: () => {
+      return {
+        averageCallsCount: 1000,
+        overall50pLatency: 200,
+        overall95pLatency: 300,
+        servicesLinks: {
+          X: {
+            [app1Service1TelemetryId]: {
+              count: 200,
+              latency: 123
+            }
+          },
+          [app1Service1TelemetryId]: {
+            [app1Service2TelemetryId]: {
+              count: 1500,
+              latency: 350
+            }
+          }
+        }
+      }
+    }
   })
 
-  await controlPlane.platformatic.entities.generation.save({
-    input: generation2,
-    skipAuth: true
+  const controlPlane = await startControlPlane(t)
+
+  const {
+    generation: generation1,
+    application,
+    deployment
+  } = await controlPlane.testApi.saveDetectedPod(
+    'test-app-1',
+    'test-image-1',
+    'test-pod-1'
+  )
+
+  const applicationState = generateApplicationState(application.id)
+
+  await controlPlane.platformatic.entities.applicationState.insert({
+    inputs: [applicationState]
   })
+  await controlPlane.platformatic.entities.deployment.save({
+    input: { id: deployment.id, applicationStateId: applicationState.id }
+  })
+
+  {
+    const { statusCode, body } = await controlPlane.inject({
+      method: 'POST',
+      url: '/zio/pods',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: {
+        applicationName: 'test-app-2',
+        imageId: 'test-image-2',
+        podId: 'test-pod-2'
+      }
+    })
+    assert.strictEqual(statusCode, 200, body)
+  }
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'GET',
@@ -259,6 +329,63 @@ test.skip('should get a previous generation graph', async (t) => {
   assert.strictEqual(statusCode, 200, body)
 
   const { applications, links } = JSON.parse(body)
-  assert.deepStrictEqual(applications, graph.graph.applications)
-  assert.deepStrictEqual(links, graph.graph.links)
+
+  assert.strictEqual(applications.length, 1)
+  assert.strictEqual(links.length, 2)
+
+  const incomeLinks = links.filter(
+    (link) => link.source.telemetryId === 'X'
+  )
+
+  assert.strictEqual(incomeLinks.length, 1)
+
+  assert.deepStrictEqual(incomeLinks, [
+    {
+      source: {
+        applicationId: null,
+        serviceId: null,
+        telemetryId: 'X'
+      },
+      target: {
+        applicationId: application.id,
+        serviceId: 'service1',
+        telemetryId: app1Service1TelemetryId
+      },
+      requestsAmount: 'no_requests',
+      responseTime: 'no_requests'
+    }
+  ])
+
+  const applicationLinks = links.filter(
+    (link) => link.source.applicationId === application.id &&
+      link.target.applicationId === application.id
+  )
+  assert.strictEqual(applicationLinks.length, 1)
+  assert.deepStrictEqual(applicationLinks, [
+    {
+      source: {
+        applicationId: application.id,
+        serviceId: 'service1',
+        telemetryId: app1Service1TelemetryId
+      },
+      target: {
+        applicationId: application.id,
+        serviceId: 'service2',
+        telemetryId: app1Service2TelemetryId
+      },
+      requestsAmount: 'no_requests',
+      responseTime: 'no_requests'
+    }
+  ])
+
+  const graphs = await controlPlane.platformatic.entities.graph.find()
+  assert.strictEqual(graphs.length, 1)
+
+  const graph = graphs.find((g) => g.generationId === generation1.id)
+  assert.strictEqual(graph.generationId, generation1.id)
+
+  const linksWithoutMetrics = links.map((link) => {
+    return { ...link, requestsAmount: 'no_requests', responseTime: 'no_requests' }
+  })
+  assert.deepStrictEqual(graph.graph, { applications, links: linksWithoutMetrics })
 })

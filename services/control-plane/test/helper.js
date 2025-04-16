@@ -21,7 +21,8 @@ const defaultEnv = {
   PLT_EXTERNAL_RISK_SERVICE_URL: '',
   PLT_EXTERNAL_METRICS_URL: '',
 
-  PLT_ACTIVITIES_URL: 'http://localhost:3004'
+  PLT_ACTIVITIES_URL: 'http://localhost:3004',
+  PLT_METRICS_URL: 'http://localhost:3009'
 }
 
 function setUpEnvironment (env = {}) {
@@ -69,13 +70,13 @@ async function startControlPlane (t, entities = {}, env = {}) {
         name: 'activities',
         type: 'openapi',
         url: process.env.PLT_ACTIVITIES_URL
+      },
+      {
+        schema: join(clientsDir, 'metrics', 'metrics.openapi.json'),
+        name: 'metrics',
+        type: 'openapi',
+        url: process.env.PLT_METRICS_URL
       }
-      // {
-      //   schema: join(clientsDir, 'metrics', 'metrics.openapi.json'),
-      //   name: 'metrics',
-      //   type: 'openapi',
-      //   url: process.env.PLT_METRICS_URL
-      // },
     ],
     watch: false
   })
@@ -85,6 +86,9 @@ async function startControlPlane (t, entities = {}, env = {}) {
     req: {
       activities: {
         postEvents: () => ({ id: 42, event: 'test' })
+      },
+      metrics: {
+        postServices: () => ({})
       }
     }
   }
@@ -396,7 +400,7 @@ async function startMetrics (t, opts = {}) {
   })
 
   metrics.post('/services/metrics', async (req) => {
-    return opts.postTaxonomiesTaxonomyIdServicesMetrics(req.body)
+    return opts.postServicesMetrics(req.body)
   })
 
   t.after(async () => {
