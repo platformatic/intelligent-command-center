@@ -24,7 +24,6 @@ module.exports = async function (fastify, opts) {
         connection.send(JSON.stringify({ command: 'ack' }))
       }
       const topicList = new Set()
-      // fastify.mq.on('icc-updates/+', subscriber)
       connection.on('message', async (message) => {
         message = JSON.parse(message.toString())
         switch (message.command) {
