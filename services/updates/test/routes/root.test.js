@@ -5,7 +5,7 @@ const assert = require('node:assert')
 const { getServer } = require('../helper')
 const { request } = require('undici')
 const { once } = require('node:events')
-
+const WebSocket = require('ws')
 test('should return 204 when posting an event', async (t) => {
   const server = await getServer(t)
   const res = await server.inject({
@@ -35,31 +35,13 @@ test('the event should be sent to the websocket', async (t) => {
   t.after(() => {
     socket.close()
   })
-  let received = false
-
-  // prepare to receive the subscription messages
-  const subscriptionPromise = new Promise((resolve) => {
-    socket.addEventListener('message', (message) => {
-      const data = JSON.parse(message.data)
-      if (data.command === 'ack') {
-        // do nothing
-      } else {
-        assert.deepStrictEqual(data, {
-          topic: 'ui-updates/applications',
-          data: {
-            foo: 'bar'
-          }
-        })
-        received = true
-        resolve(true)
-      }
-    })
-  })
 
   // subscribe to the topic
   socket.send(JSON.stringify({ command: 'subscribe', topic: 'ui-updates/applications' }))
 
-  // send the event
+  const subscriptionAck = await once(socket, 'message')
+  assert.deepStrictEqual(JSON.parse(subscriptionAck[0]), { command: 'ack' })
+
   await request(`${url}/events`, {
     method: 'POST',
     headers: {
@@ -72,28 +54,16 @@ test('the event should be sent to the websocket', async (t) => {
       }
     })
   })
-
-  // wait for the subscription messages
-  await subscriptionPromise
-
-  // prepare to receive the unsubscription messages
-  const unsubscriptionPromise = new Promise((resolve) => {
-    socket.addEventListener('message', (message) => {
-      const data = JSON.parse(message.data)
-      if (data.command === 'ack') {
-        socket.close()
-        resolve(true)
-      } else {
-        throw new Error('Unexpected message after unsubscription')
-      }
-    })
+  const notification = await once(socket, 'message')
+  const notificationData = JSON.parse(notification[0])
+  assert.deepStrictEqual(notificationData, {
+    topic: 'ui-updates/applications',
+    data: {
+      foo: 'bar'
+    }
   })
-
   // unsubscribe from the topic
   socket.send(JSON.stringify({ command: 'unsubscribe', topic: 'ui-updates/applications' }))
-
-  // wait for the unsubscription messages
-  await unsubscriptionPromise
-
-  assert.strictEqual(received, true)
+  const unsubscriptionAck = await once(socket, 'message')
+  assert.deepStrictEqual(JSON.parse(unsubscriptionAck[0]), { command: 'ack' })
 })
