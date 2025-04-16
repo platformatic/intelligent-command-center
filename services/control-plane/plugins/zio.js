@@ -48,9 +48,32 @@ module.exports = fp(async function (app) {
       }
       ctx.logger.debug({ detectedPod }, 'Got detected with the same pod id')
     } else {
-      ({ application, deployment } = await app.saveDetectedPod(
+      const result = await app.saveDetectedPod(
         applicationName, imageId, podId, ctx
-      ))
+      )
+
+      if (result.isNewApplication) {
+        await app.sendSuccessfulApplicationCreateActivity(
+          result.application.id,
+          result.application.name,
+          ctx
+        ).catch((err) => {
+          ctx.logger.error({ err }, 'Failed to send activity')
+        })
+      }
+      if (result.isNewDeployment) {
+        await app.sendSuccessfulApplicationDeployActivity(
+          result.application.id,
+          result.application.name,
+          result.deployment.imageId,
+          ctx
+        ).catch((err) => {
+          ctx.logger.error({ err }, 'Failed to send activity')
+        })
+      }
+
+      application = result.application
+      deployment = result.deployment
     }
 
     const [config, httpCacheClientOpts] = await Promise.all([
@@ -72,6 +95,9 @@ module.exports = fp(async function (app) {
     return app.getGenerationLockTx(async (tx) => {
       ctx = { ...ctx, tx }
 
+      let isNewApplication = false
+      let isNewDeployment = false
+
       let [application, generation] = await Promise.all([
         app.getApplicationByName(applicationName, ctx),
         app.getLatestGeneration(ctx)
@@ -89,10 +115,12 @@ module.exports = fp(async function (app) {
       }
 
       if (application === null) {
+        isNewApplication = true
         application = await app.saveApplication(applicationName, ctx)
       }
 
       if (deployment === null) {
+        isNewDeployment = true
         await app.createGeneration(async (newGeneration) => {
           deployment = await entities.deployment.save({
             input: {
@@ -117,7 +145,14 @@ module.exports = fp(async function (app) {
         tx
       })
 
-      return { application, generation, deployment, detectedPod }
+      return {
+        isNewApplication,
+        isNewDeployment,
+        application,
+        generation,
+        deployment,
+        detectedPod
+      }
     }, ctx)
   })
 
