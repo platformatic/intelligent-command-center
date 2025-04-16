@@ -1,0 +1,670 @@
+name: Pull requests
+on: [pull_request, workflow_call, workflow_dispatch]
+
+env:
+  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  setup-node_modules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          # https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#use-private-packages
+          registry-url: 'https://registry.npmjs.org'
+          node-version: 20
+          cache: 'pnpm'
+      - uses: 'nick-fields/retry@v3.0.2'
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: pnpm fetch --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  lint:
+    needs: setup-node_modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: 20
+          cache: 'pnpm'
+      - name: pnpm install
+        uses: nick-fields/retry@v3.0.2
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Run lint
+        run: pnpm lint
+
+  ci-main:
+    needs: setup-node_modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      # risk-valkey:
+      #   image: 'valkey/valkey:8.1'
+      #   ports:
+      #     - '6379:6379'
+      cache-valkey:
+        image: 'valkey/valkey:8.1'
+        ports:
+          - '6342:6379'
+      control-plane-postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: control_plane
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+      # compliance-postgres:
+      #   image: postgres
+      #   env:
+      #     POSTGRES_PASSWORD: postgres
+      #     POSTGRES_DB: compliance
+      #   options: >-
+      #     --health-cmd pg_isready
+      #     --health-interval 10s
+      #     --health-timeout 5s
+      #     --health-retries 5
+      #   ports:
+      #     - 5438:5432
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: 20
+          cache: 'pnpm'
+      - name: pnpm install
+        uses: nick-fields/retry@v3.0.2
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Create session-key
+        run: node ./services/main/node_modules/@fastify/secure-session/genkey.js > .session-key
+      - name: Run test suite
+        run: cd services/main && pnpm run test
+
+  ci-user-manager:
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: user_manager
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    needs: setup-node_modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: 20
+          cache: 'pnpm'
+      - name: pnpm install
+        uses: nick-fields/retry@v3.0.2
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Run test suite
+        run: cd services/user-manager && pnpm run test
+
+  # ci-trafficante:
+  #   services:
+  #     postgres:
+  #       image: postgres
+  #       env:
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: trafficante
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #       ports:
+  #         - 5441:5432
+  #     control-plane-postgres:
+  #       image: postgres
+  #       env:
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: control_plane
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #       ports:
+  #         - 5433:5432
+  #
+  #     valkey:
+  #       image: 'valkey/valkey:8.1'
+  #       ports:
+  #         - '6349:6379'
+  #   needs: setup-node_modules
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4.1.0
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         registry-url: 'https://registry.npmjs.org'
+  #         node-version: 20
+  #         cache: 'pnpm'
+  #     - name: pnpm install
+  #       uses: nick-fields/retry@v3.0.2
+  #       with:
+  #         max_attempts: 10
+  #         timeout_minutes: 5
+  #         retry_on: error
+  #         command: pnpm install --frozen-lockfile
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - name: Run test suite
+  #       run: cd services/trafficante && pnpm run test
+  #
+  ci-activities:
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: activities
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5435:5432
+    needs: setup-node_modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: 20
+          cache: 'pnpm'
+      - name: pnpm install
+        uses: nick-fields/retry@v3.0.2
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Run test suite
+        run: cd services/activities && pnpm run test
+
+  ci-control-plane:
+    needs: setup-node_modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      control-plane-postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: control_plane
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+      # compliance-postgres:
+      #   image: postgres
+      #   env:
+      #     POSTGRES_PASSWORD: postgres
+      #     POSTGRES_DB: compliance
+      #   options: >-
+      #     --health-cmd pg_isready
+      #     --health-interval 10s
+      #     --health-timeout 5s
+      #     --health-retries 5
+      #   ports:
+      #     - 5438:5432
+      valkey:
+        image: 'valkey/valkey:8.1'
+        ports:
+          - '6379:6379'
+      # cache-valkey:
+      #   image: 'valkey/valkey:8.1'
+      #   ports:
+      #     - '6342:6379'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: 20
+          cache: 'pnpm'
+      - name: pnpm install
+        uses: nick-fields/retry@v3.0.2
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Run test suite
+        run: cd services/control-plane && pnpm test
+
+  # ci-risk-service:
+  #   services:
+  #     postgres:
+  #       image: postgres
+  #       env:
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: activities
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #       ports:
+  #         - 15442:5432
+  #
+  #     valkey:
+  #       image: 'valkey/valkey:8.1'
+  #       ports:
+  #         - '6379:6379'
+  #
+  #   needs: setup-node_modules
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4.1.0
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         registry-url: 'https://registry.npmjs.org'
+  #         node-version: 20
+  #     - name: pnpm install
+  #       uses: nick-fields/retry@v3.0.2
+  #       with:
+  #         max_attempts: 10
+  #         timeout_minutes: 5
+  #         retry_on: error
+  #         command: pnpm install --frozen-lockfile
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - run: cd services/risk-service && pnpm run test
+  #
+  # ci-risk-cold-storage:
+  #   services:
+  #     postgres:
+  #       image: postgres
+  #       env:
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: risk-cold-storage
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #       ports:
+  #         - 5442:5432
+  #
+  #     valkey:
+  #       image: 'valkey/valkey:8.1'
+  #       ports:
+  #         - '6379:6379'
+  #
+  #   needs: setup-node_modules
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4.1.0
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         registry-url: 'https://registry.npmjs.org'
+  #         node-version: 20
+  #     - name: pnpm install
+  #       uses: nick-fields/retry@v3.0.2
+  #       with:
+  #         max_attempts: 10
+  #         timeout_minutes: 5
+  #         retry_on: error
+  #         command: pnpm install --frozen-lockfile
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - run: cd services/risk-cold-storage && pnpm run test
+  #
+  # ci-risk-manager:
+  #   services:
+  #     postgres:
+  #       image: postgres
+  #       env:
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: risk-manager
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #       ports:
+  #         - 5443:5432
+  #
+  #     valkey:
+  #       image: 'valkey/valkey:8.1'
+  #       ports:
+  #         - '6379:6379'
+  #
+  #   needs: setup-node_modules
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     # This is used to install private repos as dependency.
+  #     - uses: pnpm/action-setup@v4.1.0
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         registry-url: 'https://registry.npmjs.org'
+  #         node-version: 20
+  #     - name: pnpm install
+  #       uses: nick-fields/retry@v3.0.2
+  #       with:
+  #         max_attempts: 10
+  #         timeout_minutes: 5
+  #         retry_on: error
+  #         command: pnpm install --frozen-lockfile
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - run: cd services/risk-manager && pnpm run test
+  #
+  # ci-cache-manager:
+  #   services:
+  #     valkey:
+  #       image: 'valkey/valkey:8.1'
+  #       ports:
+  #         - '6342:6379'
+  #     control-plane-postgres:
+  #       image: postgres
+  #       env:
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: control_plane
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #       ports:
+  #         - 5433:5432
+  #   needs: setup-node_modules
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4.1.0
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         registry-url: 'https://registry.npmjs.org'
+  #         node-version: 20
+  #     - name: pnpm install
+  #       uses: nick-fields/retry@v3.0.2
+  #       with:
+  #         max_attempts: 10
+  #         timeout_minutes: 5
+  #         retry_on: error
+  #         command: pnpm install --frozen-lockfile
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - run: cd services/cache-manager && pnpm run test
+  #
+  # ci-cluster-manager:
+  #   services:
+  #     valkey:
+  #       image: 'valkey/valkey:8.1'
+  #       ports:
+  #         - '6342:6379'
+  #     postgres:
+  #       image: postgres
+  #       env:
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: cluster_manager
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #       ports:
+  #         - 5439:5432
+  #     control-plane-postgres:
+  #       image: postgres
+  #       env:
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: control_plane
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #       ports:
+  #         - 5433:5432
+  #   needs: setup-node_modules
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4.1.0
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         registry-url: 'https://registry.npmjs.org'
+  #         node-version: 20
+  #     - name: pnpm install
+  #       uses: nick-fields/retry@v3.0.2
+  #       with:
+  #         max_attempts: 10
+  #         timeout_minutes: 5
+  #         retry_on: error
+  #         command: pnpm install --frozen-lockfile
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - run: cd services/cluster-manager && pnpm run test
+  #
+  # ci-compliance:
+  #   services:
+  #     postgres:
+  #       image: postgres
+  #       env:
+  #         POSTGRES_PASSWORD: postgres
+  #         POSTGRES_DB: compliance
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #       ports:
+  #         - 5438:5432
+  #   needs: setup-node_modules
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     # This is used to install private repos as dependency.
+  #     - uses: pnpm/action-setup@v4.1.0
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         registry-url: 'https://registry.npmjs.org'
+  #         node-version: 20
+  #         cache: 'pnpm'
+  #     - name: pnpm install
+  #       uses: nick-fields/retry@v3.0.2
+  #       with:
+  #         max_attempts: 10
+  #         timeout_minutes: 5
+  #         retry_on: error
+  #         command: pnpm install --frozen-lockfile
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - name: Run test suite
+  #       run: cd services/compliance && pnpm run test
+  #
+  # ci-metrics:
+  #   needs: setup-node_modules
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     # This is used to install private repos as dependency.
+  #     - uses: pnpm/action-setup@v4.1.0
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         registry-url: 'https://registry.npmjs.org'
+  #         node-version: 20
+  #         cache: 'pnpm'
+  #     - name: pnpm install
+  #       uses: nick-fields/retry@v3.0.2
+  #       with:
+  #         max_attempts: 10
+  #         timeout_minutes: 5
+  #         retry_on: error
+  #         command: pnpm install --frozen-lockfile
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - name: Run test suite
+  #       run: cd services/metrics && pnpm run test
+  #
+  # ci-frontend:
+  #   needs: setup-node_modules
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4.1.0
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         registry-url: 'https://registry.npmjs.org'
+  #         node-version: 20
+  #         cache: 'pnpm'
+  #     - name: pnpm install
+  #       uses: nick-fields/retry@v3.0.2
+  #       with:
+  #         max_attempts: 10
+  #         timeout_minutes: 5
+  #         retry_on: error
+  #         command: pnpm install --frozen-lockfile
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #     - name: Run test suite
+  #       run: cd services/frontend && pnpm run test
+  #     - name: Build App
+  #       run: cd services/frontend && pnpm run build
+  #
+  ci-cron:
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cron
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5440:5432
+    needs: setup-node_modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: 20
+      - name: pnpm install
+        uses: nick-fields/retry@v3.0.2
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: cd services/cron && pnpm run test
