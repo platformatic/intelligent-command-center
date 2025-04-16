@@ -1,0 +1,5 @@
+{
+  "name": "control-plane",
+  "types": "./control-plane.d.ts",
+  "main": "./control-plane.cjs"
+}

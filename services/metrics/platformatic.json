@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/service/2.16.0.json",
+  "service": {
+    "openapi": true
+  },
+  "watch": "{DEV_K8S}",
+  "plugins": {
+    "paths": [
+      {
+        "path": "./plugins",
+        "encapsulate": false
+      },
+      "./routes"
+    ],
+    "typescript": false
+  },
+  "clients": [
+    {
+      "schema": "../../clients/control-plane/control-plane.openapi.json",
+      "name": "controlPlane",
+      "type": "openapi",
+      "serviceId": "control-plane"
+    }
+  ]
+}
