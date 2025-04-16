@@ -108,7 +108,7 @@ jobs:
           node-version: 20
           cache: 'pnpm'
       - name: Configure postgres
-        run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql
+        run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
