@@ -24,6 +24,9 @@ importers:
         specifier: ^2.50.0
         version: 2.56.0
     devDependencies:
+      '@fastify/secure-session':
+        specifier: ^8.2.0
+        version: 8.2.0
       '@platformatic/config':
         specifier: ^2.50.0
         version: 2.56.0
