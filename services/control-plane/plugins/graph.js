@@ -19,7 +19,9 @@ module.exports = fp(async function (app) {
         d.application_id = a.id
       LEFT JOIN application_states s ON
         d.application_state_id = s.id
-      WHERE d.generation_id = ${generation.id}
+      LEFT JOIN generations_deployments gd ON
+        gd.deployment_id = d.id
+      WHERE gd.generation_id = ${generation.id}
     `)
 
     const applications = []
@@ -28,7 +30,7 @@ module.exports = fp(async function (app) {
     for (const application of applicationsWithStates) {
       const services = application.state?.services ?? []
 
-      if (application.path !== null && services.length > 0) {
+      if (services.length > 0) {
         const entrypoint = services.find(
           (service) => service.entrypoint === true
         )
@@ -52,7 +54,6 @@ module.exports = fp(async function (app) {
       applications.push({
         id: application.id,
         name: application.name,
-        path: application.path,
         services
       })
     }

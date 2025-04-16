@@ -27,7 +27,6 @@ module.exports = async function (app) {
                 properties: {
                   id: { type: 'string' },
                   name: { type: 'string' },
-                  path: { type: 'string', nullable: true },
                   services: {
                     type: 'array',
                     items: {
@@ -36,7 +35,7 @@ module.exports = async function (app) {
                     }
                   }
                 },
-                required: ['id', 'name', 'path', 'services'],
+                required: ['id', 'name', 'services'],
                 additionalProperties: false
               }
             },
