@@ -146,7 +146,7 @@ test('events search with multiple records', async (t) => {
         userId: userId2,
         username: username2,
         objectId,
-        event: 'APPLICATION_DELETE',
+        event: 'APPLICATION_RESOURCES_UPDATE',
         data
       }
     })
@@ -219,7 +219,7 @@ test('events search with multiple records', async (t) => {
       query: {
         limit: 100,
         offset: 0,
-        search: 'delete'
+        search: 'update'
       }
     })
 

@@ -4,7 +4,7 @@ const { UnknownEventTypeError } = require('../lib/errors')
 const userLoginEvent = require('./user-login-event')
 const createApplicationEvent = require('./create-application-event')
 const deployApplicationEvent = require('./deploy-application-event')
-const updateApplicationResources = require('./update-application-resources')
+const updateApplicationResources = require('./update-application-resources-event')
 
 module.exports.getPayloadForEventType = function (type, data) {
   let payload = {}
