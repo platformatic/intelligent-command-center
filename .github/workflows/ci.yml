@@ -98,15 +98,8 @@ jobs:
       #   ports:
       #     - 5433:5432
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4.1.0
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          registry-url: 'https://registry.npmjs.org'
-          node-version: 20
-          cache: 'pnpm'
+      - name: configure postgreSQL
+        run: cat .github/workflows/ci/docker-entrypoint-initdb.d/docker-postgres-init.sql | docker exec -i postgres bash
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
