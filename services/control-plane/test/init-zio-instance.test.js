@@ -118,6 +118,22 @@ test('should save a detected pod of a new application', async (t) => {
   const foundGenerationAppConfigs = generationsConfigs[0]
   assert.strictEqual(foundGenerationAppConfigs.generationId, generation.id)
   assert.strictEqual(foundGenerationAppConfigs.configId, foundAppConfig.id)
+
+  assert.strictEqual(activities.length, 2)
+
+  const createAppActivity = activities[0]
+  assert.strictEqual(createAppActivity.type, 'APPLICATION_CREATE')
+  assert.strictEqual(createAppActivity.applicationId, application.id)
+  assert.strictEqual(createAppActivity.targetId, application.id)
+  assert.strictEqual(createAppActivity.success, true)
+  assert.deepStrictEqual(createAppActivity.data, { applicationName })
+
+  const deployAppActivity = activities[1]
+  assert.strictEqual(deployAppActivity.type, 'APPLICATION_DEPLOY')
+  assert.strictEqual(deployAppActivity.applicationId, application.id)
+  assert.strictEqual(deployAppActivity.targetId, application.id)
+  assert.strictEqual(deployAppActivity.success, true)
+  assert.deepStrictEqual(deployAppActivity.data, { applicationName, imageId })
 })
 
 test('should save a new detected pod with the same image', async (t) => {
@@ -267,6 +283,8 @@ test('should save a new detected pod with the same image', async (t) => {
     generation2.id
   )
   assert.strictEqual(generation2Configs.length, 2)
+
+  assert.strictEqual(activities.length, 0)
 })
 
 test('should detect the same pod with the same image', async (t) => {
@@ -365,6 +383,8 @@ test('should detect the same pod with the same image', async (t) => {
 
   const generationsAppConfigs = await entities.generationsApplicationsConfig.find()
   assert.strictEqual(generationsAppConfigs.length, 1)
+
+  assert.strictEqual(activities.length, 0)
 })
 
 test('should save an detected pod with a different image', async (t) => {
@@ -480,6 +500,15 @@ test('should save an detected pod with a different image', async (t) => {
     heap: 1024,
     services: []
   })
+
+  assert.strictEqual(activities.length, 1)
+
+  const deployAppActivity = activities[0]
+  assert.strictEqual(deployAppActivity.type, 'APPLICATION_DEPLOY')
+  assert.strictEqual(deployAppActivity.applicationId, application1.id)
+  assert.strictEqual(deployAppActivity.targetId, application1.id)
+  assert.strictEqual(deployAppActivity.success, true)
+  assert.deepStrictEqual(deployAppActivity.data, { applicationName, imageId })
 })
 
 test('should save a lot of simultaneous detected pods of different applications', async (t) => {
@@ -550,6 +579,8 @@ test('should save a lot of simultaneous detected pods of different applications'
   const configs = await entities.applicationsConfig.find()
   assert.strictEqual(configs.length, APPS_COUNT)
 
+  assert.strictEqual(activities.length, APPS_COUNT * 2)
+
   for (let i = 0; i < APPS_COUNT; i++) {
     const applicationName = applicationNames[i]
     const imageId = imageIds[i]
@@ -584,6 +615,25 @@ test('should save a lot of simultaneous detected pods of different applications'
       assert.strictEqual(detectedPod.status, 'starting')
       assert.ok(detectedPod.podId)
     }
+
+    const applicationActivities = activities.filter(
+      (a) => a.applicationId === application.id
+    )
+    assert.strictEqual(applicationActivities.length, 2)
+
+    const createAppActivity = applicationActivities[0]
+    assert.strictEqual(createAppActivity.type, 'APPLICATION_CREATE')
+    assert.strictEqual(createAppActivity.applicationId, application.id)
+    assert.strictEqual(createAppActivity.targetId, application.id)
+    assert.strictEqual(createAppActivity.success, true)
+    assert.deepStrictEqual(createAppActivity.data, { applicationName })
+
+    const deployAppActivity = applicationActivities[1]
+    assert.strictEqual(deployAppActivity.type, 'APPLICATION_DEPLOY')
+    assert.strictEqual(deployAppActivity.applicationId, application.id)
+    assert.strictEqual(deployAppActivity.targetId, application.id)
+    assert.strictEqual(deployAppActivity.success, true)
+    assert.deepStrictEqual(deployAppActivity.data, { applicationName, imageId })
   }
 
   let prevGenerationDeployments = []

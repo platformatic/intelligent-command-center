@@ -3,6 +3,7 @@
 const { UnknownEventTypeError } = require('../lib/errors')
 const userLoginEvent = require('./user-login-event')
 const createApplicationEvent = require('./create-application-event')
+const deployApplicationEvent = require('./deploy-application-event')
 const updateApplicationResources = require('./update-application-resources')
 
 module.exports.getPayloadForEventType = function (type, data) {
@@ -15,6 +16,13 @@ module.exports.getPayloadForEventType = function (type, data) {
       payload = createApplicationEvent(
         data.applicationId,
         data.data.applicationName
+      )
+      break
+    case 'APPLICATION_DEPLOY':
+      payload = deployApplicationEvent(
+        data.applicationId,
+        data.data.applicationName,
+        data.data.imageId
       )
       break
     case 'APPLICATION_RESOURCES_UPDATE':
@@ -40,6 +48,7 @@ module.exports.getTypes = function () {
   return {
     USER_LOGIN: 'User Login',
     APPLICATION_CREATE: 'Application Create',
+    APPLICATION_DEPLOY: 'Application Deploy',
     APPLICATION_RESOURCES_UPDATE: 'Application Resources Update'
   }
 }
