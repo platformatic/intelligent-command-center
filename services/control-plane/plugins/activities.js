@@ -6,21 +6,79 @@ const fp = require('fastify-plugin')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
+  app.decorate('sendSuccessfulApplicationCreateActivity', async (
+    applicationId,
+    applicationName,
+    ctx
+  ) => {
+    await sendSuccessActivity({
+      type: 'APPLICATION_CREATE',
+      applicationId,
+      data: { applicationName },
+      targetId: applicationId
+    }, ctx)
+  })
+
+  app.decorate('sendFailedApplicationCreateActivity', async (
+    applicationId,
+    applicationName,
+    err,
+    ctx
+  ) => {
+    await sendFailedActivity({
+      type: 'APPLICATION_CREATE',
+      applicationId,
+      data: { applicationName },
+      targetId: applicationId
+    }, err, ctx)
+  })
+
+  app.decorate('sendSuccessfulApplicationDeployActivity', async (
+    applicationId,
+    applicationName,
+    imageId,
+    ctx
+  ) => {
+    await sendSuccessActivity({
+      type: 'APPLICATION_DEPLOY',
+      applicationId,
+      data: { applicationName, imageId },
+      targetId: applicationId
+    }, ctx)
+  })
+
+  app.decorate('sendFailedApplicationDeployActivity', async (
+    applicationId,
+    applicationName,
+    imageId,
+    err,
+    ctx
+  ) => {
+    await sendFailedActivity({
+      type: 'APPLICATION_DEPLOY',
+      applicationId,
+      data: { applicationName, imageId },
+      targetId: applicationId
+    }, err, ctx)
+  })
+
   app.decorate('sendSuccessfulResourceUpdateActivity', async (
     applicationId,
+    applicationName,
     resources,
     ctx
   ) => {
     await sendSuccessActivity({
       type: 'APPLICATION_RESOURCES_UPDATE',
       applicationId,
-      data: resources,
+      data: { applicationName, resources },
       targetId: applicationId
     }, ctx)
   })
 
   app.decorate('sendFailedResourceUpdateActivity', async (
     applicationId,
+    applicationName,
     resources,
     err,
     ctx
@@ -28,45 +86,18 @@ module.exports = fp(async function (app) {
     await sendFailedActivity({
       type: 'APPLICATION_RESOURCES_UPDATE',
       applicationId,
-      data: resources,
-      targetId: applicationId
-    }, err, ctx)
-  })
-
-  app.decorate('sendApplicationStartedActivity', async (
-    applicationId,
-    ctx
-  ) => {
-    await sendSuccessActivity({
-      type: 'APPLICATION_START',
-      userId: null,
-      username: null,
-      applicationId,
-      targetId: applicationId
-    }, ctx)
-  })
-
-  app.decorate('sendApplicationFailedActivity', async (
-    applicationId,
-    err,
-    ctx
-  ) => {
-    await sendFailedActivity({
-      type: 'APPLICATION_START',
-      userId: null,
-      username: null,
-      applicationId,
+      data: { applicationName, resources },
       targetId: applicationId
     }, err, ctx)
   })
 
   function sendSuccessActivity (activity, ctx) {
-    if (
-      activity.userId === undefined ||
-      activity.username === undefined
-    ) {
-      activity.userId = ctx.req.user.id
-      activity.username = ctx.req.user.username
+    const userId = ctx.req.user?.id
+    const username = ctx.req.user?.username
+
+    if (userId !== undefined && username !== undefined) {
+      activity.userId = userId
+      activity.username = username
     }
 
     activity.success = true
@@ -105,7 +136,7 @@ module.exports = fp(async function (app) {
     if (result.id) {
       ctx.logger.info(
         { event: result },
-        `Activity ${result.event} by ${result.username} stored with id ${result.id}`
+        `Activity ${result.event} stored with id ${result.id}`
       )
     }
     if (result.error) {

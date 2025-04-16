@@ -18,7 +18,13 @@ async function plugin (app) {
     app.log.info({ loggedInUser: loginData.user })
 
     if (req) {
-      app.saveUserLoginEvent(req, loginData.user.id, loginData.user.username) // do now await this
+      await app.saveUserLoginEvent(
+        req,
+        loginData.user.id,
+        loginData.user.username
+      ).catch((err) => {
+        req.log.error({ err }, 'Failed to save user login event')
+      })
     }
 
     const redirectTarget = app.config.PLT_MAIN_URL
