@@ -31,5 +31,19 @@
     ],
     "typescript": false
   },
+  "clients": [
+    {
+      "schema": "../../clients/activities/activities.openapi.json",
+      "name": "activities",
+      "type": "openapi",
+      "serviceId": "activities"
+    },
+    {
+      "schema": "../../clients/metrics/metrics.openapi.json",
+      "name": "metrics",
+      "type": "openapi",
+      "serviceId": "metrics"
+    }
+  ],
   "watch": "{DEV_K8S}"
 }
