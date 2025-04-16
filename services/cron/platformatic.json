@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.45.0.json",
+  "server": {
+    "logger": {
+      "level": "{PLT_CRON_LOGGER_LEVEL}"
+    }
+  },
+  "watch": {
+    "enabled": "{DEV_K8S}"
+  },
+  "db": {
+    "connectionString": "{PLT_CRON_DATABASE_URL}",
+    "graphql": true,
+    "openapi": true
+  },
+  "migrations": {
+    "dir": "migrations",
+    "autoApply": true
+  },
+  "plugins": {
+    "paths": [
+      "./routes",
+      "./plugins"
+    ],
+    "typescript": false
+  },
+  "metrics": {
+    "server": "parent"
+  }
+}
