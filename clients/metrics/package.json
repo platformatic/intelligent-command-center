@@ -1,0 +1,5 @@
+{
+  "name": "metrics",
+  "types": "./metrics.d.ts",
+  "main": "./metrics.cjs"
+}
