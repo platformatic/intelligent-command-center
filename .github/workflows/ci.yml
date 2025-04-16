@@ -85,18 +85,6 @@ jobs:
           --name icc-postgres
         ports:
           - 5433:5432
-      # compliance-postgres:
-      #   image: postgres
-      #   env:
-      #     POSTGRES_PASSWORD: postgres
-      #     POSTGRES_DB: compliance
-      #   options: >-
-      #     --health-cmd pg_isready
-      #     --health-interval 10s
-      #     --health-timeout 5s
-      #     --health-retries 5
-      #   ports:
-      #     - 5433:5432
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4.1.0
@@ -125,16 +113,17 @@ jobs:
 
   ci-user-manager:
     services:
-      postgres:
+      icc-postgres:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: user_manager
+          POSTGRES_DB: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --name icc-postgres
         ports:
           - 5433:5432
     needs: setup-node_modules
@@ -150,6 +139,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           node-version: 20
           cache: 'pnpm'
+      - name: Configure postgres
+        run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -164,31 +155,19 @@ jobs:
 
   # ci-trafficante:
   #   services:
-  #     postgres:
+  #     icc-postgres:
   #       image: postgres
   #       env:
   #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: trafficante
+  #         POSTGRES_DB: postgres
   #       options: >-
   #         --health-cmd pg_isready
   #         --health-interval 10s
   #         --health-timeout 5s
   #         --health-retries 5
+  #         --name icc-postgres
   #       ports:
   #         - 5433:5432
-  #     control-plane-postgres:
-  #       image: postgres
-  #       env:
-  #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: control_plane
-  #       options: >-
-  #         --health-cmd pg_isready
-  #         --health-interval 10s
-  #         --health-timeout 5s
-  #         --health-retries 5
-  #       ports:
-  #         - 5433:5432
-  #
   #     valkey:
   #       image: 'valkey/valkey:8.1'
   #       ports:
@@ -206,6 +185,8 @@ jobs:
   #         registry-url: 'https://registry.npmjs.org'
   #         node-version: 20
   #         cache: 'pnpm'
+  #     - name: Configure postgres
+  #       run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
   #     - name: pnpm install
   #       uses: nick-fields/retry@v3.0.2
   #       with:
@@ -217,19 +198,20 @@ jobs:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - name: Run test suite
   #       run: cd services/trafficante && pnpm run test
-  #
+
   ci-activities:
     services:
-      postgres:
+      icc-postgres:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: activities
+          POSTGRES_DB: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --name icc-postgres
         ports:
           - 5433:5432
     needs: setup-node_modules
@@ -245,6 +227,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           node-version: 20
           cache: 'pnpm'
+      - name: Configure postgres
+        run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -272,29 +256,13 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          -v /__w/pg-init:/docker-entrypoint-initdb.d
+          --name icc-postgres
         ports:
           - 5433:5432
-      # compliance-postgres:
-      #   image: postgres
-      #   env:
-      #     POSTGRES_PASSWORD: postgres
-      #     POSTGRES_DB: compliance
-      #   options: >-
-      #     --health-cmd pg_isready
-      #     --health-interval 10s
-      #     --health-timeout 5s
-      #     --health-retries 5
-      #   ports:
-      #     - 5433:5432
-      valkey:
+      cache-valkey:
         image: 'valkey/valkey:8.1'
         ports:
-          - '6379:6379'
-      # cache-valkey:
-      #   image: 'valkey/valkey:8.1'
-      #   ports:
-      #     - '6342:6379'
+          - '6342:6379'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4.1.0
@@ -305,6 +273,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           node-version: 20
           cache: 'pnpm'
+      - name: Configure postgres
+        run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -319,24 +289,25 @@ jobs:
 
   # ci-risk-service:
   #   services:
-  #     postgres:
+  #     icc-postgres:
   #       image: postgres
   #       env:
   #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: activities
+  #         POSTGRES_DB: postgres
   #       options: >-
   #         --health-cmd pg_isready
   #         --health-interval 10s
   #         --health-timeout 5s
   #         --health-retries 5
+  #         --name icc-postgres
   #       ports:
   #         - 5433:5432
-  #
+  
   #     valkey:
   #       image: 'valkey/valkey:8.1'
   #       ports:
   #         - '6379:6379'
-  #
+  
   #   needs: setup-node_modules
   #   runs-on: ubuntu-latest
   #   timeout-minutes: 15
@@ -349,6 +320,8 @@ jobs:
   #       with:
   #         registry-url: 'https://registry.npmjs.org'
   #         node-version: 20
+  #     - name: Configure postgres
+  #       run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
   #     - name: pnpm install
   #       uses: nick-fields/retry@v3.0.2
   #       with:
@@ -359,27 +332,28 @@ jobs:
   #       env:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - run: cd services/risk-service && pnpm run test
-  #
+  
   # ci-risk-cold-storage:
   #   services:
-  #     postgres:
+  #     icc-postgres:
   #       image: postgres
   #       env:
   #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: risk-cold-storage
+  #         POSTGRES_DB: postgres
   #       options: >-
   #         --health-cmd pg_isready
   #         --health-interval 10s
   #         --health-timeout 5s
   #         --health-retries 5
+  #         --name icc-postgres
   #       ports:
   #         - 5433:5432
-  #
+
   #     valkey:
   #       image: 'valkey/valkey:8.1'
   #       ports:
   #         - '6379:6379'
-  #
+  
   #   needs: setup-node_modules
   #   runs-on: ubuntu-latest
   #   timeout-minutes: 15
@@ -392,6 +366,8 @@ jobs:
   #       with:
   #         registry-url: 'https://registry.npmjs.org'
   #         node-version: 20
+  #     - name: Configure postgres
+  #       run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
   #     - name: pnpm install
   #       uses: nick-fields/retry@v3.0.2
   #       with:
@@ -402,27 +378,28 @@ jobs:
   #       env:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - run: cd services/risk-cold-storage && pnpm run test
-  #
+  
   # ci-risk-manager:
   #   services:
-  #     postgres:
+  #     icc-postgres:
   #       image: postgres
   #       env:
   #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: risk-manager
+  #         POSTGRES_DB: postgres
   #       options: >-
   #         --health-cmd pg_isready
   #         --health-interval 10s
   #         --health-timeout 5s
   #         --health-retries 5
+  #         --name icc-postgres
   #       ports:
   #         - 5433:5432
-  #
+  
   #     valkey:
   #       image: 'valkey/valkey:8.1'
   #       ports:
   #         - '6379:6379'
-  #
+  
   #   needs: setup-node_modules
   #   runs-on: ubuntu-latest
   #   timeout-minutes: 15
@@ -436,6 +413,8 @@ jobs:
   #       with:
   #         registry-url: 'https://registry.npmjs.org'
   #         node-version: 20
+  #     - name: Configure postgres
+  #       run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
   #     - name: pnpm install
   #       uses: nick-fields/retry@v3.0.2
   #       with:
@@ -446,23 +425,24 @@ jobs:
   #       env:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - run: cd services/risk-manager && pnpm run test
-  #
+  
   # ci-cache-manager:
   #   services:
   #     valkey:
   #       image: 'valkey/valkey:8.1'
   #       ports:
   #         - '6342:6379'
-  #     control-plane-postgres:
+  #     icc-postgres:
   #       image: postgres
   #       env:
   #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: control_plane
+  #         POSTGRES_DB: postgres
   #       options: >-
   #         --health-cmd pg_isready
   #         --health-interval 10s
   #         --health-timeout 5s
   #         --health-retries 5
+  #         --name icc-postgres
   #       ports:
   #         - 5433:5432
   #   needs: setup-node_modules
@@ -477,6 +457,8 @@ jobs:
   #       with:
   #         registry-url: 'https://registry.npmjs.org'
   #         node-version: 20
+  #     - name: Configure postgres
+  #       run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
   #     - name: pnpm install
   #       uses: nick-fields/retry@v3.0.2
   #       with:
@@ -487,35 +469,24 @@ jobs:
   #       env:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - run: cd services/cache-manager && pnpm run test
-  #
+  
   # ci-cluster-manager:
   #   services:
   #     valkey:
   #       image: 'valkey/valkey:8.1'
   #       ports:
   #         - '6342:6379'
-  #     postgres:
+  #     icc-postgres:
   #       image: postgres
   #       env:
   #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: cluster_manager
+  #         POSTGRES_DB: postgres
   #       options: >-
   #         --health-cmd pg_isready
   #         --health-interval 10s
   #         --health-timeout 5s
   #         --health-retries 5
-  #       ports:
-  #         - 5433:5432
-  #     control-plane-postgres:
-  #       image: postgres
-  #       env:
-  #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: control_plane
-  #       options: >-
-  #         --health-cmd pg_isready
-  #         --health-interval 10s
-  #         --health-timeout 5s
-  #         --health-retries 5
+  #         --name icc-postgres
   #       ports:
   #         - 5433:5432
   #   needs: setup-node_modules
@@ -530,6 +501,8 @@ jobs:
   #       with:
   #         registry-url: 'https://registry.npmjs.org'
   #         node-version: 20
+  #     - name: Configure postgres
+  #       run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
   #     - name: pnpm install
   #       uses: nick-fields/retry@v3.0.2
   #       with:
@@ -540,19 +513,20 @@ jobs:
   #       env:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - run: cd services/cluster-manager && pnpm run test
-  #
+  
   # ci-compliance:
   #   services:
-  #     postgres:
+  #     icc-postgres:
   #       image: postgres
   #       env:
   #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: compliance
+  #         POSTGRES_DB: postgres
   #       options: >-
   #         --health-cmd pg_isready
   #         --health-interval 10s
   #         --health-timeout 5s
   #         --health-retries 5
+  #         --name icc-postgres
   #       ports:
   #         - 5433:5432
   #   needs: setup-node_modules
@@ -569,6 +543,8 @@ jobs:
   #         registry-url: 'https://registry.npmjs.org'
   #         node-version: 20
   #         cache: 'pnpm'
+  #     - name: Configure postgres
+  #       run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
   #     - name: pnpm install
   #       uses: nick-fields/retry@v3.0.2
   #       with:
@@ -580,7 +556,7 @@ jobs:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - name: Run test suite
   #       run: cd services/compliance && pnpm run test
-  #
+  
   # ci-metrics:
   #   needs: setup-node_modules
   #   runs-on: ubuntu-latest
@@ -596,6 +572,8 @@ jobs:
   #         registry-url: 'https://registry.npmjs.org'
   #         node-version: 20
   #         cache: 'pnpm'
+  #     - name: Configure postgres
+  #       run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
   #     - name: pnpm install
   #       uses: nick-fields/retry@v3.0.2
   #       with:
@@ -607,7 +585,7 @@ jobs:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - name: Run test suite
   #       run: cd services/metrics && pnpm run test
-  #
+  
   # ci-frontend:
   #   needs: setup-node_modules
   #   runs-on: ubuntu-latest
@@ -635,19 +613,20 @@ jobs:
   #       run: cd services/frontend && pnpm run test
   #     - name: Build App
   #       run: cd services/frontend && pnpm run build
-  #
+
   ci-cron:
     services:
-      postgres:
+      icc-postgres:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: cron
+          POSTGRES_DB: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          --name icc-postgres
         ports:
           - 5433:5432
     needs: setup-node_modules
@@ -662,6 +641,8 @@ jobs:
         with:
           registry-url: 'https://registry.npmjs.org'
           node-version: 20
+      - name: Configure postgres
+        run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
