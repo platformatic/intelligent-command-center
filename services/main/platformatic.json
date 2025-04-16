@@ -39,6 +39,12 @@
         "proxy": {
           "prefix": "cron"
         }
+      },
+      {
+        "id": "metrics",
+        "proxy": {
+          "prefix": "metrics"
+        }
       }
     ]
   },
