@@ -90,6 +90,55 @@ importers:
         specifier: ^17.1.2
         version: 17.1.2
 
+  services/cron:
+    dependencies:
+      '@databases/pg':
+        specifier: ^5.5.0
+        version: 5.5.0
+      '@fastify/env':
+        specifier: ^5.0.1
+        version: 5.0.2
+      '@fastify/error':
+        specifier: ^4.0.0
+        version: 4.1.0
+      '@platformatic/config':
+        specifier: ^2.50.0
+        version: 2.59.1
+      '@platformatic/db':
+        specifier: ^2.50.0
+        version: 2.59.1
+      cron-parser:
+        specifier: ^5.0.3
+        version: 5.1.1
+      fastify-plugin:
+        specifier: ^5.0.1
+        version: 5.0.1
+      json-schema-to-typescript:
+        specifier: ^15.0.0
+        version: 15.0.4
+      minimist:
+        specifier: ^1.2.0
+        version: 1.2.8
+    devDependencies:
+      '@matteo.collina/tspl':
+        specifier: ^0.2.0
+        version: 0.2.0
+      borp:
+        specifier: ^0.19.0
+        version: 0.19.0
+      fastify:
+        specifier: ^5.01.0
+        version: 5.2.2
+      platformatic:
+        specifier: ^2.50.0
+        version: 2.56.0
+      snazzy:
+        specifier: ^9.0.0
+        version: 9.0.0
+      standard:
+        specifier: ^17.1.2
+        version: 17.1.2
+
   services/main:
     dependencies:
       '@fastify/auth':
@@ -504,6 +553,9 @@ packages:
 
   '@matteo.collina/sqlite-pool@0.6.0':
     resolution: {integrity: sha512-6FW+Mph48XnaXJg/7EL4tMHq9hmLvlQD43Ad+eZCMK921qTcGYLkl2PaZxBiyt5w+5ZeZOdzgN87dVsoJ/cPfg==}
+
+  '@matteo.collina/tspl@0.2.0':
+    resolution: {integrity: sha512-VEjxrBW/NTz2bMSUx6DFP4KH2nVspTBEbV/082Qsqi3lQ0fqK5m4KVHzqm/Noy3OJmpGR1lm2ps/gvERVRpsaA==}
 
   '@mercuriusjs/federation@5.0.0':
     resolution: {integrity: sha512-5E2S3mgxq+yK4XZm0UMms3lcG3QG/83xh8mmo/XyjwQiT8DulX8ibBXvlQtmOO4g4U9N+AUEqrqPfnoC5I+TSA==}
@@ -977,6 +1029,9 @@ packages:
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
 
+  '@types/lodash@4.17.16':
+    resolution: {integrity: sha512-HX7Em5NYQAXKW+1T+FiuG27NGwzJfCX3s1GjOa7ujxZa52kjJLOr4FUxT+giF6Tgxv1e+/czV/iTtBw27WTU9g==}
+
   '@types/luxon@3.4.2':
     resolution: {integrity: sha512-TifLZlFudklWlMBfhubvgqTXRzLDI5pCbGa4P8a3wPyUQSW+1xQ5eDsreP9DWHX3tjq1ke96uYG/nwundroWcA==}
 
@@ -1423,6 +1478,10 @@ packages:
   create-platformatic@2.56.0:
     resolution: {integrity: sha512-qFbdfTkm1mHqt+yMUs8SMkpkWCudf+ovVNMYR8V264YYWkPcUQi0GfhFindZToK29jTIjYdH5vDxH8/l3qVV7A==}
     hasBin: true
+
+  cron-parser@5.1.1:
+    resolution: {integrity: sha512-xNhwjTUTJcvevF4EvOxB3xYpEKC/qOAmykR+2Qf91ARIfdbjStUwo8qpem6jjzdwFgoo4pnf3sS264xG0G858w==}
+    engines: {node: '>=18'}
 
   cron@4.1.3:
     resolution: {integrity: sha512-HETm5kgivcdfboOmBIzq0cfC9c5bRilWZ1p7PWwnOMmbWviwIU6mPgZbeqbj5i0AzNan6P68WDTDEDezhKjOng==}
@@ -1889,6 +1948,14 @@ packages:
 
   fastseries@1.7.2:
     resolution: {integrity: sha512-dTPFrPGS8SNSzAt7u/CbMKCJ3s01N04s4JFbORHcmyvVfVKmbhMD1VtRbh5enGHxkaQDqWyLefiKOGGmohGDDQ==}
+
+  fdir@6.4.3:
+    resolution: {integrity: sha512-PMXmW2y1hDDfTSRc9gaXIuCCRpuoz3Kaz8cUelp3smouvfT632ozg2vrT6lJsHKKOF59YLbOGfAWGUcKEfRMQw==}
+    peerDependencies:
+      picomatch: ^3 || ^4
+    peerDependenciesMeta:
+      picomatch:
+        optional: true
 
   figures@6.1.0:
     resolution: {integrity: sha512-d+l3qxjSesT4V7v2fh+QnmFnUWv9lSpjarhShNTgBOfA0ttejbQUAlHLitbjkoRiDulW0OPoQPYIGhIC8ohejg==}
@@ -2435,6 +2502,11 @@ packages:
     resolution: {integrity: sha512-HqMnbz0tz2DaEJ3ntsqtx3ezzZyDE7G56A/pPY/NGmrPu76UzsWquOpHFRAf5beTNXoH2LU5cQePVvRli1nchA==}
     engines: {node: '>=20'}
 
+  json-schema-to-typescript@15.0.4:
+    resolution: {integrity: sha512-Su9oK8DR4xCmDsLlyvadkXzX6+GGXJpbhwoLtOGArAG61dvbW4YQmSEno2y66ahpIdmLMg6YUf/QHLgiwvkrHQ==}
+    engines: {node: '>=16.0.0'}
+    hasBin: true
+
   json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
 
@@ -2566,6 +2638,10 @@ packages:
 
   luxon@3.6.0:
     resolution: {integrity: sha512-WE7p0p7W1xji9qxkLYsvcIxZyfP48GuFrWIBQZIsbjCyf65dG1rv4n83HcOyEyhvzxJCrUoObCRNFgRNIQ5KNA==}
+    engines: {node: '>=12'}
+
+  luxon@3.6.1:
+    resolution: {integrity: sha512-tJLxrKJhO2ukZ5z0gyjY1zPh3Rh88Ej9P7jNrZiHMUXHae1yvI2imgOZtL1TO8TW6biMMKfTtAOoEJANgtWBMQ==}
     engines: {node: '>=12'}
 
   make-dir@4.0.0:
@@ -2954,6 +3030,10 @@ packages:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
 
+  picomatch@4.0.2:
+    resolution: {integrity: sha512-M7BAV6Rlcy5u+m6oPhAPFgJTzAioX/6B0DxyvDlo9l8+T3nLKbrczg2WLUyzd45L8RqfUMyGPzekbMvX2Ldkwg==}
+    engines: {node: '>=12'}
+
   pify@4.0.1:
     resolution: {integrity: sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==}
     engines: {node: '>=6'}
@@ -3019,6 +3099,11 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
+
+  prettier@3.5.3:
+    resolution: {integrity: sha512-QQtaxnoDJeAkDvDKWCLiwIXkTgRhwYDEQCghU9Z6q03iyek/rxRh/2lC3HB7P8sWT2xC/y5JDctPLBIGzHKbhw==}
+    engines: {node: '>=14'}
+    hasBin: true
 
   pretty-ms@9.2.0:
     resolution: {integrity: sha512-4yf0QO/sllf/1zbZWYnvWw3NxCQwLXKzIj0G849LSufP15BXKM0rbD2Z3wVnkMfjdn/CB0Dpp444gYAACdsplg==}
@@ -3487,6 +3572,10 @@ packages:
   tiny-lru@11.2.11:
     resolution: {integrity: sha512-27BIW0dIWTYYoWNnqSmoNMKe5WIbkXsc0xaCQHd3/3xT2XMuMJrzHdrO9QBFR14emBz1Bu0dOAs2sCBBrvgPQA==}
     engines: {node: '>=12'}
+
+  tinyglobby@0.2.12:
+    resolution: {integrity: sha512-qkf4trmKSIiMTs/E63cxH+ojC2unam7rJ0WrauAzpT3ECNTxGRMlaXxVbfxMUC/w0LaYk6jQ4y/nGR9uBO3tww==}
+    engines: {node: '>=12.0.0'}
 
   title-case@3.0.3:
     resolution: {integrity: sha512-e1zGYRvbffpcHIrnuqT0Dh+gEJtDaxDSoG4JAIpq4oDFyooziLBIiYQv0GBT4FUAnUop5uZ1hiIAj7oAF6sOCA==}
@@ -4219,6 +4308,8 @@ snapshots:
       '@databases/escape-identifier': 1.0.3
       '@databases/sql': 3.3.0
       '@databases/sqlite-sync': 3.0.0
+
+  '@matteo.collina/tspl@0.2.0': {}
 
   '@mercuriusjs/federation@5.0.0':
     dependencies:
@@ -5390,6 +5481,8 @@ snapshots:
 
   '@types/json5@0.0.29': {}
 
+  '@types/lodash@4.17.16': {}
+
   '@types/luxon@3.4.2': {}
 
   '@types/node@22.13.14':
@@ -5887,6 +5980,10 @@ snapshots:
       strip-ansi: 7.1.0
       undici: 7.7.0
       which: 3.0.1
+
+  cron-parser@5.1.1:
+    dependencies:
+      luxon: 3.6.1
 
   cron@4.1.3:
     dependencies:
@@ -6494,6 +6591,10 @@ snapshots:
     dependencies:
       reusify: 1.1.0
       xtend: 4.0.2
+
+  fdir@6.4.3(picomatch@4.0.2):
+    optionalDependencies:
+      picomatch: 4.0.2
 
   figures@6.1.0:
     dependencies:
@@ -7122,6 +7223,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  json-schema-to-typescript@15.0.4:
+    dependencies:
+      '@apidevtools/json-schema-ref-parser': 11.9.3
+      '@types/json-schema': 7.0.15
+      '@types/lodash': 4.17.16
+      is-glob: 4.0.3
+      js-yaml: 4.1.0
+      lodash: 4.17.21
+      minimist: 1.2.8
+      prettier: 3.5.3
+      tinyglobby: 0.2.12
+
   json-schema-traverse@0.4.1: {}
 
   json-schema-traverse@1.0.0: {}
@@ -7251,6 +7364,8 @@ snapshots:
   lru.min@1.1.2: {}
 
   luxon@3.6.0: {}
+
+  luxon@3.6.1: {}
 
   make-dir@4.0.0:
     dependencies:
@@ -7683,6 +7798,8 @@ snapshots:
   picomatch@2.3.1:
     optional: true
 
+  picomatch@4.0.2: {}
+
   pify@4.0.1: {}
 
   pino-abstract-transport@2.0.0:
@@ -7793,6 +7910,8 @@ snapshots:
   prelude-ls@1.1.2: {}
 
   prelude-ls@1.2.1: {}
+
+  prettier@3.5.3: {}
 
   pretty-ms@9.2.0:
     dependencies:
@@ -8351,6 +8470,11 @@ snapshots:
       real-require: 0.2.0
 
   tiny-lru@11.2.11: {}
+
+  tinyglobby@0.2.12:
+    dependencies:
+      fdir: 6.4.3(picomatch@4.0.2)
+      picomatch: 4.0.2
 
   title-case@3.0.3:
     dependencies:
