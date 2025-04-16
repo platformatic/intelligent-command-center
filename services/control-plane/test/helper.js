@@ -19,7 +19,9 @@ const defaultEnv = {
   PLT_EXTERNAL_USER_MANAGER_URL: '',
   PLT_EXTERNAL_RISK_MANAGER_URL: '',
   PLT_EXTERNAL_RISK_SERVICE_URL: '',
-  PLT_EXTERNAL_METRICS_URL: ''
+  PLT_EXTERNAL_METRICS_URL: '',
+
+  PLT_ACTIVITIES_URL: 'http://localhost:3004'
 }
 
 function setUpEnvironment (env = {}) {
@@ -29,14 +31,15 @@ function setUpEnvironment (env = {}) {
 async function startControlPlane (t, entities = {}, env = {}) {
   setUpEnvironment(env)
 
-  // const clientsDir = join(__dirname, '..', '..', '..', 'clients')
+  const clientsDir = join(__dirname, '..', '..', '..', 'clients')
+
   const originalConfig = JSON.parse(await readFile(join(__dirname, '..', 'platformatic.json'), 'utf-8'))
   const app = await buildDbServer({
     server: {
       hostname: '127.0.0.1',
       port: 3042,
       pluginTimeout: 30000,
-      logger: { level: 'warn' }
+      logger: { level: 'error' }
     },
     db: {
       connectionString: process.env.PLT_CONTROL_PLANE_DATABASE_URL,
@@ -60,48 +63,32 @@ async function startControlPlane (t, entities = {}, env = {}) {
         join(__dirname, '..', 'routes')
       ]
     },
-    // clients: [
-    //   {
-    //     schema: join(clientsDir, 'risk-service', 'risk-service.openapi.json'),
-    //     name: 'riskService',
-    //     type: 'openapi',
-    //     url: process.env.PLT_RISK_SERVICE_HOST
-    //   },
-    //   {
-    //     schema: join(clientsDir, 'risk-manager', 'risk-manager.openapi.json'),
-    //     name: 'riskManager',
-    //     type: 'openapi',
-    //     url: process.env.PLT_RISK_MANAGER_HOST
-    //   },
-    //   {
-    //     schema: join(clientsDir, 'activities', 'activities.openapi.json'),
-    //     name: 'activities',
-    //     type: 'openapi',
-    //     url: process.env.PLT_ACTIVITIES_HOST
-    //   },
-    //   {
-    //     schema: join(clientsDir, 'metrics', 'metrics.openapi.json'),
-    //     name: 'metrics',
-    //     type: 'openapi',
-    //     url: process.env.PLT_METRICS_URL
-    //   },
-    //   {
-    //     schema: join(clientsDir, 'user-manager', 'user-manager.openapi.json'),
-    //     name: 'userManager',
-    //     type: 'openapi',
-    //     url: process.env.PLT_USER_MANAGER_URL
-    //   },
-    //   {
-    //     schema: join(clientsDir, 'trafficante', 'trafficante.openapi.json'),
-    //     name: 'trafficante',
-    //     type: 'openapi',
-    //     url: process.env.PLT_TRAFFICANTE_URL
-    //   }
-    // ],
+    clients: [
+      {
+        schema: join(clientsDir, 'activities', 'activities.openapi.json'),
+        name: 'activities',
+        type: 'openapi',
+        url: process.env.PLT_ACTIVITIES_URL
+      }
+      // {
+      //   schema: join(clientsDir, 'metrics', 'metrics.openapi.json'),
+      //   name: 'metrics',
+      //   type: 'openapi',
+      //   url: process.env.PLT_METRICS_URL
+      // },
+    ],
     watch: false
   })
 
-  const testCtx = { logger: app.log }
+  const testCtx = {
+    logger: app.log,
+    req: {
+      activities: {
+        postEvents: () => ({ id: 42, event: 'test' })
+      }
+    }
+  }
+
   app.decorate('testApi', {
     saveDetectedPod: async (applicationName, imageId, podId) => {
       return app.saveDetectedPod(applicationName, imageId, podId, testCtx)
