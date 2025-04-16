@@ -72,7 +72,7 @@ jobs:
         image: 'valkey/valkey:8.1'
         ports:
           - '6342:6379'
-      control-plane-postgres:
+      icc-postgres:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
@@ -82,7 +82,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-          -v /__w/pg-init:/docker-entrypoint-initdb.d
         ports:
           - 5433:5432
       # compliance-postgres:
@@ -98,8 +97,8 @@ jobs:
       #   ports:
       #     - 5433:5432
     steps:
-      - name: configure postgreSQL
-        run: cat .github/workflows/ci/docker-entrypoint-initdb.d/docker-postgres-init.sql | docker exec -i postgres bash
+      - name: configure postgres
+        run: cat .github/workflows/ci/docker-entrypoint-initdb.d/docker-postgres-init.sql | docker exec -i icc-postgres bash
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
