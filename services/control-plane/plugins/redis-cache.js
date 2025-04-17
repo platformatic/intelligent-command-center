@@ -22,7 +22,7 @@ module.exports = fp(async function (app) {
     const username = generateRedisUsername(applicationId, imageId)
     const keyPrefix = `${applicationId}:${imageId}:`
 
-    // Create a new password for each zio instance. Valkey allows to generate
+    // Create a new password for each application instance. Valkey allows to generate
     // multiple passwords for the same user
     const password = randomUUID()
 

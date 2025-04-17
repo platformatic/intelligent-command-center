@@ -8,7 +8,7 @@ const errors = require('../plugins/errors')
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
   app.addSchema({
-    $id: 'ZioApplicationConfig',
+    $id: 'applicationInstanceConfig',
     type: 'object',
     properties: {
       version: { type: 'integer' },
@@ -35,24 +35,30 @@ module.exports = fp(async function (app) {
     required: ['version']
   })
 
-  app.post('/zio/pods', {
+  app.post('/pods/:podId/instance', {
     schema: {
-      operationId: 'initZioInstance',
+      operationId: 'initApplicationInstance',
+      params: {
+        type: 'object',
+        properties: {
+          podId: { type: 'string' }
+        },
+        required: ['podId']
+      },
       body: {
         type: 'object',
         properties: {
           applicationName: { type: 'string' },
-          imageId: { type: 'string' },
-          podId: { type: 'string' }
+          imageId: { type: 'string' }
         },
-        required: ['applicationName', 'imageId', 'podId']
+        required: ['applicationName', 'imageId']
       },
       response: {
         200: {
           type: 'object',
           properties: {
             applicationId: { type: 'string' },
-            config: { $ref: 'ZioApplicationConfig' },
+            config: { $ref: 'applicationInstanceConfig' },
             httpCache: {
               type: 'object',
               properties: {
@@ -99,12 +105,13 @@ module.exports = fp(async function (app) {
       }
     },
     handler: async (req) => {
-      const { applicationName, imageId, podId } = req.body
+      const { podId } = req.params
+      const { applicationName, imageId } = req.body
 
       const logger = req.log.child({ applicationName, podId, imageId })
       const ctx = { req, logger }
 
-      const { application, config, httpCache, iccServices } = await app.initZioPod(
+      const { application, config, httpCache, iccServices } = await app.initApplicationInstance(
         applicationName,
         imageId,
         podId,
@@ -120,49 +127,9 @@ module.exports = fp(async function (app) {
     }
   })
 
-  app.get('/zio/pods/:id/config', {
+  app.post('/pods/:id/instance/status', {
     schema: {
-      operationId: 'getZioConfig',
-      params: {
-        type: 'object',
-        properties: {
-          id: { type: 'string' }
-        },
-        required: ['id']
-      },
-      querystring: {
-        type: 'object',
-        properties: {
-          fields: { type: 'string', nullable: true }
-        },
-        additionalProperties: false
-      },
-      response: {
-        200: { $ref: 'ZioApplicationConfig' }
-      }
-    },
-    handler: async (req) => {
-      const podId = req.params.id
-      const fields = req.query.fields ? JSON.parse(req.query.fields) : null
-
-      const detectedPod = await app.getDetectedPodByPodId(podId)
-      if (detectedPod === null) {
-        throw new errors.DetectedPodNotFound(podId)
-      }
-
-      const logger = req.log.child({
-        applicationId: detectedPod.applicationId,
-        podId
-      })
-
-      const ctx = { req, logger }
-      return app.getZioConfig(detectedPod, { fields }, ctx)
-    }
-  })
-
-  app.post('/zio/pods/:id/status', {
-    schema: {
-      operationId: 'saveZioStatus',
+      operationId: 'saveApplicationInstanceStatus',
       params: {
         type: 'object',
         properties: {
@@ -196,15 +163,15 @@ module.exports = fp(async function (app) {
 
       const ctx = { req, logger }
 
-      await app.saveZioStatus(detectedPod, status, ctx)
+      await app.saveApplicationInstanceStatus(detectedPod, status, ctx)
       return {}
     }
   })
 
-  app.post('/zio/pods/:id/state', {
+  app.post('/pods/:id/instance/state', {
     logLevel: 'info',
     schema: {
-      operationId: 'saveZioState',
+      operationId: 'saveApplicationInstanceState',
       params: {
         type: 'object',
         properties: {
@@ -250,7 +217,11 @@ module.exports = fp(async function (app) {
 
       const ctx = { req, logger }
 
-      await app.saveZioState(detectedPod, { metadata, services }, ctx)
+      await app.saveApplicationInstanceState(
+        detectedPod,
+        { metadata, services },
+        ctx
+      )
       return {}
     }
   })
