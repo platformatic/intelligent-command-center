@@ -2,15 +2,15 @@
 
 const { join } = require('node:path')
 const { randomUUID } = require('node:crypto')
+const { readFile } = require('node:fs/promises')
 const { buildServer: buildDbServer } = require('@platformatic/db')
 const fastify = require('fastify')
-const { readFile } = require('node:fs/promises')
 
 const defaultEnv = {
   PLT_CONTROL_PLANE_DATABASE_URL: 'postgres://postgres:postgres@127.0.0.1:5433/control_plane',
   PLT_CONTROL_PLANE_LOG_LEVEL: 'info',
 
-  PLT_CONTROL_PLANE_REDIS_CACHE_CONNECTION_STRING: 'redis://localhost:6342',
+  PLT_CONTROL_PLANE_VALKEY_CACHE_CONNECTION_STRING: 'redis://localhost:6342',
 
   PLT_EXTERNAL_TRAFFICANTE_URL: 'http://localhost:3033',
   PLT_EXTERNAL_ACTIVITIES_URL: 'http://localhost:3004',
@@ -22,7 +22,10 @@ const defaultEnv = {
   PLT_EXTERNAL_METRICS_URL: '',
 
   PLT_ACTIVITIES_URL: 'http://localhost:3004',
-  PLT_METRICS_URL: 'http://localhost:3009'
+  PLT_METRICS_URL: 'http://localhost:3009',
+
+  PLT_CONTROL_PLANE_CACHE_PROVIDER: 'valkey-oss',
+  PLT_CONTROL_PLANE_SECRET_KEY: 'secret'
 }
 
 function setUpEnvironment (env = {}) {
@@ -396,11 +399,11 @@ async function startMetrics (t, opts = {}) {
   const metrics = fastify({ keepAliveTimeout: 1 })
 
   metrics.post('/services', async (req) => {
-    return opts.postServices(req.body)
+    return opts.postServices?.(req.body)
   })
 
   metrics.post('/services/metrics', async (req) => {
-    return opts.postServicesMetrics(req.body)
+    return opts.postServicesMetrics?.(req.body)
   })
 
   t.after(async () => {
