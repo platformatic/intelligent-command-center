@@ -11,9 +11,11 @@
     "standard": "^17.1.2"
   },
   "dependencies": {
+    "@aws-sdk/client-elasticache": "^3.777.0",
     "@fastify/env": "^5.0.2",
     "@fastify/error": "^4.1.0",
     "fastify-plugin": "^5.0.1",
-    "iovalkey": "^0.3.1"
+    "iovalkey": "^0.3.1",
+    "uuid": "^11.0.0"
   }
 }

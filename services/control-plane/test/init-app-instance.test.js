@@ -3,13 +3,18 @@
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
-const { startControlPlane, startActivities } = require('./helper')
+const {
+  startControlPlane,
+  startActivities,
+  startMetrics
+} = require('./helper')
 
 test('should save a detected pod of a new application', async (t) => {
   const activities = []
   await startActivities(t, {
     saveEvent: (activity) => activities.push(activity)
   })
+  await startMetrics(t)
 
   const controlPlane = await startControlPlane(t)
   const applicationName = 'test-app'
@@ -39,11 +44,11 @@ test('should save a detected pod of a new application', async (t) => {
   assert.strictEqual(httpCache.clientOpts.port, 6342)
   assert.strictEqual(
     httpCache.clientOpts.username,
-    `application-${applicationId}-image-${imageId}`
+    `plt-application-${applicationId}`
   )
   assert.strictEqual(
     httpCache.clientOpts.keyPrefix,
-    `${applicationId}:${imageId}:`
+    `${applicationId}:`
   )
   assert.ok(httpCache.clientOpts.password)
 
@@ -141,6 +146,7 @@ test('should save a new detected pod with the same image', async (t) => {
   await startActivities(t, {
     saveEvent: (activity) => activities.push(activity)
   })
+  await startMetrics(t)
 
   const controlPlane = await startControlPlane(t)
 
@@ -292,6 +298,7 @@ test('should detect the same pod with the same image', async (t) => {
   await startActivities(t, {
     saveEvent: (activity) => activities.push(activity)
   })
+  await startMetrics(t)
 
   const controlPlane = await startControlPlane(t)
 
@@ -392,6 +399,7 @@ test('should save an detected pod with a different image', async (t) => {
   await startActivities(t, {
     saveEvent: (activity) => activities.push(activity)
   })
+  await startMetrics(t)
 
   const controlPlane = await startControlPlane(t)
 
@@ -516,6 +524,7 @@ test('should save a lot of simultaneous detected pods of different applications'
   await startActivities(t, {
     saveEvent: (activity) => activities.push(activity)
   })
+  await startMetrics(t)
 
   const APPS_COUNT = 10
   const APP_PODS_COUNT = 10
@@ -542,6 +551,9 @@ test('should save a lot of simultaneous detected pods of different applications'
   // Sort params in a random order
   params.sort(() => Math.random() - 0.5)
 
+  const cacheUsernames = new Set()
+  const cachePasswords = new Set()
+
   const saveDetectedPod = async (params) => {
     const { statusCode, body } = await controlPlane.inject({
       method: 'POST',
@@ -555,6 +567,15 @@ test('should save a lot of simultaneous detected pods of different applications'
       }
     })
     assert.strictEqual(statusCode, 200, body)
+
+    const { httpCache } = JSON.parse(body)
+    const { username, password } = httpCache.clientOpts
+
+    assert.ok(username)
+    assert.ok(password)
+
+    cacheUsernames.add(username)
+    cachePasswords.add(password)
   }
 
   await Promise.all(params.map(saveDetectedPod))
@@ -583,6 +604,8 @@ test('should save a lot of simultaneous detected pods of different applications'
   assert.strictEqual(configs.length, APPS_COUNT)
 
   assert.strictEqual(activities.length, APPS_COUNT * 2)
+  assert.strictEqual(cacheUsernames.size, APPS_COUNT)
+  assert.strictEqual(cachePasswords.size, APPS_COUNT)
 
   for (let i = 0; i < APPS_COUNT; i++) {
     const applicationName = applicationNames[i]

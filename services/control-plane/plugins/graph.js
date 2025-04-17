@@ -58,11 +58,17 @@ module.exports = fp(async function (app) {
       })
     }
 
-    const { servicesLinks: historyServiceLinks } = await ctx.req.metrics.postServices({
-      applications,
-      start: new Date(new Date(generation.createdAt).getTime() + 5000).toISOString(),
-      end: new Date().toISOString()
-    })
+    let historyServiceLinks = null
+    try {
+      ({ servicesLinks: historyServiceLinks } = await ctx.req.metrics.postServices({
+        applications,
+        start: new Date(new Date(generation.createdAt).getTime() + 5000).toISOString(),
+        end: new Date().toISOString()
+      }))
+    } catch (error) {
+      app.log.error({ error }, 'Error while getting services metrics')
+      throw error
+    }
 
     function findServiceByTelemetryId (telemetryId) {
       for (const application of applications) {
