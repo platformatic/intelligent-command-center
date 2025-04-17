@@ -65,6 +65,7 @@ module.exports = fp(async function (app) {
         ).catch((err) => {
           ctx.logger.error({ err }, 'Failed to send activity')
         })
+        await app.createCacheUser(result.application.id, ctx)
       }
       if (result.isNewDeployment) {
         await app.sendSuccessfulApplicationDeployActivity(
@@ -83,8 +84,9 @@ module.exports = fp(async function (app) {
 
     const [config, httpCacheClientOpts] = await Promise.all([
       app.getApplicationConfig(application, null, ctx),
-      app.getRedisCacheClientOpts(application.id, imageId, ctx)
+      app.getCacheClientOpts(application.id, ctx)
     ])
+    process._rawDebug('--------instances.js----27--------', httpCacheClientOpts)
 
     const httpCache = { clientOpts: httpCacheClientOpts }
     const iccServices = app.getICCServicesConfigs()
@@ -258,4 +260,7 @@ module.exports = fp(async function (app) {
     }
     return iccServicesConfigs
   })
-}, { name: 'detected-pods' })
+}, {
+  name: 'instances',
+  dependencies: ['env', 'cache']
+})
