@@ -22,7 +22,12 @@ module.exports = fp(async function (app) {
     return detectedPods
   })
 
-  app.decorate('initZioPod', async (applicationName, imageId, podId, ctx) => {
+  app.decorate('initApplicationInstance', async (
+    applicationName,
+    imageId,
+    podId,
+    ctx
+  ) => {
     let application = null
     let deployment = null
 
@@ -156,7 +161,7 @@ module.exports = fp(async function (app) {
     }, ctx)
   })
 
-  app.decorate('getZioConfig', async (detectedPod, opts, ctx) => {
+  app.decorate('getApplicationInstanceConfig', async (detectedPod, opts, ctx) => {
     const application = await app.getApplicationById(detectedPod.applicationId)
     if (application === null) {
       throw new errors.ApplicationNotFound(detectedPod.applicationId)
@@ -164,7 +169,7 @@ module.exports = fp(async function (app) {
     return app.getApplicationConfig(application, opts, ctx)
   })
 
-  app.decorate('saveZioStatus', async (detectedPod, status, ctx) => {
+  app.decorate('saveApplicationInstanceStatus', async (detectedPod, status, ctx) => {
     if (detectedPod.status === status) return
 
     ctx.logger.debug({ status }, 'Saving detected pod status')
@@ -192,7 +197,7 @@ module.exports = fp(async function (app) {
     })
   })
 
-  app.decorate('saveZioState', async (detectedPod, state, ctx) => {
+  app.decorate('saveApplicationInstanceState', async (detectedPod, state, ctx) => {
     ctx.logger.debug({ state }, 'Saving detected pod state')
 
     const deployment = await app.getDeploymentById(detectedPod.deploymentId)

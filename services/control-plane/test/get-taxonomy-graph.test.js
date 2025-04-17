@@ -305,17 +305,17 @@ test('should get a previous generation graph', async (t) => {
   })
 
   {
+    const applicationName = 'test-app-2'
+    const imageId = 'test-image-2'
+    const podId = 'test-pod-2'
+
     const { statusCode, body } = await controlPlane.inject({
       method: 'POST',
-      url: '/zio/pods',
+      url: `/pods/${podId}/instance`,
       headers: {
         'content-type': 'application/json'
       },
-      body: {
-        applicationName: 'test-app-2',
-        imageId: 'test-image-2',
-        podId: 'test-pod-2'
-      }
+      body: { applicationName, imageId }
     })
     assert.strictEqual(statusCode, 200, body)
   }

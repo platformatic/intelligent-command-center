@@ -18,11 +18,11 @@ test('should save a detected pod of a new application', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: '/zio/pods',
+    url: `/pods/${podId}/instance`,
     headers: {
       'content-type': 'application/json'
     },
-    body: { applicationName, imageId, podId }
+    body: { applicationName, imageId }
   })
 
   assert.strictEqual(statusCode, 200, body)
@@ -170,7 +170,7 @@ test('should save a new detected pod with the same image', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: '/zio/pods',
+    url: `/pods/${podId}/instance`,
     headers: {
       'content-type': 'application/json'
     },
@@ -312,11 +312,11 @@ test('should detect the same pod with the same image', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: '/zio/pods',
+    url: `/pods/${podId}/instance`,
     headers: {
       'content-type': 'application/json'
     },
-    body: { applicationName, imageId, podId }
+    body: { applicationName, imageId }
   })
 
   assert.strictEqual(statusCode, 200, body)
@@ -412,11 +412,11 @@ test('should save an detected pod with a different image', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: '/zio/pods',
+    url: `/pods/${podId}/instance`,
     headers: {
       'content-type': 'application/json'
     },
-    body: { applicationName, imageId, podId }
+    body: { applicationName, imageId }
   })
 
   assert.strictEqual(statusCode, 200, body)
@@ -545,11 +545,14 @@ test('should save a lot of simultaneous detected pods of different applications'
   const saveDetectedPod = async (params) => {
     const { statusCode, body } = await controlPlane.inject({
       method: 'POST',
-      url: '/zio/pods',
+      url: `/pods/${params.podId}/instance`,
       headers: {
         'content-type': 'application/json'
       },
-      body: params
+      body: {
+        applicationName: params.applicationName,
+        imageId: params.imageId
+      }
     })
     assert.strictEqual(statusCode, 200, body)
   }

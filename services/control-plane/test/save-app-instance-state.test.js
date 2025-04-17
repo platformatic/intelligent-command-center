@@ -11,7 +11,7 @@ const {
   generateDetectedPod
 } = require('./helper')
 
-test('should save a zio application state', async (t) => {
+test('should save a application instance state', async (t) => {
   const generation = generateGeneration()
   const application1 = generateApplication('test-app-1')
   const application2 = generateApplication('test-app-2')
@@ -51,7 +51,7 @@ test('should save a zio application state', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/zio/pods/${detectedPod1.podId}/state`,
+    url: `/pods/${detectedPod1.podId}/instance/state`,
     headers: {
       'content-type': 'application/json'
     },
@@ -95,7 +95,7 @@ test('should save a zio application state', async (t) => {
   })
 })
 
-test('should not set zio state if it is already set', async (t) => {
+test('should not set app instance state if it is already set', async (t) => {
   const generation = generateGeneration()
   const application = generateApplication('test-app-1')
 
@@ -123,7 +123,7 @@ test('should not set zio state if it is already set', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/zio/pods/${detectedPod.podId}/state`,
+    url: `/pods/${detectedPod.podId}/instance/state`,
     headers: {
       'content-type': 'application/json'
     },
