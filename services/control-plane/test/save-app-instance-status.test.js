@@ -11,7 +11,7 @@ const {
   generateDetectedPod
 } = require('./helper')
 
-test('should save a "started" zio status', async (t) => {
+test('should save a "started" app instance status', async (t) => {
   const generation = generateGeneration()
   const application = generateApplication('test-app-1')
 
@@ -38,7 +38,7 @@ test('should save a "started" zio status', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/zio/pods/${detectedPod.podId}/status`,
+    url: `/pods/${detectedPod.podId}/instance/status`,
     headers: {
       'content-type': 'application/json'
     },
@@ -99,7 +99,7 @@ test('should set "started" deployment status if it is already set to "failed"', 
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/zio/pods/${detectedPod.podId}/status`,
+    url: `/pods/${detectedPod.podId}/instance/status`,
     headers: {
       'content-type': 'application/json'
     },
@@ -133,7 +133,7 @@ test('should set "started" deployment status if it is already set to "failed"', 
   // assert.strictEqual(event.targetId, application.id)
 })
 
-test('should set "failed" zio status', async (t) => {
+test('should set "failed" app instance status', async (t) => {
   const generation = generateGeneration()
   const application = generateApplication('test-app-1')
 
@@ -160,7 +160,7 @@ test('should set "failed" zio status', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/zio/pods/${detectedPod.podId}/status`,
+    url: `/pods/${detectedPod.podId}/instance/status`,
     headers: {
       'content-type': 'application/json'
     },

@@ -95,11 +95,11 @@ test('should detect a new pod after updating application resources', async (t) =
 
     const { statusCode, body } = await controlPlane.inject({
       method: 'POST',
-      url: '/zio/pods',
+      url: `/pods/${podId}/instance`,
       headers: {
         'content-type': 'application/json'
       },
-      body: { applicationName, imageId, podId }
+      body: { applicationName, imageId }
     })
     assert.strictEqual(statusCode, 200, body)
 
