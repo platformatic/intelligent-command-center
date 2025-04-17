@@ -26,11 +26,14 @@ module.exports = {
   DeploymentHasNoPods: createError(
     `${ERROR_PREFIX}_DEPLOYMENT_HAS_NO_PODS`, 'Deployment with id "%s" has no pods', 404
   ),
-  FailedToCreateRedisUser: createError(
-    `${ERROR_PREFIX}_FAILED_TO_CREATE_REDIS_USER`, 'Failed to create Redis user: %s'
+  FailedToCreateValkeyUser: createError(
+    `${ERROR_PREFIX}_FAILED_TO_CREATE_VALKEY_USER`, 'Failed to create Valkey user: %s'
   ),
-  FailedToRemoveRedisUser: createError(
-    `${ERROR_PREFIX}_FAILED_TO_REMOVE_REDIS_USER`, 'Failed to remove Redis user: %s'
+  FailedToCreateElastiCacheUser: createError(
+    `${ERROR_PREFIX}_FAILED_TO_CREATE_ELASTICACHE_USER`, 'Failed to create ElastiCache user: %s'
+  ),
+  FailedToRemoveValkeyUser: createError(
+    `${ERROR_PREFIX}_FAILED_TO_REMOVE_VALKEY_USER`, 'Failed to remove Valkey user: %s'
   ),
   DetectedPodNotFound: createError(
     `${ERROR_PREFIX}_DETECTED_POD_NOT_FOUND`, 'Detected pod "%s" not found', 404
@@ -53,5 +56,13 @@ module.exports = {
   CannotCreateGenerationWithoutGenerationLock: createError(
     `${ERROR_PREFIX}_CANNOT_CREATE_GENERATION_WITHOUT_GENERATION_LOCK`,
     'Cannot create a generation without generation lock'
+  ),
+  UnsupportedCacheProvider: createError(
+    `${ERROR_PREFIX}_UNSUPPORTED_CACHE_PROVIDER`,
+    'Requested Cache provider, "%s", is not supported'
+  ),
+  CacheProviderNotSetup: createError(
+    `${ERROR_PREFIX}_CACHE_PROVIDER_NOT_SETUP`,
+    'The setup function was not run for this Cache provider'
   )
 }
