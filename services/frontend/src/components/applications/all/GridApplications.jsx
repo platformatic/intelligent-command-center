@@ -7,7 +7,7 @@ import ApplicationCard from './ApplicationCard'
 import NoDataFound from '~/components/ui/NoDataFound'
 import { DULLS_BACKGROUND_COLOR, MEDIUM, RICH_BLACK, WHITE } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
-import { getApplicationsWithMetadata, getLastStartedGeneration } from '../../../api'
+import { getApplicationsWithMetadata } from '../../../api'
 import useSubscribeToUpdates from '~/hooks/useSubscribeToUpdates'
 function GridApplications ({
   onAddApplication = () => {}
