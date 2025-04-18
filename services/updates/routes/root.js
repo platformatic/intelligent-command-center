@@ -17,7 +17,6 @@ module.exports = async function (fastify, opts) {
     },
     handler: async (request, reply) => {
       const { topic, type, data } = request.body
-      console.log('arrived message on updates service', topic, type, data)
       fastify.mq.emit({
         topic,
         type,
