@@ -1,0 +1,22 @@
+.container {
+  @apply text-white fixed w-full h-full z-20 bg-rich-black top-0 left-0 flex items-center justify-center;
+}
+
+.title {
+  @apply text-[16px];
+}
+
+.message {
+  @apply text-[14px] text-white/70;
+}
+.blurred {
+  @apply blur;
+}
+
+.icon {
+  @apply mb-4;
+}
+
+.content {
+  @apply flex flex-col gap-y-2 items-center justify-center text-center;
+}

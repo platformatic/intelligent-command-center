@@ -1,0 +1,15 @@
+.boxEnvironment {
+  @apply w-full;
+}
+
+.subtitle {
+  @apply pl-8;
+}
+
+.jobs {
+  @apply w-full;
+}
+
+.job {
+  @apply w-full pt-4 pb-4;
+}

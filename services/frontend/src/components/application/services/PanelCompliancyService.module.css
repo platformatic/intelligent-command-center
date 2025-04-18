@@ -1,0 +1,21 @@
+.boxDependenciesContainer {
+  @apply w-full text-white;
+}
+
+.depContainer {
+  @apply flex flex-wrap gap-3 mt-2;
+}
+.boxDependency {
+  @apply w-[350px] p-2 bg-rich-black;
+}
+.boxDependenciesContainer {
+  @apply p-4 overflow-y-auto;
+  max-height: calc(100vh - 23rem);
+}
+.boxDependency {
+  @apply p-2;
+}
+.noDataAvailable {
+  @apply grow flex flex-col gap-y-1 items-center justify-center w-full h-full;
+  min-height: 129px;
+}

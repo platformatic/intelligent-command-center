@@ -1,0 +1,24 @@
+.containerDeployments {
+  @apply grow relative flex flex-col;
+  flex-basis: 1rem;
+}
+.contentDeployments {
+  @apply p-4 flex flex-col gap-y-10 grow max-h-[calc(100vH-48px)];
+  flex-basis: 1rem;
+  box-sizing: border-box;
+}
+.filtersContainer {
+  @apply flex gap-2 w-full items-center justify-end;
+}
+.select {
+  @apply w-full md:max-w-[150px] md:min-w-[150px];
+}
+.selectApplicationName {
+  @apply w-full md:max-w-[250px] md:min-w-[250px];
+}
+.selectPaddingClass {
+  @apply py-[3px] px-2 md:px-3;
+}
+.heightSelectClass {
+  @apply h-[1.375rem];
+}

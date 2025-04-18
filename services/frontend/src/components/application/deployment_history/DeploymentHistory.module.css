@@ -1,0 +1,9 @@
+.container {
+  @apply grow relative flex flex-col gap-y-8;
+  flex-basis: 1rem;
+}
+.content {
+  @apply p-4 flex flex-col gap-y-8 grow max-h-[calc(100vH-48px)];
+  flex-basis: 1rem;
+  box-sizing: border-box;
+}

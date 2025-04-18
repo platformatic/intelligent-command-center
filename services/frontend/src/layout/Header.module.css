@@ -1,0 +1,10 @@
+.header {
+  @apply flex justify-between items-center px-6 py-3.5 min-h-[47px] max-h-[47px];
+  box-sizing: border-box;
+}
+.container {
+  @apply flex flex-col w-full gap-y-0;
+}
+.buttonContainer {
+  @apply flex justify-end items-center gap-x-2 shrink-0;
+}

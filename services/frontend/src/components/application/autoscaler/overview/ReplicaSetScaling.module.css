@@ -1,0 +1,15 @@
+.container {
+  @apply grow relative;
+}
+.metricsContainer {
+  @apply flex flex-col lg:grid grid-cols-3 w-full gap-4; 
+}
+.borderexBoxPerfomanceContainer {
+  @apply p-4 relative;
+}
+.verticalSeparator {
+  @apply w-full h-[1px] lg:w-[1px] lg:h-[2.5rem] min-h-[unset];
+}
+.k8sMetricContainer {
+  @apply flex flex-col lg:flex-row items-center gap-x-8 gap-y-6 w-full;
+}

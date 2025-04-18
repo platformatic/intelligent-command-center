@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  @apply bg-rich-black;
+  /* -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  overflow-y: auto; */
+}
+body {
+  @apply mx-auto px-[7.5rem] py-10;
+  /* min-height: 100vh; */
+  /* overflow-x: hidden; */
+}
+
+#root {
+  @apply w-full font-inter h-full text-white;
+  /* -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  /box-sizing: border-box;
+  min-height: calc(100Vh - 5rem); */
+}
+
+.flexible {
+  display: flex;
+  align-items: center;
+}
+
+@font-face {
+	font-family: 'Inter';
+  src: url('/fonts/Inter/Inter-VariableFont_slnt,wght.ttf') format('truetype');
+	font-weight: 100 200 300 400 500 600 700 800 900;
+}
+
+@font-face {
+	font-family: 'Roboto_Mono';
+  src: url('/fonts/Roboto_Mono/RobotoMono-VariableFont_wght.ttf') format('truetype');
+	font-weight: 100 200 300 400 500 600 700 800 900;
+}
+
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+
+
+/* SCROLLBAR */
+/* width */
+::-webkit-scrollbar {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0.313rem;
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.30); 
+  border-radius: 0.313rem;
+  background-clip: content-box;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.70); 
+}
+
+@layer utilities {
+  .text-title {
+    @apply font-bold text-[18px] text-white;
+  }
+  .text-desktop {
+    @apply font-bold text-[16px] text-main-green;
+  }
+}
+

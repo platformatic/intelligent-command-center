@@ -1,0 +1,38 @@
+.boxSynch {
+  @apply w-full max-h-[24rem];
+}
+
+.target {
+  @apply pl-8 mt-0 gap-x-2;
+}
+
+.header {
+  @apply mb-4;
+}
+
+.modalClassName {
+  @apply p-4 md:p-6 flex flex-col justify-between gap-y-3 lg:gap-y-6 w-full max-w-[calc(100%-2rem)] md:max-w-[calc(100%-3.5rem)];
+}
+.modalCloseClassName {
+  @apply absolute z-10 top-[1rem] md:top-[1.5rem] right-[1rem] md:right-[1.5rem];
+}
+
+.leftContainer {
+  @apply w-full;
+}
+
+.rightContainer {
+  @apply w-full grow;
+}
+
+.select {
+  @apply hover:cursor-pointer w-full;
+}
+
+.optionsClass {
+  @apply mt-0 p-0 absolute top-[38px];
+}
+
+.selectPaddingClass {
+  @apply px-1.5 py-1.5;
+}

@@ -1,0 +1,5 @@
+export const CACHE_RECOMMENDATION_DETAIL_PAGE = 'cache_recommendation_detail'
+export const CACHE_RECOMMENDATION_ROUTE_PAGE = 'cache_recommendation_route'
+export const CACHE_RECOMMENDATION_ROUTE_HISTORY_PAGE = 'cache_recommendation_route_history'
+export const CACHE_RECOMMENDATION_ROUTE_CACHE_TAG_PAGE = 'cache_recommendation_route_cache_tag'
+export const SYSTEM_RECOMMENDATION_DETAIL_PAGE = 'system_recommendation_detail'

@@ -1,0 +1,38 @@
+.container {
+  /* @apply flex justify-between gap-x-2 items-start; */
+}
+.originList {
+  @apply grow;
+}
+.panel {
+  @apply w-1/2;
+}
+.noData {
+  @apply flex items-center justify-center w-full grow;
+  min-height: calc(50vh - 12rem);
+}
+
+.header {
+  @apply flex mb-4 gap-4;
+}
+
+.entries {
+}
+.searchBar {
+  @apply grow;
+}
+
+.select {
+  @apply hover:cursor-pointer;
+}
+.searchBarPaddingClass {
+  @apply px-1.5 py-1;
+}
+
+.selectPaddingClass {
+  @apply px-1.5 py-1.5;
+}
+
+.optionsClass {
+  @apply mt-0 p-0 absolute top-[38px];
+}

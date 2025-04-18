@@ -1,0 +1,29 @@
+.previewsContainer {
+  @apply grow relative flex flex-col;
+  flex-basis: 1rem;
+}
+.previewsContent {
+  @apply p-4 flex flex-col gap-y-4 grow;
+  flex-basis: 1rem;
+  box-sizing: border-box;
+}
+.metricsContainer {
+  @apply flex flex-col lg:flex-row w-full gap-4; 
+}
+
+.modalClassName {
+  @apply p-4 md:p-6 flex flex-col justify-between gap-y-3 lg:gap-y-6 w-full max-w-[calc(100%-2rem)] md:max-w-[calc(100%-3.5rem)]
+}
+.modalCloseClassName {
+  @apply absolute z-10 top-[1rem] md:top-[1.5rem] right-[1rem] md:right-[1.5rem];
+}
+
+.rootV1 {
+  --compose-application-width: calc(calc(calc(100vW - 2.25rem) / 6) - 1.25rem);
+  --compose-application-height: 55vH;
+  
+  @media screen(xl) {
+    min-height: 94vH;
+    --compose-application-width: calc(calc(calc(100vW - 3rem) / 6) - 1.25rem);
+  }
+}

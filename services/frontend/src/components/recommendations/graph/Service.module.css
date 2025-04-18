@@ -1,0 +1,7 @@
+.service {
+  @apply flex gap-x-1 items-center border border-2 border-solid rounded m-2 p-2 inline-block text-white bg-rich-black border-white;
+}
+
+.withChanges {
+  @apply border-tertiary-blue text-tertiary-blue
+}

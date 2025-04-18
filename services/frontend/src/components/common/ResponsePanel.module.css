@@ -1,0 +1,19 @@
+.container {
+  @apply p-2 bg-black-russian flex flex-col gap-2 w-full;
+}
+.header {
+}
+.title {
+  @apply flex justify-between items-center;
+}
+.content {
+  @apply bg-rich-black;
+}
+
+.copyToClipBoard {
+  @apply hover:cursor-pointer flex items-center gap-x-2;
+}
+
+.copied {
+  @apply text-main-green text-sm transition-opacity ease-in duration-700 opacity-100;
+}

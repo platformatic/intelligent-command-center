@@ -1,0 +1,10 @@
+
+.smallRequestAmountLine > line {
+  stroke-dasharray: 12 12;
+}
+.mediumRequestAmountLine > line {
+  stroke-dasharray: 6 6;
+}
+.highRequestAmountLine > line {
+  stroke-dasharray: 2 2;
+}

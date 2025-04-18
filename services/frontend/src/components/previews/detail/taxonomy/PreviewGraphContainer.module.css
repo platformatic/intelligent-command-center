@@ -1,0 +1,22 @@
+.taxonomyViewContainer {
+  @apply grow flex flex-col w-full;
+  box-sizing: border-box;
+  flex-basis: 1rem;
+}
+.verticalSeparator {
+  @apply hidden md:block
+}
+.buttonContainer {
+  @apply absolute top-[1rem] right-[1rem] flex flex-row gap-x-1 z-10;
+}
+.applicationContainer {
+  @apply flex grow overflow-auto min-h-[calc(100vH-15rem)] max-h-[calc(100vH-15rem)] w-full relative;
+  background: url('/backgrounds/taxonomy_background_rectangles.svg') repeat,  #090E17;
+}
+.applicationContent {
+  @apply flex flex-col justify-start items-center grow p-4;
+  transform-origin: 0 0;
+}
+.legendContainer {
+  @apply mt-3;
+}

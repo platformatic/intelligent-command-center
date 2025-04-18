@@ -1,0 +1,46 @@
+.container {
+  @apply flex gap-x-2 items-end;
+}
+.labelContainer {
+  @apply flex items-start justify-between mb-2;
+}
+.rightLabelContainer {
+  @apply flex flex-col items-end justify-end;
+}
+
+.value {
+  @apply text-white text-[18px] font-bold;
+}
+.label {
+  @apply text-white/70 text-[12px];
+}
+
+.separator {
+  @apply h-[70px] w-[1px];
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.bar {
+  @apply h-[12px] border-solid;
+}
+.bar.saved {
+  @apply bg-main-green/30 border-main-green border-2;
+}
+.bar.willBeSaved {
+  @apply bg-tertiary-blue/30 border-tertiary-blue border;
+}
+.bar.other {
+  @apply bg-rich-black/30 border;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.bar.saveable {
+  @apply border;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: repeating-linear-gradient(
+    -45deg,
+    #222,
+    #222 5px,
+    #444 5px,
+    #444 6px
+  );
+}

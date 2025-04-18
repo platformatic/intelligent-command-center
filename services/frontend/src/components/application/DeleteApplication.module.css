@@ -1,0 +1,10 @@
+.firstLine {
+  @apply mb-4;
+}
+.list {
+  @apply ml-5 mb-4;
+}
+
+.hr {
+  @apply my-[-15px] w-full;
+}

@@ -1,0 +1,68 @@
+.chartContainer {
+  @apply flex flex-col gap-y-4 w-full bg-black-russian p-4;
+}
+
+.chart {
+  @apply flex w-full gap-x-4;
+}
+
+.averageContainer {
+  @apply flex w-1/4 flex-col items-start justify-start gap-y-2 bg-rich-black p-4;
+}
+
+.averageValue {
+  @apply flex items-center justify-center text-2xl font-bold gap-x-2;
+}
+
+.averageTitle {
+  @apply mb-4;
+}
+.averageValues {
+  @apply flex flex-col items-center justify-center gap-y-2 w-full;
+}
+.trendUp {
+  @apply flex items-center justify-center text-main-green;
+}
+
+.trendDown {
+  @apply flex items-center justify-center text-error-red;
+}
+
+.secondaryAverageContainer {
+  @apply flex text-white/70 text-[12px] gap-x-2;
+}
+
+.horizontal {
+  @apply flex flex-row gap-x-4;
+}
+
+.horizontal .chart {
+  @apply flex justify-start gap-y-4;
+}
+
+
+.smallChartContainer {
+  @apply flex gap-y-4 w-full;
+}
+
+.smallContainer {
+  @apply flex gap-x-4;
+}
+.smallChartContainer {
+  @apply flex flex-col w-1/4 bg-rich-black p-4;
+}
+
+.smallChartContainer .chart {
+  @apply flex w-full items-center;
+}
+
+.smallChartContainer .title {
+  @apply text-white text-[16px] font-bold;
+}
+.historyChart {
+  @apply max-h-[150px];
+}
+
+.smallChartContainer .averageContainer {
+  @apply w-1/2;
+}

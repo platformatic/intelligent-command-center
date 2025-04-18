@@ -1,0 +1,28 @@
+.container {
+  @apply w-full;
+}
+table {
+  @apply w-full;
+}
+.messageDetailsHeader {
+  @apply flex items-center justify-between gap-2;
+}
+
+.targetEndpoint {
+  @apply flex items-center gap-2 ml-8;
+}
+
+.targetEndpoint > span {
+  @apply text-white/70;
+}
+
+tr > td:first-child {
+  @apply px-0;
+}
+th {
+  @apply text-left text-[12px];
+}
+
+.viewDetailsButton {
+  @apply text-right;
+}

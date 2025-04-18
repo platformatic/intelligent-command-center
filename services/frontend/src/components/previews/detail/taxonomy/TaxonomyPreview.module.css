@@ -1,0 +1,45 @@
+.boxSchemaChangesAdded,
+.boxSchemaChangesEdited,
+.boxSchemaChangesRemoved {
+  @apply border border-solid rounded-[2px] h-[0.75rem] w-[0.75rem];
+}
+.boxSchemaChangesAdded {
+  @apply border-main-green bg-main-green/30;
+}
+.boxSchemaChangesEdited{
+  @apply border-tertiary-blue bg-tertiary-blue/30;
+}
+.boxSchemaChangesRemoved {
+  @apply border-error-red bg-error-red/30;
+}
+
+.tableHeaderSchemaChanges {
+  @apply relative;
+}
+.headerSchemaChanges {
+  @apply absolute bottom-[-1rem] w-[calc(100%-1rem)] h-auto left-0 hidden lg:flex flex-row gap-x-2 items-center justify-between;
+}
+.borderexBoxContainer {
+  @apply p-4
+}
+.taxonomyPreviewContainer {
+  @apply grow max-h-[calc(100vH-10rem)] min-h-[calc(100vH-10rem)] overflow-hidden;
+}
+.borderedBoxContainerGraph {
+  @apply flex flex-col items-center justify-center w-full h-full grow p-0 relative;
+}
+.containerGraph {
+  @apply w-full h-full grow;
+  min-height: inherit;
+  max-height: inherit;
+  flex-basis: 1rem;
+  box-sizing: border-box;
+}
+.borderexBoxContainerSynchronization {
+  @apply px-2 py-2 grow w-full min-h-[40px];
+}
+
+.taxonomyGraphAndRightPanelContainer {
+  @apply grow relative flex flex-row gap-x-4 w-full min-h-[calc(100vH-15rem)] max-h-[calc(100vH-15rem)];
+  flex-basis: 1rem;
+}

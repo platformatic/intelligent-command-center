@@ -1,0 +1,6 @@
+.boxServicesContainer {
+  @apply p-2 w-full;
+}
+.contentScrollable {
+  @apply overflow-y-auto h-[calc(100VH-10rem)];
+}

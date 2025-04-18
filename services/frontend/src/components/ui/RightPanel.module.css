@@ -1,0 +1,33 @@
+.containerRight {
+  @apply relative top-0 -right-[100%] min-h-full h-full bg-rich-black border-solid border-white border-l;
+  border-color: rgba(255, 255, 255, .15);
+}
+.smallLayout {
+  @apply max-w-[34%] min-w-[34%];
+}
+.panelRightCover {
+  @apply w-full ;
+}
+.panelRightCoverEntering {
+  animation: come-in 400ms forwards;
+}
+.panelRightCoverLeaving {
+  animation: come-out 200ms forwards;
+}
+.headerClassName {
+  @apply flex justify-end gap-x-2 w-full;
+}
+.modalRight {
+  @apply p-4 h-full max-h-[calc(100%-2.5rem)] max-h-[calc(100%-2.5rem)] flex flex-col gap-y-4;
+  box-sizing: border-box;
+}
+
+@keyframes come-in {
+  from {right: -100%}
+  to {right: 0%}
+}
+
+@keyframes come-out {
+  from {right: 0%}
+  to {right: -100%}
+}

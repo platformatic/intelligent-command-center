@@ -1,0 +1,72 @@
+.containerTablePods {
+  @apply grow flex flex-col w-full justify-center;
+  box-sizing: border-box;
+  flex-basis: 1rem;
+}
+.contentTablePods {
+  @apply flex flex-col items-start gap-y-4 w-full grow; 
+}
+.loadingSpinner {
+  @apply absolute left-1/2 top-1/2;
+  transform: translate(-50%, -50%);
+}
+.selectPerfomance {
+  @apply w-full lg:max-w-[150px] lg:min-w-[150px];
+}
+.selectSorting {
+  @apply w-full lg:max-w-[190px] lg:min-w-[190px];
+}
+.filtersContainer {
+  @apply flex flex-row gap-2 w-full items-center;
+}
+.tablePods {
+  @apply w-full relative flex flex-col gap-y-4 grow p-0;
+}
+
+.tableHeaders {
+  @apply hidden lg:grid grid-cols-12 gap-x-4 w-full top-0 z-10 border-0 pt-2 bg-rich-black;
+  position: sticky;
+}
+.tableHeader {
+  @apply pb-2 text-left;
+}
+.tableHeader {
+  @apply grow
+}
+
+.noActivitiesFound {
+  @apply h-full flex flex-col items-center justify-center;
+  min-height: inherit;
+}
+.thWithIcon {
+  @apply flex flex-row items-center gap-x-2;
+  user-select: none;
+}
+.containerPodsRows {
+  @apply w-full overflow-y-hidden gap-y-0 justify-center;
+}
+
+
+.boxSchemaChangesAdded,
+.boxSchemaChangesEdited,
+.boxSchemaChangesRemoved {
+  @apply border border-solid rounded-[2px] h-[0.75rem] w-[0.75rem];
+}
+.boxSchemaChangesAdded {
+  @apply border-main-green;
+}
+.boxSchemaChangesEdited{
+  @apply border-tertiary-blue;
+}
+.boxSchemaChangesRemoved {
+  @apply border-error-red;
+}
+.tableHeaderSchemaChanges {
+  @apply relative;
+}
+.headerSchemaChanges {
+  @apply absolute bottom-[-1rem] w-[calc(100%-1rem)] h-auto left-0 hidden lg:flex flex-row gap-x-2 items-center justify-between;
+}
+.selectPaddingClass {
+  @apply py-[5px] px-0 md:px-3;
+}

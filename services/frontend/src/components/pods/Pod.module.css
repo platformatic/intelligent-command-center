@@ -1,0 +1,85 @@
+.showNavigationContainer {
+  @apply absolute left-1/2 top-1/2 w-[80%] h-full mx-auto z-10 flex flex-col gap-y-0 items-center justify-center;
+  transform: translate(-50%, -50%);
+}
+.showNavigationContainerWide {
+  @apply !gap-y-2;
+}
+.navigatorContent {
+  @apply flex flex-col w-full justify-between gap-0 items-center;
+}
+.navigatorContentWide {
+  @apply !flex-row !gap-2
+}
+.podContainer {
+  @apply w-full max-w-[256px];
+  box-sizing: border-box;
+}
+.podContent {
+  @apply w-full h-[0px] pb-[114.5%];
+}
+.svgUnknownPerformance,
+.svgLowPerformance,
+.svgGoodPerformance,
+.svgGreatPerformance,
+.svgFillingType {
+  @apply w-full h-auto z-0;
+}
+.svgUnknownPerformance,
+.svgLowPerformance,
+.svgGoodPerformance,
+.svgGreatPerformance {
+  @apply absolute top-0 left-0;
+}
+.svgFillingType > path {
+  @apply stroke-white;
+}
+
+.svgUnknownPerformance > path {
+  @apply stroke-white;
+}
+.svgLowPerformance > path {
+  @apply stroke-error-red;
+}
+.svgGoodPerformance > path {
+  @apply stroke-warning-yellow;
+}
+.svgGreatPerformance > path {
+  @apply stroke-main-green;
+}
+.upArrow {
+  @apply fill-error-red
+}
+.downArrow {
+  @apply fill-main-green
+}
+.arrowRightWide,
+.arrowLeftWide {
+  @apply !block;
+}
+.arrowRight,
+.arrowLeft {
+  @apply hidden
+}
+.arrowsContainer {
+  @apply flex flex-row items-center gap-x-2
+}
+.arrowsContainerWide {
+  @apply !hidden
+}
+.dataContainer {
+  @apply flex flex-col items-start gap-y-0 items-center;
+}
+.dataContainerWide {
+  @apply !gap-y-1
+}
+.dotsNavigation {
+  @apply pt-2
+}
+.dotsNavigationWide {
+  @apply !pt-0;
+}
+.alertIconPositioning {
+  @apply absolute top-[-1rem] left-1/2;
+  transform: translate(-50%, -50%);
+}

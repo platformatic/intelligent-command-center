@@ -1,0 +1,21 @@
+.buttonContainer {
+  @apply flex gap-x-2 justify-end items-center;
+}
+.borderexBoxContainer {
+  @apply p-4 relative ;
+}
+.borderedBoxHeigthLoading {
+  @apply min-h-[150px];
+}
+.upArrow {
+  @apply fill-error-red;
+}
+.downArrow {
+  @apply fill-main-green;
+}
+.verticalSeparator {
+  @apply h-[1rem];
+}
+.legendLine {
+  @apply border-t-2 border-solid rounded-full w-3 h-0;
+}

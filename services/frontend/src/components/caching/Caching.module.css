@@ -1,0 +1,63 @@
+.header {
+  @apply flex gap-4 justify-between;
+}
+
+.appSelector {
+  @apply grow-0;
+}
+
+.select {
+  @apply hover:cursor-pointer;
+}
+.cachingContainer {
+  @apply grow flex flex-col h-full;
+  flex-basis: 1rem;
+}
+.cachingPage {
+  @apply p-4 flex flex-col gap-y-6;
+  flex-basis: 1rem;
+  box-sizing: border-box;
+}
+.title {
+  @apply px-4 pt-4 flex;
+}
+.header {
+  @apply flex;
+}
+.origins {
+  @apply flex w-full justify-between gap-x-4;
+}
+.cachingContent {
+}
+.noApplicationSelected {
+  @apply flex grow flex-col justify-center items-center p-4 text-white text-center;
+  flex-basis: 1rem;
+  box-sizing: border-box;
+  min-height: calc(100vh - 12rem);
+  flex-basis: 1rem;
+}
+
+.searchBarPaddingClass {
+  @apply px-1.5 py-1;
+}
+
+.selectPaddingClass {
+  @apply px-1.5 py-1.5;
+}
+
+.optionsClass {
+  @apply mt-0 p-0 absolute top-[38px];
+}
+
+.cachingStats {
+  @apply pt-4 flex flex-col;
+}
+
+.cachingStatsControls {
+  @apply flex justify-between items-center;
+}
+
+.cachingStatsCollapse {
+  @apply ml-4 border border-solid rounded border-white border-opacity-50;
+  box-sizing: border-box;
+}

@@ -1,0 +1,19 @@
+.podsRow {
+  @apply w-full flex flex-row gap-x-4 items-center p-4 justify-center;
+  box-sizing: border-box;
+}
+.elementsOdd {
+  @apply flex flex-row items-center w-full;
+}
+.elementsEven {
+  @apply flex flex-row items-center w-full;
+}
+.gap4 {
+  @apply gap-x-4;
+}
+.gap2 {
+  @apply gap-x-2;
+}
+.customClass {
+  margin-top: -1rem;
+}

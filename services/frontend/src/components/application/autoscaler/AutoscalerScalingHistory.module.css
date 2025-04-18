@@ -1,0 +1,15 @@
+.containerAutoscalerHistory {
+  @apply grow relative flex flex-col;
+  flex-basis: 1rem;
+}
+.contentAutoscalerHistory {
+  @apply p-4 flex flex-col gap-y-6 grow max-h-[calc(100vH-48px)];
+  flex-basis: 1rem;
+  box-sizing: border-box;
+}
+.filtersContainer {
+  @apply grid grid-cols-1 md:flex md:flex-row gap-2 w-full items-center
+}
+.select {
+  @apply w-full md:max-w-[150px] md:min-w-[150px];
+}

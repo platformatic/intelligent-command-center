@@ -1,0 +1,59 @@
+.containerTableEnvironmentVariables {
+  @apply grow flex flex-col gap-y-6 w-full relative;
+  box-sizing: border-box;
+  flex-basis: 1rem;
+}
+.contentTableEnvironmentVariables {
+  @apply flex flex-col items-start gap-y-6 w-full grow; 
+}
+.loadingSpinner {
+  @apply absolute left-1/2 top-1/2;
+  transform: translate(-50%, -50%);
+}
+.select {
+  @apply max-w-[250px] min-w-[250px];
+}
+.tableEnvironmentVariables {
+  @apply w-full relative grow flex flex-col gap-y-1;
+  vertical-align: middle;
+  border-collapse: collapse;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transform: translate(0,0);
+  /* // max-height: 17rem; */
+}
+
+
+.tableEnvironmentVariablesRows {
+  @apply w-full;
+}
+.tableHeaders {
+  @apply hidden md:grid grid-cols-12 gap-x-4 w-full top-0 z-10 border-0 py-2 bg-black-russian;
+  position: sticky;
+}
+.tableHeader {
+  @apply pb-2 text-left;
+}
+.noActivitiesFound {
+  @apply h-full flex flex-col items-center justify-center;
+  min-height: inherit;
+}
+.thWithIcon {
+  @apply flex flex-row items-center gap-x-2;
+  user-select: none;
+}
+
+div[class*="tableEnvironmentVariablesRows"] {
+  @apply border-t border-white/15 border-solid;
+}
+
+:nth-child(1 of div[class*="tableEnvironmentVariablesRows"]) {
+  @apply border-0 !important;
+}
+.colSpan4 {
+  @apply md:!col-span-4;
+}
+
+.noDataContainer {
+  @apply grow flex flex-col gap-y-1 items-center justify-center w-full min-h-[84px]
+}

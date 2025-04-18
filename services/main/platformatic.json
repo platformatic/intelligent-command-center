@@ -45,6 +45,18 @@
         "proxy": {
           "prefix": "metrics"
         }
+      },
+      {
+        "id": "updates",
+        "proxy": {
+          "prefix": "updates"
+        }
+      },
+      {
+        "id": "frontend",
+        "proxy": {
+          "prefix": "/"
+        }
       }
     ]
   },

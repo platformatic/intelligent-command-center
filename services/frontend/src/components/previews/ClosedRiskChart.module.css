@@ -1,0 +1,119 @@
+.closedRiskChartContainer {
+  @apply flex flex-col justify-between relative gap-y-2 p-4 w-full rounded-[4px];
+}
+
+.closedRiskChartContainer > svg {
+  max-height: 5.5rem;
+}
+
+.closedRiskChartTitle {
+  @apply flex flex-row items-center space-x-2;
+}
+
+.color {
+  stroke: #ffffff;
+}
+
+.color-green {
+  @apply stroke-main-green;
+}
+
+.color-red {
+  @apply stroke-error-red;
+}
+
+.color-orange {
+  @apply stroke-warning-yellow;
+}
+
+.container {
+  @apply flex flex-col justify-between relative space-y-4;
+}
+
+.header {
+  @apply flex justify-between relative w-full items-center;
+}
+
+.title {
+  @apply w-full;
+}
+
+.labels {
+  @apply flex flex-row justify-end space-x-4;
+}
+
+.labelContainer {
+  @apply flex flex-row justify-end space-x-4 w-full items-center;
+}
+
+.label {
+  @apply w-max;
+}
+
+.legendLine {
+  @apply border-t-2 border-solid rounded-full w-8 h-0;
+}
+
+.line {
+  fill: none;
+  stroke-width: 2px;
+}
+
+.verticalSeparator {
+  @apply h-[1.25rem];
+}
+
+.tooltip {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: black;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 5px;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 20;
+}
+.tooltipContainer {
+  @apply flex flex-col;
+}
+
+.tooltipTime {
+  @apply ml-2 mr-2 mt-2 flex flex-col items-center border-solid border-rich-black/30 border-b;
+}
+
+.time {
+  @apply mb-2 opacity-50;
+}
+
+.tooltipTable {
+  @apply border-solid w-full mb-2 mt-2;
+}
+
+.tooltipLine {
+  @apply border-solid ml-2 mr-2 flex justify-between border-opacity-50;
+}
+
+.tooltipValueContainer {
+  @apply border-solid  flex;
+}
+
+.tooltipValue {
+  @apply ml-4 opacity-100;
+}
+
+.tooltipUnit {
+  @apply ml-1 opacity-100;
+}
+
+.grid {
+  opacity: 0.3;
+  color: #ffffff;
+}
+
+.axis {
+  opacity: 0.7;
+  color: #ffffff;
+}

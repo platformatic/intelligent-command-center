@@ -1,0 +1,27 @@
+.dependenciesTreeContainer {
+  @apply p-2 bg-rich-black flex flex-col gap-2 mb-4 p-4;
+}
+
+.header {
+  @apply flex items-center;
+}
+
+.warning {
+  @apply ml-4;
+}
+
+.chart {
+  @apply bg-white bg-opacity-15;
+}
+
+.labels {
+  @apply flex items-center;
+}
+
+.label {
+  @apply text-white opacity-70 pr-4;
+}
+
+.collapse {
+  @apply ml-auto;
+}

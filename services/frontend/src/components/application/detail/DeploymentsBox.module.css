@@ -1,0 +1,24 @@
+.borderexBoxContainer {
+  @apply grow relative p-4;
+}
+.buttonContainer {
+  @apply flex gap-x-2 justify-end items-center;
+}
+.applicationName {
+  @apply max-w-[40rem]
+}
+.rowContainer {
+  @apply flex flex-row items-center gap-4 w-full pl-8;
+}
+.verticalSeparator {
+  @apply hidden md:block
+}
+.flexWrap {
+  @apply flex-wrap gap-y-2 md:flex-nowrap;
+}
+.mainIteration {
+  @apply py-1 px-2 grow-0;
+}
+.addFullHeight {
+  @apply h-auto lg:h-full;
+}
