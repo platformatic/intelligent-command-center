@@ -68,13 +68,16 @@ module.exports = fp(async function (app) {
         await app.createCacheUser(result.application.id, ctx)
 
         // send notification to ui
-        ctx.req.updates.postEvents({
+
+        await ctx.req.updates?.postEvents({
           topic: 'ui-updates/applications',
           type: 'application-created',
           data: {
             applicationId: result.application.id,
             applicationName: result.application.name
           }
+        }).catch((err) => {
+          ctx.logger.error({ err }, 'Failed to send notification to ui')
         })
       }
       if (result.isNewDeployment) {
