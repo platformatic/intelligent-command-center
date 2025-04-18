@@ -52,7 +52,7 @@ module.exports.getServer = async function (t, env) {
   // all things that are set in the config file to read from an env variable
   config.server = {}
   config.server.logger ||= {
-    level: 'info'
+    level: 'silent'
   }
   config.watch = false
 
