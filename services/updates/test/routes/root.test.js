@@ -49,6 +49,7 @@ test('the event should be sent to the websocket', async (t) => {
     },
     body: JSON.stringify({
       topic: 'ui-updates/applications',
+      type: 'application-created',
       data: {
         foo: 'bar'
       }
@@ -58,6 +59,7 @@ test('the event should be sent to the websocket', async (t) => {
   const notificationData = JSON.parse(notification[0])
   assert.deepStrictEqual(notificationData, {
     topic: 'ui-updates/applications',
+    type: 'application-created',
     data: {
       foo: 'bar'
     }
