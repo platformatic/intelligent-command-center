@@ -27,8 +27,10 @@ test('demo login should be disabled', async (t) => {
 })
 
 test('should enable demo login', async (t) => {
+  let loginActivitySaved = false
   const app = await getServer(t, {
-    DEMO_LOGIN: 'true'
+    DEMO_LOGIN: 'true',
+    VITE_SUPPORTED_LOGINS: 'demo'
   })
   const url = await app.start()
 
@@ -82,6 +84,24 @@ test('should enable demo login', async (t) => {
       }
     })
 
+  agent
+    .get('http://activities.plt.local')
+    .intercept({
+      method: 'POST',
+      path: '/events'
+    }).reply((options) => {
+      const body = JSON.parse(options.body)
+      assert.equal(body.type, 'USER_LOGIN')
+      assert.equal(body.userId, '123e4567-e89b-12d3-a456-426614174000')
+      assert.equal(body.targetId, '123e4567-e89b-12d3-a456-426614174000')
+      assert.equal(body.username, 'test-user')
+      loginActivitySaved = true
+      return {
+        statusCode: 200,
+        data: {}
+      }
+    })
+
   const demoLoginRes = await request(`${url}/api/login/demo`)
   assert.equal(demoLoginRes.statusCode, 302)
 
@@ -119,4 +139,5 @@ test('should enable demo login', async (t) => {
     image: 'https://avatar.iran.liara.run/public',
     role: 'admin'
   })
+  assert.ok(loginActivitySaved)
 })
