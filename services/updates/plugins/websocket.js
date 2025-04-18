@@ -6,7 +6,6 @@ module.exports = async function (fastify, opts) {
   fastify.register(async (fastify, opts) => {
     fastify.get('/ws', { websocket: true }, async (connection) => {
       connection.on('open', () => {
-        console.log('connection opened')
         connection.send(JSON.stringify({ command: 'welcome', message: 'Welcome to the updates service' }))
       })
       connection.on('error', err => {
@@ -21,7 +20,6 @@ module.exports = async function (fastify, opts) {
         fastify.log.debug('Connection closed.')
       })
       const subscriber = (message, callback) => {
-        console.log('subscriber', message, callback)
         connection.send(JSON.stringify(message))
         callback()
       }
@@ -44,8 +42,6 @@ module.exports = async function (fastify, opts) {
             fastify.log.error({ message }, 'Unknown command for updates websocket.')
             break
         }
-
-        console.log('topicList', topicList)
       })
     })
   })
