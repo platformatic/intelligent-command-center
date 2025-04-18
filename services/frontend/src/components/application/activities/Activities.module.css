@@ -1,0 +1,24 @@
+.containerActivities {
+  @apply grow relative flex flex-col;
+  flex-basis: 1rem;
+}
+.contentActivities {
+  @apply p-4 flex flex-col gap-y-6 grow max-h-[calc(100vH-48px)];
+  flex-basis: 1rem;
+  box-sizing: border-box;
+}
+.filtersContainer {
+  @apply flex gap-2 w-full justify-end
+}
+.select {
+  @apply w-full md:max-w-[150px] md:min-w-[150px];
+}
+.selectEvents {
+  @apply w-full md:max-w-[200px] md:min-w-[200px];
+}
+.selectPaddingClass {
+  @apply py-[3px] px-2 md:px-3;
+}
+.maxHeightOptions {
+  @apply !max-h-[250px];
+}

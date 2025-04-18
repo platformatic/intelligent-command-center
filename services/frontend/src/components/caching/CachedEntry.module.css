@@ -1,0 +1,23 @@
+.container {
+  @apply flex p-2 cursor-pointer text-white;
+  background-color: #00050b;
+}
+
+.selected {
+  @apply bg-white bg-opacity-15;
+}
+
+.endpointData {
+  @apply flex flex-col gap-1;
+}
+
+.checkBox {
+  @apply pr-2 pl-2;
+}
+.metadata {
+  @apply opacity-30;
+}
+
+.cachingStatsCollapse {
+  @apply mr-2;
+}

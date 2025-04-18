@@ -1,0 +1,110 @@
+.textWhite {
+  @apply text-white;
+}
+.textRichBlack {
+  @apply text-rich-black;
+}
+.textMainGreen {
+  @apply text-main-green;
+}
+.textErrorRed {
+  @apply text-error-red;
+}
+.textWarningYellow {
+  @apply text-warning-yellow;
+}
+.textTertiaryBlue {
+  @apply text-tertiary-blue;
+}
+.textGiantsOrange {
+  @apply text-giants-orange;
+}
+.textElectricPurple {
+  @apply text-electric-purple;
+}
+.textFluorescentCyan {
+  @apply text-fluorescent-cyan;
+}
+.textCenter {
+  @apply text-center;
+}
+.textLeft {
+  @apply text-left;
+}
+.textRight {
+  @apply text-right;
+}
+.opacity70 {
+  @apply opacity-70;
+}
+.opacity30 {
+  @apply opacity-30;
+}
+.opacity100 {
+  @apply opacity-100;
+}
+.ellipsis {
+  @apply truncate w-full;
+}
+.desktopHeadline1 {
+  @apply font-inter font-medium text-[1.75rem] leading-[2.18rem] md:text-[2.5rem] md:leading-[3.375rem];
+}
+.desktopHeadline2 {
+  @apply font-inter font-medium text-[1.375rem] leading-[1.65rem] md:text-[2rem] md:leading-[2.7rem];
+}
+.desktopHeadline3 {
+  @apply font-inter font-medium text-[1.25rem] leading-[1.5rem] lg:text-[1.5rem] lg:leading-[2.025rem];
+}
+.desktopHeadline4 {
+  @apply font-inter font-medium text-[1.125rem] leading-[1.35rem] lg:text-[1.25rem] lg:leading-[1.688rem];
+}
+.desktopBodyLarge {
+  @apply font-inter font-light text-[1rem] leading-[1.5rem] lg:text-[1.125rem] lg:leading-[1.688rem];
+}
+.desktopBody {
+  @apply font-inter font-light text-[1rem] leading-[1.5rem];
+}
+.desktopBodySmall {
+  @apply font-inter font-light text-[0.875rem] leading-[1.375rem];
+}
+.desktopBodySmallSemibold {
+  @apply font-inter font-medium text-[0.875rem] leading-[1.375rem];
+}
+.desktopBodySmallest {
+  @apply font-inter font-light text-[0.75rem] leading-[1.125rem];
+}
+.desktopButtonSmall {
+  @apply font-inter font-light text-[13px] leading-[1.375rem];
+}
+.desktopBodyLargeMedium {
+  @apply font-inter font-medium text-[1rem] leading-[1.5rem] lg:text-[1.125rem] lg:leading-[1.688rem];
+}
+.desktopBodyLargeSemibold {
+  @apply font-inter font-medium text-[1.125rem] leading-[1.5rem] lg:text-[1.125rem] lg:leading-[1.688rem];
+}
+.desktopBodySemibold {
+  @apply font-inter font-medium text-[1rem] leading-[1.5rem];
+}
+.desktopBodyDesktopMiniMobile {
+  @apply font-inter font-normal text-[0.75rem] leading-[1.063rem] lg:text-[1rem] lg:leading-[1.5rem];
+}
+.desktopOtherCliTerminalSmall {
+  @apply font-normal text-[0.75rem] leading-[1.125rem] lg:text-[0.875rem] lg:leading-[1.313rem];
+  font-family: 'Roboto_Mono';
+}
+
+.desktopOtherOverlineNormal {
+  @apply font-inter font-light uppercase text-[0.875rem] leading-[1.313rem] tracking-[0.15em] ;
+}
+
+.desktopOtherOverlineSmall {
+  @apply font-inter font-light uppercase text-[0.75rem] leading-[1.125rem] tracking-[0.2em] ;
+}
+
+.desktopOtherOverlineSmallest {
+  @apply font-inter font-light uppercase text-[0.625rem] leading-[1rem] tracking-[0.2em] ;
+}
+
+.onHoverUnderline {
+  @apply no-underline hover:underline;
+}

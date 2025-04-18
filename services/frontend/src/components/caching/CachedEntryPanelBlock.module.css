@@ -1,0 +1,15 @@
+.container {
+  @apply p-2 bg-rich-black flex flex-col gap-2;
+}
+.header {
+}
+.title {
+  @apply flex justify-between items-center;
+}
+.content {
+  @apply bg-black-russian;
+}
+
+.copyToClipBoard {
+  @apply hover:cursor-pointer;
+}

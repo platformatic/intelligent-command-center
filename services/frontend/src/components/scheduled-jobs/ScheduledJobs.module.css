@@ -1,0 +1,21 @@
+.container {
+  @apply p-4 w-full text-white;
+}
+
+.jobs {
+  height: calc(100vh - 150px); /* Adjust this value based on the header height */
+  overflow-y: auto;
+}
+
+.searchAndFilter {
+  @apply flex flex-row justify-between items-center gap-x-2;
+}
+
+.search {
+  @apply grow;
+}
+
+.filter {
+  @apply hover:cursor-pointer;
+}
+

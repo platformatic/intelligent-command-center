@@ -1,0 +1,52 @@
+.colSpanMiddle2 {
+  @apply md:!col-span-2;
+}
+.colSpanMiddle3 {
+  @apply md:!col-span-3;
+}
+.colSpanMiddle4 {
+  @apply md:!col-span-4;
+}
+.colSpanMiddle5 {
+  @apply md:!col-span-5;
+}
+.colSpanMiddle6 {
+  @apply md:!col-span-6;
+}
+.colSpanMiddle7 {
+  @apply md:!col-span-7;
+}
+.colSpanMiddle8 {
+  @apply md:!col-span-8;
+}
+.colSpanMiddle11 {
+  @apply md:!col-span-11;
+}
+
+.colSpanLarge2 {
+  @apply lg:!col-span-2;
+}
+.colSpanLarge3 {
+  @apply lg:!col-span-3;
+}
+.colSpanLarge4 {
+  @apply lg:!col-span-4;
+}
+.colSpanLarge5 {
+  @apply lg:!col-span-5;
+}
+.colSpanLarge6 {
+  @apply lg:!col-span-6;
+}
+.colSpanLarge7 {
+  @apply lg:!col-span-7;
+}
+.colSpanLarge8 {
+  @apply lg:!col-span-8;
+}
+.colSpanLarge11 {
+  @apply lg:!col-span-11;
+}
+
+
+

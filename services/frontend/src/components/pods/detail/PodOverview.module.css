@@ -1,0 +1,23 @@
+.borderedBoxContainerPodOverview {
+  @apply p-4 relative;
+}
+.podOverviewContainer {
+  @apply grow relative flex flex-col;
+  flex-basis: 1rem;
+}
+.podOverviewContent {
+  @apply p-4 flex flex-col gap-y-4;
+}
+.previewTabContent {
+  @apply max-h-[calc(100vH-16rem)] overflow-y-auto flex flex-col gap-y-0 overflow-x-hidden; 
+}
+.smallMargin {
+  @apply ml-8;
+}
+.borderexBoxPerfomanceContainer {
+  @apply p-4 relative w-full rounded-[4px];
+  box-sizing: border-box;
+}
+.podOverviewContentScrollable {
+  @apply flex flex-col gap-y-4 overflow-y-auto max-h-[calc(100vH-10rem)];
+}

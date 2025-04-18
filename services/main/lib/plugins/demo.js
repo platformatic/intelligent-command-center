@@ -6,7 +6,7 @@ const { DemoLoginError } = require('../errors')
 /** @param {import('fastify').FastifyInstance} app */
 async function demoLogin (app, opts) {
   app.get('/api/login/demo', async (req, res) => {
-    if (process.env.DEMO_LOGIN !== 'true') throw new DemoLoginError()
+    if (!process.env.VITE_SUPPORTED_LOGINS?.includes('demo')) throw new DemoLoginError()
 
     const demoUser = {
       email: 'demo@platformatic.dev',

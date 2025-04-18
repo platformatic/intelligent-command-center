@@ -1,0 +1,21 @@
+.code {
+  @apply text-white font-semibold text-[250px];
+}
+.subtitle {
+  @apply text-[56px] font-semibold text-main-green py-2 pb-6;
+}
+.details {
+  @apply font-light text-white text-center;
+}
+.linkToPlatformaticDev {
+  @apply text-[22px] text-main-green font-semibold tracking-widest mx-3;
+}
+.container {
+  @apply flex flex-col justify-center items-center h-screen my-auto;
+}
+.title {
+  @apply inline-flex items-center;
+}
+.hrContainer {
+  @apply w-[80%]
+}

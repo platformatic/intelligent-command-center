@@ -1,0 +1,15 @@
+.actions {
+  @apply mt-4;
+}
+
+.label {
+  @apply mt-2;
+}
+
+.input {
+  @apply mt-4 md:max-w-[550px];
+}
+
+.cronDescription {
+  @apply mt-2;
+}

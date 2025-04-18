@@ -1,0 +1,17 @@
+.container {
+  @apply border-solid border-r p-4 flex flex-col justify-between shrink-0 gap-y-6;
+  box-sizing: border-box;
+  max-width: 72px;
+  min-width: 72px;
+  border-color: rgba(255, 255, 255, .15);
+}
+.content {
+  @apply flex flex-col gap-y-8 ;
+}
+.item {
+  @apply relative z-20;
+}
+.tooltipSidebar {
+  @apply font-inter font-light text-[0.75rem] leading-[1.125rem] text-rich-black p-1 border-0 z-20 w-max;
+  background-color: white !important;
+}

@@ -1,0 +1,140 @@
+.flexRowNoGap {
+  @apply flex flex-row items-center gap-x-0;
+}
+.flexBlockNoGap {
+  @apply flex flex-col items-start gap-y-0;
+}
+.miniFlexBlock {
+  @apply flex flex-col items-start gap-y-1;
+}
+.miniFlexRow {
+  @apply flex flex-row items-center gap-x-1;
+}
+.tinyFlexRow {
+  @apply flex flex-row items-center gap-x-2;
+}
+.tinyFlexResponsiveRow {
+  @apply flex flex-col lg:flex-row items-start lg:items-center gap-2;
+}
+.tinyFlexBlock {
+  @apply flex flex-col items-start gap-y-2;
+}
+.smallFlexRow {
+  @apply flex flex-row items-center gap-x-4;
+}
+.smallFlexBlock {
+  @apply flex flex-col items-start gap-y-4;
+}
+.smallFlexResponsiveRow {
+  @apply flex flex-col md:flex-row items-start md:items-center gap-4;
+}
+.mediumFlexRow {
+  @apply flex flex-row items-center gap-x-2 md:gap-x-6 w-full;
+}
+.mediumFlexBlock {
+  @apply flex flex-col items-start gap-y-3 lg:gap-y-6;
+}
+.extraMediumFlexRow {
+  @apply flex flex-row items-center gap-x-2 lg:gap-x-8 w-full;
+}
+.extraMediumFlexBlock {
+  @apply flex flex-col items-start gap-y-3 lg:gap-y-8;
+}
+.largeFlexRow {
+  @apply flex flex-row items-center gap-x-3 lg:gap-x-10 w-full;
+}
+.largeFlexBlock {
+  @apply flex flex-col items-start gap-y-3 xl:gap-y-10;
+}
+
+.fullWidth {
+  @apply w-full;
+}
+.halfWidth {
+  @apply w-1/2;
+}
+.justifyBetween {
+  @apply justify-between;
+}
+.justifyCenter {
+  @apply justify-center;
+}
+.justifyEnd {
+  @apply justify-end;
+}
+.itemsStart {
+  @apply items-start;
+}
+.itemsCenter {
+  @apply items-center;
+}
+.itemsStretch {
+  @apply items-stretch;
+}
+.itemsEnd {
+  @apply items-end;
+}
+.buttonPaddingBordered {
+  @apply px-4 py-[7px] !important;
+}
+.buttonPadding {
+  @apply px-2 py-2 !important;
+}
+.smallButtonPadding {
+  @apply px-2 py-1 !important;
+}
+.smallButtonPaddingForNoBordered {
+  @apply px-2 py-[5px] !important;
+}
+.buttonSquarePadding {
+  @apply p-2 !important;
+}
+.smallButtonSquarePadding {
+  @apply p-1 !important;
+}
+.noPadding {
+  @apply p-0 !important;
+}
+.noVerticalPadding {
+  @apply py-0 !important;
+}
+
+.smallButtonPaddingNoVerticalPadding {
+  @apply px-2 py-0 !important;
+}
+
+.overflowHidden {
+  @apply overflow-hidden;
+}
+.fullHeight {
+  @apply h-full;
+}
+.cursorPointer {
+  @apply cursor-pointer;
+}
+.flexGrow {
+  @apply grow;
+}
+.overflowYAuto {
+  @apply overflow-y-auto overflow-x-hidden;
+}
+.positionRelative {
+  @apply relative;
+}
+.githubUser {
+  @apply w-6 h-6 rounded-[12px] shrink-0;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.userSelectNone {
+  user-select: none;
+}
+.inputVerticalPaddingClass {
+  @apply py-[5px];
+}
+.inputVerticalPaddingClassFontDesktopBodySmall {
+  @apply py-[4px];
+}
+.backgroundTransparent {
+  @apply bg-transparent;
+}

@@ -65,7 +65,20 @@ module.exports = fp(async function (app) {
         ).catch((err) => {
           ctx.logger.error({ err }, 'Failed to send activity')
         })
+<<<<<<< HEAD:services/control-plane/plugins/instances.js
         await app.createCacheUser(result.application.id, ctx)
+=======
+
+        // send notification to ui
+        ctx.req.updates.postEvents({
+          topic: 'ui-updates/applications',
+          type: 'application-created',
+          data: {
+            applicationId: result.application.id,
+            applicationName: result.application.name
+          }
+        })
+>>>>>>> a2cb568 (add frontend service):services/control-plane/plugins/zio.js
       }
       if (result.isNewDeployment) {
         await app.sendSuccessfulApplicationDeployActivity(

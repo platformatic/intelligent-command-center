@@ -1,0 +1,38 @@
+.line {
+  fill: none;
+  stroke-width: 1px;
+}
+
+.color-0 {
+  stroke: #fa2121;
+  color: #fa2121;
+}
+
+.color-1 {
+  stroke: #21fa90;
+  color: #21fa90;
+}
+
+.grid {
+  opacity: 0.3;
+}
+
+.axis {
+  opacity: 0.7;
+}
+
+.cachingChart {
+  apply: pt-2 flex flex-col;
+}
+
+.chartTitle {
+  @apply flex flex-row items-center gap-x-2 pb-4;
+}
+
+.chartLegend {
+  @apply flex flex-row justify-between items-center gap-x-2 pb-4 pr-2;
+}
+
+.legendLine {
+  @apply border-t-2 border-solid rounded-full w-3 h-0 items-center;
+}

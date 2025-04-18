@@ -1,0 +1,20 @@
+.line {
+  background-color: #090E17;
+  @apply p-2 mb-2 text-white;
+}
+.expandIcon {
+}
+.name {
+  @apply flex justify-between hover:cursor-pointer items-center;
+}
+.endpointContainer {
+  @apply flex flex-col gap-2 mt-2;
+}
+
+.from {
+  @apply flex items-center gap-x-2;
+}
+
+.kind {
+ @apply opacity-70; 
+}

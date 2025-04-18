@@ -1,0 +1,155 @@
+.container {
+  @apply flex flex-col gap-y-4 w-full;
+}
+
+.content {
+  @apply flex gap-x-4;
+}
+
+.applicationsContainer {
+  @apply w-1/3;
+}
+
+.routes {
+  @apply w-2/3;
+}
+
+
+.applicationsList {
+  @apply flex flex-col gap-y-2 hover:cursor-pointer mt-4;
+}
+
+.applicationsTitle {
+  @apply flex items-center gap-x-2;
+}
+
+.applicationsCount {
+  @apply text-sm text-white/30;
+}
+
+.secondaryText {
+  @apply text-white/70;
+}
+
+
+/* Application Card */
+.applicationCard {
+  @apply p-4 bg-rich-black rounded-md flex flex-col gap-y-4;
+}
+.applicationCardSelected {
+  @apply bg-white/20;
+}
+.applicationCardHeader {
+  @apply flex items-center justify-between gap-x-2;
+}
+.applicationCardFooter {
+  @apply flex items-center justify-between gap-x-2;
+}
+.applicationCardFooterText {
+  @apply text-white/70;
+}
+.applicationCardFooterTextBold {
+  @apply font-bold text-white;
+}
+.applicationCardFooterTextWhite {
+  @apply text-white;
+}
+
+.applicationCardName {
+  @apply flex items-center gap-x-2;
+}
+
+.tableRow > td {
+  vertical-align: middle;
+}
+.tdActions {
+  @apply flex gap-x-2 items-center justify-end text-white text-opacity-70 hover:cursor-pointer;
+}
+
+/* Routes Section */
+.routesButtons {
+  @apply flex gap-x-2;
+}
+
+.routesTableHeader {
+  @apply flex items-center justify-between gap-x-2 w-full mb-4;
+}
+
+.toggleSwitchLabel {
+  @apply text-white;
+}
+
+.routesTableHeaderRight {
+}
+
+.searchBarContainer {
+  @apply w-1/2;
+}
+
+.modalText {
+  @apply text-white/70 text-[14px] flex flex-col gap-y-4 mb-4 border-b border-white/30 border-solid pb-4;
+}
+
+.modalButtons {
+  @apply flex gap-x-2 justify-between;
+}
+
+.checkboxContainer > input:disabled {
+  @apply bg-white/20 border-white/20;
+}
+
+.appliedRoutes {
+  @apply flex items-center gap-x-2 text-sm text-white/30 font-light;
+}
+
+
+.manualOptimizeModalTitle {
+  @apply text-[18px] font-bold text-center w-full;
+}
+.modalConfigContainer {
+  @apply bg-rich-black p-2 rounded-md text-white/70;
+}
+
+.manualOptimizeModalContainer .explanation {
+  @apply text-white/70 text-[14px] text-center;
+}
+.manualOptimizeModalContainer .copyPasteElement {
+  @apply flex items-center gap-x-2 justify-between;
+}
+
+.manualOptimizeModalContainer .content  {
+  @apply flex flex-col gap-y-4 bg-black-russian p-4;
+}
+
+.manualOptimizeModalContainer .content > span {
+  @apply text-white/70 text-[14px];
+}
+
+.manualOptimizeModalContainer .modalButtons {
+  @apply flex gap-y-4 items-center justify-center my-4;
+}
+
+.numberedList {
+  @apply list-none relative;
+  counter-reset: item;
+}
+
+.numberedList::before {
+  content: '';
+  @apply absolute left-[11px] top-0 bottom-0 w-[2px] bg-white/20 z-0;
+  height: calc(100% - 1rem);
+}
+
+.numberedList > li {
+  @apply flex items-start gap-x-2 mb-4 relative pl-8;
+  counter-increment: item;
+}
+
+.numberedList > li::before {
+  @apply absolute left-0 border border-white/20 rounded-full w-6 h-6 flex items-center justify-center text-sm bg-rich-black z-10;
+  content: counter(item);
+}
+
+.numberedList > li:last-child {
+  @apply mb-0;
+}

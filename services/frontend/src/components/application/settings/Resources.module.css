@@ -1,0 +1,18 @@
+.content {
+  @apply w-full;
+}
+
+.form {
+  @apply flex gap-x-2 w-full;
+}
+.buttons {
+  @apply flex gap-x-1;
+}
+
+.unit {
+  @apply text-white/70
+}
+
+.rangeContainer {
+  @apply bg-rich-black p-2 w-full;
+}

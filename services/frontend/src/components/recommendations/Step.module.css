@@ -1,0 +1,28 @@
+.container {
+  @apply bg-rich-black mb-2 p-2;
+}
+.action {
+  @apply flex gap-[0.5rem] items-center hover:cursor-pointer;
+}
+.title {
+  @apply flex items-center;
+}
+.blueBordered {
+  @apply border-2 border-solid border-tertiary-blue px-2 py-1 text-tertiary-blue;
+}
+
+.greenDashedBordered {
+  @apply border-main-green border-dashed border-2 px-2 py-1;
+}
+
+.fromTo {
+  @apply flex items-center gap-x-2;
+}
+
+.fromTo > div {
+  @apply opacity-70;
+}
+
+.fromTo .applicationName {
+  @apply opacity-100;
+}

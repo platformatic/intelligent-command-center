@@ -1,0 +1,13 @@
+.verticalSeparator {
+  @apply h-[1.5rem]
+}
+.borderedBoxPodPerformanceIssue {
+  @apply p-4 relative w-full rounded-[4px] md:min-w-[50%] h-auto md:h-full;
+  box-sizing: border-box;
+}
+.containerReasonMessage {
+  @apply max-w-[80%] text-center;
+}
+.containerReasonMessageHorizontal {
+  @apply max-w-[70%];
+}

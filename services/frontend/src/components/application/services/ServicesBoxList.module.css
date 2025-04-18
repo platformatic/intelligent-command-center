@@ -1,0 +1,22 @@
+.borderexBoxContainer {
+  @apply p-4 w-full;
+}
+.infoContainer {
+  @apply flex flex-col gap-y-0 w-full text-center justify-center;
+}
+.boxServicesOutdated,
+.boxServicesAvailable {
+  @apply border border-solid rounded-sm h-[0.75rem] w-[0.75rem];
+}
+.boxServicesWarningYellow {
+  @apply border-warning-yellow bg-warning-yellow/30 ;
+}
+.boxServicesErrorRed {
+  @apply border-error-red bg-error-red/30 ;
+}
+.boxServicesAvailable {
+  @apply border-white/30 bg-rich-black ;
+}
+.flexWrap {
+  @apply flex-wrap gap-y-2;
+}

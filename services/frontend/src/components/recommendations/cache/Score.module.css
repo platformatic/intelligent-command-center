@@ -1,0 +1,24 @@
+.score {
+  @apply flex items-center h-[25px] rounded-full gap-x-4 ;
+}
+
+.barContainer {
+  @apply flex items-center w-full h-[10px] bg-white/15 rounded-full w-[90px] relative;
+}
+
+.bar {
+  @apply w-full h-[10px] rounded-full bg-opacity-30 ;
+}
+
+.low {
+  @apply bg-error-red/30;
+}
+
+.medium {
+  @apply bg-warning-yellow/30;
+}
+
+.high {
+  @apply bg-main-green/30;
+}
+

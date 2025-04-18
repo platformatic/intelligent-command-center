@@ -1,0 +1,6 @@
+.container {
+  @apply grow relative;
+}
+.metricsContainer {
+  @apply flex flex-col lg:flex-row w-full gap-4; 
+}

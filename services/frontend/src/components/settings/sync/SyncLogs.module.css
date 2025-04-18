@@ -1,0 +1,11 @@
+.logs {
+  @apply flex flex-col grow w-full;
+}
+
+.topline {
+  @apply border-t-2 border-solid border-white border-opacity-30 pb-4;
+}
+
+.logsContainer {
+  @apply ml-4 mt-2;
+}

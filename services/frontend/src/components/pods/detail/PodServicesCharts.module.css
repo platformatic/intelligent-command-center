@@ -1,0 +1,10 @@
+.podServicesContainer {
+  @apply grow relative flex flex-col;
+  flex-basis: 1rem;
+}
+.podServicesContent {
+  @apply p-4 flex flex-col gap-y-4;
+}
+.borderedBoxContainerPodServices {
+  @apply p-4 w-full rounded-[4px];
+}
