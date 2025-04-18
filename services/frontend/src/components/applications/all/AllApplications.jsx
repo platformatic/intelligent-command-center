@@ -1,11 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import styles from './AllApplications.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import GridApplications from './GridApplications'
-import {
-  getApiMainTaxonomy
-} from '~/api'
 import ErrorComponent from '~/components/errors/ErrorComponent'
 import useICCStore from '~/useICCStore'
 import { Modal } from '@platformatic/ui-components'
@@ -17,7 +14,6 @@ import RecommendationBanner from './RecommendationBanner'
 const AllApplications = React.forwardRef(({ _ }, ref) => {
   const globalState = useICCStore()
   const {
-    taxonomySelected,
     updates
   } = globalState
   const [showErrorComponent, setShowErrorComponent] = useState(false)
@@ -35,28 +31,6 @@ const AllApplications = React.forwardRef(({ _ }, ref) => {
       return u.type === 'new-recommendation'
     }).length > 0
   }
-
-  // TODO: use websocket to refresh applications
-  // let pollingInterval = null
-
-  // async function loadApplications () {
-  //   const applications = await getApplicationsWithMetadata()
-  //   setLocalApplications([...applications])
-
-  //   const mainTaxonomy = await getApiMainTaxonomy()
-  //   const lastGeneration = await getLastStartedGeneration(mainTaxonomy.id)
-  //   setEnableSidebarFirstLevel(lastGeneration?.mainIteration !== 0)
-  //   setLatestRefresDate(new Date())
-  // }
-  // useEffect(() => {
-  //   pollingInterval = setInterval(() => {
-  //     loadApplications()
-  //   }, REFRESH_INTERVAL_APPLICATIONS)
-  //   return () => {
-  //     console.log('unmounting')
-  //     clearInterval(pollingInterval)
-  //   }
-  // }, [])
 
   function handleAddApplicationError (error) {
     handleCloseModalAddApplication()

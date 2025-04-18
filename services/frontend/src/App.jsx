@@ -4,9 +4,7 @@ import './App.css'
 import CustomAuthProvider from '~/auth/CustomAuthProvider'
 import {
   getUser,
-  getPackageVersions,
-  getApiMainTaxonomy,
-  getLastStartedGeneration
+  getPackageVersions
 } from '~/api'
 
 import { LoadingSpinnerV2 } from '@platformatic/ui-components'
@@ -16,6 +14,7 @@ import typographyStyles from '~/styles/Typography.module.css'
 import useICCStore from '~/useICCStore'
 
 import { getRouter } from './Router'
+import { getLastStartedGeneration } from './api'
 
 export default function App () {
   const globalState = useICCStore()
@@ -73,9 +72,8 @@ export default function App () {
           if (data?.package_versions) {
             setPackageVersions(data.package_versions)
           }
-          // const mainTaxonomy = await getApiMainTaxonomy()
-          // const lastGeneration = await getLastStartedGeneration(mainTaxonomy.id)
-          // setEnableSidebarFirstLevel(lastGeneration !== null)
+          const lastGeneration = await getLastStartedGeneration()
+          setEnableSidebarFirstLevel(lastGeneration !== null)
         } catch (error) {
           console.error('Error on loadPackageVersions', error)
         } finally {
