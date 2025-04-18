@@ -6,7 +6,8 @@ const {
   startControlPlane,
   startMetrics,
   startActivities,
-  generateApplicationState
+  generateApplicationState,
+  startUpdates
 } = require('./helper')
 
 test('should get a generation graph', async (t) => {
@@ -282,6 +283,8 @@ test('should get a previous generation graph', async (t) => {
       }
     }
   })
+
+  await startUpdates(t)
 
   const controlPlane = await startControlPlane(t)
 
