@@ -6,7 +6,8 @@ const { randomUUID } = require('node:crypto')
 const {
   startControlPlane,
   startActivities,
-  startMetrics
+  startMetrics,
+  startUpdates
 } = require('./helper')
 
 test('should save a detected pod of a new application', async (t) => {
@@ -15,6 +16,7 @@ test('should save a detected pod of a new application', async (t) => {
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
+  await startUpdates(t)
 
   const controlPlane = await startControlPlane(t)
   const applicationName = 'test-app'

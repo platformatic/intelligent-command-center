@@ -23,6 +23,7 @@ const defaultEnv = {
 
   PLT_ACTIVITIES_URL: 'http://localhost:3004',
   PLT_METRICS_URL: 'http://localhost:3009',
+  PLT_UPDATES_URL: 'http://localhost:3010',
 
   PLT_CONTROL_PLANE_CACHE_PROVIDER: 'valkey-oss',
   PLT_CONTROL_PLANE_SECRET_KEY: 'secret'
@@ -79,6 +80,12 @@ async function startControlPlane (t, entities = {}, env = {}) {
         name: 'metrics',
         type: 'openapi',
         url: process.env.PLT_METRICS_URL
+      },
+      {
+        schema: join(clientsDir, 'updates', 'updates.openapi.json'),
+        name: 'updates',
+        type: 'openapi',
+        url: process.env.PLT_UPDATES_URL
       }
     ],
     watch: false
@@ -89,6 +96,9 @@ async function startControlPlane (t, entities = {}, env = {}) {
     req: {
       activities: {
         postEvents: () => ({ id: 42, event: 'test' })
+      },
+      updates: {
+        postEvents: () => ({ })
       },
       metrics: {
         postServices: () => ({})
@@ -414,10 +424,26 @@ async function startMetrics (t, opts = {}) {
   return metrics
 }
 
+async function startUpdates (t, opts = {}) {
+  const updates = fastify({ keepAliveTimeout: 1 })
+
+  updates.post('/events', async (req) => {
+    return opts.postEvents?.(req.body)
+  })
+
+  t.after(async () => {
+    await updates.close()
+  })
+
+  await updates.listen({ port: 3010 })
+  return updates
+}
+
 module.exports = {
   startControlPlane,
   startActivities,
   startMetrics,
+  startUpdates,
   generateGeneration,
   generateApplication,
   generateApplicationState,
