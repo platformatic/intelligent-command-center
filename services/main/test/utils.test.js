@@ -11,7 +11,7 @@ test('should list all ICC services name', async (t) => {
     'activities',
     'control-plane',
     'cron',
-    // 'frontend',
+    'frontend',
     'main',
     'metrics',
     'updates',
@@ -26,9 +26,9 @@ test('should list all ICC services name excluding \'main\'', async (t) => {
     'activities',
     'control-plane',
     'cron',
+    'frontend',
     'metrics',
     'updates',
-    // 'frontend',
     'user-manager'
   ])
 })
