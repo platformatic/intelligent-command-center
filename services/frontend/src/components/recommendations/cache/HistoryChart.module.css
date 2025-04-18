@@ -1,0 +1,3 @@
+.historyChart {
+  @apply flex flex-col w-full gap-y-4 bg-rich-black p-4;
+}

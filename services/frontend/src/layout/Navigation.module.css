@@ -1,0 +1,18 @@
+.separator {
+  @apply mx-2;
+}
+.logo {
+  @apply mr-4;
+}
+.breadCrumbs {
+  @apply flex gap-x-2 items-center;
+}
+.container {
+  @apply inline-flex items-center;
+}
+.navigationElement {
+  @apply inline-flex items-center gap-x-2 no-underline;
+}
+.link {
+  @apply no-underline hover:opacity-100 hover:cursor-pointer;
+}

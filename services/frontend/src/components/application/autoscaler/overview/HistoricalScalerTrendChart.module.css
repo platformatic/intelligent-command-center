@@ -1,0 +1,91 @@
+.footer,.header {
+  @apply flex justify-between relative w-full items-center;
+} 
+.title {
+  @apply w-full; 
+}
+
+.labelContainer {
+  @apply flex flex-row justify-end space-x-4 w-full items-center;  
+}
+
+.label {
+  @apply w-max; 
+}
+
+.line {
+  fill: none;
+  stroke-width: 2px;
+}
+
+.verticalSeparator {
+  @apply h-[1rem]
+}
+
+.tooltip {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: black;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 5px;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 20;
+}
+.tooltipContainer {
+  @apply flex flex-col;
+}
+
+.tooltipTime {
+  @apply  ml-2 mr-2 mt-2 flex flex-col items-center border-solid border-rich-black/30 border-b;
+}
+
+.time {
+  @apply mb-2;
+}
+
+.tooltipTable {
+  @apply border-solid w-full mb-2 mt-2;
+}
+
+.tooltipLine {
+  @apply border-solid ml-2 mr-2 flex justify-between border-opacity-50;
+}
+
+.tooltipValueContainer {
+  @apply border-solid  flex ;
+}
+
+.tooltipValue {
+  @apply ml-4 opacity-100;
+}
+
+.tooltipUnit {
+  @apply ml-1 opacity-100;
+}
+
+.color-0 {
+  stroke: #2192FA;  
+  color: #2192FA;
+}
+
+.color-1 {
+  stroke: #FA6221;
+  color: #FA6221;
+}
+
+.grid {
+  opacity: 0.3;
+}
+
+.axis {
+  opacity: 0.7;
+}
+
+
+
+
+  

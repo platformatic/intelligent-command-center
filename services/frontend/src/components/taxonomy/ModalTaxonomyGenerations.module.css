@@ -1,0 +1,14 @@
+.divider {
+  @apply border-t border-solid border-white/15 grow;
+  border-width: 0.5px;
+}
+.taxonomyGroupedElement {
+  @apply ml-6 w-[calc(100%-1.5rem)];
+}
+.taxonomyGroupedElementHover {
+  @apply bg-white/15 rounded ml-4 w-[calc(100%-1.5rem)] pl-2;
+  box-sizing: border-box;
+}
+.taxonomyGroupContainer {
+  @apply overflow-y-auto h-[calc(100vH-10rem)]
+}

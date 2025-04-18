@@ -1,0 +1,8 @@
+.loadingSpinner {
+  @apply absolute left-1/2 top-1/2;
+  transform: translate(-50%, -50%);
+}
+
+.blurredFullScreen {
+  @apply fixed left-0 top-0 w-full h-full z-50 bg-rich-black/50;
+}

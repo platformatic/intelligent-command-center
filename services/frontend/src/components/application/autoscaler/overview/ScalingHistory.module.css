@@ -1,0 +1,101 @@
+.buttonContainer {
+  @apply flex gap-x-2 justify-end items-center;
+}
+
+.borderexBoxContainer {
+  @apply p-4 w-full relative;
+}
+.table {
+  @apply w-full relative grow flex flex-col gap-y-1;
+}
+.tableHeaders{ 
+  @apply hidden md:grid grid-cols-12 gap-x-4 w-full top-0 z-10 border-0 py-2 bg-black-russian;
+}
+.rowActivity {
+  @apply grid grid-cols-1 md:grid-cols-12 gap-x-4 w-full items-center h-[2rem];
+}
+.tableHeader {
+  @apply text-left col-span-1;
+}
+.tableSmallDescription {
+  @apply flex flex-col gap-y-0 justify-between col-span-1 md:block;
+}
+.tableSmall {
+  @apply flex flex-row gap-x-2 justify-between col-span-1 md:block;
+}
+.rowActivity > .tableSmallDescription > .tableCell:nth-child(odd),
+.rowActivity > .tableSmall > .tableCell:nth-child(odd) {
+  @apply py-0 block md:hidden;
+}
+.rowActivity > .tableSmallDescription > .tableCell,
+.rowActivity > .tableSmall > .tableCell {
+  @apply py-0;
+}
+.customSmallFlexRowEnd,
+.customSmallFlexRow {
+  @apply flex flex-row items-center gap-2
+}
+.customSmallFlexRow {
+  @apply justify-end md:justify-start;
+}
+.customSmallFlexRowEnd {
+  @apply justify-end
+}
+div[class*="rowActivity"] {
+  @apply border-t border-white/15 border-solid py-2;
+}
+:nth-child(1 of div[class*="rowActivity"]) {
+  @apply !border-0 pt-0;
+}
+.noActivitiesFound {
+  @apply flex flex-col items-center justify-center w-full gap-y-2;
+}
+
+.metricsContainer {
+  @apply flex flex-col lg:flex-row w-full gap-4; 
+}
+.boxScalingHistory,
+.boxHistorycalScalerTrend {
+  @apply col-span-1 lg:col-span-6
+}
+.verticalSeparator {
+  @apply h-[1rem];
+}
+
+.line-color-0 {
+  stroke: #2192FA;  
+  color: #2192FA;
+}
+
+.line-color-1 {
+  stroke: #FA6221;
+  color: #FA6221;
+}
+
+.legendLine {
+  @apply border-t-2 border-solid rounded-full w-3 h-0;
+}
+
+.legendSquare {
+  @apply border-2 border-solid w-3 h-3;
+}
+
+.square-color-up {
+  stroke: #2588E4;  
+  color: #2588E4;
+  background-color: #2588E4;
+}
+
+.square-color-down {
+  stroke: #44FFEC;
+  background-color: #44FFEC;
+  color: #44FFEC;
+}
+
+.square-legend-parent {
+  @apply border-2 border-solid w-3 h-3 relative top-0 left-0;
+
+}
+.square-legend-child {
+  @apply border-2 border-solid w-2.5 h-2.5 relative;
+}

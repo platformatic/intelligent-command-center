@@ -1,0 +1,45 @@
+.container {
+  @apply flex flex-col w-full min-w-[400px] gap-y-4;
+}
+
+.topLine {
+  @apply flex justify-between items-center;
+}
+
+.value {
+  @apply flex flex-col justify-center text-[20px];
+}
+
+.value.success {
+  @apply items-start;
+}
+
+.value.failures {
+  @apply items-end;
+}
+
+.value.success > .valueText {
+  @apply text-main-green;
+}
+.value.failures > .valueText {
+  @apply text-error-red;
+}
+
+.helperText {
+  @apply text-sm text-white/70;
+}
+
+.bottomLine {
+  @apply flex gap-x-2 w-full h-4;
+}
+.progressBar {
+  @apply w-full h-4 border border-solid;
+}
+
+.progressBar.success {
+  @apply bg-main-green/15 border-main-green;
+}
+
+.progressBar.failures {
+  @apply bg-error-red/15 border-error-red;
+}

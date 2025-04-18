@@ -1,0 +1,12 @@
+.addApplicationContainer {
+  @apply w-full md:max-w-[50%] lg:w-auto md:min-w-[50%] lg:max-w-[30rem] lg:min-w-[30rem] relative;
+}
+.apiKeyContainer {
+  @apply w-full flex flex-row items-center justify-between px-4 py-2 border border-solid rounded-[4px] border-white;
+}
+.marginRightSmall {
+  @apply mr-8;
+}
+.textArea {
+  @apply bg-rich-black w-full border-0;
+}

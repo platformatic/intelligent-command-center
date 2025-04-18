@@ -1,0 +1,15 @@
+.application {
+  @apply border-dashed border-2 border-white border-opacity-30 p-4 rounded inline-block max-w-[220px];
+}
+.name {
+  font-size: 14px;
+  @apply flex justify-center font-semibold mb-[12px];
+}
+
+.new {
+  @apply border-main-green;
+}
+
+.services {
+  @apply flex flex-wrap;
+}

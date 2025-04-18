@@ -1,0 +1,19 @@
+.table {
+  @apply p-4;
+}
+
+.line {
+  @apply table-row p-2;
+  border: 1px solid red;
+}
+
+.key {
+  @apply table-cell mr-2;
+}
+
+.separator {
+  border-right: 3px solid transparent;
+}
+.value {
+  @apply table-cell;
+}

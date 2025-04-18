@@ -1,0 +1,23 @@
+.noDataFoundContainer {
+  @apply grow flex flex-col gap-y-2 items-center justify-center w-full;
+}
+
+.fullCentered {
+  @apply flex justify-center items-center w-full h-full;
+}
+.iconRadarContainer {
+  @apply relative;
+}
+.clockWiseRotation {
+  animation: rotationClockwise 5s infinite linear;
+}
+@keyframes rotationClockwise {
+  from {
+    transform: rotate(0);
+    transform-origin: 62.5px 62.5px;
+  }
+  to {
+    transform: rotate(359deg);
+    transform-origin: 62.5px 62.5px;
+  }
+}

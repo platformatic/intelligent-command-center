@@ -1,0 +1,60 @@
+.customSmallFlexRow {
+  @apply flex flex-row items-center gap-2 justify-end md:justify-start;
+}
+.buttonsContainer {
+  @apply flex flex-row items-center gap-2 justify-end md:justify-start;
+}
+.customSmallFlexRowEnd {
+  @apply flex flex-col md:flex-row gap-2 justify-end;
+}
+.ellipsis {
+  @apply truncate w-full;
+}
+.rowApiKey {
+  @apply grid grid-cols-1 md:grid-cols-12 gap-x-4 w-full items-center h-[2rem];
+}
+.tableSmallDescription {
+  @apply flex flex-row justify-between col-span-1 md:block;
+}
+.tableSmall {
+  @apply flex flex-row gap-x-2 justify-between col-span-1 md:block;
+}
+
+.rowApiKey > .tableSmallDescription > .tableCell:nth-child(odd),
+.rowApiKey > .tableSmall > .tableCell:nth-child(odd) {
+  @apply py-0 block md:hidden;
+}
+
+.rowApiKey > .tableSmallDescription > .tableCell,
+.rowApiKey > .tableSmall > .tableCell {
+  @apply py-0;
+}
+
+.rowApiKey:last-child > .tableSmall:last-child > .tableCell:last-child {
+  border-bottom-right-radius: 5px;
+}
+
+.rowApiKey:last-child > .tableSmall:first-child > .tableCell:last-child {
+  border-bottom-left-radius: 5px;
+}
+
+.clockWiseRotation {
+  animation: rotationClockwise 2s infinite linear;
+}
+@keyframes rotationClockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+div[class*="rowApiKey"] {
+  @apply border-t border-white/15 border-solid py-2;
+}
+:nth-child(1 of div[class*="rowApiKey"]) {
+  @apply !border-0 pt-2;
+}
+.smallMargin {
+  @apply ml-[6px];
+}

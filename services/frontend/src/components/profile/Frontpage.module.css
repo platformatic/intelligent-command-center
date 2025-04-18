@@ -1,0 +1,46 @@
+.container {
+  @apply min-h-[calc(100vh-4rem)] flex flex-col gap-y-40 text-center items-center justify-end pb-4 lg:pb-40 xl:pb-4 xl:justify-center w-full relative z-0;
+}
+.content {
+  @apply mx-auto max-w-screen-md relative z-0;
+}
+.selectUl {
+  @apply min-w-[150%]
+}
+.modalUl {
+  @apply list-disc list-inside !important;
+}
+.modalMargin {
+  @apply my-4;
+}
+.gridContainer {
+  @apply grid grid-cols-1 md:grid-cols-6 gap-4 justify-center;
+}
+.colSpanLarge {
+ @apply col-span-1 md:col-span-3;
+}
+.colSpanMedium {
+  @apply col-span-1 md:col-span-2;
+}
+.imageLeft, 
+.imageRight{ 
+  @apply absolute z-0 w-1/2 max-w-[20rem] xl:w-auto md:max-w-[25rem] xl:max-w-[unset];
+}
+.imageLeft {
+  @apply left-[1rem] xl:left-[4rem] top-[5rem];
+}
+.imageRight {
+  @apply right-[1rem] xl:right-[4rem] top-[1rem] xl:top-[unset] xl:bottom-[2rem]
+}
+.triangleContainer {
+  @apply hidden md:block absolute md:w-1/2 top-[80%] left-0 h-[100%] opacity-10 z-0;
+}
+.triangleContent {
+  @apply h-full absolute top-0 left-0 w-full;
+}
+.centerContainer {
+  @apply w-full flex flex-col gap-y-10 lg:gap-y-[104px] items-center relative z-10;
+}
+.buttonContainer {
+  @apply flex flex-col md:flex-row justify-center w-full md:w-auto gap-2;
+}

@@ -1,0 +1,70 @@
+.pathFill {
+  fill: #2588E4;
+  opacity: 0.15;
+  stroke: none;
+}
+
+.line {
+  fill: none;
+  stroke: #2588E4;
+  stroke-width: 1px;
+}
+
+.axis {
+  opacity: 0.7;
+}
+
+.tooltip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: black;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 5px;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 20;
+}
+
+.tooltipAbsolute {
+  position: absolute;
+}
+.tooltipFixed {
+  position: fixed;
+}
+
+
+.grid {
+  opacity: 0.3;
+}
+
+.tooltip-point {
+  fill: #3880aa;
+  stroke: white;
+  stroke-width: 1.5px;
+}
+
+.tooltipContainer {
+  @apply flex flex-col;
+}
+
+.tooltipTime {
+  @apply  ml-2 mr-2 mt-2 flex flex-col items-center border-solid border-rich-black/30 border-b;
+}
+
+.time {
+  @apply mb-2;
+}
+
+.tooltipTable {
+  @apply border-solid w-full mb-2 mt-2;
+}
+
+.tooltipLine {
+  @apply border-solid ml-2 mr-2 flex justify-between border-opacity-50;
+}
+
+.tooltipValueContainer {
+  @apply border-solid  flex ;
+}

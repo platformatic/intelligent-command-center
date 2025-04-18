@@ -1,0 +1,23 @@
+.target {
+  @apply pl-8 mt-0 gap-x-2;
+}
+
+.firstLine {
+  @apply flex flex-row gap-2;
+}
+
+.pipe {
+  @apply pl-2 pr-2;
+}
+
+.buttonPadding {
+  @apply pr-2;
+}
+
+.paddingTag {
+  @apply px-2 py-0.5;
+}
+
+.container {
+  @apply flex flex-col gap-4;
+}

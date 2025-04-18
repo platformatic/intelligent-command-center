@@ -1,0 +1,24 @@
+.container {
+  @apply text-white bg-rich-black p-2;
+}
+
+.graphContainer {
+  @apply w-full overflow-auto;
+  transform-origin: 0 0;
+}
+.graph {
+  
+}
+
+.legend {
+  @apply flex items-center gap-x-4 text-white/70 p-2;
+
+}
+.legend > div {
+  @apply flex items-center gap-x-2;
+
+}
+
+.buttons {
+  @apply flex justify-end gap-x-1 p-2;
+}

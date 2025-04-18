@@ -1,0 +1,7 @@
+.iccMermaid {
+  @apply w-full;
+}
+
+.iccMermaid > svg {
+  overflow: auto !important;
+}

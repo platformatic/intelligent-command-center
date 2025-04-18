@@ -1,0 +1,3 @@
+.container {
+  @apply fixed top-0 left-0 w-screen h-full z-20 flex flex-col justify-center items-center bg-rich-black pb-2;
+}

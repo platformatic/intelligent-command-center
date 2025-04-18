@@ -1,0 +1,7 @@
+.secondRow {
+  @apply pl-8;
+  box-sizing: border-box;
+}
+.serviceElementBox {
+  @apply rounded-[4px];
+}

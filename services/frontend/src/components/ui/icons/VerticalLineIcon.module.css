@@ -1,0 +1,16 @@
+.clef {
+    stroke-width: 2;
+}
+.clef-white {
+    fill: white;
+    stroke: white;
+}
+.clef-error-red {
+    fill: #FA2121;
+    stroke: #FA2121;
+}
+.pathMask {
+    fill: none;
+    stroke: white;
+    stroke-width: 4;
+}

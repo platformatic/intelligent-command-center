@@ -1,0 +1,46 @@
+.recommendationBox {
+  @apply text-white flex items-center bg-white rounded;
+  border-radius: 8px;
+}
+
+.background {
+  @apply w-[300px] self-stretch mr-4 rounded;
+  background: url("/backgrounds/recommendations.svg") no-repeat, white;
+}
+
+.background.cache {
+  background: url("/backgrounds/cache-recommendations.svg") no-repeat, white;
+}
+.content {
+  @apply flex flex-col gap-y-2 grow p-2 ml-4;
+}
+.title {
+  @apply text-rich-black flex items-center gap-x-2;
+}
+.count {
+  @apply text-rich-black/15 text-[10px];
+}
+.end {
+  @apply self-end;
+}
+.icon {
+  @apply self-start hover:cursor-pointer p-2;
+}
+.newTag {
+  @apply uppercase px-1 py-0 rounded text-xs;
+  color: #A634FF;
+  border: 1px solid rgba(166, 52, 255, 1);
+  background-color: rgba(166, 52, 255, 0.15);
+  
+}
+.subTitle {
+  @apply text-rich-black opacity-60;
+}
+
+.button {
+  @apply mt-4;
+}
+
+.modalCloseClassName {
+  @apply absolute z-10 top-[1rem] md:top-[1.5rem] right-[1rem] md:right-[1.5rem];
+}

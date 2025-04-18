@@ -1,0 +1,23 @@
+.container {
+  @apply grow relative;
+}
+.buttonContainer {
+  @apply flex gap-x-2 justify-end items-center;
+}
+.borderexBoxContainer {
+  @apply p-4 relative min-h-[120px] w-full;
+}
+.boxFree,
+.boxOtherAppUsage,
+.boxAppUsage {
+  @apply border border-solid rounded-sm h-[0.625rem] w-[0.625rem];
+}
+.boxAppUsage {
+  @apply border-tertiary-blue bg-tertiary-blue/30 ;
+}
+.boxOtherAppUsage{
+  @apply border-white/30 bg-white bg-opacity-30;
+}
+.boxFree {
+  @apply border-white/30 bg-rich-black ;
+}

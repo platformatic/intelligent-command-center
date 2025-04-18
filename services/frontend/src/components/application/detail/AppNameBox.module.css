@@ -1,0 +1,22 @@
+.container {
+  @apply grow relative;
+}
+.buttonContainer {
+  @apply flex flex-row gap-2 justify-end items-center;
+}
+.applicationName {
+  @apply max-w-[40rem]
+}
+.rowContainer {
+  @apply flex flex-col items-start md:flex-row md:items-center gap-x-6 gap-y-4 w-full;
+}
+.borderexBoxContainer {
+  @apply p-4
+}
+.updatePlatformaticBox {
+  @apply w-fit;
+  flex: unset !important;
+}
+.verticalSeparator {
+  @apply hidden md:block
+}

@@ -1,0 +1,28 @@
+.podsContainer {
+  @apply grow relative flex flex-col;
+  flex-basis: 1rem;
+  box-sizing: border-box;
+}
+.podsContent {
+  @apply grow flex flex-col;
+  flex-basis: 1rem;
+  box-sizing: border-box;
+}
+.metricsContainer {
+  @apply grid grid-cols-1 lg:grid-cols-3 gap-4 w-full; 
+}
+.modalClassName {
+  @apply p-4 md:p-6 flex flex-col justify-between gap-y-3 lg:gap-y-6 w-full max-w-[calc(100%-2rem)] md:max-w-[calc(100%-3.5rem)]
+}
+.modalCloseClassName {
+  @apply absolute z-10 top-[1rem] md:top-[1.5rem] right-[1rem] md:right-[1.5rem];
+}
+
+.rootV1 {
+  min-height: 94vH;
+}
+
+.boxOverallPerformanceContainer {
+  @apply p-4 w-full lg:overflow-x-hidden;
+  box-sizing: border-box;
+}

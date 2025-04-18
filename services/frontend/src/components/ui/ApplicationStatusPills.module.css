@@ -1,0 +1,26 @@
+.runningPills,
+.stoppedPills {
+  @apply flex flex-row items-center gap-1 justify-end md:justify-start;
+}
+
+.stoppedPills, .runningPills {
+  @apply w-fit px-2 py-0.5 rounded-full
+}
+.runningPills {
+  @apply bg-main-green/15 
+}
+.stoppedPills {
+  @apply bg-white/15
+}
+
+.clockWiseRotation {
+  animation: rotationClockwise 2s infinite linear;
+}
+@keyframes rotationClockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}

@@ -1,0 +1,11 @@
+.row {
+  @apply flex gap-4 w-full;
+}
+
+.list {
+  @apply flex flex-col gap-4 w-full;
+}
+
+.container {
+  @apply w-full;
+}

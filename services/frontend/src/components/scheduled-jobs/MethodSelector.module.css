@@ -1,0 +1,11 @@
+.container {
+  @apply flex flex-row gap-2;
+}
+
+.option {
+  @apply cursor-pointer px-3 py-5 border border-solid border-white rounded-md bg-transparent flex justify-center items-center text-white h-[1rem];
+}
+
+.option.selected {
+  @apply bg-white text-rich-black;
+}

@@ -1,0 +1,12 @@
+.settingsContainer {
+  @apply grow relative flex flex-col;
+  flex-basis: 1rem;
+}
+.settingsContent {
+  @apply p-4 flex flex-col gap-y-6 grow;
+  flex-basis: 1rem;
+  box-sizing: border-box;
+}
+.settingsLeftContainer {
+  @apply min-w-[16rem];
+}

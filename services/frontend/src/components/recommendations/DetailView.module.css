@@ -1,0 +1,74 @@
+.container {
+  @apply text-white p-4;
+}
+
+.title {
+  @apply flex items-center gap-x-2 mb-4 capitalize;
+}
+.sectionHeader {
+  @apply flex items-center gap-x-2 mb-4;
+}
+
+.count {
+  @apply opacity-70;
+}
+
+.content {
+  @apply flex gap-x-4;
+  max-height: 95vh;
+}
+
+.optimizationSteps {
+  @apply w-1/3 bg-black-russian p-2;
+  overflow-y: scroll;
+  max-height: 100vh;
+}
+
+.graph {
+  @apply w-2/3 bg-black-russian p-4; 
+}
+
+.noData {
+  @apply flex items-center justify-center h-[100vh] w-full grow;
+}
+
+.breadcrumb {
+  @apply flex items-center gap-x-2 mb-4 text-[12px] text-white/70;
+}
+
+.breadcrumb .root {
+  @apply capitalize;
+}
+
+.breadcrumb .current {
+  @apply text-white;
+}
+
+
+.breadcrumb span {
+  @apply cursor-pointer;
+}
+
+
+.subPageContainer {
+  @apply w-full py-4;
+}
+.subPageTitle {
+  @apply flex items-center gap-x-2 mb-4 font-bold text-[18px] justify-between;
+}
+
+.subPageSecondaryText {
+  @apply ml-5 text-[14px] text-white/70;
+}
+
+.subPageTitleLeft {
+  @apply flex items-center gap-x-2;
+}
+
+ul {
+  @apply list-disc list-inside;
+}
+.terminal {
+  @apply font-normal text-[0.75rem] leading-[1.125rem] lg:text-[0.875rem] lg:leading-[1.313rem] font-bold;
+  font-family: 'Roboto_Mono';
+}

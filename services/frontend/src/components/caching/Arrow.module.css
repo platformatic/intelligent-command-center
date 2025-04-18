@@ -1,0 +1,13 @@
+.line {
+  stroke-dasharray: 6 6;
+}
+
+.color0 {
+  stroke: #feb928;
+  color: #feb928;
+}
+
+.color1 {
+  stroke: #2588e4;
+  color: #2588e4;
+}

@@ -1,0 +1,4 @@
+
+.environmentVariablesContainer {
+  @apply w-full max-h-[17.5rem] overflow-y-auto;
+}

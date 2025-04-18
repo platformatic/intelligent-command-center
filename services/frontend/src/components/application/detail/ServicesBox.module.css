@@ -1,0 +1,28 @@
+.borderexBoxContainer {
+  @apply grow relative p-4;
+}
+.buttonContainer {
+  @apply flex gap-x-2 justify-end items-center;
+}
+.applicationName {
+  @apply max-w-[40rem]
+}
+.innerServiceBoxContainer {
+  @apply flex flex-col gap-y-2 w-full items-center text-center;
+}
+.verticalSeparator {
+  @apply h-[104px];
+}
+.boxOutdatedDependencies,
+.boxUpToDateDependencies {
+  @apply border border-solid rounded-sm h-[0.75rem] w-[0.75rem];
+}
+.boxOutdatedDependencies {
+  @apply border-warning-yellow bg-warning-yellow/30 ;
+}
+.boxUpToDateDependencies {
+  @apply border-white/30 bg-rich-black ;
+}
+.flexWrap {
+  @apply flex-wrap gap-y-2;
+}

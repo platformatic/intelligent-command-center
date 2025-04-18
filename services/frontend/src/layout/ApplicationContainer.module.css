@@ -1,0 +1,3 @@
+.content {
+  @apply min-h-[calc(100vH-3rem)] xl:min-h-[calc(100vH-3rem)] h-full flex flex-row gap-x-0 overflow-y-hidden;
+} 
