@@ -1,0 +1,43 @@
+.taxonomyContainer {
+  @apply grow relative flex flex-row max-h-[calc(100vH-3rem)] min-h-[calc(100vH-3rem)];
+  flex-basis: 1rem;
+}
+
+.taxonomyElementContainer {
+  @apply relative grow flex flex-col;
+  flex-basis: 1rem;
+}
+
+.taxonomyContent {
+  @apply p-4 flex flex-col gap-y-8 h-full w-full;
+  box-sizing: border-box;
+}
+
+.tabContainerClassName {
+  @apply bg-rich-black w-full grow flex flex-col gap-y-2 w-full;
+}
+
+.tabContentClassName {
+  @apply max-h-[calc(100vH-10rem)] overflow-y-auto
+}
+
+
+.animationReduce {
+  animation: reduce 300ms forwards;
+}
+.animationIncrease {
+  animation: increase 50ms forwards;
+}
+@keyframes reduce {
+  from {width: 100%}
+  to {width: 66%}
+}
+
+@keyframes increase {
+  from {width: 66%}
+  to {width: 100%}
+}
+
+.verticalSeparator {
+  @apply h-[16px]
+}

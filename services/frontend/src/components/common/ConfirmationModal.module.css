@@ -1,0 +1,12 @@
+.modal {
+  @apply text-white;
+}
+.modalText {
+  @apply opacity-70 mb-4;
+}
+.modalText > p {
+  @apply mb-4;
+}
+.modalButtons {
+  @apply flex justify-between border-t-2 border-solid border-opacity-30 border-white pt-4;
+}

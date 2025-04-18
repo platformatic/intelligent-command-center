@@ -1,0 +1,18 @@
+.menuItemWithIcon {
+  @apply flex flex-row hover:cursor-pointer gap-x-2 items-center justify-start w-auto p-2;
+}
+.container {
+  @apply flex items-center gap-x-4 z-20;
+}
+
+.titleMenu::before {
+  display: block;
+  content: attr(title);
+  font-weight: bold;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+.menu {
+  min-width: 124px;
+}

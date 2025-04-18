@@ -1,0 +1,7 @@
+.callbackUrl {
+  @apply flex gap-x-2 items-center;
+}
+
+.method {
+  @apply text-xs mr-2 border border-white rounded-md px-2 border-solid bg-white/30 py-1;
+}

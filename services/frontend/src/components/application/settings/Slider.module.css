@@ -1,0 +1,110 @@
+.container {
+  @apply flex flex-col gap-y-2 w-full relative;
+}
+.top {
+  @apply flex justify-between items-center;
+}
+.value {
+  @apply rounded border border-solid border-white/70 px-1 py-0.5 min-w-[1rem] text-center;
+}
+.bottom {
+  @apply flex items-center gap-x-2;
+}
+.slider {
+  @apply w-full h-[2px] bg-rich-black;
+}
+
+.minMax {
+  @apply text-white/70;
+}
+
+input[type='range']::-webkit-slider-runnable-track,
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  @apply h-[2px];
+  background: linear-gradient(to right, #ffffff, #ffffff), rgba(255, 255, 255, 0.3);
+  background-size: var(--background-size, 0%) 100%;
+  background-repeat: no-repeat;
+  border-radius: 5px;
+
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  @apply bg-rich-black;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  border: solid white 2px;
+  border-radius: 50%;
+  margin-top: -6px;
+}
+
+/** FF*/
+input[type="range"]::-moz-range-progress {
+  background: linear-gradient(to right, #ffffff, #ffffff), rgba(255, 255, 255, 0.3);
+  background-color: white;
+  border-radius: 5px;
+}
+
+input[type="range"]::-moz-range-track {
+  @apply bg-white/30;
+  border-radius: 5px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  @apply bg-rich-black;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  border: solid white 1px;
+  border-radius: 50%;
+  margin-top: -6px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/** WARNING STATUS **/
+
+input[type="range"].warning::-webkit-slider-thumb {
+  /* border: solid #FEB928 2px; */
+}
+input[type="range"].warning::-webkit-slider-runnable-track {
+  /* background-image: linear-gradient(to right, #FEB928, #FEB928), rgba(255, 255, 255, 0.3);
+  background-size: var(--background-size, 0%) 100%; */
+}
+
+.valueWarning {
+  @apply border-warning-yellow text-warning-yellow;
+}
+
+.valueContainer {
+  @apply flex items-center gap-x-1;
+}
+
+.warningTooltip {
+  @apply bg-white text-rich-black/70 p-2 text-xs rounded right-16 top-[-2px] w-fit z-10;
+}
+
+.warningTooltip::after {
+  content: '';
+  position: absolute;
+  top: 45%;
+  left: 100%;
+  margin-left: -0px;
+  border-width: 4px;
+  border-style: solid;
+  border-color: transparent transparent transparent white;
+}
+
+.hide {
+  @apply hidden;
+}

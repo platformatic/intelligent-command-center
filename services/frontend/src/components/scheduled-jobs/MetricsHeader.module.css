@@ -1,0 +1,41 @@
+.container {
+  @apply p-4 w-full text-white;
+}
+
+.jobs {
+  height: calc(100vh - 150px); /* Adjust this value based on the header height */
+  overflow-y: auto;
+}
+
+
+.metricsHeader {
+  @apply flex justify-between items-stretch gap-x-4 mb-4 w-full;
+}
+
+.metricBox {
+  @apply bg-black-russian p-4 min-w-[200px] flex flex-col;
+}
+
+.title {
+  @apply text-[16px] font-semibold mb-4;
+}
+
+.metric {
+  @apply flex flex-col justify-between gap-y-2 items-center;
+}
+
+.value {
+  @apply flex gap-x-2;
+}
+
+.unit {
+  @apply text-sm text-white/70;
+}
+
+.metric .text {
+  @apply text-sm text-white/70;
+}
+
+.flexGrow {
+  flex-grow: 1;
+}

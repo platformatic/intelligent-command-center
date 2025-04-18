@@ -1,0 +1,68 @@
+.container {
+  @apply w-full p-4 flex gap-x-4;
+}
+
+.column {
+  @apply w-1/2 flex flex-col bg-black-russian p-2 gap-y-4;
+}
+
+.title {
+  @apply text-[16px] font-bold;
+}
+
+.subTitle {
+  @apply text-[14px] font-bold;
+}
+
+.secondaryText {
+  @apply text-[14px] text-white/70;
+}
+
+.content {
+  
+}
+
+.parameterButton {
+  @apply border border-solid border-white/70 rounded-md px-2 py-1 flex items-center gap-x-2 hover:cursor-pointer text-[14px]; 
+}
+
+.plusIconButton {
+  @apply border border-solid border-white/70 rounded-md px-2 py-1 hover:cursor-pointer; 
+}
+
+.newParameterInput {
+  @apply max-w-[200px]; 
+}
+
+.parametersContainer {
+  @apply flex flex-wrap gap-2;
+}
+
+.parameterSection {
+  @apply mt-2;
+}
+
+.sectionTitle, .parameterSectionTitle {
+  @apply text-[14px] font-bold mb-2;
+}
+
+.textArea {
+  @apply w-full p-2 border border-solid border-white/70 rounded-md bg-rich-black text-white;
+}
+
+.cacheTagPreview {
+ @apply text-[14px] text-white rounded-md p-4 bg-rich-black;
+}
+
+.cacheTagsContainer {
+  @apply flex flex-col gap-y-4 items-start;
+}
+
+.error {
+  @apply text-[12px] text-error-red;
+}
+
+.terminal {
+  @apply font-normal text-[0.75rem] leading-[1.125rem] lg:text-[0.875rem] lg:leading-[1.313rem] font-bold;
+  font-family: 'Roboto_Mono';
+}

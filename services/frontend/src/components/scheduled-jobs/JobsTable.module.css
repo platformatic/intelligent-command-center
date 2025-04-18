@@ -1,0 +1,24 @@
+.container {
+  @apply w-full;
+}
+
+.container table {
+  @apply w-full border-collapse;
+}
+
+.container th,
+.container td {
+  @apply p-4 text-left;
+}
+
+.url {
+  @apply text-sm text-white/70;
+}
+
+.jobNameContainer {
+  @apply flex items-center gap-2;
+}
+
+.jobRow {
+  @apply hover:bg-white/10 text-[14px];
+}

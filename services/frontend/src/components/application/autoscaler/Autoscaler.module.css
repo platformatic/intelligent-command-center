@@ -1,0 +1,20 @@
+.autoscalerContainer {
+  @apply grow relative flex flex-col;
+  flex-basis: 1rem;
+}
+.autoscalerContent {
+  @apply p-4 flex flex-col gap-y-4; 
+}
+.autoscalerTabContainer {
+  @apply bg-rich-black flex flex-col gap-y-2 w-full;
+}
+.autoscalerTabContent {
+  @apply min-h-[calc(100vH-10rem)] max-h-[calc(100vH-10rem)] overflow-y-auto flex flex-col gap-y-0; 
+}
+.customTab {
+  @apply min-w-[unset] mx-5;
+}
+.autoscalerLogsBorderexBoxContainer {
+  @apply p-0 w-full flex flex-col gap-y-0 h-full max-h-[calc(100vH-10rem)] min-h-[calc(100vH-10rem)];
+  overflow-x: hidden;
+}

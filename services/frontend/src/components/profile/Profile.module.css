@@ -1,0 +1,47 @@
+.container {
+  @apply h-full flex flex-col justify-start items-center w-full mx-auto overflow-y-auto max-h-[calc(100vH-73px)] min-h-[calc(100vH-73px)];
+  
+}
+.content {
+  @apply h-full p-4 flex flex-col lg:flex-row items-start gap-4 lg:gap-x-14 w-full;
+  box-sizing: border-box;
+}
+.left {
+  @apply w-full lg:w-1/4;
+}
+.right {
+  @apply w-full lg:w-3/4 min-h-[inherit] h-full;
+}
+.buttonEndContainer {
+  @apply flex justify-end py-2;
+}
+.fullWidth {
+  @apply w-full;
+}
+.titleSubSection span {
+  @apply ml-2;
+}
+.sectionSelected {
+  @apply font-bold border-l-2 border-main-green;
+}
+.userInformationsContainer {
+  @apply flex gap-x-1 w-full pb-6;
+}
+.organizationSelectedInformationsContainer {
+  @apply flex gap-x-1 w-full items-center;
+}
+.organizationSwitcher{
+  @apply pb-4;
+}
+.userPictureLarge {
+  @apply w-[200px] h-[200px];
+}
+.userPictureSmall {
+  @apply w-[48px] h-[48px];
+}
+.userPicture {
+  @apply border border-transparent rounded-full mr-2;
+}
+.userName {
+  @apply font-bold;
+}

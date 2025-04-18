@@ -1,0 +1,6 @@
+.modalLefty {
+  @apply p-6 py-10 h-[calc(100vH-10rem)] flex flex-col gap-y-4;
+}
+.modalLeftySmallPadding {
+  @apply p-4 h-[calc(100vH-2rem)] flex flex-col gap-y-4;
+}

@@ -1,0 +1,23 @@
+.container {
+  @apply grow relative;
+}
+.buttonContainer {
+  @apply flex gap-x-2 justify-end items-center;
+}
+.borderexBoxContainer {
+  @apply p-4 relative w-full grow-0;
+}
+.boxOutdatedDependencies,
+.boxUpToDateDependencies {
+  @apply border border-solid rounded-sm h-[0.75rem] w-[0.75rem];
+}
+.boxOutdatedDependencies {
+  @apply border-warning-yellow bg-warning-yellow/30 ;
+}
+.boxUpToDateDependencies {
+  @apply border-white/30 bg-rich-black ;
+}
+.noDataAvailable {
+  @apply grow flex flex-col gap-y-1 items-center justify-center w-full;
+  min-height: 129px;
+}

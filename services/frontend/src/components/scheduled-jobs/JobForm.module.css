@@ -1,0 +1,29 @@
+.form {
+  @apply flex flex-col gap-y-6;
+}
+.buttonsContainer {
+  @apply flex justify-center gap-2 mt-4;
+}
+
+.row {
+  @apply flex gap-4 w-full;
+}
+
+.twoFields {
+  @apply flex-row;
+}
+
+.textArea {
+  @apply bg-rich-black w-full border-0;
+}
+
+.textAreaContainer {
+  @apply w-full flex flex-row items-center justify-between p-2 border border-solid rounded-[4px] border-white bg-rich-black;
+}
+
+.cronContainer {
+  @apply flex flex-col gap-y-2 w-full;
+}
+.cronDescription {
+  @apply text-sm text-white/70;
+}

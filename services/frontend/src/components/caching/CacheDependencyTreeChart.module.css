@@ -1,0 +1,29 @@
+.buttonContainer {
+  @apply absolute top-[1rem] right-[1rem] flex flex-row gap-x-1 z-10;
+}
+
+.chartViewContainer {
+  @apply grow flex flex-col w-full pt-0 pb-0;
+  box-sizing: border-box;
+  flex-basis: 1rem;
+  min-height: calc(40vh - 13rem);
+}
+
+.chartViewContent {
+  @apply flex flex-col justify-center items-center gap-y-2 w-auto grow border border-none rounded-md relative;
+  background:
+    url("/backgrounds/taxonomy_background_rectangles.svg") repeat,
+    #090e17;
+}
+
+.buttonContainer {
+  @apply absolute top-[1rem] right-[1rem] flex flex-row gap-x-1 z-10;
+}
+
+.applicationContainer {
+  @apply flex grow overflow-auto max-h-[calc(100vH-10rem)] w-full;
+}
+.applicationContent {
+  @apply flex flex-col justify-start items-center grow p-4;
+  transform-origin: 0 0;
+}

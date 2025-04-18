@@ -1,0 +1,3 @@
+.buttons {
+  @apply flex gap-x-2;
+}

@@ -1,0 +1,19 @@
+.addApplicationContainer {
+  @apply w-full md:max-w-[50%] lg:w-auto md:min-w-[50%] lg:max-w-[30rem] lg:min-w-[30rem] relative;
+}
+.apiKeyContainer {
+  @apply w-full flex flex-row items-center justify-between px-4 py-2 border border-solid rounded-[4px] border-white gap-x-4;
+  box-sizing: border-box;
+}
+.marginRightSmall {
+  @apply mr-8;
+}
+.blurPanelEnvironmentVariables {
+  @apply fixed top-0 left-0 w-full h-full z-20 bg-rich-black/95;
+ }
+.textArea {
+  @apply bg-rich-black w-full border-0;
+}
+.modalLeftyAddApplication {
+  @apply p-4 h-[calc(100vH-2rem)] flex flex-col gap-y-4;
+}

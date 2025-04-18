@@ -1,0 +1,36 @@
+.buttonContainer {
+  @apply flex gap-x-2 justify-end items-center;
+}
+.upArrow {
+  @apply fill-error-red
+}
+.downArrow {
+  @apply fill-main-green
+}
+.boxPerformance {
+  @apply border border-solid rounded-full border-white/30 w-full relative;
+  box-sizing: border-box;
+}
+.boxPerformanceContentGreen {
+  @apply border-main-green bg-main-green/30 ;
+}
+.boxPerformanceContentYellow {
+  @apply border-warning-yellow bg-warning-yellow/30;
+}
+.boxPerformanceContentRed {
+  @apply border-error-red bg-error-red/30;
+}
+.paddingBottomSmall {
+  @apply -mt-2;
+}
+.boxPerformanceText {
+  @apply pr-2 w-full min-w-[100px];
+  box-sizing: border-box;
+}
+.boxFree,
+.boxPerformanceContent {
+  @apply border border-solid rounded-sm h-[0.625rem] w-[0.625rem];
+}
+.boxFree {
+  @apply border-white/30 bg-rich-black ;
+}

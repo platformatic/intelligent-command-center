@@ -1,0 +1,32 @@
+.container {
+  
+}
+
+.selector {
+  @apply bg-white text-rich-black p-1 rounded flex items-center gap-x-2 hover:cursor-pointer;
+}
+
+.header {
+  @apply flex items-center gap-x-2;
+}
+.options {
+  @apply  absolute flex flex-col gap-y-2 mt-4 border-white border-opacity-30 border-2 border-solid rounded p-2 bg-black-russian top-10 text-white/70;
+}
+
+.option {
+  @apply hover:bg-white hover:bg-opacity-30 hover:cursor-pointer p-2;
+}
+
+.modalText {
+  @apply opacity-70 mb-4;
+}
+.modalText > p {
+  @apply mb-4;
+}
+.modalButtons {
+  @apply flex justify-between border-t-2 border-solid border-opacity-30 border-white pt-4;
+}
+
+.skippedAction {
+   @apply bg-white rounded p-2 px-3 text-rich-black hover:cursor-pointer;
+}

@@ -1,0 +1,50 @@
+.container {
+  @apply flex flex-col gap-2 text-white p-4 w-full;
+}
+
+.label {
+  @apply text-white/70;
+}
+.separator {
+  @apply mx-1 text-white/70;
+}
+
+.messageHistory {
+  @apply text-desktop;
+}
+
+.actionButtons {
+  @apply flex items-center gap-2;
+}
+
+.header {
+  @apply flex items-center justify-between gap-2 w-full;
+}
+
+.headerLeft {
+  @apply flex items-center gap-2;
+}
+
+.section {
+  @apply bg-black-russian p-2 flex flex-col gap-4;
+}
+
+.scheduledAt {
+  @apply flex items-center justify-between gap-2;
+}
+
+.scheduledAt > div {
+  @apply flex items-center justify-between gap-2;
+}
+
+.retryTag {
+  @apply tracking-[0.15rem] text-warning-yellow text-[10px];
+}
+
+.scheduledTag {
+  @apply tracking-[0.15rem] text-tertiary-blue text-[10px];
+}
+
+.label {
+  @apply text-white/70;
+}

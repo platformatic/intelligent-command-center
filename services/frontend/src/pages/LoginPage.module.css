@@ -1,0 +1,22 @@
+.container {
+  @apply w-full h-screen justify-center px-4 md:px-20 flex flex-col justify-center items-center;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.00) 100%);
+  background-position: -60vW 0;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+  background-repeat: no-repeat;
+  box-sizing: border-box
+}
+.content {
+  @apply grid w-full grid-cols-12 items-center justify-center grow;
+}
+.leftContainer {
+  @apply col-span-12 md:col-span-7;
+}
+.rightContainer {
+  @apply relative col-span-5 hidden h-full md:h-[calc(100%-5rem)] w-full items-start justify-start md:flex 2xl:h-[681px];
+  box-sizing: border-box;
+}
+.imgHero {
+  @apply absolute top-1/2 w-[auto] h-[inherit];
+  transform: translateY(-50%);
+}

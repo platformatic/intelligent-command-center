@@ -1,0 +1,25 @@
+.header {
+  @apply min-h-[2.5rem];
+}
+.applicationSettingsContainer {
+  @apply grow relative;
+}
+.applicationSettingsContent {
+  @apply p-4 flex flex-col gap-y-4;
+}
+.applicationSettingsBoxesContainer {
+  @apply flex flex-col gap-y-4 w-full overflow-y-auto max-h-[calc(100Vh-10rem)];
+}
+.borderexBoxContainerApiKeys, 
+.borderexBoxContainerEnvironmentVariables {
+  @apply p-4 w-full rounded-[4px];
+}
+.modalClassName {
+  @apply p-4 md:p-6 flex flex-col justify-center items-center gap-y-3 lg:gap-y-6 w-full max-w-[calc(100%-2rem)] md:max-w-[calc(100%-3.5rem)]
+}
+.modalCloseClassName {
+  @apply absolute z-10 top-[1rem] md:top-[1.5rem] right-[1rem] md:right-[1.5rem];
+}
+.rootV1 {
+  min-height: 94vH;
+}

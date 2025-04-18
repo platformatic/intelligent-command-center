@@ -1,0 +1,16 @@
+.logsContainer {
+  @apply grow relative flex flex-col w-full;
+}
+.logsContent {
+  @apply p-4 flex flex-col gap-y-4 grow;  
+}
+.logsTabContainer {
+  @apply bg-rich-black flex flex-col gap-y-0 w-full;
+}
+.logsTabContent {
+  @apply max-h-[calc(100vH-15rem)] overflow-y-auto flex flex-col gap-y-0; 
+}
+.logsBorderexBoxContainer {
+  @apply pt-4 pb-0 px-0 w-full flex flex-col gap-y-0 h-full max-h-[calc(100vH-8rem)] min-h-[calc(100vH-8rem)];
+  overflow-x: hidden;
+}

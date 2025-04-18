@@ -1,0 +1,15 @@
+.buttonContainer {
+  @apply flex gap-x-2 justify-end items-center;
+}
+.borderexBoxContainer {
+  @apply p-4 relative;
+}
+.borderedBoxHeigthLoading {
+  @apply min-h-[150px];
+}
+.upArrow {
+  @apply fill-error-red
+}
+.downArrow {
+  @apply fill-main-green
+}

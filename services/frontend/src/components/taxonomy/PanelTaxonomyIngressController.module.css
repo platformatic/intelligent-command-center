@@ -1,0 +1,6 @@
+.entrypointTemplate {
+  @apply flex flex-row gap-x-2 items-center px-2 py-1 grow-0 w-full
+}
+.boxEntrypointsContainer {
+  @apply p-2 w-full overflow-y-auto max-h-[calc(100VH-10rem)];
+}

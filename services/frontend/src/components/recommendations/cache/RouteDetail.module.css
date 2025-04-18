@@ -1,0 +1,66 @@
+.container {
+  @apply flex flex-col gap-y-4 w-full;
+}
+
+.headerButton {
+  @apply flex items-center gap-x-2 px-4 py-2 rounded-md cursor-pointer bg-rich-black border border-white border-solid text-[13px];
+}
+
+.secondaryText {
+  @apply text-white/70 text-[14px];
+}
+
+.configSection {
+  @apply flex flex-col gap-y-4 bg-rich-black p-4 w-full;
+}
+
+.configTitle {
+  @apply font-bold text-[16px];
+}
+.configTitle {
+  @apply text-white/90;
+}
+
+.selected {
+  @apply bg-white/30 text-white;
+}
+
+.varyHeaders {
+  @apply flex flex-wrap gap-x-2 gap-y-1;
+}
+
+.configHeader {
+  @apply flex items-center justify-between gap-x-2;
+}
+
+.configSectionContainer {
+  @apply flex gap-x-2 w-full justify-between;
+}
+
+.customButton {
+  @apply flex items-center gap-x-2;
+}
+
+.inputText {
+  @apply px-2 py-1 w-[100px]
+}
+
+.ttlButtons {
+  @apply flex flex-wrap gap-x-2 gap-y-1;
+}
+
+.routeName {
+  @apply flex items-center gap-x-2 text-[18px] font-bold;
+}
+
+.routeDetails {
+  @apply text-white/70 text-[14px] ml-8 flex justify-between items-center;
+}
+
+.title {
+  @apply flex flex-col gap-y-2;
+}
+
+.routeDetailsValue {
+  @apply text-white;
+}

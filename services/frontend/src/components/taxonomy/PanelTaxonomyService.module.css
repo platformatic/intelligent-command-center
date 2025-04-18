@@ -1,0 +1,19 @@
+.servicePlugin {
+  @apply flex flex-wrap flex-row gap-x-2 items-center px-2 py-1 w-full
+ }
+ .serviceTemplate {
+   @apply flex flex-row gap-x-2 items-center px-2 py-1 grow-0 w-full
+ }
+ .pluginName,
+ .templateName {
+   @apply shrink-0 w-max
+ }
+ .boxServicesContainer {
+  @apply p-2 w-full;
+}
+.contentScrollable {
+  @apply overflow-y-auto max-h-[calc(100VH-10rem)];
+}
+.smallMarginLeft {
+  @apply pl-8;
+}

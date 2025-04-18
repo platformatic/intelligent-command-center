@@ -1,0 +1,11 @@
+.container {
+  @apply bg-black-russian p-4 w-full;
+}
+
+.header {
+  @apply flex items-center justify-between gap-x-2 mb-4;
+}
+
+.title {
+  @apply flex items-center gap-x-2 text-[18px] font-bold mb-2;
+}

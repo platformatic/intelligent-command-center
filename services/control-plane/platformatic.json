@@ -43,7 +43,13 @@
       "name": "metrics",
       "type": "openapi",
       "serviceId": "metrics"
-    }
+    },
+    {
+      "schema": "../../clients/updates/updates.openapi.json",
+      "name": "updates",
+      "type": "openapi",
+      "serviceId": "updates"
+    }  
   ],
   "watch": "{DEV_K8S}"
 }

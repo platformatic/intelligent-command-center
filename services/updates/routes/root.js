@@ -8,6 +8,7 @@ module.exports = async function (fastify, opts) {
         type: 'object',
         properties: {
           topic: { type: 'string' },
+          type: { type: 'string' },
           data: {
             type: 'object'
           }
@@ -15,9 +16,11 @@ module.exports = async function (fastify, opts) {
       }
     },
     handler: async (request, reply) => {
-      const { topic, data } = request.body
+      const { topic, type, data } = request.body
+      console.log('arrived message on updates service', topic, type, data)
       fastify.mq.emit({
         topic,
+        type,
         data
       })
       return reply.code(204).send()

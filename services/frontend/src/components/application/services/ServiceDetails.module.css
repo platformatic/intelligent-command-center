@@ -1,0 +1,17 @@
+.container {
+  @apply p-4 w-full text-white;
+}
+
+.header {
+  @apply mb-4;
+}
+.rangeContainer {
+  @apply bg-rich-black p-2 w-full;
+}
+.resources {
+  @apply flex gap-x-2
+}
+
+.compliancy {
+  @apply w-full;
+}

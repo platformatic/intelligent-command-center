@@ -1,0 +1,12 @@
+.container {
+  @apply w-full h-screen md:min-h-[calc(100vh-15rem)] flex flex-col justify-center items-center md:h-full max-w-screen-xl mx-auto gap-y-10
+}
+.showedLogsContainer {
+  @apply min-w-[60%] flex flex-col gap-y-4 min-h-[10rem] max-h-[30vH] overflow-y-auto overflow-x-hidden grow-0;
+}
+.buttonContainer {
+  @apply flex justify-center items-center gap-x-2;
+}
+.buttonLogsContainer {
+  @apply flex justify-end items-center gap-x-2;
+}

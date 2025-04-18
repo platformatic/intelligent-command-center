@@ -1,0 +1,3 @@
+.menuItemWithIcon {
+    @apply flex flex-row hover:cursor-pointer gap-x-2 items-center justify-start w-auto p-2;
+}

@@ -1,0 +1,46 @@
+.container {
+  background-color: #090e17;
+  @apply text-white flex flex-col justify-end;
+}
+.title {
+  @apply mb-2;
+}
+.data {
+  @apply flex flex-col ml-8;
+}
+.data > div {
+  @apply flex items-center min-h-8;
+}
+.expiration {
+  @apply flex justify-between;
+}
+.expiration > div {
+  @apply flex grow gap-x-2;
+}
+.key {
+  @apply text-white opacity-70;
+}
+
+.entry {
+  @apply flex flex-row;
+}
+
+.entryId {
+  @apply p-2;
+}
+
+.content {
+  @apply p-4 w-full;
+}
+
+.contentPreview {
+  @apply overflow-x-scroll p-2 max-w-[calc(100vw-200px)];
+}
+
+.closeButton {
+  @apply m-auto mr-0;
+}
+
+.kind {
+  @apply opacity-70;
+}

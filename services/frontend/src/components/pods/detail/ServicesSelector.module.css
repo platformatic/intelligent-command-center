@@ -1,0 +1,6 @@
+.boxService {
+  @apply px-2 py-1 w-full;
+}
+.servicesContainer {
+  @apply max-w-[227px]
+}

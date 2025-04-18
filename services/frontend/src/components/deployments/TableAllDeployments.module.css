@@ -1,0 +1,49 @@
+.tableDeploymentsContainer {
+  @apply grow flex flex-col;
+  box-sizing: border-box;
+  flex-basis: 1rem;
+}
+.tableDeploymentsContent {
+  @apply flex flex-col items-start gap-y-10 w-full grow; 
+}
+.loadingSpinner {
+  @apply absolute left-1/2 top-1/2;
+  transform: translate(-50%, -50%);
+}
+.tableDeployments {
+  @apply w-full relative grow flex flex-col gap-y-0;
+  vertical-align: middle;
+  border-collapse: collapse;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transform: translate(0,0);
+  max-height: calc(100vH - 17rem);
+}
+
+.tableDeployments {
+  @apply w-full;
+}
+
+.tableHeaders {
+  @apply hidden md:grid grid-cols-1 md:grid-cols-5 gap-x-4 w-full top-0 z-10 border-0 py-0 bg-rich-black;
+  position: sticky;
+}
+.tableHeader {
+  @apply pb-2 text-left col-span-1;
+}
+.noDeploymentsFound {
+  @apply flex flex-col items-center justify-center w-full gap-y-2;
+}
+
+.thWithIcon {
+  @apply flex flex-row items-center gap-x-2;
+  user-select: none;
+}
+
+div[class*="tableDeployment"] {
+  @apply border-t border-white/15 border-solid;
+}
+
+:nth-child(1 of div[class*="tableDeployment"]) {
+  @apply border-0 !important;
+}

@@ -1,0 +1,3 @@
+.noDataContainer {
+  @apply grow flex flex-col gap-y-1 items-center justify-center w-full
+}

@@ -1,0 +1,292 @@
+.button {
+  @apply rounded text-center cursor-pointer font-normal border border-solid box-border;
+  padding-block: 0px;
+  padding-inline: 0px;
+}
+.content {
+  @apply rounded flex items-center justify-center gap-x-2;
+  background: transparent;
+}
+.fontBold {
+  @apply font-semibold;
+}
+.button-small {
+  @apply p-1 text-sm;
+}
+.button-medium {
+  @apply p-1;
+}
+.button-large {
+  @apply p-2;
+}
+.button-extra-large {
+  @apply p-2 md:p-2.5;
+}
+
+.margin-right-medium,
+.margin-right-small {
+  @apply mr-1;
+}
+.margin-right-large {
+  @apply mr-2;
+}
+.margin-right-extra-large {
+  @apply mr-3;
+}
+.color-main-green {
+  @apply text-main-green border-main-green;
+}
+.color-light-green {
+  @apply text-light-green border-light-green;
+}
+.color-dark-green {
+  @apply text-dark-green border-dark-green;
+}
+.color-main-dark-blue {
+  @apply text-main-dark-blue border-main-dark-blue;
+}
+.color-dark-blue{
+  @apply text-dark-blue border-dark-blue;
+}
+.color-light-blue{
+  @apply text-light-blue border-light-blue;
+}
+.color-white{
+  @apply text-white;
+}
+.color-error-red{
+  @apply text-error-red border-error-red;
+}
+.color-tertiary-blue{
+  @apply text-tertiary-blue border-tertiary-blue;
+}
+.color-transparent{
+  @apply text-transparent border-transparent;
+}
+.color-rich-black{
+  @apply text-rich-black border-rich-black;
+}
+
+.no-border {
+  @apply border-0;
+}
+.disabled {
+  @apply opacity-30 cursor-default;
+}
+.hover-box-shadow-main-green {
+  @apply hover:shadow-main-green;
+}
+.hover-box-shadow-light-green {
+  @apply hover:shadow-light-green;
+}
+.hover-box-shadow-dark-green {
+  @apply hover:shadow-dark-green;
+}
+.hover-box-shadow-main-dark-blue {
+  @apply hover:shadow-main-dark-blue;
+}
+.hover-box-shadow-dark-blue {
+  @apply hover:shadow-dark-blue;
+}
+.hover-box-shadow-light-blue {
+  @apply hover:shadow-light-blue;
+}
+.hover-box-shadow-white {
+  @apply hover:shadow-white;
+}
+.hover-box-shadow-error-red {
+  @apply hover:shadow-error-red;
+}
+.hover-box-shadow-tertiary-blue {
+  @apply hover:shadow-tertiary-blue;
+}
+.hover-box-shadow-rich-black {
+  @apply hover:shadow-rich-black;
+}
+
+.underline-effect {
+  @apply hover:underline;
+}
+
+.fullWidth {
+  @apply w-full;
+}
+.label {
+  @apply w-max;
+}
+.inactive {
+  @apply opacity-70;
+}
+.active {
+  @apply opacity-100;
+}
+.cursorDefault {
+  @apply cursor-default;
+}
+
+.fullRounded {
+  @apply rounded-full;
+}
+
+.selected-background-color-main-green {
+  @apply !bg-main-green bg-opacity-30 !important;
+}
+.selected-background-color-light-green {
+  @apply !bg-light-green bg-opacity-30 !important;
+}
+.selected-background-color-dark-green {
+  @apply !bg-dark-green bg-opacity-30 !important;
+}
+.selected-background-color-main-dark-blue{
+  @apply !bg-main-dark-blue bg-opacity-30;
+}
+.selected-background-color-dark-blue {
+  @apply !bg-dark-blue bg-opacity-30;
+}
+.selected-background-color-light-blue {
+  @apply !bg-light-blue bg-opacity-30;
+}
+.selected-background-color-rich-black {
+  @apply !bg-rich-black bg-opacity-30;
+}
+.selected-background-color-white{
+  @apply !bg-white bg-opacity-30;
+}
+.selected-background-color-error-red{
+  @apply !bg-error-red bg-opacity-30;
+}
+.selected-background-color-tertiary-blue{
+  @apply !bg-tertiary-blue bg-opacity-30;
+}
+
+.hover-background-color-opaque-main-green {
+  @apply hover:bg-main-green hover:bg-opacity-15;
+}
+.hover-background-color-opaque-light-green {
+  @apply hover:bg-light-green hover:bg-opacity-15;
+}
+.hover-background-color-opaque-dark-green {
+  @apply hover:bg-dark-green hover:bg-opacity-15;
+}
+.hover-background-color-opaque-main-dark-blue{
+  @apply hover:bg-main-dark-blue hover:bg-opacity-10;
+}
+.hover-background-color-opaque-dark-blue {
+  @apply hover:bg-dark-blue hover:bg-opacity-15;
+}
+.hover-background-color-opaque-light-blue {
+  @apply hover:bg-light-blue hover:bg-opacity-15;
+}
+.hover-background-color-opaque-white{
+  @apply hover:bg-white hover:bg-opacity-15;
+}
+.hover-background-color-opaque-error-red{
+  @apply hover:bg-error-red hover:bg-opacity-15;
+}
+.hover-background-color-opaque-tertiary-blue{
+  @apply hover:bg-tertiary-blue hover:bg-opacity-15;
+}
+.hover-background-color-opaque-rich-black{
+  @apply hover:bg-rich-black hover:bg-opacity-15;
+}
+
+.background-color-main-green {
+  @apply bg-main-green;
+}
+.background-color-light-green {
+  @apply bg-light-green;
+}
+.background-color-dark-green {
+  @apply bg-dark-green;
+}
+.background-color-main-dark-blue{
+  @apply bg-main-dark-blue;
+}
+.background-color-dark-blue {
+  @apply bg-dark-blue;
+}
+.background-color-light-blue {
+  @apply bg-light-blue;
+}
+.background-color-white{
+  @apply bg-white;
+}
+.background-color-error-red{
+  @apply bg-error-red;
+}
+.background-color-tertiary-blue{
+  @apply bg-tertiary-blue;
+}
+.background-color-warning-yellow {
+  @apply bg-warning-yellow ;
+}
+.background-color-rich-black {
+  @apply bg-rich-black ;
+}
+.background-color-anti-flash-white {
+  @apply bg-anti-flash-white ;
+}
+.background-color-fire-engine-red {
+  @apply bg-fire-engine-red ;
+}
+.background-color-alternate-rich-black {
+  @apply bg-alternate-rich-black ;
+}
+.background-color-transparent{
+  @apply bg-transparent;
+}
+
+.bordered--main-green-100 {
+  @apply border-main-green/100;
+}
+.bordered--main-dark-blue-100 {
+  @apply border-main-dark-blue/100;
+}
+.bordered--tertiary-blue-100 {
+  @apply border-tertiary-blue/100;
+}
+.bordered--error-red-100 {
+  @apply border-error-red/100;
+}
+.bordered--warning-yellow-100 {
+  @apply border-warning-yellow/100;
+}
+.bordered--dark-blue-100 {
+  @apply border-dark-blue/100;
+}
+.bordered--white-100 {
+  @apply border-white/100;
+}
+
+.bordered--main-green-30 {
+  @apply border-main-green/30;
+}
+.bordered--main-dark-blue-30 {
+  @apply border-main-dark-blue/30;
+}
+.bordered--error-red-30 {
+  @apply border-error-red/30;
+}
+.bordered--warning-yellow-30 {
+  @apply border-warning-yellow/30;
+}
+.bordered--dark-blue-30 {
+  @apply border-dark-blue/30;
+}
+.bordered--white-30 {
+  @apply border-white/30;
+}
+.bordered--tertiary-blue-30 {
+  @apply border-tertiary-blue/30;
+}
+
+.dot {
+  @apply bg-main-green;
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  position: absolute;
+  top: 4px;
+  right: 2px;
+}
