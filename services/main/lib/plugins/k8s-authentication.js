@@ -31,7 +31,6 @@ async function plugin (app) {
 
   const jwksUrl = `https://${k8sHost}:${k8sPort}/openid/v1/jwks`
 
-  // Initialize get-jwks with K8s token and CA certificate
   const jwks = getJwks({
     jwksUri: jwksUrl,
     cache: true,
@@ -49,7 +48,6 @@ async function plugin (app) {
     }
   })
 
-  // Register fastify-jwt with get-jwks for key resolution
   app.register(fastifyJwt, {
     secret: (_request, token) => {
       const { header: { kid, alg } } = token
@@ -58,7 +56,6 @@ async function plugin (app) {
     verify: { algorithms: ['RS256'] }
   })
 
-  // Add a preHandler hook to validate JWT tokens for K8s pod-to-pod communication
   app.decorate('k8sJWTAuth', async (request, _reply) => {
     try {
       await request.jwtVerify()
