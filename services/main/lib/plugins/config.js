@@ -19,7 +19,8 @@ const schema = {
     PLT_MAIN_URL: { type: 'string' },
     PLT_MAIN_REDIS_HOST: { type: 'string' },
     PLT_MAIN_REDIS_PORT: { type: 'number' },
-    PLT_MAIN_REDIS_DB: { type: 'number' }
+    PLT_MAIN_REDIS_DB: { type: 'number' },
+    PLT_DISABLE_K8S_AUTH: { type: 'boolean', default: false }
   }
 }
 
