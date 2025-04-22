@@ -7,67 +7,55 @@ const buildJwks = require('get-jwks')
 const { UnauthorizedError } = require('../errors')
 
 async function plugin (app) {
+  // The k8s HTTPs client uses the CA certificate to verify the server's certificate
   let k8sCaCert
   try {
     k8sCaCert = await readFile('/var/run/secrets/kubernetes.io/serviceaccount/ca.crt')
   } catch (err) {
     app.log.warn({ err }, 'Unable to load K8s CA certificate')
   }
+  const isCAAvailable = !!k8sCaCert
 
   const k8sToken = await app.getK8SJWTToken()
   if (!k8sToken) {
     app.log.warn('K8s authentication disabled: Unable to get K8S JWT token')
   }
 
-  // These MUST be taken from the environment variables, must not be setup in the ICC `.env`
-  const k8sHost = process.env.KUBERNETES_SERVICE_HOST
-  const k8sPort = process.env.KUBERNETES_SERVICE_PORT_HTTPS
-
-  if (!k8sHost || !k8sPort) {
-    app.log.warn('K8s authentication disabled: KUBERNETES_SERVICE_HOST or KUBERNETES_SERVICE_PORT_HTTPS not set')
-    return
+  const fetchOptions = {
+    headers: {
+      Authorization: `Bearer ${k8sToken}`
+    }
   }
-
-  const jwksUrl = `https://${k8sHost}:${k8sPort}/openid/v1/jwks`
-
-  const getJwks = buildJwks({
-    jwksUri: jwksUrl,
-    cache: true,
-    cacheMaxAge: 24 * 60 * 60 * 1000, // 24 hours
-    fetchOptions: {
-      headers: {
-        Authorization: `Bearer ${k8sToken}`
-      },
-      dispatcher: {
-        // Add CA certificate to the HTTPS request
-        tls: {
-          ca: k8sCaCert
-        }
+  if (isCAAvailable) {
+    fetchOptions.dispatcher = {
+      tls: {
+        ca: k8sCaCert
       }
     }
+  }
+
+  const getJwks = buildJwks({
+    jwksPath: '/openid/v1/jwks',
+    fetchOptions
   })
 
   app.register(fastifyJwt, {
     decode: { complete: true },
-    secret: async (request, token, callback) => {
+    secret: async (_request, token) => {
       const {
         header: { kid, alg },
         payload: { iss }
       } = token
-      console.log('JWT header:', token.header)
-      getJwks
+      return getJwks
         .getPublicKey({ kid, domain: iss, alg })
-        .then(publicKey => callback(null, publicKey), callback)
     },
     verify: { algorithms: ['RS256'] }
   })
 
   app.decorate('k8sJWTAuth', async (request) => {
     try {
-      await request.jwtVerify()
-      console.log('JWT verified successfully')
-      // add the whole k8s object to the request
-      request.k8s = request['kubernetes.io']
+      const undecoded = await request.jwtVerify()
+      request.k8s = undecoded['kubernetes.io']
     } catch (err) {
       app.log.error({ err }, 'K8s JWT verification failed')
       throw new UnauthorizedError('K8s JWT verification failed')
