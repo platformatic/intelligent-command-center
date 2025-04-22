@@ -3,21 +3,20 @@
 const { readFile } = require('node:fs/promises')
 const fp = require('fastify-plugin')
 const fastifyJwt = require('@fastify/jwt')
-const getJwks = require('get-jwks')
+const buildJwks = require('get-jwks')
+const { UnauthorizedError } = require('../errors')
 
 async function plugin (app) {
   let k8sCaCert
   try {
     k8sCaCert = await readFile('/var/run/secrets/kubernetes.io/serviceaccount/ca.crt')
   } catch (err) {
-    app.log.warn({ err }, 'K8s authentication disabled: Unable to load K8s CA certificate')
-    return
+    app.log.warn({ err }, 'Unable to load K8s CA certificate')
   }
 
   const k8sToken = await app.getK8SJWTToken()
   if (!k8sToken) {
     app.log.warn('K8s authentication disabled: Unable to get K8S JWT token')
-    return
   }
 
   // These MUST be taken from the environment variables, must not be setup in the ICC `.env`
@@ -31,7 +30,7 @@ async function plugin (app) {
 
   const jwksUrl = `https://${k8sHost}:${k8sPort}/openid/v1/jwks`
 
-  const jwks = getJwks({
+  const getJwks = buildJwks({
     jwksUri: jwksUrl,
     cache: true,
     cacheMaxAge: 24 * 60 * 60 * 1000, // 24 hours
@@ -49,29 +48,29 @@ async function plugin (app) {
   })
 
   app.register(fastifyJwt, {
-    secret: async (_request, token) => {
-      // Get a fresh token for each JWKS request to handle token expiration
-      const freshToken = await app.getK8SJWTToken()
-
-      // Update the fetch options with the fresh token if available
-      if (freshToken && freshToken !== k8sToken) {
-        jwks.fetchOptions.headers.Authorization = `Bearer ${freshToken}`
-      }
-
-      const { header: { kid, alg } } = token
-      return jwks.getPublicKey({ kid, alg })
+    decode: { complete: true },
+    secret: async (request, token, callback) => {
+      const {
+        header: { kid, alg },
+        payload: { iss }
+      } = token
+      console.log('JWT header:', token.header)
+      getJwks
+        .getPublicKey({ kid, domain: iss, alg })
+        .then(publicKey => callback(null, publicKey), callback)
     },
     verify: { algorithms: ['RS256'] }
   })
 
-  app.decorate('k8sJWTAuth', async (request, _reply) => {
+  app.decorate('k8sJWTAuth', async (request) => {
     try {
       await request.jwtVerify()
+      console.log('JWT verified successfully')
       // add the whole k8s object to the request
       request.k8s = request['kubernetes.io']
     } catch (err) {
-      app.log.debug({ err }, 'K8s JWT verification failed')
-      throw new Error('K8s JWT verification failed')
+      app.log.error({ err }, 'K8s JWT verification failed')
+      throw new UnauthorizedError('K8s JWT verification failed')
     }
   })
 }

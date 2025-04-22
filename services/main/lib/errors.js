@@ -29,6 +29,9 @@ const errors = {
   ),
   MissingAuthCredentialsError: createError(
     `${ERROR_PREFIX}_MISSING_AUTH_CREDENTIALS`, 'Missing authorization credentials', 401
+  ),
+  UnauthorizedError: createError(
+    `${ERROR_PREFIX}_UNAUTHORIZED`, 'Unauthorized API call.', 401
   )
 }
 
