@@ -131,7 +131,6 @@ async function authorizeRoute (req, reply) {
   }
 }
 async function plugin (app) {
-  app.decorateRequest('user', null)
   await app.register(require('@fastify/auth'))
   app.decorateRequest('toUserHeader', function () {
     const headers = {}
