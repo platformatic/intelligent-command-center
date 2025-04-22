@@ -140,11 +140,12 @@ async function plugin (app) {
     }
     return headers
   })
-  app.addHook('onRequest', app.auth([authorizeRoute]))
+  const k8sJWTAuth = app.k8sJWTAuth
+  app.addHook('onRequest', app.auth([authorizeRoute, k8sJWTAuth]))
 }
 plugin[Symbol.for('skip-override')] = true
 
 module.exports = fp(plugin, {
   name: 'authorization',
-  dependencies: ['cookie', 'config']
+  dependencies: ['cookie', 'config', 'k8s-authentication']
 })
