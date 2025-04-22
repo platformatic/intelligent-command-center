@@ -15,6 +15,9 @@ const agent = new MockAgent()
 setGlobalDispatcher(agent)
 
 async function createMinimalFastifyInstance (t, config = {}) {
+  // We disable the k8s authentication for these tests
+  config.PLT_DISABLE_K8S_AUTH = true
+
   const server = fastify()
   server.register(cookiePlugin)
   await server.register(fp(async function (app) {
@@ -22,6 +25,7 @@ async function createMinimalFastifyInstance (t, config = {}) {
   }, { name: 'config' }))
   server.register(k8sTokenPlugin)
   server.register(k8sAuthPlugin)
+
   server.register(authorizationPlugin)
   t.after(() => {
     server.close()

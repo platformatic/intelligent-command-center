@@ -274,7 +274,7 @@ test('k8sJWTAuth process fails if the JWT token is invalid', async (t) => {
   assert.equal(error.code, 'PLT_MAIN_UNAUTHORIZED')
 })
 
-test.only('k8sJWTAuth process fails if the token is expired', async (t) => {
+test('k8sJWTAuth process fails if the token is expired', async (t) => {
   // The icctoken is used to call K8S APIs, in this test we just check
   // tha it's sent to the JWKS endpoint
   const iccToken = 'TEST_TOKEN'
