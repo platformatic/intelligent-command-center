@@ -140,8 +140,12 @@ async function plugin (app) {
     }
     return headers
   })
-  const k8sJWTAuth = app.k8sJWTAuth
-  app.addHook('onRequest', app.auth([authorizeRoute, k8sJWTAuth]))
+  const authMethods = [authorizeRoute]
+  if (!app.config.PLT_DISABLE_K8S_AUTH) {
+    const k8sJWTAuth = app.k8sJWTAuth
+    authMethods.push(k8sJWTAuth)
+  }
+  app.addHook('onRequest', app.auth(authMethods))
 }
 plugin[Symbol.for('skip-override')] = true
 

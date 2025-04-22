@@ -14,7 +14,8 @@ function setUpEnvironment (env = {}) {
     PLT_MAIN_REDIS_HOST: 'localhost',
     PLT_MAIN_REDIS_PORT: 6343,
     PLT_MAIN_REDIS_DB: 1,
-    PLT_MAIN_URL: 'http://localhost:1234'
+    PLT_MAIN_URL: 'http://localhost:1234',
+    PLT_DISABLE_K8S_AUTH: true
   }
 
   Object.assign(process.env, defaultEnv, env)
