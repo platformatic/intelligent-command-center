@@ -14,7 +14,7 @@ async function plugin (app) {
     return
   }
 
-  const k8sToken = app.getK8SJWTToken()
+  const k8sToken = await app.getK8SJWTToken()
   if (!k8sToken) {
     app.log.warn('K8s authentication disabled: Unable to get K8S JWT token')
     return
@@ -49,7 +49,15 @@ async function plugin (app) {
   })
 
   app.register(fastifyJwt, {
-    secret: (_request, token) => {
+    secret: async (_request, token) => {
+      // Get a fresh token for each JWKS request to handle token expiration
+      const freshToken = await app.getK8SJWTToken()
+
+      // Update the fetch options with the fresh token if available
+      if (freshToken && freshToken !== k8sToken) {
+        jwks.fetchOptions.headers.Authorization = `Bearer ${freshToken}`
+      }
+
       const { header: { kid, alg } } = token
       return jwks.getPublicKey({ kid, alg })
     },

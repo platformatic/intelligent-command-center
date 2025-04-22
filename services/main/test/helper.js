@@ -210,3 +210,73 @@ module.exports.authorizeEndpoint = function (agent, method, path, cookie) {
     })
   return { user: fakeUser }
 }
+const baseK8sPayload = {
+  aud: [
+    'https://kubernetes.default.svc.cluster.local',
+    'k3s'
+  ],
+  exp: 1776504891, // Will be overwritten
+  iat: 1744968891,
+  iss: 'https://kubernetes.default.svc.cluster.local',
+  jti: 'ca60f2d6-4655-4fd0-9ecb-ffeb10360230',
+  'kubernetes.io': {
+    namespace: 'platformatic',
+    node: {
+      name: 'k3d-plt-cluster-server-0',
+      uid: '723cf17a-e783-4382-bc86-b2a6c06248ab'
+    },
+    pod: {
+      name: 'test-6cc7c6cd58-kpsdd',
+      uid: 'bab4c2fc-7438-4204-9804-bf92f65641e4'
+    },
+    serviceaccount: {
+      name: 'platformatic',
+      uid: '0f668f4e-f2f8-4e2a-8642-08b87da06e22'
+    },
+    warnafter: 1744972498
+  },
+  nbf: 1744968891,
+  sub: 'system:serviceaccount:platformatic:platformatic'
+}
+
+function decodeJwtPayload (token) {
+  try {
+    if (!token) return null
+    const base64Payload = token.split('.')[1]
+    if (!base64Payload) return null
+    const payload = Buffer.from(base64Payload, 'base64').toString('utf8')
+    return JSON.parse(payload)
+  } catch (err) {
+    return null
+  }
+}
+
+function encodeJwtPayload (exp = null) {
+  const payload = { ...baseK8sPayload }
+  if (exp !== null) {
+    payload.exp = exp
+  } else {
+    // Default to 1 hour
+    payload.exp = Math.floor(Date.now() / 1000) + 3600
+  }
+  const header = { alg: 'HS256', typ: 'JWT' }
+  const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url')
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url')
+  const signature = 'TEST_SIGNATURE_FOR_K8S_JWT_TOKEN'
+  const encodedSignature = Buffer.from(signature).toString('base64url')
+  return `${encodedHeader}.${encodedPayload}.${encodedSignature}`
+}
+
+function isTokenExpired (token) {
+  const payload = decodeJwtPayload(token)
+  if (!payload || !payload.exp) return true
+
+  // Check if token is expired
+  const currentTime = Math.floor(Date.now() / 1000)
+  return payload.exp <= currentTime
+}
+
+module.exports.isTokenExpired = isTokenExpired
+module.exports.decodeJwtPayload = decodeJwtPayload
+module.exports.baseK8sPayload = baseK8sPayload
+module.exports.encodeJwtPayload = encodeJwtPayload

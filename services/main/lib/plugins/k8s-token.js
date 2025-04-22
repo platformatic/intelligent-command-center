@@ -3,8 +3,6 @@
 const { readFile, stat } = require('node:fs/promises')
 const fp = require('fastify-plugin')
 
-const K8S_TOKEN_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/token'
-
 function decodeJwtPayload (token) {
   try {
     if (!token) return null
@@ -29,11 +27,12 @@ function isTokenExpired (token) {
 async function plugin (app) {
   let token
   async function loadToken () {
-    let token
+    const tokenPath = process.env.K8S_TOKEN_PATH || // This is for testing purposes only, that's why is not in the config
+          '/var/run/secrets/kubernetes.io/serviceaccount/token'
     try {
-      await stat(K8S_TOKEN_PATH)
+      await stat(tokenPath)
       app.log.info('Loading JWT token from K8s service account')
-      token = await readFile(K8S_TOKEN_PATH, 'utf8')
+      token = await readFile(tokenPath, 'utf8')
     } catch (err) {
       app.log.error('Failed to load JWT token from K8s service account')
     }
@@ -46,16 +45,15 @@ async function plugin (app) {
     return token
   }
 
-  const getK8SJWTToken = async (opts = {}) => {
-    if (isTokenExpired(app.token)) {
-      app.log.info('JWT token expired, reloading')
+  const getK8SJWTToken = async () => {
+    if (isTokenExpired(token) || !token) {
+      app.log.info('JWT token expired or not loaded, loading from K8s service account')
       token = await loadToken()
     }
     return token
   }
 
   app.decorate('getK8SJWTToken', getK8SJWTToken)
-
   token = await loadToken()
 }
 
