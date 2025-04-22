@@ -6,6 +6,8 @@ const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const cookiePlugin = require('../../lib/plugins/cookie')
 const authorizationPlugin = require('../../lib/plugins/authorization')
+const k8sTokenPlugin = require('../../lib/plugins/k8s-token')
+const k8sAuthPlugin = require('../../lib/plugins/k8s-authentication')
 const { MockAgent, setGlobalDispatcher } = require('undici')
 const { mockAuthorizeEndpoint } = require('../helper')
 
@@ -18,7 +20,8 @@ async function createMinimalFastifyInstance (t, config = {}) {
   await server.register(fp(async function (app) {
     app.decorate('config', config)
   }, { name: 'config' }))
-
+  server.register(k8sTokenPlugin)
+  server.register(k8sAuthPlugin)
   server.register(authorizationPlugin)
   t.after(() => {
     server.close()
