@@ -18,8 +18,6 @@ function decodeJwtPayload (token) {
 function isTokenExpired (token) {
   const payload = decodeJwtPayload(token)
   if (!payload || !payload.exp) return true
-
-  // Check if token is expired
   const currentTime = Math.floor(Date.now() / 1000)
   return payload.exp <= currentTime
 }
@@ -39,6 +37,7 @@ async function plugin (app) {
 
     if (!token) {
       app.log.warn('K8s token not found, falling back to environment variable')
+      // This is for testing purposes only. That's why is not in the config
       token = process.env.PLT_TEST_TOKEN
     }
 
