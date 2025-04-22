@@ -1,14 +1,14 @@
 'use strict'
 
-const { readFileSync } = require('node:fs')
+const { readFile } = require('node:fs/promises')
 const fp = require('fastify-plugin')
-const { default: fastifyJwt } = require('@fastify/jwt')
+const fastifyJwt = require('@fastify/jwt')
 const getJwks = require('get-jwks')
 
 async function plugin (app) {
   let k8sCaCert
   try {
-    k8sCaCert = readFileSync('/var/run/secrets/kubernetes.io/serviceaccount/ca.crt')
+    k8sCaCert = await readFile('/var/run/secrets/kubernetes.io/serviceaccount/ca.crt')
   } catch (err) {
     app.log.warn({ err }, 'K8s authentication disabled: Unable to load K8s CA certificate')
     return
