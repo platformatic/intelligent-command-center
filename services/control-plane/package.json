@@ -2,7 +2,8 @@
   "scripts": {
     "start": "platformatic start",
     "lint": "standard",
-    "test": "pnpm run lint && borp --concurrency 1 --timeout=120000"
+    "test": "pnpm run lint && borp --concurrency 1 --timeout=120000",
+    "dev:machinist": "node scripts/start-machinist.js"
   },
   "devDependencies": {
     "@platformatic/db": "^2.56.0",
