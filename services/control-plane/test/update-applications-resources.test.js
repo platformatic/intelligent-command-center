@@ -2,7 +2,7 @@
 
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
-const { startControlPlane } = require('./helper')
+const { startControlPlane, startMachinist } = require('./helper')
 
 test('should update application resources', async (t) => {
   const controlPlane = await startControlPlane(t)
@@ -57,11 +57,14 @@ test('should update application resources', async (t) => {
 })
 
 test('should detect a new pod after updating application resources', async (t) => {
+  await startMachinist(t, {
+    getPodDetails: (podId) => ({ imageId: 'test-image' })
+  })
+
   const controlPlane = await startControlPlane(t)
 
   const {
     application,
-    deployment,
     detectedPod
   } = await controlPlane.testApi.saveDetectedPod(
     'test-app',
@@ -90,7 +93,6 @@ test('should detect a new pod after updating application resources', async (t) =
 
   {
     const applicationName = application.name
-    const imageId = deployment.imageId
     const podId = detectedPod.podId
 
     const { statusCode, body } = await controlPlane.inject({
@@ -99,7 +101,7 @@ test('should detect a new pod after updating application resources', async (t) =
       headers: {
         'content-type': 'application/json'
       },
-      body: { applicationName, imageId }
+      body: { applicationName }
     })
     assert.strictEqual(statusCode, 200, body)
 

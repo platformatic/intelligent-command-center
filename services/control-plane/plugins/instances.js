@@ -24,14 +24,20 @@ module.exports = fp(async function (app) {
 
   app.decorate('initApplicationInstance', async (
     applicationName,
-    imageId,
     podId,
+    podNamespace,
     ctx
   ) => {
     let application = null
     let deployment = null
 
     ctx.logger.debug({ podId }, 'Getting detected pod')
+
+    const { imageId } = await app.machinist.getPodDetails(
+      podId,
+      podNamespace,
+      ctx
+    )
 
     const detectedPod = await app.getDetectedPodByPodId(podId)
     if (detectedPod !== null) {
@@ -99,7 +105,6 @@ module.exports = fp(async function (app) {
       app.getApplicationConfig(application, null, ctx),
       app.getCacheClientOpts(application.id, ctx)
     ])
-    process._rawDebug('--------instances.js----27--------', httpCacheClientOpts)
 
     const httpCache = { clientOpts: httpCacheClientOpts }
     const iccServices = app.getICCServicesConfigs()
