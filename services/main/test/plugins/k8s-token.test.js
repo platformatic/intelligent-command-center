@@ -5,6 +5,7 @@ const assert = require('node:assert')
 const { writeFile, mkdir, rm } = require('node:fs/promises')
 const path = require('node:path')
 const fastify = require('fastify')
+const configPlugin = require('../../lib/plugins/config')
 const k8sTokenPlugin = require('../../lib/plugins/k8s-token')
 const { baseK8sPayload, encodeJwtPayload, decodeJwtPayload, isTokenExpired } = require('../helper')
 
@@ -16,6 +17,8 @@ async function setupTestEnv (token = validToken) {
   await mkdir(secretsDir, { recursive: true })
   await writeFile(path.join(secretsDir, 'token'), token)
   process.env.K8S_TOKEN_PATH = path.join(secretsDir, 'token')
+  process.env.DEV = true
+  process.env.PLT_MAIN_URL = 'http://localhost:3000'
 }
 
 async function cleanupTestEnv () {
@@ -41,6 +44,7 @@ test('k8s-token plugin returns valid token', async (t) => {
   })
 
   const app = fastify()
+  await app.register(configPlugin)
   await app.register(k8sTokenPlugin)
 
   const token = await app.getK8SJWTToken()
@@ -63,6 +67,8 @@ test('k8s-token plugin handles missing token files', async () => {
   const app = fastify()
   process.env.K8S_TOKEN_PATH = '/does/not/exist/token'
   process.env.PLT_TEST_TOKEN = validToken // Set fallback token
+
+  await app.register(configPlugin)
   await app.register(k8sTokenPlugin)
   const token = await app.getK8SJWTToken()
   assert.equal(token, validToken, 'Should use fallback token from environment')
@@ -77,6 +83,7 @@ test('k8s-token plugin handles token expiration', async (t) => {
   })
 
   const app = fastify()
+  await app.register(configPlugin)
   await app.register(k8sTokenPlugin)
 
   {

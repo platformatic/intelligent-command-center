@@ -7,22 +7,12 @@ const buildJwks = require('get-jwks')
 const { UnauthorizedError } = require('../errors')
 const isUrlAllowed = require('../k8s-allowed-routes')
 
-// Helper function to check if a route is in the whitelist
-async function isRouteAllowed (req) {
-  if (!req || !req.url) {
-    return false
-  }
-  if (await isUrlAllowed(req.url, req.method)) {
-    return true
-  }
-  return false
-}
-
 async function plugin (app) {
   // The k8s HTTPs client uses the CA certificate to verify the server's certificate
   let k8sCaCert
   try {
-    k8sCaCert = await readFile('/var/run/secrets/kubernetes.io/serviceaccount/ca.crt')
+    const caPath = app.config.K8S_CA_CERT_PATH
+    k8sCaCert = await readFile(caPath)
   } catch (err) {
     app.log.warn({ err }, 'Unable to load K8s CA certificate')
   }
@@ -65,7 +55,7 @@ async function plugin (app) {
   })
 
   app.decorate('k8sJWTAuth', async (request) => {
-    const isAllowed = await isRouteAllowed(request)
+    const isAllowed = isUrlAllowed(request)
     if (!isAllowed) {
       app.log.warn({
         method: request.method,
