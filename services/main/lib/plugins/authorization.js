@@ -85,7 +85,7 @@ function isWebSocketRequest (req) {
     req.headers.connection.toLowerCase() === 'upgrade' &&
     req.headers.upgrade.toLowerCase() === 'websocket'
 }
-async function authorizeRoute (req, reply) {
+async function authorizeRoute (req) {
   if (req.method === 'OPTIONS') {
     // preflight requests can proceed
     return true

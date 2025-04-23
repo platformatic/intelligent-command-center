@@ -5,6 +5,18 @@ const fp = require('fastify-plugin')
 const fastifyJwt = require('@fastify/jwt')
 const buildJwks = require('get-jwks')
 const { UnauthorizedError } = require('../errors')
+const isUrlAllowed = require('../k8s-allowed-routes')
+
+// Helper function to check if a route is in the whitelist
+async function isRouteAllowed (req) {
+  if (!req || !req.url) {
+    return false
+  }
+  if (await isUrlAllowed(req.url, req.method)) {
+    return true
+  }
+  return false
+}
 
 async function plugin (app) {
   // The k8s HTTPs client uses the CA certificate to verify the server's certificate
@@ -53,6 +65,15 @@ async function plugin (app) {
   })
 
   app.decorate('k8sJWTAuth', async (request) => {
+    const isAllowed = await isRouteAllowed(request)
+    if (!isAllowed) {
+      app.log.warn({
+        method: request.method,
+        url: request.url
+      }, 'K8s authentication denied: route not in whitelist')
+      throw new UnauthorizedError('K8s authentication denied: route not in whitelist')
+    }
+
     try {
       const undecoded = await request.jwtVerify()
       request.k8s = undecoded['kubernetes.io']
