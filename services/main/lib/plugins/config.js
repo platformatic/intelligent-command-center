@@ -22,7 +22,8 @@ const schema = {
     PLT_MAIN_REDIS_DB: { type: 'number' },
     PLT_DISABLE_K8S_AUTH: { type: 'boolean', default: false },
     K8S_TOKEN_PATH: { type: 'string', default: '/var/run/secrets/kubernetes.io/serviceaccount/token' },
-    K8S_CA_CERT_PATH: { type: 'string', default: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt' }
+    K8S_CA_CERT_PATH: { type: 'string', default: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt' },
+    PLT_DISABLE_K8S_AUTH: { type: 'boolean', default: false } // This is for testing purposes only
   }
 }
 
