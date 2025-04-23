@@ -25,8 +25,7 @@ function isTokenExpired (token) {
 async function plugin (app) {
   let token
   async function loadToken () {
-    const tokenPath = process.env.K8S_TOKEN_PATH || // This is for testing purposes only, that's why is not in the config
-          '/var/run/secrets/kubernetes.io/serviceaccount/token'
+    const tokenPath = app.config.K8S_TOKEN_PATH
     try {
       await stat(tokenPath)
       app.log.info('Loading JWT token from K8s service account')
@@ -58,5 +57,5 @@ async function plugin (app) {
 
 module.exports = fp(plugin, {
   name: 'k8s-token',
-  dependencies: []
+  dependencies: ['config']
 })

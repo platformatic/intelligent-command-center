@@ -15,9 +15,6 @@ const agent = new MockAgent()
 setGlobalDispatcher(agent)
 
 async function createMinimalFastifyInstance (t, config = {}) {
-  // We disable the k8s authentication for these tests
-  config.PLT_DISABLE_K8S_AUTH = true
-
   const server = fastify()
   server.register(cookiePlugin)
   await server.register(fp(async function (app) {
@@ -60,29 +57,6 @@ test('should ignore PLT_MAIN_DISABLE_AUTHORIZATION flag', async (t) => {
     message: 'Missing authorization credentials',
     statusCode: 401
   })
-})
-
-test('should support whitelist of strings and regexp', async (t) => {
-  const server = await createMinimalFastifyInstance(t)
-  let endpointReached = false
-  server.post('/control-plane/applications/8e068b61-8972-42ac-847f-8ebf36642f66/state', async (req, res) => {
-    endpointReached = true
-    return { foo: 'bar' }
-  })
-  await server.listen({
-    port: 0
-  })
-
-  const res = await server.inject({
-    method: 'POST',
-    path: '/control-plane/applications/8e068b61-8972-42ac-847f-8ebf36642f66/state'
-  })
-  const json = res.json()
-  assert.equal(res.statusCode, 200)
-  assert.deepEqual(json, {
-    foo: 'bar'
-  })
-  assert.equal(endpointReached, true)
 })
 
 test('should check the method', async (t) => {
@@ -129,63 +103,6 @@ test('preflight route always gets through', async (t) => {
   assert.deepEqual(json, {
     cors: 'ok'
   })
-})
-
-test('should whitelist zio routes', async (t) => {
-  const server = await createMinimalFastifyInstance(t)
-  const uuid = '8e068b61-8972-42ac-847f-8ebf36642f66'
-  // add full urls containing the uuid parameter (when needed)
-  const urlToTest = [
-    ['POST', `/control-plane/applications/${uuid}/state`],
-    ['POST', `/control-plane/applications/${uuid}/status`],
-    ['GET', `/control-plane/applications/${uuid}`]
-  ]
-  // add those routes to fastify instance
-  for (let i = 0; i < urlToTest.length; i++) {
-    const [method, url] = urlToTest[i]
-    const fastifyMethod = method.toLowerCase()
-    const parameterizedPath = url.replace(uuid, ':id') // replace the uuid with the :id parameter
-    server[fastifyMethod](parameterizedPath, async (req, res) => {
-      return { method, id: req.params.id, pass: true, key: req.query.key }
-    })
-  }
-
-  await server.listen({
-    port: 0
-  })
-
-  // call each of them with proper method
-  for (let i = 0; i < urlToTest.length; i++) {
-    const [method, url] = urlToTest[i]
-    {
-      const res = await server.inject({
-        method,
-        path: url
-      })
-      const json = res.json()
-      assert.equal(res.statusCode, 200)
-      assert.deepEqual(json, {
-        method,
-        pass: true,
-        id: uuid
-      })
-    }
-    {
-      // with a ?key=123456 parame
-      const res = await server.inject({
-        method,
-        path: `${url}?key=123456`
-      })
-      const json = res.json()
-      assert.equal(res.statusCode, 200)
-      assert.deepEqual(json, {
-        method,
-        pass: true,
-        id: uuid,
-        key: 123456
-      })
-    }
-  }
 })
 
 test('should whitelist OpenaAPI spec for internal service', async (t) => {

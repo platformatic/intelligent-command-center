@@ -3,6 +3,7 @@
 const { request } = require('undici')
 const fp = require('fastify-plugin')
 const { getICCServices } = require('../utils')
+const isK8SAllowedUrl = require('../k8s-allowed-routes')
 const {
   UnauthorizedRouteError,
   MissingAuthCredentialsError,
@@ -23,23 +24,7 @@ async function getWhitelistedPaths () {
     ['/fonts', '*'],
     ['/backgrounds', '*'],
     ['/assets', '*'],
-    ['/risk-service/v1/traces', '*'],
-    ['/risk-service/dump', '*'],
-    ['/risk-manager/dbschemas', ['POST']], // deprecated
-    ['/risk-manager/db-schema', ['POST']],
-    ['/compliance/metadata', ['POST']],
-    ['/compliance/compliance', ['POST']],
-    ['/risk-cold-storage/sync', ['GET']],
-    ['/api/updates', ['POST']],
-    ['/api/updates/icc', ['GET']],
-    ['/api/updates/pods', ['GET']],
-    ['/trafficante/requests', ['POST']],
-    ['/cron/watt-jobs', ['PUT']],
-
-    // zio routes
-    [/\/control-plane\/applications\/[a-zA-z0-9-]+\/state/, ['POST']],
-    [/\/control-plane\/applications\/[a-zA-z0-9-]+\/status/, ['POST']],
-    [/\/control-plane\/applications\/[a-zA-z0-9-]+$/, ['GET']]
+    ['/api/updates', ['GET']]
   ]
 
   // add OpenaAPI spec route for each internal service
@@ -85,14 +70,18 @@ function isWebSocketRequest (req) {
     req.headers.connection.toLowerCase() === 'upgrade' &&
     req.headers.upgrade.toLowerCase() === 'websocket'
 }
-async function authorizeRoute (req) {
+
+async function authorizeRouteWithCookie (req) {
   if (req.method === 'OPTIONS') {
     // preflight requests can proceed
     return true
   }
+
+  // Check if the route is in the regular whitelist
   if (await currentUrlIsWhiteListed(req.url, req.method)) {
     return true
   }
+
   if (!isWebSocketRequest(req)) {
     if (!req.cookies || !req.cookies['auth-cookie-name']) {
       throw new MissingAuthCredentialsError()
@@ -131,6 +120,21 @@ async function authorizeRoute (req) {
   }
 }
 async function plugin (app) {
+  async function authorizeRoute (req) {
+  // We distinguish between API calls that are supposed to be done from
+  // the browser and those that are supposed to be done from K8S pods.
+  // We need to split the two cases (assuming there is no overlap).
+  // Otherwise we need to manage a lot of corner cases
+  // In this way, if it's a K8S call, the call MUST use K8S JWT token
+  // and if it's a browser call, the call MUST use the cookie
+  // TODO:: now @fastify/auth is proably useless, as we are deciding
+    // which auth method to use depending on the route
+    if (isK8SAllowedUrl(req)) {
+      return app.k8sJWTAuth(req)
+    }
+    return authorizeRouteWithCookie(req)
+  }
+
   await app.register(require('@fastify/auth'))
   app.decorateRequest('toUserHeader', function () {
     const headers = {}
@@ -139,12 +143,7 @@ async function plugin (app) {
     }
     return headers
   })
-  const authMethods = [authorizeRoute]
-  if (!app.config.PLT_DISABLE_K8S_AUTH) {
-    const k8sJWTAuth = app.k8sJWTAuth
-    authMethods.push(k8sJWTAuth)
-  }
-  app.addHook('onRequest', app.auth(authMethods))
+  app.addHook('onRequest', app.auth([authorizeRoute]))
 }
 plugin[Symbol.for('skip-override')] = true
 
