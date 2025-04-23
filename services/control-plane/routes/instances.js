@@ -48,10 +48,9 @@ module.exports = fp(async function (app) {
       body: {
         type: 'object',
         properties: {
-          applicationName: { type: 'string' },
-          imageId: { type: 'string' }
+          applicationName: { type: 'string' }
         },
-        required: ['applicationName', 'imageId']
+        required: ['applicationName']
       },
       response: {
         200: {
@@ -106,15 +105,18 @@ module.exports = fp(async function (app) {
     },
     handler: async (req) => {
       const { podId } = req.params
-      const { applicationName, imageId } = req.body
+      const { applicationName } = req.body
 
-      const logger = req.log.child({ applicationName, podId, imageId })
+      const logger = req.log.child({ applicationName, podId })
       const ctx = { req, logger }
+
+      // TODO: get pod namespace from a jwt
+      const podNamespace = 'test-pod-namespace'
 
       const { application, config, httpCache, iccServices } = await app.initApplicationInstance(
         applicationName,
-        imageId,
         podId,
+        podNamespace,
         ctx
       )
 

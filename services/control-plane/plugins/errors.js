@@ -64,5 +64,9 @@ module.exports = {
   CacheProviderNotSetup: createError(
     `${ERROR_PREFIX}_CACHE_PROVIDER_NOT_SETUP`,
     'The setup function was not run for this Cache provider'
+  ),
+  FailedToGetPodDetails: createError(
+    `${ERROR_PREFIX}_FAILED_TO_GET_POD_DETAILS`,
+    'Failed to get pod details'
   )
 }
