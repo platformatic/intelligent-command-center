@@ -64,6 +64,11 @@ async function plugin (app) {
       throw new UnauthorizedError('K8s authentication denied: route not in whitelist')
     }
 
+    if (app.config.PLT_DISABLE_K8S_AUTH) {
+      app.log.warn('K8s authentication disabled: PLT_DISABLE_K8S_AUTH is set')
+      return
+    }
+
     try {
       const undecoded = await request.jwtVerify()
       request.k8s = undecoded['kubernetes.io']

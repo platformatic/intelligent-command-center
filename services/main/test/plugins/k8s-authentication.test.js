@@ -445,3 +445,25 @@ test('k8sJWTAuth process fails if the route is not allowed', async (t) => {
   assert.equal(error.message, 'Unauthorized API call. K8s authentication denied: route not in whitelist')
   assert.equal(error.code, 'PLT_MAIN_UNAUTHORIZED')
 })
+
+test('k8sJWTAuth disabled if PLT_DISABLE_K8S_AUTH is set', async (t) => {
+  const iccToken = 'TEST_TOKEN'
+  process.env.PLT_DISABLE_K8S_AUTH = true
+  await setupICCEnv(iccToken)
+
+  t.after(async () => {
+    await cleanupTestEnv()
+    process.env.PLT_DISABLE_K8S_AUTH = false
+    headers = {}
+  })
+
+  const app = await setupApp()
+  await app.ready()
+  const { statusCode } = await app.inject({
+    method: 'POST',
+    url: '/control-plane/pods/xxxyyyzzz/instance',
+    headers: {} // No auth!
+  })
+
+  assert.equal(statusCode, 200)
+})
