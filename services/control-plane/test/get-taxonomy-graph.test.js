@@ -6,6 +6,7 @@ const {
   startControlPlane,
   startMetrics,
   startActivities,
+  startMachinist,
   generateApplicationState,
   startUpdates
 } = require('./helper')
@@ -284,6 +285,10 @@ test('should get a previous generation graph', async (t) => {
     }
   })
 
+  await startMachinist(t, {
+    getPodDetails: (podId) => ({ imageId: 'test-image-2' })
+  })
+
   await startUpdates(t)
 
   const controlPlane = await startControlPlane(t)
@@ -309,7 +314,6 @@ test('should get a previous generation graph', async (t) => {
 
   {
     const applicationName = 'test-app-2'
-    const imageId = 'test-image-2'
     const podId = 'test-pod-2'
 
     const { statusCode, body } = await controlPlane.inject({
@@ -318,7 +322,7 @@ test('should get a previous generation graph', async (t) => {
       headers: {
         'content-type': 'application/json'
       },
-      body: { applicationName, imageId }
+      body: { applicationName }
     })
     assert.strictEqual(statusCode, 200, body)
   }

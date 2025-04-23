@@ -7,21 +7,26 @@ const {
   startControlPlane,
   startActivities,
   startMetrics,
-  startUpdates
+  startUpdates,
+  startMachinist
 } = require('./helper')
 
 test('should save a detected pod of a new application', async (t) => {
+  const applicationName = 'test-app'
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
   const activities = []
   await startActivities(t, {
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
   await startUpdates(t)
+  await startMachinist(t, {
+    getPodDetails: (podId) => ({ imageId })
+  })
 
   const controlPlane = await startControlPlane(t)
-  const applicationName = 'test-app'
-  const podId = randomUUID()
-  const imageId = randomUUID()
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
@@ -29,7 +34,7 @@ test('should save a detected pod of a new application', async (t) => {
     headers: {
       'content-type': 'application/json'
     },
-    body: { applicationName, imageId }
+    body: { applicationName }
   })
 
   assert.strictEqual(statusCode, 200, body)
@@ -144,11 +149,18 @@ test('should save a detected pod of a new application', async (t) => {
 })
 
 test('should save a new detected pod with the same image', async (t) => {
+  const applicationName = 'test-app'
+  const podId = 'test-pod-3'
+  const imageId = 'test-image-1'
+
   const activities = []
   await startActivities(t, {
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
+  await startMachinist(t, {
+    getPodDetails: (podId) => ({ imageId })
+  })
 
   const controlPlane = await startControlPlane(t)
 
@@ -157,8 +169,8 @@ test('should save a new detected pod with the same image', async (t) => {
     application: application1,
     deployment: deployment1
   } = await controlPlane.testApi.saveDetectedPod(
-    'test-app-1',
-    'test-image-1',
+    applicationName,
+    imageId,
     'test-pod-1'
   )
 
@@ -172,17 +184,13 @@ test('should save a new detected pod with the same image', async (t) => {
     'test-pod-2'
   )
 
-  const applicationName = application1.name
-  const imageId = deployment1.imageId
-  const podId = 'test-pod-3'
-
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
     url: `/pods/${podId}/instance`,
     headers: {
       'content-type': 'application/json'
     },
-    body: { applicationName, imageId, podId }
+    body: { applicationName }
   })
 
   assert.strictEqual(statusCode, 200, body)
@@ -296,11 +304,18 @@ test('should save a new detected pod with the same image', async (t) => {
 })
 
 test('should detect the same pod with the same image', async (t) => {
+  const applicationName = 'test-app-1'
+  const podId = 'test-pod-1'
+  const imageId = 'test-image-1'
+
   const activities = []
   await startActivities(t, {
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
+  await startMachinist(t, {
+    getPodDetails: (podId) => ({ imageId })
+  })
 
   const controlPlane = await startControlPlane(t)
 
@@ -310,14 +325,10 @@ test('should detect the same pod with the same image', async (t) => {
     deployment: deployment1,
     detectedPod: detectedPod1
   } = await controlPlane.testApi.saveDetectedPod(
-    'test-app-1',
-    'test-image-1',
-    'test-pod-1'
+    applicationName,
+    imageId,
+    podId
   )
-
-  const applicationName = application1.name
-  const imageId = deployment1.imageId
-  const podId = detectedPod1.podId
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
@@ -325,7 +336,7 @@ test('should detect the same pod with the same image', async (t) => {
     headers: {
       'content-type': 'application/json'
     },
-    body: { applicationName, imageId }
+    body: { applicationName }
   })
 
   assert.strictEqual(statusCode, 200, body)
@@ -397,16 +408,23 @@ test('should detect the same pod with the same image', async (t) => {
 })
 
 test('should save an detected pod with a different image', async (t) => {
+  const applicationName = 'test-app-1'
+  const imageId = 'test-image-3'
+  const podId = 'test-pod-3'
+
   const activities = []
   await startActivities(t, {
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
+  await startMachinist(t, {
+    getPodDetails: (podId) => ({ imageId })
+  })
 
   const controlPlane = await startControlPlane(t)
 
   const { application: application1 } = await controlPlane.testApi.saveDetectedPod(
-    'test-app-1',
+    applicationName,
     'test-image-1',
     'test-pod-1'
   )
@@ -416,17 +434,13 @@ test('should save an detected pod with a different image', async (t) => {
     'test-pod-2'
   )
 
-  const applicationName = application1.name
-  const imageId = 'test-image-3'
-  const podId = 'test-pod-3'
-
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
     url: `/pods/${podId}/instance`,
     headers: {
       'content-type': 'application/json'
     },
-    body: { applicationName, imageId }
+    body: { applicationName }
   })
 
   assert.strictEqual(statusCode, 200, body)
@@ -550,6 +564,13 @@ test('should save a lot of simultaneous detected pods of different applications'
     }
   }
 
+  await startMachinist(t, {
+    getPodDetails: (podId) => {
+      const { imageId } = params.find(p => p.podId === podId)
+      return { imageId }
+    }
+  })
+
   // Sort params in a random order
   params.sort(() => Math.random() - 0.5)
 
@@ -563,10 +584,7 @@ test('should save a lot of simultaneous detected pods of different applications'
       headers: {
         'content-type': 'application/json'
       },
-      body: {
-        applicationName: params.applicationName,
-        imageId: params.imageId
-      }
+      body: { applicationName: params.applicationName }
     })
     assert.strictEqual(statusCode, 200, body)
 

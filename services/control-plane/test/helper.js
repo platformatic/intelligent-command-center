@@ -12,6 +12,7 @@ const defaultEnv = {
 
   PLT_CONTROL_PLANE_VALKEY_CACHE_CONNECTION_STRING: 'redis://localhost:6342',
 
+  PLT_MACHINIST_URL: 'http://localhost:3052',
   PLT_EXTERNAL_TRAFFICANTE_URL: 'http://localhost:3033',
   PLT_EXTERNAL_ACTIVITIES_URL: 'http://localhost:3004',
   PLT_EXTERNAL_COMPLIANCE_URL: 'http://localhost:3003',
@@ -424,6 +425,22 @@ async function startMetrics (t, opts = {}) {
   return metrics
 }
 
+async function startMachinist (t, opts = {}) {
+  const machinist = fastify({ keepAliveTimeout: 1 })
+
+  machinist.get('/pods/:namespace/:podId', async (req) => {
+    const podId = req.params.podId
+    return opts.getPodDetails?.(podId)
+  })
+
+  t?.after(async () => {
+    await machinist.close()
+  })
+
+  await machinist.listen({ port: 3052 })
+  return machinist
+}
+
 async function startUpdates (t, opts = {}) {
   const updates = fastify({ keepAliveTimeout: 1 })
 
@@ -443,6 +460,7 @@ module.exports = {
   startControlPlane,
   startActivities,
   startMetrics,
+  startMachinist,
   startUpdates,
   generateGeneration,
   generateApplication,
