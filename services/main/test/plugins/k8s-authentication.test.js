@@ -5,6 +5,7 @@ const assert = require('node:assert')
 const { writeFile, mkdir, rm } = require('node:fs/promises')
 const path = require('node:path')
 const fastify = require('fastify')
+const configPlugin = require('../../lib/plugins/config')
 const k8sTokenPlugin = require('../../lib/plugins/k8s-token')
 const k8sAuthPlugin = require('../../lib/plugins/k8s-authentication')
 const { createSigner } = require('fast-jwt')
@@ -48,7 +49,10 @@ async function cleanupTestEnv () {
 }
 
 async function setupApp () {
+  process.env.DEV = false
+  process.env.PLT_MAIN_URL = 'http://localhost:1234'
   const app = fastify()
+  await app.register(configPlugin)
   await app.register(k8sTokenPlugin)
   await app.register(k8sAuthPlugin)
   app.post('/control-plane/pods/:podId/instance', async function (request) {
