@@ -7,7 +7,7 @@ const path = require('node:path')
 const fastify = require('fastify')
 const configPlugin = require('../../lib/plugins/config')
 const k8sTokenPlugin = require('../../lib/plugins/k8s-token')
-const { baseK8sPayload, encodeJwtPayload, decodeJwtPayload, isTokenExpired } = require('../helper')
+const { baseK8sPayload, encodeJwtPayload, decodeJwtPayload, isTokenExpired, setUpEnvironment } = require('../helper')
 
 const validToken = encodeJwtPayload()
 const testDir = path.join(__dirname, 'test-k8s-token')
@@ -16,9 +16,9 @@ const secretsDir = path.join(testDir, 'var', 'run', 'secrets', 'kubernetes.io', 
 async function setupTestEnv (token = validToken) {
   await mkdir(secretsDir, { recursive: true })
   await writeFile(path.join(secretsDir, 'token'), token)
-  process.env.K8S_TOKEN_PATH = path.join(secretsDir, 'token')
-  process.env.DEV = true
-  process.env.PLT_MAIN_URL = 'http://localhost:3000'
+  setUpEnvironment({
+    K8S_TOKEN_PATH: path.join(secretsDir, 'token')
+  })
 }
 
 async function cleanupTestEnv () {

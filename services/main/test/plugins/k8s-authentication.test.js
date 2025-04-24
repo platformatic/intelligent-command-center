@@ -9,7 +9,7 @@ const configPlugin = require('../../lib/plugins/config')
 const k8sTokenPlugin = require('../../lib/plugins/k8s-token')
 const k8sAuthPlugin = require('../../lib/plugins/k8s-authentication')
 const { createSigner } = require('fast-jwt')
-
+const { setUpEnvironment } = require('../helper')
 const { createPublicKey, generateKeyPairSync } = require('node:crypto')
 
 // creates a RSA key pair for the test
@@ -48,9 +48,8 @@ async function cleanupTestEnv () {
   await rm(testDir, { recursive: true, force: true })
 }
 
-async function setupApp () {
-  process.env.DEV = false
-  process.env.PLT_MAIN_URL = 'http://localhost:1234'
+async function setupApp (env = { PLT_DISABLE_K8S_AUTH: false }) {
+  setUpEnvironment(env)
   const app = fastify()
   await app.register(configPlugin)
   await app.register(k8sTokenPlugin)
@@ -448,16 +447,14 @@ test('k8sJWTAuth process fails if the route is not allowed', async (t) => {
 
 test('k8sJWTAuth disabled if PLT_DISABLE_K8S_AUTH is set', async (t) => {
   const iccToken = 'TEST_TOKEN'
-  process.env.PLT_DISABLE_K8S_AUTH = true
   await setupICCEnv(iccToken)
 
   t.after(async () => {
     await cleanupTestEnv()
-    process.env.PLT_DISABLE_K8S_AUTH = false
     headers = {}
   })
 
-  const app = await setupApp()
+  const app = await setupApp({ PLT_DISABLE_K8S_AUTH: true })
   await app.ready()
   const { statusCode } = await app.inject({
     method: 'POST',
