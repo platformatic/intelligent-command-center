@@ -75,7 +75,7 @@ module.exports = fp(async function (app) {
 
         // send notification to ui
 
-        await app.emitUpdate({
+        await app.emitUpdate('icc', {
           topic: 'ui-updates/applications',
           type: 'application-created',
           data: {

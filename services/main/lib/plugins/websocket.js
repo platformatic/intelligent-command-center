@@ -12,10 +12,10 @@ module.exports = async function (fastify, opts) {
         connection.close()
       })
 
-      await fastify.registerUpdates(connection, { prefix: 'icc' })
+      await fastify.registerUpdates(connection, { namespace: 'icc' })
     })
 
-    fastify.get('/api/updates/pods', { websocket: true }, async (connection) => {
+    fastify.get('/api/updates/applications', { websocket: true }, async (connection) => {
       connection.on('open', () => {
         // TODO: send http request to the control plane
       })
@@ -28,7 +28,7 @@ module.exports = async function (fastify, opts) {
         connection.close()
       })
 
-      await fastify.registerUpdates(connection, { prefix: 'pods' })
+      await fastify.registerUpdates(connection, { namespace: 'applications' })
     })
   })
 }
