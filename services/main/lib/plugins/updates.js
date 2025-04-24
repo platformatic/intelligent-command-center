@@ -18,6 +18,9 @@ async function plugin (app) {
     const namespace = opts.namespace || ''
 
     const subscriber = (message, callback) => {
+      if (message.topic.startsWith(namespace)) {
+        message.topic = message.topic.substring(namespace.length + 1)
+      }
       connection.send(JSON.stringify(message))
       callback()
     }

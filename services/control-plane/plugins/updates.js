@@ -9,8 +9,8 @@ const errors = require('./errors')
 module.exports = fp(async function (app) {
   const mainServiceUrl = app.env.PLT_MAIN_SERVICE_URL
 
-  app.decorate('emitUpdate', async (message, ctx) => {
-    const url = mainServiceUrl + '/api/updates'
+  app.decorate('emitUpdate', async (namespace, message, ctx) => {
+    const url = mainServiceUrl + `/api/updates/${namespace}`
 
     const { statusCode, body } = await request(url, {
       method: 'POST',

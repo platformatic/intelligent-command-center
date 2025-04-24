@@ -12,12 +12,10 @@ test('should return 204 when posting an update', async (t) => {
 
   const res = await server.inject({
     method: 'POST',
-    url: '/api/updates',
+    url: '/api/updates/icc',
     body: {
-      service: 'test-service',
-      data: {
-        foo: 'bar'
-      }
+      topic: 'ui-updates/applications',
+      data: { foo: 'bar' }
     }
   })
 
@@ -45,7 +43,7 @@ test('the event should be sent to the websocket', async (t) => {
   assert.deepStrictEqual(JSON.parse(subscriptionAck[0]), { command: 'ack' })
 
   {
-    const { statusCode, body } = await request(`${url}/api/updates`, {
+    const { statusCode, body } = await request(`${url}/api/updates/icc`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json'
@@ -53,9 +51,7 @@ test('the event should be sent to the websocket', async (t) => {
       body: JSON.stringify({
         topic: 'ui-updates/applications',
         type: 'application-created',
-        data: {
-          foo: 'bar'
-        }
+        data: { foo: 'bar' }
       })
     })
     assert.strictEqual(statusCode, 204, body)
@@ -66,9 +62,7 @@ test('the event should be sent to the websocket', async (t) => {
   assert.deepStrictEqual(notificationData, {
     topic: 'ui-updates/applications',
     type: 'application-created',
-    data: {
-      foo: 'bar'
-    }
+    data: { foo: 'bar' }
   })
   // unsubscribe from the topic
   socket.send(JSON.stringify({ command: 'unsubscribe', topic: 'ui-updates/applications' }))
