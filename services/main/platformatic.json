@@ -47,12 +47,6 @@
         }
       },
       {
-        "id": "updates",
-        "proxy": {
-          "prefix": "updates"
-        }
-      },
-      {
         "id": "frontend",
         "proxy": {
           "prefix": "/"

@@ -8,16 +8,18 @@ const schema = {
   required: [
     'DEV',
     'PLT_MAIN_URL',
-    'PLT_MAIN_REFRESH_TIME',
-    'PLT_SERVICES_WITH_UPDATE_ROUTE'
+    'PLT_MAIN_REDIS_HOST',
+    'PLT_MAIN_REDIS_PORT',
+    'PLT_MAIN_REDIS_DB'
   ],
 
   properties: {
     DEV: { type: 'boolean' },
     DEV_K8S: { type: 'boolean', default: false },
     PLT_MAIN_URL: { type: 'string' },
-    PLT_MAIN_REFRESH_TIME: { type: 'number', default: 2000 },
-    PLT_SERVICES_WITH_UPDATE_ROUTE: { type: 'string', default: '' }
+    PLT_MAIN_REDIS_HOST: { type: 'string' },
+    PLT_MAIN_REDIS_PORT: { type: 'number' },
+    PLT_MAIN_REDIS_DB: { type: 'number' }
   }
 }
 

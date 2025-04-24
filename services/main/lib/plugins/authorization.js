@@ -30,7 +30,9 @@ async function getWhitelistedPaths () {
     ['/compliance/metadata', ['POST']],
     ['/compliance/compliance', ['POST']],
     ['/risk-cold-storage/sync', ['GET']],
-    ['/api/updates', ['GET']],
+    ['/api/updates', ['POST']],
+    ['/api/updates/icc', ['GET']],
+    ['/api/updates/pods', ['GET']],
     ['/trafficante/requests', ['POST']],
     ['/cron/watt-jobs', ['PUT']],
 
