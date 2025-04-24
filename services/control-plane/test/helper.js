@@ -12,7 +12,6 @@ const defaultEnv = {
 
   PLT_CONTROL_PLANE_VALKEY_CACHE_CONNECTION_STRING: 'redis://localhost:6342',
 
-  PLT_MACHINIST_URL: 'http://localhost:3052',
   PLT_EXTERNAL_TRAFFICANTE_URL: 'http://localhost:3033',
   PLT_EXTERNAL_ACTIVITIES_URL: 'http://localhost:3004',
   PLT_EXTERNAL_COMPLIANCE_URL: 'http://localhost:3003',
@@ -22,9 +21,10 @@ const defaultEnv = {
   PLT_EXTERNAL_RISK_SERVICE_URL: '',
   PLT_EXTERNAL_METRICS_URL: '',
 
+  PLT_MACHINIST_URL: 'http://localhost:3052',
   PLT_ACTIVITIES_URL: 'http://localhost:3004',
   PLT_METRICS_URL: 'http://localhost:3009',
-  PLT_UPDATES_URL: 'http://localhost:3010',
+  PLT_MAIN_SERVICE_URL: 'http://localhost:3010',
 
   PLT_CONTROL_PLANE_CACHE_PROVIDER: 'valkey-oss',
   PLT_CONTROL_PLANE_SECRET_KEY: 'secret'
@@ -81,12 +81,6 @@ async function startControlPlane (t, entities = {}, env = {}) {
         name: 'metrics',
         type: 'openapi',
         url: process.env.PLT_METRICS_URL
-      },
-      {
-        schema: join(clientsDir, 'updates', 'updates.openapi.json'),
-        name: 'updates',
-        type: 'openapi',
-        url: process.env.PLT_UPDATES_URL
       }
     ],
     watch: false
@@ -97,9 +91,6 @@ async function startControlPlane (t, entities = {}, env = {}) {
     req: {
       activities: {
         postEvents: () => ({ id: 42, event: 'test' })
-      },
-      updates: {
-        postEvents: () => ({ })
       },
       metrics: {
         postServices: () => ({})
@@ -441,19 +432,20 @@ async function startMachinist (t, opts = {}) {
   return machinist
 }
 
-async function startUpdates (t, opts = {}) {
-  const updates = fastify({ keepAliveTimeout: 1 })
+async function startMainService (t, opts = {}) {
+  const main = fastify({ keepAliveTimeout: 1 })
 
-  updates.post('/events', async (req) => {
-    return opts.postEvents?.(req.body)
+  main.post('/api/updates', async (req, reply) => {
+    reply.status(204)
+    return opts.postUpdates?.(req.body)
   })
 
   t.after(async () => {
-    await updates.close()
+    await main.close()
   })
 
-  await updates.listen({ port: 3010 })
-  return updates
+  await main.listen({ port: 3010 })
+  return main
 }
 
 module.exports = {
@@ -461,7 +453,7 @@ module.exports = {
   startActivities,
   startMetrics,
   startMachinist,
-  startUpdates,
+  startMainService,
   generateGeneration,
   generateApplication,
   generateApplicationState,

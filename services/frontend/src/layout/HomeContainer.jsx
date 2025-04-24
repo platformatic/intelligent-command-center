@@ -15,7 +15,6 @@ import SideBar from '~/components/ui/SideBar'
 import useICCStore from '~/useICCStore'
 import { useNavigate, useLocation, Outlet, useNavigation } from 'react-router-dom'
 import { CACHING_PATH, PAGE_RECOMMENDATION_HISTORY } from '../ui-constants'
-import { callGetUpdatesApi } from '../api/updates'
 import { LoadingSpinnerV2 } from '@platformatic/ui-components'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -31,7 +30,7 @@ import typographyStyles from '~/styles/Typography.module.css'
 export default function HomeContainer () {
   const navigation = useNavigation()
   const globalState = useICCStore()
-  const { currentPage, setCurrentPage, enableSidebarFirstLevel, updates, setUpdates } = globalState
+  const { currentPage, setCurrentPage, enableSidebarFirstLevel, updates } = globalState
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -108,12 +107,7 @@ export default function HomeContainer () {
         setCurrentPage(path)
       }
     }
-    getUpdates()
   }, [location, currentPage, enableSidebarFirstLevel])
-
-  useEffect(() => {
-    getUpdates()
-  }, [])
 
   // Handle updates to refresh sidebar items
   useEffect(() => {
@@ -130,11 +124,6 @@ export default function HomeContainer () {
     setTopItems(newValues)
   }, [updates])
 
-  // Get application updates
-  async function getUpdates () {
-    const updates = await callGetUpdatesApi()
-    setUpdates(updates)
-  }
   if (navigation.state === 'loading') {
     return (
       <LoadingSpinnerV2

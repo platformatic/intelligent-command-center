@@ -186,14 +186,6 @@ const useICCStore = create((set, get) => ({
       }
     })
   },
-  setUpdates: (updates) => {
-    set((state) => {
-      return {
-        ...state,
-        updates
-      }
-    })
-  },
   showSplashScreen: ({ title, content, type = 'success', timeout = 3000, onDismiss }) => {
     set((state) => ({
       ...state,

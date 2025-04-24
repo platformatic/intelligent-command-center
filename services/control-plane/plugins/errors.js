@@ -68,5 +68,9 @@ module.exports = {
   FailedToGetPodDetails: createError(
     `${ERROR_PREFIX}_FAILED_TO_GET_POD_DETAILS`,
     'Failed to get pod details'
+  ),
+  FailedToSaveUpdate: createError(
+    `${ERROR_PREFIX}_FAILED_TO_SAVE_UPDATE`,
+    'Failed to save update: %s'
   )
 }

@@ -1,5 +1,0 @@
-{
-  "name": "updates",
-  "types": "./updates.d.ts",
-  "main": "./updates.cjs"
-}
