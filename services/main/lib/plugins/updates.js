@@ -51,7 +51,7 @@ async function plugin (app) {
 
     connection.on('close', () => {
       topicList.forEach(topic => {
-        app.mq.removeListener(topic, subscriber)
+        mq.removeListener(topic, subscriber)
       })
       app.log.debug('Connection closed.')
     })
