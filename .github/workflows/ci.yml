@@ -72,6 +72,10 @@ jobs:
         image: 'valkey/valkey:8.1'
         ports:
           - '6342:6379'
+      main-valkey:
+        image: 'valkey/valkey:8.1'
+        ports:
+          - '6343:6379'
       icc-postgres:
         image: postgres
         env:
@@ -584,33 +588,33 @@ jobs:
       - name: Run test suite
         run: cd services/metrics && pnpm run test
 
-  # ci-frontend:
-  #   needs: setup-node_modules
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 15
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: pnpm/action-setup@v4.1.0
-  #       with:
-  #         version: 9
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         registry-url: 'https://registry.npmjs.org'
-  #         node-version: 20
-  #         cache: 'pnpm'
-  #     - name: pnpm install
-  #       uses: nick-fields/retry@v3.0.2
-  #       with:
-  #         max_attempts: 10
-  #         timeout_minutes: 5
-  #         retry_on: error
-  #         command: pnpm install --frozen-lockfile
-  #       env:
-  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-  #     - name: Run test suite
-  #       run: cd services/frontend && pnpm run test
-  #     - name: Build App
-  #       run: cd services/frontend && pnpm run build
+  ci-frontend:
+    needs: setup-node_modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: 20
+          cache: 'pnpm'
+      - name: pnpm install
+        uses: nick-fields/retry@v3.0.2
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Run test suite
+        run: cd services/frontend && pnpm run test
+      - name: Build App
+        run: cd services/frontend && pnpm run build
 
   ci-cron:
     services:
@@ -651,61 +655,3 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: cd services/cron && pnpm run test
-
-  ci-updates:
-    services:
-      updates-valkey:
-        image: 'valkey/valkey:8.1'
-        ports:
-          - '6343:6379'
-    needs: setup-node_modules
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4.1.0
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          registry-url: 'https://registry.npmjs.org'
-          node-version: 20
-          cache: 'pnpm'
-      - name: pnpm install
-        uses: nick-fields/retry@v3.0.2
-        with:
-          max_attempts: 10
-          timeout_minutes: 5
-          retry_on: error
-          command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Run test suite
-        run: cd services/updates && pnpm run test
-  ci-frontend:
-    needs: setup-node_modules
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4.1.0
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          registry-url: 'https://registry.npmjs.org'
-          node-version: 20
-          cache: 'pnpm'
-      - name: pnpm install
-        uses: nick-fields/retry@v3.0.2
-        with:
-          max_attempts: 10
-          timeout_minutes: 5
-          retry_on: error
-          command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Run test suite
-        run: cd services/frontend && pnpm run test
-      - name: Build App
-        run: cd services/frontend && pnpm run build

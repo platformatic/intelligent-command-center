@@ -75,7 +75,7 @@ module.exports = fp(async function (app) {
 
         // send notification to ui
 
-        await ctx.req.updates?.postEvents({
+        await app.emitUpdate({
           topic: 'ui-updates/applications',
           type: 'application-created',
           data: {

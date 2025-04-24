@@ -7,8 +7,8 @@ const {
   startControlPlane,
   startActivities,
   startMetrics,
-  startUpdates,
-  startMachinist
+  startMachinist,
+  startMainService
 } = require('./helper')
 
 test('should save a detected pod of a new application', async (t) => {
@@ -21,9 +21,9 @@ test('should save a detected pod of a new application', async (t) => {
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
-  await startUpdates(t)
+  await startMainService(t)
   await startMachinist(t, {
-    getPodDetails: (podId) => ({ imageId })
+    getPodDetails: () => ({ imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -541,6 +541,7 @@ test('should save a lot of simultaneous detected pods of different applications'
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
+  await startMainService(t)
 
   const APPS_COUNT = 10
   const APP_PODS_COUNT = 10

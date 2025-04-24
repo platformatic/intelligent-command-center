@@ -15,7 +15,7 @@ services:
       - "6342:6379"
     image: "valkey/valkey:8.1"
 
-  updates-cache-valkey:
+  main-valkey:
     ports:
       - "6343:6379"
     image: "valkey/valkey:8.1"
