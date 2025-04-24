@@ -7,8 +7,8 @@ const {
   startMetrics,
   startActivities,
   startMachinist,
-  generateApplicationState,
-  startUpdates
+  startMainService,
+  generateApplicationState
 } = require('./helper')
 
 test('should get a generation graph', async (t) => {
@@ -288,8 +288,7 @@ test('should get a previous generation graph', async (t) => {
   await startMachinist(t, {
     getPodDetails: (podId) => ({ imageId: 'test-image-2' })
   })
-
-  await startUpdates(t)
+  await startMainService(t)
 
   const controlPlane = await startControlPlane(t)
 

@@ -14,12 +14,5 @@
   "metrics": {
     "port": 9090
   },
-  "managementApi": true,
-  "services": [
-    {
-      "id": "updates",
-      "path": "services/updates",
-      "useHttp": true
-    }
-  ]
+  "managementApi": true
 }

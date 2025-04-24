@@ -1,117 +1,77 @@
 'use strict'
 
-const assert = require('node:assert/strict')
+const assert = require('node:assert')
 const { test } = require('node:test')
+const { once } = require('node:events')
+const { request } = require('undici')
+const WebSocket = require('ws')
 const { getServer } = require('../helper')
-const { MockAgent, getGlobalDispatcher, setGlobalDispatcher } = require('undici')
 
-test('should poll only specific services for updates', async (t) => {
-  const enabledServices = ['cluster-manager', 'auth']
-  const iccEntrypoint = await getServer(t, {
-    PLT_SERVICES_WITH_UPDATE_ROUTE: enabledServices.join(',')
-  })
-  await iccEntrypoint.start()
-  // Mock user Manager
-  const agent = new MockAgent()
-  setGlobalDispatcher(agent)
+test('should return 204 when posting an update', async (t) => {
+  const server = await getServer(t)
 
-  const calledServices = []
-  for (const s of enabledServices) {
-    agent.get(`http://${s}.plt.local`)
-      .intercept({
-        method: 'GET',
-        path: '/updates'
-      })
-      .reply((options) => {
-        calledServices.push(s)
-        return {
-          data: {
-            serviceName: s,
-            updates: []
-          },
-          statusCode: 200
-        }
-      })
-  }
-
-  const gd = getGlobalDispatcher()
-  t.after(() => setGlobalDispatcher(gd))
-
-  const { statusCode, body } = await iccEntrypoint.inject({
-    method: 'GET',
-    path: '/api/updates'
-  })
-  assert.equal(statusCode, 200, body)
-  const json = JSON.parse(body)
-  assert.equal(Object.keys(json).length, enabledServices.length)
-  assert.deepEqual(calledServices, enabledServices)
-  /**
-   * Expect to return something like
-   * {
-      activities: [],
-      auth: [],
-      ...
-      'user-manager': []
+  const res = await server.inject({
+    method: 'POST',
+    url: '/api/updates',
+    body: {
+      service: 'test-service',
+      data: {
+        foo: 'bar'
+      }
     }
-   */
-  for (const serviceUpdates of Object.values(json)) {
-    assert.deepEqual(serviceUpdates, [])
-  }
+  })
+
+  assert.strictEqual(res.statusCode, 204, res.body)
+  assert.deepStrictEqual(res.body, '')
 })
 
-test('should return updates: [] for non 200 responses', async (t) => {
-  const enabledServices = ['cluster-manager', 'auth']
-  const iccEntrypoint = await getServer(t, {
-    PLT_SERVICES_WITH_UPDATE_ROUTE: enabledServices.join(',')
-  })
-  await iccEntrypoint.start()
-  // Mock user Manager
-  const agent = new MockAgent()
-  setGlobalDispatcher(agent)
+test('the event should be sent to the websocket', async (t) => {
+  const server = await getServer(t)
+  const url = await server.start()
 
-  const calledServices = []
-  for (const s of enabledServices) {
-    agent.get(`http://${s}.plt.local`)
-      .intercept({
-        method: 'GET',
-        path: '/updates'
-      })
-      .reply((options) => {
-        calledServices.push(s)
-        return {
-          data: {
-            statusCode: 404,
-            code: 'FST_ERR_NOT_FOUND',
-            error: 'Not found',
-            message: 'Route GET /updates not found'
-          },
-          statusCode: 404
+  const wsUrl = url.replace('http', 'ws') + '/api/updates/icc'
+
+  const socket = new WebSocket(wsUrl)
+  await once(socket, 'open')
+
+  t.after(() => {
+    socket.close()
+  })
+
+  // subscribe to the topic
+  socket.send(JSON.stringify({ command: 'subscribe', topic: 'ui-updates/applications' }))
+
+  const subscriptionAck = await once(socket, 'message')
+  assert.deepStrictEqual(JSON.parse(subscriptionAck[0]), { command: 'ack' })
+
+  {
+    const { statusCode, body } = await request(`${url}/api/updates`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        topic: 'ui-updates/applications',
+        type: 'application-created',
+        data: {
+          foo: 'bar'
         }
       })
+    })
+    assert.strictEqual(statusCode, 204, body)
   }
 
-  const gd = getGlobalDispatcher()
-  t.after(() => setGlobalDispatcher(gd))
-
-  const { statusCode, body } = await iccEntrypoint.inject({
-    method: 'GET',
-    path: '/api/updates'
-  })
-  const json = JSON.parse(body)
-  assert.equal(statusCode, 200)
-
-  assert.equal(Object.keys(json).length, enabledServices.length)
-  assert.deepEqual(calledServices, enabledServices)
-  /**
-   * Expect to return something like
-   * {
-      activities: [],
-      auth: [],
-      ...
-      'user-manager': []
+  const notification = await once(socket, 'message')
+  const notificationData = JSON.parse(notification[0])
+  assert.deepStrictEqual(notificationData, {
+    topic: 'ui-updates/applications',
+    type: 'application-created',
+    data: {
+      foo: 'bar'
     }
-   */
-  for (const serviceUpdates of Object.values(json)) {
-    assert.deepEqual(serviceUpdates, [])
-  }
+  })
+  // unsubscribe from the topic
+  socket.send(JSON.stringify({ command: 'unsubscribe', topic: 'ui-updates/applications' }))
+  const unsubscriptionAck = await once(socket, 'message')
+  assert.deepStrictEqual(JSON.parse(unsubscriptionAck[0]), { command: 'ack' })
 })
