@@ -281,3 +281,4 @@ module.exports.isTokenExpired = isTokenExpired
 module.exports.decodeJwtPayload = decodeJwtPayload
 module.exports.baseK8sPayload = baseK8sPayload
 module.exports.encodeJwtPayload = encodeJwtPayload
+module.exports.setUpEnvironment = setUpEnvironment
