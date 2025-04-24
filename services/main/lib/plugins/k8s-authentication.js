@@ -6,6 +6,7 @@ const fastifyJwt = require('@fastify/jwt')
 const buildJwks = require('get-jwks')
 const { UnauthorizedError } = require('../errors')
 const isUrlAllowed = require('../k8s-allowed-routes')
+const { Agent } = require('undici')
 
 async function plugin (app) {
   // The k8s HTTPs client uses the CA certificate to verify the server's certificate
@@ -29,11 +30,12 @@ async function plugin (app) {
     }
   }
   if (isCAAvailable) {
-    fetchOptions.dispatcher = {
-      tls: {
+    const httpsAgent = new Agent({
+      connect: {
         ca: k8sCaCert
       }
-    }
+    })
+    fetchOptions.dispatcher = httpsAgent
   }
 
   const getJwks = buildJwks({
