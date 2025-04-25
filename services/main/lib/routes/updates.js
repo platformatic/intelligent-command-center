@@ -1,17 +1,33 @@
 'use strict'
 /** @param {import('fastify').FastifyInstance} fastify */
 module.exports = async function (fastify, opts) {
-  fastify.post('/updates/:namespace', {
+  fastify.post('/updates/icc', {
+    schema: {
+      body: {
+        type: 'object',
+        properties: {
+          topic: { type: 'string' },
+          type: { type: 'string' },
+          data: { type: 'object' }
+        },
+        required: ['topic']
+      }
+    },
+    handler: async (request, reply) => {
+      const message = request.body
+      fastify.emitUpdate(message, { namespace: 'icc' })
+      return reply.code(204).send()
+    }
+  })
+
+  fastify.post('/updates/applications/:id', {
     schema: {
       params: {
         type: 'object',
         properties: {
-          namespace: {
-            type: 'string',
-            enum: ['icc', 'applications']
-          }
+          id: { type: 'string' }
         },
-        required: ['namespace']
+        required: ['id']
       },
       body: {
         type: 'object',
@@ -24,7 +40,8 @@ module.exports = async function (fastify, opts) {
       }
     },
     handler: async (request, reply) => {
-      const namespace = request.params.namespace
+      const applicationId = request.params.id
+      const namespace = `applications/${applicationId}`
       const message = request.body
 
       fastify.emitUpdate(message, { namespace })

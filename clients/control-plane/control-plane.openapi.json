@@ -468,7 +468,7 @@
         },
         "additionalProperties": false
       },
-      "ZioApplicationConfig": {
+      "applicationInstanceConfig": {
         "type": "object",
         "properties": {
           "version": {
@@ -13312,10 +13312,6 @@
                           "name": {
                             "type": "string"
                           },
-                          "path": {
-                            "type": "string",
-                            "nullable": true
-                          },
                           "services": {
                             "type": "array",
                             "items": {
@@ -13327,7 +13323,6 @@
                         "required": [
                           "id",
                           "name",
-                          "path",
                           "services"
                         ],
                         "additionalProperties": false
@@ -13411,46 +13406,22 @@
         }
       }
     },
-    "/applications/{id}/resources": {
+    "/pods/{podId}/instance": {
       "post": {
-        "operationId": "setApplicationResources",
+        "operationId": "initApplicationInstance",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "threads": {
-                    "type": "number"
-                  },
-                  "heap": {
-                    "type": "number"
-                  },
-                  "services": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string"
-                        },
-                        "heap": {
-                          "type": "number"
-                        },
-                        "threads": {
-                          "type": "number"
-                        }
-                      },
-                      "additionalProperties": false
-                    }
+                  "applicationName": {
+                    "type": "string"
                   }
                 },
                 "required": [
-                  "threads",
-                  "heap",
-                  "services"
-                ],
-                "additionalProperties": false
+                  "applicationName"
+                ]
               }
             }
           },
@@ -13462,54 +13433,10 @@
               "type": "string"
             },
             "in": "path",
-            "name": "id",
+            "name": "podId",
             "required": true
           }
         ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/zio/pods": {
-      "post": {
-        "operationId": "initZioInstance",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "applicationName": {
-                    "type": "string"
-                  },
-                  "imageId": {
-                    "type": "string"
-                  },
-                  "podId": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "applicationName",
-                  "imageId",
-                  "podId"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "description": "Default Response",
@@ -13522,7 +13449,7 @@
                       "type": "string"
                     },
                     "config": {
-                      "$ref": "#/components/schemas/ZioApplicationConfig"
+                      "$ref": "#/components/schemas/applicationInstanceConfig"
                     },
                     "httpCache": {
                       "type": "object",
@@ -13587,45 +13514,9 @@
         }
       }
     },
-    "/zio/pods/{id}/config": {
-      "get": {
-        "operationId": "getZioConfig",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "in": "query",
-            "name": "fields",
-            "required": false
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ZioApplicationConfig"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/zio/pods/{id}/status": {
+    "/pods/{id}/instance/status": {
       "post": {
-        "operationId": "saveZioStatus",
+        "operationId": "saveApplicationInstanceStatus",
         "requestBody": {
           "content": {
             "application/json": {
@@ -13662,9 +13553,9 @@
         }
       }
     },
-    "/zio/pods/{id}/state": {
+    "/pods/{id}/instance/state": {
       "post": {
-        "operationId": "saveZioState",
+        "operationId": "saveApplicationInstanceState",
         "requestBody": {
           "content": {
             "application/json": {
@@ -13693,6 +13584,76 @@
               }
             }
           }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/applications/{id}/resources": {
+      "post": {
+        "operationId": "setApplicationResources",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "threads": {
+                    "type": "number"
+                  },
+                  "heap": {
+                    "type": "number"
+                  },
+                  "services": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "heap": {
+                          "type": "number"
+                        },
+                        "threads": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "threads",
+                  "heap",
+                  "services"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
         },
         "parameters": [
           {

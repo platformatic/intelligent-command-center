@@ -8,6 +8,6 @@ declare interface DetectedPod {
     createdAt?: string | null;
     deploymentId?: string | null;
     podId: string;
-    status: "failed" | "started" | "starting";
+    status: "running" | "starting" | "stopped";
 }
 export { DetectedPod };
