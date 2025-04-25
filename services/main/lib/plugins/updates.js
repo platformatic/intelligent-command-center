@@ -5,9 +5,8 @@ const fp = require('fastify-plugin')
 
 async function plugin (app) {
   const mq = mqemmiter({
-    port: app.config.PLT_MAIN_REDIS_PORT,
-    host: app.config.PLT_MAIN_REDIS_HOST,
-    db: app.config.PLT_MAIN_REDIS_DB
+    connectionString: app.config.PLT_ICC_VALKEY_CONNECTION_STRING,
+    keyPrefix: 'updates'
   })
 
   app.addHook('onClose', async () => {

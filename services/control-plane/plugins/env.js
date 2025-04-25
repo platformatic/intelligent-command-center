@@ -6,7 +6,7 @@ const fastifyEnv = require('@fastify/env')
 const schema = {
   type: 'object',
   required: [
-    'PLT_CONTROL_PLANE_VALKEY_CACHE_CONNECTION_STRING',
+    'PLT_APPLICATIONS_VALKEY_CONNECTION_STRING',
     'PLT_CONTROL_PLANE_DEFAULT_THREADS',
     'PLT_CONTROL_PLANE_DEFAULT_HEAP',
     'PLT_MACHINIST_URL',
@@ -23,7 +23,7 @@ const schema = {
   ],
 
   properties: {
-    PLT_CONTROL_PLANE_VALKEY_CACHE_CONNECTION_STRING: { type: 'string' },
+    PLT_APPLICATIONS_VALKEY_CONNECTION_STRING: { type: 'string' },
     PLT_CONTROL_PLANE_DEFAULT_THREADS: { type: 'number', default: 1 },
     PLT_CONTROL_PLANE_DEFAULT_HEAP: { type: 'number', default: 1024 },
     PLT_MACHINIST_URL: { type: 'string' },

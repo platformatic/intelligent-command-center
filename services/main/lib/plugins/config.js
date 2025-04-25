@@ -8,9 +8,7 @@ const schema = {
   required: [
     'DEV',
     'PLT_MAIN_URL',
-    'PLT_MAIN_REDIS_HOST',
-    'PLT_MAIN_REDIS_PORT',
-    'PLT_MAIN_REDIS_DB',
+    'PLT_ICC_VALKEY_CONNECTION_STRING',
     'PLT_CONTROL_PLANE_URL'
   ],
 
@@ -18,9 +16,7 @@ const schema = {
     DEV: { type: 'boolean' },
     DEV_K8S: { type: 'boolean', default: false },
     PLT_MAIN_URL: { type: 'string' },
-    PLT_MAIN_REDIS_HOST: { type: 'string' },
-    PLT_MAIN_REDIS_PORT: { type: 'number' },
-    PLT_MAIN_REDIS_DB: { type: 'number' },
+    PLT_ICC_VALKEY_CONNECTION_STRING: { type: 'string' },
     PLT_CONTROL_PLANE_URL: { type: 'string' },
     PLT_DISABLE_K8S_AUTH: { type: 'boolean', default: false },
     K8S_TOKEN_PATH: { type: 'string', default: '/var/run/secrets/kubernetes.io/serviceaccount/token' },

@@ -10,14 +10,13 @@ services:
     volumes:
       - ./pg-init:/docker-entrypoint-initdb.d
 
-  http-cache-valkey:
+  appliactions-valkey:
     ports:
       - "6342:6379"
     image: "valkey/valkey:8.1"
 
-  main-valkey:
+  icc-valkey:
     ports:
       - "6343:6379"
     image: "valkey/valkey:8.1"
-
 
