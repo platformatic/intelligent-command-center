@@ -10,8 +10,8 @@ const { ElastiCacheProvider } = require('./elasticache')
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
   const cacheProvider = app.env.PLT_CONTROL_PLANE_CACHE_PROVIDER
-  const cacheProviderUrl = app.env.PLT_CONTROL_PLANE_VALKEY_CACHE_CONNECTION_STRING
-  const secretKey = app.env.PLT_CONTROL_PLANE_SECRET_KEY
+  const cacheProviderUrl = app.env.PLT_APPLICATIONS_VALKEY_CONNECTION_STRING
+  const secretKey = app.env.PLT_APPLICATIONS_VALKEY_SECRET_KEY
 
   let provider = null
 

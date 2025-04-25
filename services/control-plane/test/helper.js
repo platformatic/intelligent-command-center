@@ -10,7 +10,7 @@ const defaultEnv = {
   PLT_CONTROL_PLANE_DATABASE_URL: 'postgres://postgres:postgres@127.0.0.1:5433/control_plane',
   PLT_CONTROL_PLANE_LOG_LEVEL: 'info',
 
-  PLT_CONTROL_PLANE_VALKEY_CACHE_CONNECTION_STRING: 'redis://localhost:6342',
+  PLT_APPLICATIONS_VALKEY_CONNECTION_STRING: 'redis://localhost:6342',
 
   PLT_EXTERNAL_TRAFFICANTE_URL: 'http://localhost:3033',
   PLT_EXTERNAL_ACTIVITIES_URL: 'http://localhost:3004',
