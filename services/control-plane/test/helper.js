@@ -435,9 +435,15 @@ async function startMachinist (t, opts = {}) {
 async function startMainService (t, opts = {}) {
   const main = fastify({ keepAliveTimeout: 1 })
 
-  main.post('/api/updates', async (req, reply) => {
+  main.post('/api/updates/icc', async (req, reply) => {
     reply.status(204)
-    return opts.postUpdates?.(req.body)
+    return opts.saveIccUpdate?.(req.body)
+  })
+
+  main.post('/api/updates/applications/:id', async (req, reply) => {
+    const applicationId = req.params.id
+    reply.status(204)
+    return opts.saveApplicationUpdate?.(applicationId, req.body)
   })
 
   t.after(async () => {
