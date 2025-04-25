@@ -307,7 +307,7 @@ function generateDetectedPod (
     applicationId,
     deploymentId,
     podId: podId || randomUUID(),
-    status: status || 'started'
+    status: status || 'starting'
   }
 }
 

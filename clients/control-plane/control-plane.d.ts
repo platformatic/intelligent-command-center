@@ -605,27 +605,22 @@ declare namespace controlPlane {
      * @param req - request parameters object
      * @returns the API response body
      */
+    initApplicationInstance(req: InitApplicationInstanceRequest): Promise<InitApplicationInstanceResponses>;
+    /**
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    saveApplicationInstanceStatus(req: SaveApplicationInstanceStatusRequest): Promise<SaveApplicationInstanceStatusResponses>;
+    /**
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    saveApplicationInstanceState(req: SaveApplicationInstanceStateRequest): Promise<SaveApplicationInstanceStateResponses>;
+    /**
+     * @param req - request parameters object
+     * @returns the API response body
+     */
     setApplicationResources(req: SetApplicationResourcesRequest): Promise<SetApplicationResourcesResponses>;
-    /**
-     * @param req - request parameters object
-     * @returns the API response body
-     */
-    initZioInstance(req: InitZioInstanceRequest): Promise<InitZioInstanceResponses>;
-    /**
-     * @param req - request parameters object
-     * @returns the API response body
-     */
-    getZioConfig(req: GetZioConfigRequest): Promise<GetZioConfigResponses>;
-    /**
-     * @param req - request parameters object
-     * @returns the API response body
-     */
-    saveZioStatus(req: SaveZioStatusRequest): Promise<SaveZioStatusResponses>;
-    /**
-     * @param req - request parameters object
-     * @returns the API response body
-     */
-    saveZioState(req: SaveZioStateRequest): Promise<SaveZioStateResponses>;
   }
   export interface ControlPlaneOptions {
     url: string
@@ -2646,9 +2641,43 @@ declare namespace controlPlane {
   /**
    * Default Response
    */
-  export type GetGenerationGraphResponseOK = { 'applications': Array<{ 'id': string; 'name': string; 'path': string | null; 'services': Array<object> }>; 'links': Array<{ 'source': { 'applicationId': string | null; 'serviceId': string | null; 'telemetryId': string }; 'target': { 'applicationId': string | null; 'serviceId': string | null; 'telemetryId': string }; 'requestsAmount': string; 'responseTime': string }> }
+  export type GetGenerationGraphResponseOK = { 'applications': Array<{ 'id': string; 'name': string; 'services': Array<object> }>; 'links': Array<{ 'source': { 'applicationId': string | null; 'serviceId': string | null; 'telemetryId': string }; 'target': { 'applicationId': string | null; 'serviceId': string | null; 'telemetryId': string }; 'requestsAmount': string; 'responseTime': string }> }
   export type GetGenerationGraphResponses =
     GetGenerationGraphResponseOK
+
+  export type InitApplicationInstanceRequest = {
+    'podId': string;
+    'applicationName': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type InitApplicationInstanceResponseOK = { 'applicationId': string; 'config': { 'version': number; 'resources'?: { 'threads'?: number; 'heap'?: number; 'services'?: Array<{ 'name'?: string; 'heap'?: number; 'threads'?: number }> } }; 'httpCache': { 'clientOpts'?: { 'host': string; 'port': number; 'username': string; 'password': string; 'keyPrefix': string } }; 'iccServices': Record<string, { 'url': string }> }
+  export type InitApplicationInstanceResponses =
+    InitApplicationInstanceResponseOK
+
+  export type SaveApplicationInstanceStatusRequest = {
+    'id': string;
+    'status': string;
+  }
+
+  export type SaveApplicationInstanceStatusResponseOK = unknown
+  export type SaveApplicationInstanceStatusResponses =
+    FullResponse<SaveApplicationInstanceStatusResponseOK, 200>
+
+  export type SaveApplicationInstanceStateRequest = {
+    'id': string;
+    'metadata': { 'platformaticVersion': string };
+    'services': Array<object>;
+  }
+
+  /**
+   * Default Response
+   */
+  export type SaveApplicationInstanceStateResponseOK = object
+  export type SaveApplicationInstanceStateResponses =
+    SaveApplicationInstanceStateResponseOK
 
   export type SetApplicationResourcesRequest = {
     'id': string;
@@ -2663,53 +2692,6 @@ declare namespace controlPlane {
   export type SetApplicationResourcesResponseOK = object
   export type SetApplicationResourcesResponses =
     SetApplicationResourcesResponseOK
-
-  export type InitZioInstanceRequest = {
-    'applicationName': string;
-    'imageId': string;
-    'podId': string;
-  }
-
-  /**
-   * Default Response
-   */
-  export type InitZioInstanceResponseOK = { 'applicationId': string; 'config': { 'version': number; 'resources'?: { 'threads'?: number; 'heap'?: number; 'services'?: Array<{ 'name'?: string; 'heap'?: number; 'threads'?: number }> } }; 'httpCache': { 'clientOpts'?: { 'host': string; 'port': number; 'username': string; 'password': string; 'keyPrefix': string } }; 'iccServices': Record<string, { 'url': string }> }
-  export type InitZioInstanceResponses =
-    InitZioInstanceResponseOK
-
-  export type GetZioConfigRequest = {
-    'fields'?: string | null;
-    'id': string;
-  }
-
-  /**
-   * Default Response
-   */
-  export type GetZioConfigResponseOK = { 'version': number; 'resources'?: { 'threads'?: number; 'heap'?: number; 'services'?: Array<{ 'name'?: string; 'heap'?: number; 'threads'?: number }> } }
-  export type GetZioConfigResponses =
-    GetZioConfigResponseOK
-
-  export type SaveZioStatusRequest = {
-    'id': string;
-    'status': string;
-  }
-
-  export type SaveZioStatusResponseOK = unknown
-  export type SaveZioStatusResponses =
-    FullResponse<SaveZioStatusResponseOK, 200>
-
-  export type SaveZioStateRequest = {
-    'id': string;
-    'metadata': { 'platformaticVersion': string };
-    'services': Array<object>;
-  }
-
-  /**
-   * Default Response
-   */
-  export type SaveZioStateResponseOK = object
-  export type SaveZioStateResponses =
-    SaveZioStateResponseOK
 
 }
 

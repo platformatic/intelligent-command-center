@@ -15,11 +15,14 @@ async function plugin (app) {
   })
 
   app.decorate('registerUpdates', async (connection, opts = {}) => {
-    const namespace = opts.namespace || ''
+    let namespace = opts.namespace || ''
+    if (namespace.endsWith('/')) {
+      namespace = namespace.slice(0, -1)
+    }
 
     const subscriber = (message, callback) => {
       if (message.topic.startsWith(namespace)) {
-        message.topic = message.topic.substring(namespace.length + 1)
+        message.topic = message.topic.slice(namespace.length + 1)
       }
       connection.send(JSON.stringify(message))
       callback()
@@ -58,7 +61,11 @@ async function plugin (app) {
   })
 
   app.decorate('emitUpdate', (message, opts = {}) => {
-    const namespace = opts.namespace || ''
+    let namespace = opts.namespace || ''
+    if (namespace.endsWith('/')) {
+      namespace = namespace.slice(0, -1)
+    }
+
     const topic = getTopicName(message.topic, namespace)
     mq.emit({ ...message, topic })
   })
@@ -67,10 +74,8 @@ async function plugin (app) {
     if (!namespace || topic.startsWith(namespace)) {
       return topic
     }
-    if (namespace.endsWith('/')) {
-      return namespace + topic
-    }
-    return namespace + '/' + topic
+    // Remove double slashes
+    return `${namespace}/${topic}`.replace(/\/\//g, '/')
   }
 }
 
