@@ -1,3 +1,11 @@
+
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'job_type_enum') THEN
+        CREATE TYPE job_type_enum AS ENUM ('ICC','WATT', 'USER');
+    END IF;
+END $$;
+
 /* create a jobs table */
 CREATE TABLE jobs (
   id SERIAL PRIMARY KEY,
@@ -11,9 +19,13 @@ CREATE TABLE jobs (
   paused BOOLEAN NOT NULL DEFAULT FALSE,
   protected BOOLEAN NOT NULL DEFAULT FALSE, /* cannot be deleted */
   application_id UUID,
+  status VARCHAR(255) DEFAULT 'success', /* success, failed */
   created_at TIMESTAMP NOT NULL,
   updated_at TIMESTAMP NOT NULL,
-  deleted_at TIMESTAMP
+  deleted_at TIMESTAMP,
+  last_run_at TIMESTAMP,
+  next_run_at TIMESTAMP,
+  job_type job_type_enum NOT NULL DEFAULT 'USER' 
 );
 
 /* creates a messages table */
@@ -32,5 +44,9 @@ CREATE TABLE messages (
   no_reschedule BOOLEAN DEFAULT FALSE, /* if true, the message will not be rescheduled */
   created_at TIMESTAMP NOT NULL,
   updated_at TIMESTAMP NOT NULL,
-  deleted_at TIMESTAMP
+  deleted_at TIMESTAMP,
+  response_headers TEXT,
+  callback_url VARCHAR(2048)
 );
+
+
