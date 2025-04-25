@@ -10,7 +10,8 @@ const schema = {
     'PLT_MAIN_URL',
     'PLT_MAIN_REDIS_HOST',
     'PLT_MAIN_REDIS_PORT',
-    'PLT_MAIN_REDIS_DB'
+    'PLT_MAIN_REDIS_DB',
+    'PLT_CONTROL_PLANE_URL'
   ],
 
   properties: {
@@ -20,6 +21,7 @@ const schema = {
     PLT_MAIN_REDIS_HOST: { type: 'string' },
     PLT_MAIN_REDIS_PORT: { type: 'number' },
     PLT_MAIN_REDIS_DB: { type: 'number' },
+    PLT_CONTROL_PLANE_URL: { type: 'string' },
     PLT_DISABLE_K8S_AUTH: { type: 'boolean', default: false },
     K8S_TOKEN_PATH: { type: 'string', default: '/var/run/secrets/kubernetes.io/serviceaccount/token' },
     K8S_CA_CERT_PATH: { type: 'string', default: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt' }

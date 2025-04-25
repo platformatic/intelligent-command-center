@@ -1,6 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TYPE deployment_status AS ENUM ('starting', 'started', 'failed');
+CREATE TYPE instance_status AS ENUM ('starting', 'running', 'stopped');
 
 CREATE TABLE generations (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -53,7 +54,7 @@ CREATE TABLE detected_pods (
   application_id uuid NOT NULL REFERENCES applications(id),
   deployment_id uuid REFERENCES deployments(id),
   pod_id VARCHAR(255) NOT NULL,
-  status deployment_status NOT NULL,
+  status instance_status NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT detected_pods_unique UNIQUE (deployment_id, pod_id)

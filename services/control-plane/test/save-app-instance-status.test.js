@@ -11,7 +11,7 @@ const {
   generateDetectedPod
 } = require('./helper')
 
-test('should save a "started" app instance status', async (t) => {
+test('should save a "running" app instance status', async (t) => {
   const generation = generateGeneration()
   const application = generateApplication('test-app-1')
 
@@ -42,7 +42,7 @@ test('should save a "started" app instance status', async (t) => {
     headers: {
       'content-type': 'application/json'
     },
-    body: { status: 'started' }
+    body: { status: 'running' }
   })
 
   assert.strictEqual(statusCode, 200, body)
@@ -103,7 +103,7 @@ test('should set "started" deployment status if it is already set to "failed"', 
     headers: {
       'content-type': 'application/json'
     },
-    body: { status: 'started' }
+    body: { status: 'running' }
   })
 
   assert.strictEqual(statusCode, 200, body)
@@ -122,7 +122,7 @@ test('should set "started" deployment status if it is already set to "failed"', 
 
   const foundDetectedPod = detectedPods[0]
   assert.strictEqual(foundDetectedPod.id, detectedPod.id)
-  assert.strictEqual(foundDetectedPod.status, 'started')
+  assert.strictEqual(foundDetectedPod.status, 'running')
 
   // assert.strictEqual(events.length, 1)
   //
@@ -164,7 +164,7 @@ test('should set "failed" app instance status', async (t) => {
     headers: {
       'content-type': 'application/json'
     },
-    body: { status: 'failed' }
+    body: { status: 'stopped' }
   })
 
   assert.strictEqual(statusCode, 200, body)
@@ -183,7 +183,7 @@ test('should set "failed" app instance status', async (t) => {
 
   const foundDetectedPod = detectedPods[0]
   assert.strictEqual(foundDetectedPod.id, detectedPod.id)
-  assert.strictEqual(foundDetectedPod.status, 'failed')
+  assert.strictEqual(foundDetectedPod.status, 'stopped')
 
   // assert.strictEqual(events.length, 1)
   //

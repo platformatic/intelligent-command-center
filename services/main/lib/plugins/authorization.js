@@ -25,8 +25,7 @@ async function getWhitelistedPaths () {
     ['/backgrounds', '*'],
     ['/assets', '*'],
     ['/api/updates', ['POST']],
-    ['/api/updates/icc', ['GET']],
-    ['/api/updates/pods', ['GET']]
+    [/\/api\/updates\/.*/, ['GET']]
   ]
 
   // add OpenaAPI spec route for each internal service
