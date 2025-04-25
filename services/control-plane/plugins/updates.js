@@ -2,12 +2,20 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const { request } = require('undici')
+const { request, getGlobalDispatcher, interceptors } = require('undici')
 const errors = require('./errors')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
   const mainServiceUrl = app.env.PLT_MAIN_SERVICE_URL
+
+  const retryDispatcher = getGlobalDispatcher()
+    .compose(interceptors.retry({
+      maxRetries: 3,
+      maxTimeout: 30000,
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      statusCodes: [502, 503, 504, 429]
+    }))
 
   app.decorate('emitUpdate', async (namespace, message, ctx) => {
     const url = mainServiceUrl + `/api/updates/${namespace}`
@@ -17,7 +25,8 @@ module.exports = fp(async function (app) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(message)
+      body: JSON.stringify(message),
+      dispatcher: retryDispatcher
     })
 
     if (statusCode !== 204) {
