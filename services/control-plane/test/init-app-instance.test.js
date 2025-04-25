@@ -21,7 +21,13 @@ test('should save a detected pod of a new application', async (t) => {
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
-  await startMainService(t)
+
+  const iccUpdates = []
+  await startMainService(t, {
+    saveIccUpdate: (update) => {
+      iccUpdates.push(update)
+    }
+  })
   await startMachinist(t, {
     getPodDetails: () => ({ imageId })
   })
@@ -146,6 +152,18 @@ test('should save a detected pod of a new application', async (t) => {
   assert.strictEqual(deployAppActivity.targetId, application.id)
   assert.strictEqual(deployAppActivity.success, true)
   assert.deepStrictEqual(deployAppActivity.data, { applicationName, imageId })
+
+  assert.strictEqual(iccUpdates.length, 1)
+
+  const createdAppUpdate = iccUpdates[0]
+  assert.deepStrictEqual(createdAppUpdate, {
+    topic: 'ui-updates/applications',
+    type: 'application-created',
+    data: {
+      applicationId,
+      applicationName: application.name
+    }
+  })
 })
 
 test('should save a new detected pod with the same image', async (t) => {

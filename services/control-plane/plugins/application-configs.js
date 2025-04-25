@@ -66,13 +66,14 @@ const plugin = fp(async function (app) {
 
     ctx.logger.info({ configUpdates }, 'Setting application config')
 
+    let newApplicationConfig = null
     await app.getGenerationLockTx(async (tx) => {
       ctx = { ...ctx, tx }
 
       const applicationConfig = await app.getApplicationConfig(application, null, ctx)
 
       await app.createGeneration(async () => {
-        const newApplicationConfig = await app.platformatic.entities.applicationsConfig.save({
+        newApplicationConfig = await app.platformatic.entities.applicationsConfig.save({
           input: {
             ...applicationConfig,
             ...configUpdates,
@@ -83,6 +84,16 @@ const plugin = fp(async function (app) {
         ctx.logger.info({ config: newApplicationConfig }, 'Saved new application config')
       }, ctx)
     }, ctx)
+
+    await app.emitUpdate(`applications/${application.id}`, {
+      topic: 'config',
+      type: 'config-updated',
+      data: {
+        resources: newApplicationConfig.resources
+      }
+    }).catch((err) => {
+      ctx.logger.error({ err }, 'Failed to send notification to pods')
+    })
   })
 }, {
   name: 'application-config',

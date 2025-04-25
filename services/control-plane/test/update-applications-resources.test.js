@@ -2,9 +2,20 @@
 
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
-const { startControlPlane, startMachinist } = require('./helper')
+const {
+  startControlPlane,
+  startMachinist,
+  startMainService
+} = require('./helper')
 
 test('should update application resources', async (t) => {
+  const applicationsUpdates = []
+  await startMainService(t, {
+    saveApplicationUpdate: (applicationId, update) => {
+      applicationsUpdates.push({ applicationId, update })
+    }
+  })
+
   const controlPlane = await startControlPlane(t)
 
   const { application } = await controlPlane.testApi.saveDetectedPod(
@@ -54,9 +65,43 @@ test('should update application resources', async (t) => {
       { name: 'service-42', threads: 42, heap: 1024 }
     ]
   })
+
+  assert.strictEqual(applicationsUpdates.length, 1)
+
+  const applicationUpdate = applicationsUpdates[0]
+  assert.strictEqual(applicationUpdate.applicationId, application.id)
+  assert.deepStrictEqual(applicationUpdate.update, {
+    topic: 'config',
+    type: 'config-updated',
+    data: {
+      resources: {
+        heap: 123,
+        threads: 12,
+        services: [
+          {
+            heap: 3322,
+            name: 'service-1',
+            threads: 1
+          },
+          {
+            heap: 1024,
+            name: 'service-42',
+            threads: 42
+          }
+        ]
+      }
+    }
+  })
 })
 
 test('should detect a new pod after updating application resources', async (t) => {
+  const applicationsUpdates = []
+  await startMainService(t, {
+    saveApplicationUpdate: (applicationId, update) => {
+      applicationsUpdates.push({ applicationId, update })
+    }
+  })
+
   await startMachinist(t, {
     getPodDetails: (podId) => ({ imageId: 'test-image' })
   })
@@ -115,4 +160,31 @@ test('should detect a new pod after updating application resources', async (t) =
       { name: 'service-42', threads: 42, heap: 1024 }
     ])
   }
+
+  assert.strictEqual(applicationsUpdates.length, 1)
+
+  const applicationUpdate = applicationsUpdates[0]
+  assert.strictEqual(applicationUpdate.applicationId, application.id)
+  assert.deepStrictEqual(applicationUpdate.update, {
+    topic: 'config',
+    type: 'config-updated',
+    data: {
+      resources: {
+        heap: 123,
+        threads: 12,
+        services: [
+          {
+            heap: 3322,
+            name: 'service-1',
+            threads: 1
+          },
+          {
+            heap: 1024,
+            name: 'service-42',
+            threads: 42
+          }
+        ]
+      }
+    }
+  })
 })
