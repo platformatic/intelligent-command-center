@@ -11,9 +11,7 @@ const assert = require('node:assert')
 function setUpEnvironment (env = {}) {
   const defaultEnv = {
     DEV: false,
-    PLT_MAIN_REDIS_HOST: 'localhost',
-    PLT_MAIN_REDIS_PORT: 6343,
-    PLT_MAIN_REDIS_DB: 1,
+    PLT_ICC_VALKEY_CONNECTION_STRING: 'redis://localhost:6343',
     PLT_MAIN_URL: 'http://localhost:1234',
     PLT_CONTROL_PLANE_URL: 'http://localhost:1234',
     PLT_DISABLE_K8S_AUTH: true
