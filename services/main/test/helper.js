@@ -15,6 +15,7 @@ function setUpEnvironment (env = {}) {
     PLT_MAIN_REDIS_PORT: 6343,
     PLT_MAIN_REDIS_DB: 1,
     PLT_MAIN_URL: 'http://localhost:1234',
+    PLT_CONTROL_PLANE_URL: 'http://localhost:1234',
     PLT_DISABLE_K8S_AUTH: true
   }
 
@@ -80,7 +81,11 @@ module.exports.getServer = async function (t, env) {
 
 module.exports.startActivities = async function (t, activities) {
   const totalCount = activities.length * 10
-  const app = Fastify({ keepAliveTimeout: 1, logger: { level: 'silent' } })
+  const app = Fastify({
+    keepAliveTimeout: 1,
+    logger: { level: 'silent' }
+  })
+
   app.get('/events', async (request, reply) => {
     reply
       .code(200)
@@ -96,6 +101,28 @@ module.exports.startActivities = async function (t, activities) {
 
   const address = await app.listen()
   process.env.PLT_ACTIVITIES_URL = address
+  return address
+}
+
+module.exports.startControlPlane = async function (t, opts = {}) {
+  const app = Fastify({
+    keepAliveTimeout: 1,
+    logger: { level: 'error' }
+  })
+
+  app.post('/pods/:id/instance/status', async (request, reply) => {
+    const podId = request.params.id
+    const status = request.body.status
+    return opts.savePodStatus?.({ podId, status })
+  })
+
+  t.after(async () => {
+    process.env.PLT_CONTROL_PLANE_URL = ''
+    await app.close()
+  })
+
+  const address = await app.listen()
+  process.env.PLT_CONTROL_PLANE_URL = address
   return address
 }
 

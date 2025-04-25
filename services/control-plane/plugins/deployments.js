@@ -82,7 +82,7 @@ module.exports = fp(async function (app) {
     for (const detectedPod of detectedPods) {
       const podStatus = detectedPod.status
 
-      if (podStatus === 'started') {
+      if (podStatus === 'running') {
         status = 'started'
         break
       }
