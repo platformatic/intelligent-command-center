@@ -257,8 +257,8 @@ importers:
         specifier: ^5.0.1
         version: 5.0.2
       '@fastify/cookie':
-        specifier: ^10.0.1
-        version: 10.0.1
+        specifier: ^11.0.0
+        version: 11.0.2
       '@fastify/env':
         specifier: ^5.0.1
         version: 5.0.2
@@ -284,8 +284,8 @@ importers:
         specifier: ^11.0.0
         version: 11.0.0
       mqemitter-redis:
-        specifier: ^6.1.0
-        version: 6.1.0
+        specifier: ^7.0.0
+        version: 7.0.0
       platformatic:
         specifier: ^2.50.0
         version: 2.62.1
@@ -358,8 +358,8 @@ importers:
   services/user-manager:
     dependencies:
       '@fastify/cookie':
-        specifier: ^10.0.1
-        version: 10.0.1
+        specifier: ^11.0.0
+        version: 11.0.2
       '@fastify/env':
         specifier: ^5.0.1
         version: 5.0.2
@@ -1038,9 +1038,6 @@ packages:
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
-
-  '@fastify/cookie@10.0.1':
-    resolution: {integrity: sha512-NV/wbCUv4ETJ5KM1KMu0fLx0nSCm9idIxwg66NZnNbfPQH3rdbx6k0qRs5uy0y+MhBgvDudYRA30KlK659chyw==}
 
   '@fastify/cookie@11.0.2':
     resolution: {integrity: sha512-GWdwdGlgJxyvNv+QcKiGNevSspMQXncjMZ1J8IvuDQk0jvkzgWWZFNC2En3s+nHndZBGV8IbLwOI/sxCZw/mzA==}
@@ -2651,10 +2648,6 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  cookie-signature@1.2.2:
-    resolution: {integrity: sha512-D76uU73ulSXrD1UXF4KE2TMxVVwhsnCgfAyTg9k8P6KGZjlXKrOLe4dJQKI3Bxi5wjesZoFXJWElNWBjPZMbhg==}
-    engines: {node: '>=6.6.0'}
-
   cookie@1.0.2:
     resolution: {integrity: sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA==}
     engines: {node: '>=18'}
@@ -3722,6 +3715,10 @@ packages:
     resolution: {integrity: sha512-UxC0Yv1Y4WRJiGQxQkP0hfdL0/5/6YvdfOOClRgJ0qppSarkhneSa6UvkMkms0AkdGimSH3Ikqm+6mkMmX7vGA==}
     engines: {node: '>=12.22.0'}
 
+  ioredis@5.6.1:
+    resolution: {integrity: sha512-UxC0Yv1Y4WRJiGQxQkP0hfdL0/5/6YvdfOOClRgJ0qppSarkhneSa6UvkMkms0AkdGimSH3Ikqm+6mkMmX7vGA==}
+    engines: {node: '>=12.22.0'}
+
   iovalkey@0.3.1:
     resolution: {integrity: sha512-pSmFj/ZDFLP8AzqIAMpNJArhHYNeyqIwfcUULwZv8g6y3eaUGrlnlT7QXLrJAp0yiGCAqe1hPA33x/h5opNP9w==}
     engines: {node: '>=18.12.0'}
@@ -4284,9 +4281,17 @@ packages:
   mqemitter-redis@6.1.0:
     resolution: {integrity: sha512-wZWs8I5VIzXIK2P/eFCKAcbX+iBgU/ka3HsS/KZtfe8VYyYwyyzhygJqrEf82TgH5HEBxbUjiJK33eDKh0ETEA==}
 
+  mqemitter-redis@7.0.0:
+    resolution: {integrity: sha512-K973P8jP2GfC9QQH/Ca0/4kbdWLK5rV46r9WYshOKSTlbTz6A3rvhgAiLczy8Ou8+OBUGwW22SVVU+7cVicyig==}
+    engines: {node: '>=20'}
+
   mqemitter@6.0.2:
     resolution: {integrity: sha512-8RGlznQx/Nb1xC3xKUFXHWov7pn7JdH++YVwlr6SLT6k3ft1h+ImGqZdVudbdKruFckIq9wheq9s4hgCivJDow==}
     engines: {node: '>=16'}
+
+  mqemitter@7.0.0:
+    resolution: {integrity: sha512-tyn+3Ob93QZRVOqttct3C6oHamvieBC4RA+pyyoMA/pBCphSPFMgItXIKa6g10jtBzyyupBdLelsS5+P75v1/w==}
+    engines: {node: '>=20'}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -6675,11 +6680,6 @@ snapshots:
 
   '@fastify/busboy@2.1.1': {}
 
-  '@fastify/cookie@10.0.1':
-    dependencies:
-      cookie-signature: 1.2.2
-      fastify-plugin: 5.0.1
-
   '@fastify/cookie@11.0.2':
     dependencies:
       cookie: 1.0.2
@@ -9027,8 +9027,6 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  cookie-signature@1.2.2: {}
-
   cookie@1.0.2: {}
 
   cose-base@1.0.3:
@@ -10352,6 +10350,20 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  ioredis@5.6.1:
+    dependencies:
+      '@ioredis/commands': 1.2.0
+      cluster-key-slot: 1.1.2
+      debug: 4.4.0
+      denque: 2.1.0
+      lodash.defaults: 4.2.0
+      lodash.isarguments: 3.1.0
+      redis-errors: 1.2.0
+      redis-parser: 3.0.0
+      standard-as-callback: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
+
   iovalkey@0.3.1:
     dependencies:
       '@iovalkey/commands': 0.1.0
@@ -10951,7 +10963,23 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  mqemitter-redis@7.0.0:
+    dependencies:
+      hyperid: 3.3.0
+      inherits: 2.0.4
+      ioredis: 5.6.1
+      lru-cache: 11.1.0
+      mqemitter: 7.0.0
+      msgpack-lite: 0.1.26
+    transitivePeerDependencies:
+      - supports-color
+
   mqemitter@6.0.2:
+    dependencies:
+      fastparallel: 2.4.1
+      qlobber: 8.0.1
+
+  mqemitter@7.0.0:
     dependencies:
       fastparallel: 2.4.1
       qlobber: 8.0.1
