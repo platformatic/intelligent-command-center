@@ -286,7 +286,7 @@ test('should get a previous generation graph', async (t) => {
   })
 
   await startMachinist(t, {
-    getPodDetails: (podId) => ({ imageId: 'test-image-2' })
+    getPodDetails: (podId) => ({ image: 'test-image-2' })
   })
   await startMainService(t)
 

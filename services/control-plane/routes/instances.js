@@ -111,7 +111,7 @@ module.exports = fp(async function (app) {
       const ctx = { req, logger }
 
       // TODO: get pod namespace from a jwt
-      const podNamespace = 'test-pod-namespace'
+      const podNamespace = 'platformatic'
 
       const { application, config, httpCache, iccServices } = await app.initApplicationInstance(
         applicationName,
