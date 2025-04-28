@@ -33,7 +33,7 @@ module.exports = fp(async function (app) {
 
     ctx.logger.debug({ podId }, 'Getting detected pod')
 
-    const { imageId } = await app.machinist.getPodDetails(
+    const { image: imageId } = await app.machinist.getPodDetails(
       podId,
       podNamespace,
       ctx

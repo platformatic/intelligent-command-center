@@ -103,7 +103,7 @@ test('should detect a new pod after updating application resources', async (t) =
   })
 
   await startMachinist(t, {
-    getPodDetails: (podId) => ({ imageId: 'test-image' })
+    getPodDetails: (podId) => ({ image: 'test-image' })
   })
 
   const controlPlane = await startControlPlane(t)
