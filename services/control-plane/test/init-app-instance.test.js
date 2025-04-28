@@ -29,7 +29,7 @@ test('should save a detected pod of a new application', async (t) => {
     }
   })
   await startMachinist(t, {
-    getPodDetails: () => ({ imageId })
+    getPodDetails: () => ({ image: imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -177,7 +177,7 @@ test('should save a new detected pod with the same image', async (t) => {
   })
   await startMetrics(t)
   await startMachinist(t, {
-    getPodDetails: (podId) => ({ imageId })
+    getPodDetails: (podId) => ({ image: imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -332,7 +332,7 @@ test('should detect the same pod with the same image', async (t) => {
   })
   await startMetrics(t)
   await startMachinist(t, {
-    getPodDetails: (podId) => ({ imageId })
+    getPodDetails: (podId) => ({ image: imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -436,7 +436,7 @@ test('should save an detected pod with a different image', async (t) => {
   })
   await startMetrics(t)
   await startMachinist(t, {
-    getPodDetails: (podId) => ({ imageId })
+    getPodDetails: (podId) => ({ image: imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -586,7 +586,7 @@ test('should save a lot of simultaneous detected pods of different applications'
   await startMachinist(t, {
     getPodDetails: (podId) => {
       const { imageId } = params.find(p => p.podId === podId)
-      return { imageId }
+      return { image: imageId }
     }
   })
 
