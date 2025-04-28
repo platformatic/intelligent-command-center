@@ -54,9 +54,11 @@ async function setupApp (env = { PLT_DISABLE_K8S_AUTH: false }) {
   await app.register(configPlugin)
   await app.register(k8sTokenPlugin)
   await app.register(k8sAuthPlugin)
-  app.post('/control-plane/pods/:podId/instance', async function (request) {
+  app.post('/control-plane/pods/:podId/instance', async function (request, reply) {
+    const headers = request.headers
+
     await app.k8sJWTAuth(request)
-    return request.k8s
+    return { k8s: request.k8s, reqHeaders: headers }
   })
   app.post('/not-allowed', async function (request) {
     return app.k8sJWTAuth(request)
@@ -140,12 +142,14 @@ test('k8sJWTAuth process correctly valid token', async (t) => {
   })
 
   assert.equal(statusCode, 200)
-  const k8sInfo = JSON.parse(body)
-  assert.equal(k8sInfo.namespace, 'platformatic')
-  assert.equal(k8sInfo.pod.name, 'plt-6cc7c6cd58-kpsdd')
+  const { k8s, reqHeaders } = JSON.parse(body)
+  assert.equal(k8s.namespace, 'platformatic')
+  assert.equal(k8s.pod.name, 'plt-6cc7c6cd58-kpsdd')
 
   // We test the headers sent to the JWKS endpoint
   assert.equal(headers.authorization, `Bearer ${iccToken}`)
+
+  assert.deepEqual(JSON.parse(reqHeaders['x-k8s']), k8s)
 })
 
 test('k8sJWTAuth process fails if there is JWKS is not reachable', async (t) => {

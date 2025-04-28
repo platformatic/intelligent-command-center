@@ -74,6 +74,7 @@ async function plugin (app) {
     try {
       const undecoded = await request.jwtVerify()
       request.k8s = undecoded['kubernetes.io']
+      request.headers['x-k8s'] = JSON.stringify(request.k8s)
     } catch (err) {
       app.log.error({ err }, 'K8s JWT verification failed')
       throw new UnauthorizedError('K8s JWT verification failed')
