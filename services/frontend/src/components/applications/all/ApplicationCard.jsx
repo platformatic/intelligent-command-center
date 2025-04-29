@@ -13,8 +13,7 @@ export default function ApplicationCard ({
   createdAt = '-',
   url = '',
   state = {},
-  isDeployed,
-  onClicked
+  isDeployed
 }) {
   const navigate = useNavigate()
 
@@ -24,7 +23,6 @@ export default function ApplicationCard ({
   }
 
   function handleApplicationClick () {
-    onClicked()
     navigate(`/applications/${id}`)
   }
 

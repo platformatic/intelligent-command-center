@@ -10,9 +10,9 @@ import MethodSelector from './MethodSelector'
 import HeadersForm from './HeadersForm'
 import { isValidCron } from 'cron-validator'
 import cronstrue from 'cronstrue'
-
 export default function JobForm ({ onSubmit, onCancel, model }) {
   const [formData, setFormData] = useState({})
+  const [isFormDirty, setIsFormDirty] = useState(false)
   useEffect(() => {
     if (model) {
       setFormData(model)
@@ -28,7 +28,18 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
       })
     }
   }, [])
-
+  useEffect(() => {
+    setIsFormDirty(true)
+  }, [formData])
+  useEffect(() => {
+    window.addEventListener('beforeunload', (e) => {
+      console.log('beforeunload', e)
+      if (isFormDirty) {
+        e.preventDefault()
+        e.returnValue = false
+      }
+    })
+  }, [])
   const [cronDescription, setCronDescription] = useState('')
 
   const [formErrors, setFormErrors] = useState({})

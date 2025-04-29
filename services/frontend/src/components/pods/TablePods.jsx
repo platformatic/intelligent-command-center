@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './TablePods.module.css'
@@ -28,8 +27,7 @@ function TablePods ({
   fromPreview = false,
   defaultFilterByApplication = {},
   onChangeFilterByApplication = () => {},
-  applicationId,
-  taxonomyId
+  applicationId
 }) {
   const [innerLoading, setInnerLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
@@ -192,7 +190,6 @@ function TablePods ({
             configurationRow={configurationRow}
             firstRow={index === 0}
             applicationId={applicationId}
-            taxonomyId={taxonomyId}
             fromPreview={fromPreview}
           />
         ))}
@@ -271,45 +268,6 @@ function TablePods ({
       </div>
     </BorderedBox>
   )
-}
-
-TablePods.propTypes = {
-  /**
-   * podsLoaded
-    */
-  podsLoaded: PropTypes.bool,
-  /**
-   * pods
-    */
-  pods: PropTypes.array,
-  /**
-   * optionsApplications
-    */
-  optionsApplications: PropTypes.array,
-  /**
-   * enableApplicationFilter
-    */
-  enableApplicationFilter: PropTypes.bool,
-  /**
-   * fromPreview
-    */
-  fromPreview: PropTypes.bool,
-  /**
-   * defaultFilterByApplication
-    */
-  defaultFilterByApplication: PropTypes.object,
-  /**
-   * onChangeFilterByApplication
-    */
-  onChangeFilterByApplication: PropTypes.func,
-  /**
-   * applicationId
-   */
-  applicationId: PropTypes.string,
-  /**
-   * taxonomyId
-   */
-  taxonomyId: PropTypes.string
 }
 
 export default TablePods

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import { RICH_BLACK, WHITE, OPACITY_30 } from '@platformatic/ui-components/src/components/constants'
 import styles from './PodsMetric.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import { BorderedBox, LoadingSpinnerV2, VerticalSeparator } from '@platformatic/ui-components'
-import { getApiMetricsForTaxonomyAndApplication } from '~/api'
+import { getApiMetricsForApplication } from '~/api'
 import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
 import { REFRESH_INTERVAL } from '~/ui-constants'
@@ -15,8 +14,7 @@ function PodsMetric ({
   subTitle = '',
   metricURL = '',
   options = [{ label: '', internalKey: '', unit: '' }],
-  applicationId,
-  taxonomyId
+  applicationId
 }) {
   const UP = 'up'
   const DOWN = 'down'
@@ -33,7 +31,7 @@ function PodsMetric ({
   }, [options, displayedValues])
 
   useEffect(() => {
-    if (taxonomyId && applicationId && displayedValues.length > 0 && initialLoading) {
+    if (applicationId && displayedValues.length > 0 && initialLoading) {
       async function loadMetrics () {
         await loadPodsMetrics()
         setInitialLoading(false)
@@ -41,7 +39,7 @@ function PodsMetric ({
       }
       loadMetrics()
     }
-  }, [taxonomyId, applicationId, displayedValues, initialLoading])
+  }, [applicationId, displayedValues, initialLoading])
 
   useEffect(() => {
     let intervalId
@@ -55,7 +53,7 @@ function PodsMetric ({
 
   async function loadPodsMetrics () {
     try {
-      const data = await getApiMetricsForTaxonomyAndApplication(taxonomyId, applicationId, metricURL)
+      const data = await getApiMetricsForApplication(applicationId, metricURL)
       if (data.ok) {
         const dataValues = await data.json()
         const newValues = []
@@ -84,7 +82,7 @@ function PodsMetric ({
         setShowNoResult(true)
       }
     } catch (error) {
-      console.error(`Error on getApiMetricsForTaxonomyAndApplication ${error}`)
+      console.error(`Error on getApiMetricsForApplication ${error}`)
       setInitialLoading(false)
       setShowNoResult(true)
     }
@@ -154,38 +152,6 @@ function PodsMetric ({
       </div>
     </BorderedBox>
   )
-}
-
-PodsMetric.propTypes = {
-  /**
-   * title
-    */
-  title: PropTypes.string,
-  /**
-   * subTitle
-    */
-  subTitle: PropTypes.string,
-  /**
-   * metricURL
-    */
-  metricURL: PropTypes.string,
-  /**
-   * options
-    */
-  options: PropTypes.arrayOf(PropTypes.shape({
-    label: PropTypes.string,
-    key: PropTypes.string,
-    unit: PropTypes.string
-  })),
-  /**
-   * applicationId
-    */
-  applicationId: PropTypes.string,
-  /**
-   * taxonomyId
-    */
-  taxonomyId: PropTypes.string
-
 }
 
 export default PodsMetric

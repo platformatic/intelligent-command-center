@@ -54,9 +54,6 @@ import extractScalingEvents from './utilities/extract-scaling-events'
 
 import { sortCollection, sortCollectionByDate } from './utilitySorting'
 
-import { getFormattedTimeAndDate } from './utilities/dates'
-import { ApplicationDeletedError } from './errors'
-
 const baseUrl = `${import.meta.env.VITE_API_BASE_URL}`
 const baseApiUrl = `${baseUrl}/api`
 setBaseUrlControlPlane(`${baseUrl}/control-plane`)
@@ -146,23 +143,22 @@ export const getApplicationsWithMetadata = async () => {
       applicationWithMetadata.state = applicationState.state
     }
 
-    const { body: applicationUrl } = await getApplicationUrl({ id: applicationId })
-    applicationWithMetadata.url = applicationUrl.url
+    // TODO: remove this once we have a real URL
+    // const { body: applicationUrl } = await getApplicationUrl({ id: applicationId })
+    // applicationWithMetadata.url = applicationUrl.url
+    applicationWithMetadata.url = 'https://www.google.com'
   }
 
   return applicationsWithMetadata
 }
 
-export const getApiApplication = async (id, withDeleted) => {
+export const getApiApplication = async (id) => {
   let lastUpdated = null
   let lastStarted = null
   let pltVersion = null
-  let latestDeployment = {}
+  const latestDeployment = {}
   let state = {}
   const { body: application } = await getApplicationById({ id })
-  if (withDeleted !== true && application.deleted) {
-    throw new ApplicationDeletedError(`Application ${id} was deleted on ${getFormattedTimeAndDate(application.deletedAt)} `)
-  }
   const { body: arrayState } = await getApplicationStates({
     'where.applicationId.eq': id,
     'orderby.createdAt': DESC,
@@ -181,22 +177,22 @@ export const getApiApplication = async (id, withDeleted) => {
   })
 
   if (deployments.length > 0) {
-    const bundleMetaData = await getBundlesWithMetadata({ bundleIds: deployments[0].bundleId })
+    // const bundleMetaData = await getBundlesWithMetadata({ bundleIds: deployments[0].bundleId })
 
     lastStarted = deployments[0].createdAt
-    if (bundleMetaData.length > 0 && bundleMetaData.metadata) {
-      latestDeployment = {
-        createdAt: bundleMetaData.metadata?.createdAt,
-        commitUserEmail: bundleMetaData.metadata?.commit?.userEmail,
-        pltVersion
-      }
-    }
+    // if (bundleMetaData.length > 0 && bundleMetaData.metadata) {
+    //   latestDeployment = {
+    //     createdAt: bundleMetaData.metadata?.createdAt,
+    //     commitUserEmail: bundleMetaData.metadata?.commit?.userEmail,
+    //     pltVersion
+    //   }
+    // }
   }
 
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
+  // const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
   const { body: deploymentsOnMainTaxonomy } = await getDeployments({
     'where.applicationId.eq': id,
-    'where.taxonomyId.eq': taxonomy[0].id,
+    // 'where.taxonomyId.eq': taxonomy[0].id,
     'where.status.neq': 'failed',
     'orderby.createdAt': DESC,
     limit: 1
@@ -269,13 +265,14 @@ export const callApiDeleteApplication = async (id) => {
 }
 
 export const getApiApplicationUrl = async (id) => {
-  const { body } = await getApplicationUrl({ id })
-  return body
+  return { url: 'https://www.google.com' }
+  // const { body } = await getApplicationUrl({ id })
+  // return body
 }
 
 /* METRICS */
-export const getApiMetricsForTaxonomyAndApplication = async (taxonomyId, applicationId, radix) => {
-  return fetch(`${baseUrl}/metrics/taxonomies/${taxonomyId}/apps/${applicationId}/${radix}`, {
+export const getApiMetricsForApplication = async (applicationId, radix) => {
+  return fetch(`${baseUrl}/metrics/apps/${applicationId}/${radix}`, {
     method: 'GET',
     headers: getHeaders()
   })
@@ -307,8 +304,8 @@ export const getApiMetricsPodPerService = async (taxonomyId, applicationId, podI
 
 /* KUBERNETES RESOURCES */
 
-export const getKubernetesResources = async (taxonomyId, applicationId) => {
-  const url = `${baseUrl}/metrics/kubernetes/taxonomies/${taxonomyId}/apps/${applicationId}`
+export const getKubernetesResources = async (applicationId) => {
+  const url = `${baseUrl}/metrics/kubernetes/apps/${applicationId}`
   return fetch(url, {
     method: 'GET',
     headers: getHeaders()
@@ -316,8 +313,8 @@ export const getKubernetesResources = async (taxonomyId, applicationId) => {
 }
 
 // Autoscaler
-export const getRequestsPerSecond = async (taxonomyId, applicationId) => {
-  const url = `${baseUrl}/metrics/kubernetes/taxonomies/${taxonomyId}/apps/${applicationId}/rps`
+export const getRequestsPerSecond = async (applicationId) => {
+  const url = `${baseUrl}/metrics/kubernetes/apps/${applicationId}/rps`
   return fetch(url, {
     method: 'GET',
     headers: getHeaders()
@@ -774,22 +771,22 @@ export const callApiClosePreview = async (id) => {
 }
 
 /* INSTANCES */
-export const getApiApplicationInstances = async (applicationId, taxonomyId) => {
-  const { body } = await getApplicationInstances({ id: applicationId, taxonomyId })
+export const getApiApplicationInstances = async (applicationId) => {
+  const { body } = await getApplicationInstances({ id: applicationId })
   return body
 }
 
 /* PODS */
-export const getApiPods = async (applicationId, taxonomyId) => {
-  const { body: appInstances } = await getApplicationInstances({ id: applicationId, taxonomyId })
+export const getApiPods = async (applicationId) => {
+  const { body: appInstances } = await getApplicationInstances({ id: applicationId })
   const pods = appInstances?.instances ?? []
 
   for (const pod of pods) {
     const { id } = pod
 
     const [dataMem, dataCpu] = await Promise.all([
-      getApiMetricsPod(taxonomyId, applicationId, id, 'mem'),
-      getApiMetricsPod(taxonomyId, applicationId, id, 'cpu')
+      getApiMetricsPod(applicationId, id, 'mem'),
+      getApiMetricsPod(applicationId, id, 'cpu')
     ])
 
     const dataValuesMem = await dataMem.json()
@@ -800,10 +797,10 @@ export const getApiPods = async (applicationId, taxonomyId) => {
   return pods
 }
 
-export const getApiPod = async (applicationId, taxonomyId, podId) => {
+export const getApiPod = async (applicationId, podId) => {
   const [dataMem, dataCpu] = await Promise.all([
-    getApiMetricsPod(taxonomyId, applicationId, podId, 'mem'),
-    getApiMetricsPod(taxonomyId, applicationId, podId, 'cpu')
+    getApiMetricsPod(applicationId, podId, 'mem'),
+    getApiMetricsPod(applicationId, podId, 'cpu')
   ])
 
   const dataValuesMem = await dataMem.json()
@@ -901,9 +898,8 @@ export const callApiAddKey = async (id, name) => {
 }
 
 /* COMPLIANCY */
-export const getApiCompliancy = async (taxonomyId, applicationId) => {
+export const getApiCompliancy = async (applicationId) => {
   const { body: deployments } = await getDeployments({
-    'where.taxonomyId.eq': taxonomyId,
     'where.applicationId.eq': applicationId,
     'orderby.createdAt': DESC,
     limit: 1

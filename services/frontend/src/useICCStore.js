@@ -21,7 +21,6 @@ const initialState = {
   enableSidebarFirstLevel: false,
   pods: [],
   podsLoaded: false,
-  updates: [],
   splashScreen: {
     show: false,
     title: '',

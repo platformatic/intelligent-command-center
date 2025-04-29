@@ -8,7 +8,7 @@ import { Outlet, useLoaderData, useNavigation, generatePath } from 'react-router
 import { LoadingSpinnerV2 } from '@platformatic/ui-components'
 
 function ApplicationContainer ({ children }) {
-  const { taxonomyId, application } = useLoaderData()
+  const { application } = useLoaderData()
   const navigation = useNavigation()
 
   if (navigation.state === 'loading') {
@@ -35,45 +35,45 @@ function ApplicationContainer ({ children }) {
     <div className={styles.content}>
       <SideBar
         topItems={[{
-          link: generatePath('', { taxonomyId, applicationId: application.id }),
+          link: generatePath('', { applicationId: application.id }),
           label: 'App Details',
           iconName: 'AppDetailsIcon',
           disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
         }, {
-          link: generatePath('services', { taxonomyId, applicationId: application.id }),
+          link: generatePath('services', { applicationId: application.id }),
           label: 'Services',
           iconName: 'PlatformaticServiceIcon',
           disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
         }, {
-          link: generatePath('deployment-history', { taxonomyId, applicationId: application.id }),
+          link: generatePath('deployment-history', { applicationId: application.id }),
           label: 'Deployment History',
           iconName: 'DeploymentHistoryIcon',
           disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
         }, {
-          link: generatePath('autoscaler', { taxonomyId, applicationId: application.id }),
+          link: generatePath('autoscaler', { applicationId: application.id }),
           label: 'Autoscaler',
           iconName: 'HorizontalPodAutoscalerIcon',
 
           disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
         }, {
-          link: generatePath('logs', { taxonomyId, applicationId: application.id }),
+          link: generatePath('logs', { applicationId: application.id }),
           label: 'Logs',
           iconName: 'CLIIcon',
 
           disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
         }, {
-          link: generatePath('activities', { taxonomyId, applicationId: application.id }),
+          link: generatePath('activities', { applicationId: application.id }),
           label: 'Activities',
           iconName: 'CheckListIcon',
           disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
         }, {
-          link: generatePath('scheduled-jobs', { taxonomyId, applicationId: application.id }),
+          link: generatePath('scheduled-jobs', { applicationId: application.id }),
           label: 'Scheduled Jobs',
           iconName: 'ScheduledJobsIcon',
           disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
         }]}
         bottomItems={[{
-          link: generatePath('settings', { taxonomyId, applicationId: application.id }),
+          link: generatePath('settings', { applicationId: application.id }),
           label: 'Settings',
           iconName: 'AppSettingsIcon',
           disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
