@@ -1,0 +1,24 @@
+diff --git a/services/frontend/src/layout/Navigation.jsx b/services/frontend/src/layout/Navigation.jsx
+index cf9a47423..b2a92baf4 100644
+--- a/services/frontend/src/layout/Navigation.jsx
++++ b/services/frontend/src/layout/Navigation.jsx
+@@ -32,9 +32,6 @@ function getRootPageBreadcrumbs (routeId) {
+     case 'deployments':
+       output.push({ label: 'Deployments' })
+       break
+-    case 'activities':
+-      output.push({ label: 'Activities' })
+-      break
+     case 'ingressPaths':
+       output.push({ label: 'Ingress Paths' })
+       break
+@@ -67,9 +64,6 @@ function getApplicationPageBreadcrumbs (routeId, application, otherParams) {
+     case 'application/services':
+       output.push({ label: 'Services' })
+       break
+-    case 'application/activities':
+-      output.push({ label: 'Activities' })
+-      break
+     case 'application/scheduled-jobs':
+       output.push({ label: 'Scheduled Jobs' })
+       break

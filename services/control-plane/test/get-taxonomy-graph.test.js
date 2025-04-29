@@ -11,6 +11,8 @@ const {
   generateApplicationState
 } = require('./helper')
 
+const { startCompliance } = require('../../compliance/test/helper')
+
 test('should get a generation graph', async (t) => {
   await startMetrics(t, {
     postServices: () => {
@@ -290,6 +292,7 @@ test('should get a previous generation graph', async (t) => {
   })
   await startMainService(t)
 
+  await startCompliance(t)
   const controlPlane = await startControlPlane(t)
 
   const {

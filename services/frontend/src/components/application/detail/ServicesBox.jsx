@@ -70,7 +70,6 @@ function reorderServices (services = []) {
 }
 function ServicesBox ({
   application,
-  taxonomyId,
   gridClassName = ''
 }) {
   const applicationSelectedServices = reorderServices(application.state.services)
@@ -80,12 +79,12 @@ function ServicesBox ({
   const navigate = useNavigate()
 
   function viewAllServices () {
-    navigate(generatePath(APPLICATION_DETAILS_ALL_SERVICES, { taxonomyId, applicationId: application.id }))
+    navigate(generatePath(APPLICATION_DETAILS_ALL_SERVICES, { applicationId: application.id }))
   }
 
   useEffect(() => {
     async function loadCompliancy () {
-      const report = await getApiCompliancy(taxonomyId, application.id)
+      const report = await getApiCompliancy(application.id)
       let services = {}
       if (report.length > 0) {
         const ruleSet = report[0].ruleSet

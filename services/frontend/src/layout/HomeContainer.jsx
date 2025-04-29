@@ -1,20 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import {
-  PAGE_APPS,
-  ALL_ACTIVITIES_PATH,
-  ALL_DEPLOYMENTS_PATH,
-  GENERAL_SETTING_PATH,
-  HOME_PATH,
-  PREVIEWS_PATH,
-  TAXONOMY_PATH,
-  CONFIGURE_INGRESS_PATHS_PATH,
-  PAGE_PROFILE
-} from '~/ui-constants'
+
 import styles from './HomeContainer.module.css'
 import SideBar from '~/components/ui/SideBar'
 import useICCStore from '~/useICCStore'
-import { useNavigate, useLocation, Outlet, useNavigation } from 'react-router-dom'
-import { CACHING_PATH, PAGE_RECOMMENDATION_HISTORY } from '../ui-constants'
+import { Outlet, useNavigation } from 'react-router-dom'
 import { LoadingSpinnerV2 } from '@platformatic/ui-components'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -30,9 +19,7 @@ import typographyStyles from '~/styles/Typography.module.css'
 export default function HomeContainer () {
   const navigation = useNavigation()
   const globalState = useICCStore()
-  const { currentPage, setCurrentPage, enableSidebarFirstLevel, updates } = globalState
-  const navigate = useNavigate()
-  const location = useLocation()
+  const { currentPage, enableSidebarFirstLevel } = globalState
 
   const defaultTopItems = [{
     link: '/recommendations-history',
@@ -74,55 +61,31 @@ export default function HomeContainer () {
     disabled: !enableSidebarFirstLevel
   }]
 
-  /** @type {[SidebarItem[], React.Dispatch<SidebarItem[]>]} */
-  const [topItems, setTopItems] = useState(defaultTopItems)
+  const [topItems, setTopItems] = useState([])
 
   useEffect(() => {
-    if (location.pathname === '/' && !currentPage) {
-      navigate(HOME_PATH)
-      setCurrentPage(PAGE_APPS)
-    }
-    if (location.pathname !== '/' && !currentPage) {
-      if (!enableSidebarFirstLevel) {
-        navigate(HOME_PATH)
-        setCurrentPage(PAGE_APPS)
-        return
-      }
+    setTopItems(defaultTopItems)
+  }, [])
 
-      const path = [
-        ALL_ACTIVITIES_PATH,
-        ALL_DEPLOYMENTS_PATH,
-        GENERAL_SETTING_PATH,
-        HOME_PATH,
-        PREVIEWS_PATH,
-        TAXONOMY_PATH,
-        CONFIGURE_INGRESS_PATHS_PATH,
-        PAGE_PROFILE,
-        CACHING_PATH,
-        PAGE_RECOMMENDATION_HISTORY
-      ].find(value => value === location.pathname)
-
-      if (path) {
-        navigate(path)
-        setCurrentPage(path)
-      }
-    }
-  }, [location, currentPage, enableSidebarFirstLevel])
+  /** @type {[SidebarItem[], React.Dispatch<SidebarItem[]>]} */
 
   // Handle updates to refresh sidebar items
-  useEffect(() => {
-    const recommendationUpdates = updates['cluster-manager']?.filter((u) => {
-      return u.type === 'new-recommendation'
-    }).length > 0
-    const newValues = []
-    topItems.forEach((item) => {
-      if (item.name === PAGE_RECOMMENDATION_HISTORY) {
-        item.hasUpdates = recommendationUpdates // adds the green dot if has updates, removes it if not
-      }
-      newValues.push(item)
-    })
-    setTopItems(newValues)
-  }, [updates])
+  // TODO: re-implement this after websocket is implemented
+  //
+
+  // useEffect(() => {
+  //   const recommendationUpdates = updates['cluster-manager']?.filter((u) => {
+  //     return u.type === 'new-recommendation'
+  //   }).length > 0
+  //   const newValues = []
+  //   topItems.forEach((item) => {
+  //     if (item.name === PAGE_RECOMMENDATION_HISTORY) {
+  //       item.hasUpdates = recommendationUpdates // adds the green dot if has updates, removes it if not
+  //     }
+  //     newValues.push(item)
+  //   })
+  //   setTopItems(newValues)
+  // }, [updates])
 
   if (navigation.state === 'loading') {
     return (

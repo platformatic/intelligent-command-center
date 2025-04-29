@@ -51,6 +51,12 @@
         "proxy": {
           "prefix": "/"
         }
+      },
+      {
+        "id": "compliance",
+        "proxy": {
+          "prefix": "compliance"
+        }
       }
     ]
   },

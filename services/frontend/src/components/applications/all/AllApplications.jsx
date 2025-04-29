@@ -4,33 +4,28 @@ import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import GridApplications from './GridApplications'
 import ErrorComponent from '~/components/errors/ErrorComponent'
-import useICCStore from '~/useICCStore'
 import { Modal } from '@platformatic/ui-components'
 import { WHITE, MODAL_FULL_RICH_BLACK_V2, MEDIUM } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import AddApplication from '~/components/application/AddApplication'
-import RecommendationBanner from './RecommendationBanner'
+// import RecommendationBanner from './RecommendationBanner'
 
 const AllApplications = React.forwardRef(({ _ }, ref) => {
-  const globalState = useICCStore()
-  const {
-    updates
-  } = globalState
   const [showErrorComponent, setShowErrorComponent] = useState(false)
   const [error, setError] = useState(null)
   const [showModalAddApplication, setShowModalAddApplication] = useState(false)
   const [successFullApplicationAdded, setSuccessFullApplicationAdded] = useState(false)
 
-  function hasNewRecommendations () {
-    return updates['cluster-manager']?.filter((u) => {
-      return u.type === 'new-recommendation'
-    }).length > 0
-  }
-  function hasNewCacheRecommendations () {
-    return updates.trafficante?.filter((u) => {
-      return u.type === 'new-recommendation'
-    }).length > 0
-  }
+  // function hasNewRecommendations () {
+  //   return updates['cluster-manager']?.filter((u) => {
+  //     return u.type === 'new-recommendation'
+  //   }).length > 0
+  // }
+  // function hasNewCacheRecommendations () {
+  //   return updates.trafficante?.filter((u) => {
+  //     return u.type === 'new-recommendation'
+  //   }).length > 0
+  // }
 
   function handleAddApplicationError (error) {
     handleCloseModalAddApplication()
@@ -52,12 +47,12 @@ const AllApplications = React.forwardRef(({ _ }, ref) => {
   }
 
   function renderRecommendationBanner () {
-    if (hasNewCacheRecommendations()) {
-      return <RecommendationBanner cache />
-    }
-    if (hasNewRecommendations()) {
-      return <RecommendationBanner cache={false} />
-    }
+    // if (hasNewCacheRecommendations()) {
+    //   return <RecommendationBanner cache />
+    // }
+    // if (hasNewRecommendations()) {
+    //   return <RecommendationBanner cache={false} />
+    // }
   }
   return showErrorComponent
     ? <ErrorComponent error={error} onClickDismiss={() => setShowErrorComponent(false)} />

@@ -49,7 +49,7 @@ function getApplicationPageBreadcrumbs (routeId, taxonomyId, application) {
   })
   output.push({
     label: application.name,
-    link: generatePath('/:taxonomyId/applications/:applicationId', { taxonomyId, applicationId: application.id })
+    link: generatePath('/applications/:applicationId', { applicationId: application.id })
   })
 
   switch (routeId) {

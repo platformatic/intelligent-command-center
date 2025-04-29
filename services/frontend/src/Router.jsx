@@ -257,14 +257,13 @@ export function getRouter () {
     },
 
     {
-      path: '/:taxonomyId/applications/:applicationId',
+      path: '/applications/:applicationId',
       errorElement: <CustomError />,
       id: 'appRoot',
       loader: async ({ params }) => {
         const application = await getApiApplication(params.applicationId)
         const applicationPublicUrl = await getApiApplicationUrl(application.id)
         return {
-          taxonomyId: params.taxonomyId,
           application,
           publicUrl: applicationPublicUrl.url
         }
