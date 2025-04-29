@@ -8,11 +8,10 @@ import { BorderedBox } from '@platformatic/ui-components'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import NodeJSMetric from './NodeJSMetric'
 import { REFRESH_INTERVAL_METRICS } from '~/ui-constants'
-import { getApiMetricsForTaxonomyAndApplication } from '~/api'
+import { getApiMetricsForApplication } from '../../../api'
 
 function NodeJSMetrics ({
   gridClassName = '',
-  taxonomyId,
   application
 
 }) {
@@ -64,9 +63,9 @@ function NodeJSMetrics ({
     try {
       const allData = {}
       const [mem, cpu, latency] = await Promise.all([
-        getApiMetricsForTaxonomyAndApplication(taxonomyId, application.id, 'mem'),
-        getApiMetricsForTaxonomyAndApplication(taxonomyId, application.id, 'cpu'),
-        getApiMetricsForTaxonomyAndApplication(taxonomyId, application.id, 'latency')
+        getApiMetricsForApplication(application.id, 'mem'),
+        getApiMetricsForApplication(application.id, 'cpu'),
+        getApiMetricsForApplication(application.id, 'latency')
       ])
       if (mem.ok) {
         allData.dataMem = await mem.json()

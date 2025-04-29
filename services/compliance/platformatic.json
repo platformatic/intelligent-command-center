@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.16.0.json",
+  "db": {
+    "connectionString": "{PLT_COMPLIANCE_DATABASE_URL}",
+    "schemalock": true,
+    "openapi": {
+      "ignoreRoutes": [
+        {
+          "method": "GET",
+          "path": "/rules"
+        },
+        {
+          "method": "POST",
+          "path": "/metadata"
+        }
+      ]
+    }
+  },
+  "watch": {
+    "enabled": "{DEV_K8S}",
+    "ignore": [
+      "*.sqlite",
+      "*.sqlite-journal"
+    ]
+  },
+  "migrations": {
+    "dir": "migrations",
+    "autoApply": true
+  },
+  "types": {
+    "autogenerate": false
+  },
+  "plugins": {
+    "paths": [
+      {
+        "path": "./plugins"
+      },
+      {
+        "path": "./routes"
+      }
+    ]
+  }
+}

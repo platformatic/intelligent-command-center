@@ -13,7 +13,6 @@ import { REFRESH_INTERVAL } from '~/ui-constants'
 
 function KubernetesResources ({
   gridClassName = '',
-  taxonomyId,
   application
 }) {
   const [values, setValues] = useState({})
@@ -41,9 +40,9 @@ function KubernetesResources ({
 
   async function loadKubernetesResources () {
     try {
-      const data = await getKubernetesResources(taxonomyId, application.id)
+      const data = await getKubernetesResources(application.id)
       const values = await data.json()
-      const { maximumInstanceCount = 0 } = await getApiApplicationInstances(application.id, taxonomyId)
+      const { maximumInstanceCount = 0 } = await getApiApplicationInstances(application.id)
       values.pods.podsAll = maximumInstanceCount > values.pods.podsAll ? maximumInstanceCount : values.pods.podsAll
 
       setValues(values)

@@ -20,8 +20,6 @@ function GridApplications ({
   const { readyState, lastMessage } = useSubscribeToUpdates('applications')
 
   useEffect(() => {
-    console.log('readyState', readyState)
-    console.log('lastMessage', lastMessage)
     if (lastMessage !== null) {
       const message = JSON.parse(lastMessage.data)
       if (message.type === 'application-created') {
@@ -136,9 +134,6 @@ function GridApplications ({
           <div className={styles.gridContainer}>
             {filteredApplications.map(application => (
               <ApplicationCard
-                onClicked={() => {
-                  console.log('application', application)
-                }}
                 key={`${application.id}`}
                 {...application}
               />

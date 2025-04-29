@@ -72,5 +72,9 @@ module.exports = {
   FailedToSaveUpdate: createError(
     `${ERROR_PREFIX}_FAILED_TO_SAVE_UPDATE`,
     'Failed to save update: %s'
+  ),
+  CannotCreateComplianceRule: createError(
+    `${ERROR_PREFIX}_CANNOT_CREATE_COMPLIANCE_RULE`,
+    'Failed to create compliance rule: (%s) %s'
   )
 }
