@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useRouteLoaderData } from 'react-router-dom'
 import styles from './AppDetails.module.css'
 import AppNameBox from './AppNameBox'
@@ -7,21 +7,13 @@ import DeploymentsBox from './DeploymentsBox'
 import NodeJSMetrics from './NodeJSMetrics'
 import KubernetesResources from './KubernetesResources'
 import AppDetailActivities from './AppDetailActivities'
-import useICCStore from '../../../useICCStore'
 import ErrorComponent from '~/components/errors/ErrorComponent'
-import { PAGE_APPLICATION_DETAILS } from '../../../ui-constants'
 
 export default function AppDetailsV2 () {
   const [showErrorComponent, setShowErrorComponent] = useState(false)
   const [error, setError] = useState(false)
 
-  const globalState = useICCStore()
-  const { setCurrentPage } = globalState
-  const { taxonomyId, publicUrl, application } = useRouteLoaderData('appRoot')
-
-  useEffect(() => {
-    setCurrentPage(PAGE_APPLICATION_DETAILS)
-  }, [])
+  const { publicUrl, application } = useRouteLoaderData('appRoot')
 
   if (showErrorComponent) {
     return <ErrorComponent error={error} message={error.message} onClickDismiss={() => setShowErrorComponent(false)} />
@@ -40,7 +32,6 @@ export default function AppDetailsV2 () {
             applicationPublicUrl={publicUrl}
           />
           <ServicesBox
-            taxonomyId={taxonomyId}
             application={application}
             gridClassName={styles.servicesBox}
           />
@@ -49,18 +40,15 @@ export default function AppDetailsV2 () {
             gridClassName={styles.deploymentsBox}
           />
           <NodeJSMetrics
-            taxonomyId={taxonomyId}
             application={application}
             gridClassName={styles.nodeJsMetricsBox}
           />
           <KubernetesResources
             application={application}
-            taxonomyId={taxonomyId}
             gridClassName={styles.nodeJsMetricsBox}
           />
           <AppDetailActivities
             application={application}
-            taxonomyId={taxonomyId}
             gridClassName={styles.activitiesBox}
           />
         </div>

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react'
-import PropTypes from 'prop-types'
 import styles from './RowPods.module.css'
 import Pod from './Pod'
 import useICCStore from '~/useICCStore'
@@ -10,7 +9,6 @@ function RowPods ({
   evenRow = true,
   firstRow = false,
   applicationId,
-  taxonomyId,
   fromPreview = false
 }) {
   const globalState = useICCStore()
@@ -60,43 +58,11 @@ function RowPods ({
           key={pod.id}
           {...pod}
           applicationId={applicationId}
-          taxonomyId={taxonomyId}
           fromPreview={fromPreview}
         />
       ))}
     </div>
   )
-}
-
-RowPods.propTypes = {
-  /**
-   * groupPods
-    */
-  groupPods: PropTypes.array,
-  /**
-   * howManyRows
-    */
-  howManyRows: PropTypes.number,
-  /**
-   * evenRow
-    */
-  evenRow: PropTypes.bool,
-  /**
-   * firstRow
-    */
-  firstRow: PropTypes.bool,
-  /**
-   * applicationId
-   */
-  applicationId: PropTypes.string,
-  /**
-   * taxonomyId
-   */
-  taxonomyId: PropTypes.string,
-  /**
-   * fromPreview
-   */
-  fromPreview: PropTypes.bool
 }
 
 export default RowPods

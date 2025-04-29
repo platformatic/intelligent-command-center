@@ -11,6 +11,8 @@ const {
   startMainService
 } = require('./helper')
 
+const { startCompliance } = require('../../compliance/test/helper')
+
 test('should save a detected pod of a new application', async (t) => {
   const applicationName = 'test-app'
   const podId = randomUUID()
@@ -28,6 +30,9 @@ test('should save a detected pod of a new application', async (t) => {
       iccUpdates.push(update)
     }
   })
+
+  await startCompliance(t)
+
   await startMachinist(t, {
     getPodDetails: () => ({ image: imageId })
   })
@@ -560,6 +565,7 @@ test('should save a lot of simultaneous detected pods of different applications'
   })
   await startMetrics(t)
   await startMainService(t)
+  await startCompliance(t)
 
   const APPS_COUNT = 10
   const APP_PODS_COUNT = 10

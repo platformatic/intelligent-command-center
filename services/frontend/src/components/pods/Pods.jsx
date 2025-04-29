@@ -8,7 +8,7 @@ import ErrorComponent from '~/components/errors/ErrorComponent'
 import {
   getApiPods,
   getApplicationsRaw,
-  getApiMetricsForTaxonomyAndApplication,
+  getApiMetricsForApplication,
   getScalingEventHistory
 } from '~/api'
 import useICCStore from '~/useICCStore'
@@ -18,7 +18,6 @@ import AutoscalerHistory from '~/components/application/autoscaler/AutoscalerHis
 
 const Pods = React.forwardRef(({
   applicationId,
-  taxonomyId,
   enableApplicationFilter = false,
   fromPreview = false
 }, ref) => {
@@ -79,7 +78,7 @@ const Pods = React.forwardRef(({
   }, [Object.keys(allData).length, pods.length])
 
   useEffect(() => {
-    if (applicationId && taxonomyId && timer >= REFRESH_INTERVAL / 1000) {
+    if (applicationId && timer >= REFRESH_INTERVAL / 1000) {
       async function loadMetrics () {
         await loadPodsInstances()
         setPodsLoaded(true)
@@ -88,7 +87,7 @@ const Pods = React.forwardRef(({
       }
       loadMetrics()
     }
-  }, [applicationId, taxonomyId, timer])
+  }, [applicationId, timer])
 
   function startTimer () {
     setTimerInterval(setInterval(() => {
@@ -118,7 +117,7 @@ const Pods = React.forwardRef(({
 
   async function loadPodsInstances () {
     try {
-      const pods = await getApiPods(applicationId, taxonomyId)
+      const pods = await getApiPods(applicationId)
       const performancesPod = pods.map(pod => {
         const { score, reasons = [] } = getPodPerformances(pod.dataValues)
         return {
@@ -130,8 +129,8 @@ const Pods = React.forwardRef(({
       // const performancesPod = pods.map((pod, index) => ({ ...pod, performance: getTestPodPerformances(index) }))
       const allData = {}
       const [mem, cpu] = await Promise.all([
-        getApiMetricsForTaxonomyAndApplication(taxonomyId, applicationId, 'mem'),
-        getApiMetricsForTaxonomyAndApplication(taxonomyId, applicationId, 'cpu')
+        getApiMetricsForApplication(applicationId, 'mem'),
+        getApiMetricsForApplication(applicationId, 'cpu')
       ])
       if (mem.ok) {
         allData.dataMem = await mem.json()
@@ -142,7 +141,7 @@ const Pods = React.forwardRef(({
       setAllData(allData)
       setPods(performancesPod)
 
-      const response = await getScalingEventHistory(taxonomyId, applicationId)
+      const response = await getScalingEventHistory(applicationId)
       const { chartEvents } = response
       if (chartEvents.length > 0) {
         setChartEvents(chartEvents.map(event => ({
@@ -192,7 +191,6 @@ const Pods = React.forwardRef(({
           defaultFilterByApplication={defaultFilterByApplication}
           onChangeFilterByApplication={handleChangeFilterByApplication}
           applicationId={applicationId}
-          taxonomyId={taxonomyId}
         />
       </div>
     </div>

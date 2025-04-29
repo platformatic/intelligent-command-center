@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import PropTypes from 'prop-types'
 import { TRANSPARENT, RICH_BLACK } from '@platformatic/ui-components/src/components/constants'
 import styles from './Metrics.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -16,8 +15,7 @@ const REFRESH_INTERVAL = 5000
 
 const Metrics = React.forwardRef(({
   podId,
-  applicationId,
-  taxonomyId
+  applicationId
 }, ref) => {
   const [initialLoading, setInitialLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
@@ -67,10 +65,10 @@ const Metrics = React.forwardRef(({
     }
   }
 
-  if (podId && applicationId && taxonomyId) {
+  if (podId && applicationId) {
     useInterval(async () => {
       try {
-        const res = await getApiMetricsPod(taxonomyId, applicationId, podId)
+        const res = await getApiMetricsPod(applicationId, podId)
         setShowNoResult(false)
         if (res.status === 200) {
           const data = await res.json()
@@ -197,20 +195,5 @@ const Metrics = React.forwardRef(({
     </div>
   )
 })
-
-Metrics.propTypes = {
-  /**
-   * podId
-   */
-  podId: PropTypes.string,
-  /**
-   * applicationId
-   */
-  applicationId: PropTypes.string,
-  /**
-   * taxonomyId
-   */
-  taxonomyId: PropTypes.string
-}
 
 export default Metrics

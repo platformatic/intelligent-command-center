@@ -25,7 +25,14 @@ async function getWhitelistedPaths () {
     ['/backgrounds', '*'],
     ['/assets', '*'],
     ['/api/updates', ['POST']],
-    [/\/api\/updates\/.*/, ['GET']]
+    [/\/api\/updates\/.*/, ['GET']],
+    ['/trafficante/requests', ['POST']],
+    ['/cron/watt-jobs', ['PUT']],
+
+    // temp routes for icc-3
+    [/\/control-plane\/pods\/[a-zA-z0-9-.]+\/instance/, ['POST']],
+    [/\/control-plane\/pods\/[a-zA-z0-9-.]+\/instance\/state/, ['POST']],
+    [/\/compliance/, '*']
   ]
 
   // add OpenaAPI spec route for each internal service

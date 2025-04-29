@@ -71,10 +71,13 @@ module.exports = fp(async function (app) {
         ).catch((err) => {
           ctx.logger.error({ err }, 'Failed to send activity')
         })
+        // create compliance rule
+        await app.createComplianceRule(result.application.id, ctx)
+          .catch((err) => {
+            ctx.logger.error({ err }, 'Failed to create compliance rule')
+          })
         await app.createCacheUser(result.application.id, ctx)
-
         // send notification to ui
-
         await app.emitUpdate('icc', {
           topic: 'ui-updates/applications',
           type: 'application-created',
