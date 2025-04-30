@@ -76,7 +76,7 @@ module.exports = fp(async function (app) {
           .catch((err) => {
             ctx.logger.error({ err }, 'Failed to create compliance rule')
           })
-        await app.createCacheUser(result.application.id, ctx)
+
         // send notification to ui
         await app.emitUpdate('icc', {
           topic: 'ui-updates/applications',
@@ -106,7 +106,7 @@ module.exports = fp(async function (app) {
 
     const [config, httpCacheClientOpts] = await Promise.all([
       app.getApplicationConfig(application, null, ctx),
-      app.getCacheClientOpts(application.id, ctx)
+      app.getValkeyClientOpts(application.id, ctx)
     ])
 
     const httpCache = { clientOpts: httpCacheClientOpts }
