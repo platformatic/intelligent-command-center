@@ -60,6 +60,15 @@ CREATE TABLE instances (
   CONSTRAINT instances_unique UNIQUE (deployment_id, pod_id)
 );
 
+CREATE TABLE valkey_users (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  application_id uuid NOT NULL REFERENCES applications(id),
+  username VARCHAR(255) NOT NULL,
+  encrypted_password VARCHAR(255) NOT NULL,
+  key_prefix VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE generations_deployments (
   generation_id uuid NOT NULL REFERENCES generations(id),
   deployment_id uuid NOT NULL REFERENCES deployments(id),

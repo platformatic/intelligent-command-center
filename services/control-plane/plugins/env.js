@@ -19,7 +19,7 @@ const schema = {
     'PLT_EXTERNAL_RISK_SERVICE_URL',
     'PLT_EXTERNAL_ACTIVITIES_URL',
     'PLT_EXTERNAL_METRICS_URL',
-    'PLT_CONTROL_PLANE_SECRET_KEY'
+    'PLT_CONTROL_PLANE_SECRET_KEYS'
   ],
 
   properties: {
@@ -41,7 +41,7 @@ const schema = {
     PLT_CONTROL_PLANE_ELASTICACHE_ACCESS_KEY: { type: 'string' },
     PLT_CONTROL_PLANE_ELASTICACHE_SECRET_KEY: { type: 'string' },
     PLT_CONTROL_PLANE_ELASTICACHE_CLUSTERID_PREFIX: { type: 'string' },
-    PLT_CONTROL_PLANE_SECRET_KEY: { type: 'string' }
+    PLT_CONTROL_PLANE_SECRET_KEYS: { type: 'string' }
   }
 }
 
