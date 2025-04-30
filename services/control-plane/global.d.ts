@@ -1,9 +1,9 @@
 import type { PlatformaticApp, PlatformaticDBMixin, PlatformaticDBConfig, Entity, Entities, EntityHooks } from '@platformatic/db'
-import { EntityTypes, Application,ApplicationState,ApplicationsConfig,Deployment,Generation,GenerationsApplicationsConfig,GenerationsDeployment,Graph,Instance } from './types'
+import { EntityTypes, Application,ApplicationState,ApplicationsConfig,Deployment,Generation,GenerationsApplicationsConfig,GenerationsDeployment,Graph,Instance,ValkeyUser } from './types'
 
 declare module 'fastify' {
   interface FastifyInstance {
-    getSchema<T extends 'Application' | 'ApplicationState' | 'ApplicationsConfig' | 'Deployment' | 'Generation' | 'GenerationsApplicationsConfig' | 'GenerationsDeployment' | 'Graph' | 'Instance'>(schemaId: T): {
+    getSchema<T extends 'Application' | 'ApplicationState' | 'ApplicationsConfig' | 'Deployment' | 'Generation' | 'GenerationsApplicationsConfig' | 'GenerationsDeployment' | 'Graph' | 'Instance' | 'ValkeyUser'>(schemaId: T): {
       '$id': string,
       title: string,
       description: string,
@@ -26,6 +26,7 @@ interface AppEntities extends Entities {
     generationsDeployment: Entity<GenerationsDeployment>,
     graph: Entity<Graph>,
     instance: Entity<Instance>,
+    valkeyUser: Entity<ValkeyUser>,
 }
 
 interface AppEntityHooks {
@@ -38,6 +39,7 @@ interface AppEntityHooks {
     addEntityHooks(entityName: 'generationsDeployment', hooks: EntityHooks<GenerationsDeployment>): any
     addEntityHooks(entityName: 'graph', hooks: EntityHooks<Graph>): any
     addEntityHooks(entityName: 'instance', hooks: EntityHooks<Instance>): any
+    addEntityHooks(entityName: 'valkeyUser', hooks: EntityHooks<ValkeyUser>): any
 }
 
 declare module 'fastify' {

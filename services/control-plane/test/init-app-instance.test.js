@@ -629,7 +629,12 @@ test('should save a lot of simultaneous instances of different applications', as
     cachePasswords.add(password)
   }
 
-  await Promise.all(params.map(saveInstance))
+  const results = await Promise.allSettled(params.map(saveInstance))
+  for (const result of results) {
+    if (result.status === 'rejected') {
+      throw result.reason
+    }
+  }
 
   const { entities } = controlPlane.platformatic
 
@@ -650,6 +655,9 @@ test('should save a lot of simultaneous instances of different applications', as
 
   const instances = await entities.instance.find()
   assert.strictEqual(instances.length, params.length)
+
+  const valkeyUsers = await entities.valkeyUser.find()
+  assert.strictEqual(valkeyUsers.length, APPS_COUNT)
 
   const configs = await entities.applicationsConfig.find()
   assert.strictEqual(configs.length, APPS_COUNT)
