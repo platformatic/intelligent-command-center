@@ -2,13 +2,15 @@
 
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
+const { randomUUID } = require('node:crypto')
 const {
   startControlPlane,
   startActivities,
   generateGeneration,
   generateApplication,
   generateDeployment,
-  generateDetectedPod
+  generateDetectedPod,
+  generateK8sHeader
 } = require('./helper')
 
 test('should save a "running" app instance status', async (t) => {
@@ -40,7 +42,8 @@ test('should save a "running" app instance status', async (t) => {
     method: 'POST',
     url: `/pods/${detectedPod.podId}/instance/status`,
     headers: {
-      'content-type': 'application/json'
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(detectedPod.podId)
     },
     body: { status: 'running' }
   })
@@ -101,7 +104,8 @@ test('should set "started" deployment status if it is already set to "failed"', 
     method: 'POST',
     url: `/pods/${detectedPod.podId}/instance/status`,
     headers: {
-      'content-type': 'application/json'
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(detectedPod.podId)
     },
     body: { status: 'running' }
   })
@@ -162,7 +166,8 @@ test('should set "failed" app instance status', async (t) => {
     method: 'POST',
     url: `/pods/${detectedPod.podId}/instance/status`,
     headers: {
-      'content-type': 'application/json'
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(detectedPod.podId)
     },
     body: { status: 'stopped' }
   })
@@ -192,4 +197,56 @@ test('should set "failed" app instance status', async (t) => {
   // assert.strictEqual(event.applicationId, application.id)
   // assert.strictEqual(event.success, true)
   // assert.strictEqual(event.targetId, application.id)
+})
+
+test('should throw 401 if x-k8s header is missing', async (t) => {
+  const podId = randomUUID()
+
+  const controlPlane = await startControlPlane(t)
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance/status`,
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: { status: 'stopped' }
+  })
+
+  assert.strictEqual(statusCode, 401, body)
+
+  const error = JSON.parse(body)
+  assert.deepStrictEqual(error, {
+    statusCode: 401,
+    code: 'PLT_CONTROL_PLANE_MISSING_K8S_AUTH_CONTEXT',
+    error: 'Unauthorized',
+    message: `Missing K8s auth context for pod "${podId}"`
+  })
+})
+
+test('should throw 401 if pod id param does match with a jwt pod id', async (t) => {
+  const podId = randomUUID()
+  const jwtPodId = randomUUID()
+
+  const controlPlane = await startControlPlane(t)
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance/status`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(jwtPodId)
+    },
+    body: { status: 'stopped' }
+  })
+
+  assert.strictEqual(statusCode, 401, body)
+
+  const error = JSON.parse(body)
+  assert.deepStrictEqual(error, {
+    statusCode: 401,
+    code: 'PLT_CONTROL_PLANE_POD_ID_NOT_AUTHORIZED',
+    error: 'Unauthorized',
+    message: `Request pod id "${podId}" does not match with a jwt pod id "${jwtPodId}"`
+  })
 })

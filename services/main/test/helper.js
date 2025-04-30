@@ -1,12 +1,13 @@
 'use strict'
 
+const assert = require('node:assert')
 const { join } = require('node:path')
 const { readFile } = require('node:fs/promises')
+const { randomUUID, createPublicKey, generateKeyPairSync } = require('node:crypto')
 const Fastify = require('fastify')
 const { buildServer } = require('@platformatic/composer')
-const { randomUUID } = require('node:crypto')
 const { MockAgent, setGlobalDispatcher, getGlobalDispatcher } = require('undici')
-const assert = require('node:assert')
+const { createSigner } = require('fast-jwt')
 
 function setUpEnvironment (env = {}) {
   const defaultEnv = {
@@ -108,10 +109,15 @@ module.exports.startControlPlane = async function (t, opts = {}) {
     logger: { level: 'error' }
   })
 
-  app.post('/pods/:id/instance/status', async (request, reply) => {
+  app.post('/pods/:id/instance/status', async (request) => {
     const podId = request.params.id
     const status = request.body.status
     return opts.savePodStatus?.({ podId, status })
+  })
+
+  app.get('/detectedPods/:id', async (request) => {
+    const podId = request.params.id
+    return opts.getPodDetails?.({ podId })
   })
 
   t.after(async () => {
@@ -291,6 +297,68 @@ function encodeJwtPayload (exp = null) {
   const signature = 'TEST_SIGNATURE_FOR_K8S_JWT_TOKEN'
   const encodedSignature = Buffer.from(signature).toString('base64url')
   return `${encodedHeader}.${encodedPayload}.${encodedSignature}`
+}
+
+module.exports.startK8sAuthService = async function (t) {
+  const app = Fastify()
+
+  const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: 'pkcs1', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs1', format: 'pem' }
+  })
+
+  const jwtPublicKey = createPublicKey(publicKey).export({ format: 'jwk' })
+
+  const { n, e, kty } = jwtPublicKey
+  const kid = 'TEST-KID'
+  const alg = 'RS256'
+
+  app.get('/openid/v1/jwks', async () => {
+    return { keys: [{ alg, kty, n, e, use: 'sig', kid }] }
+  })
+
+  let url = null
+  app.decorate('generateToken', (podId, namespace) => {
+    const header = { kid, alg, typ: 'JWT' }
+    const payload = {
+      'kubernetes.io': {
+        namespace: namespace ?? 'platformatic',
+        node: {
+          name: 'k3d-plt-cluster-server-0',
+          uid: '723cf17a-e783-4382-bc86-b2a6c06248ab'
+        },
+        pod: {
+          name: podId,
+          uid: 'bab4c2fc-7438-4204-9804-bf92f65641e4'
+        },
+        serviceaccount: {
+          name: 'platformatic',
+          uid: '0f668f4e-f2f8-4e2a-8642-08b87da06e22'
+        },
+        warnafter: 1744972498
+      }
+    }
+
+    const signSync = createSigner({
+      algorithm: 'RS256',
+      key: privateKey,
+      header,
+      iss: url,
+      kid
+    })
+
+    const token = signSync(payload)
+    return token
+  })
+
+  url = await app.listen({ port: 0 })
+
+  t.after(async () => {
+    await app.close()
+  })
+
+  return app
 }
 
 function isTokenExpired (token) {

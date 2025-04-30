@@ -21,25 +21,47 @@ module.exports = fp(async function (fastify, opts) {
       await fastify.registerUpdates(connection, { namespace: 'icc' })
     })
 
-    fastify.get('/api/updates/applications/:id', { websocket: true }, async (connection, req) => {
-      const applicationId = req.params.id
+    fastify.route({
+      method: 'GET',
+      url: '/api/updates/applications/:id',
+      preValidation: async (req) => {
+        const applicationId = req.params.id
 
-      // TODO: get the podId from a jwt
-      const podId = req.query.podId
+        const k8sContext = req.k8s
+        if (!k8sContext) {
+          throw new Error('Missing k8s context')
+        }
 
-      connection.on('close', async () => {
-        await saveApplicationInstanceStatus(podId, 'stopped')
-      })
+        const podId = k8sContext.pod?.name
+        const podDetails = await getDetectedPodDetails(podId)
 
-      connection.on('error', err => {
-        fastify.log.error({ err }, 'Connection error.')
-        connection.close()
-      })
+        if (applicationId !== podDetails.applicationId) {
+          throw new Error(
+            `Pod "${podId}" cannot subscribe to application "${applicationId}" updates`
+          )
+        }
+      },
+      handler: () => {},
+      wsHandler: async (connection, req) => {
+        const applicationId = req.params.id
 
-      await fastify.registerUpdates(connection, {
-        namespace: `applications/${applicationId}`
-      })
-      await saveApplicationInstanceStatus(podId, 'running')
+        const k8sContext = req.k8s
+        const podId = k8sContext.pod?.name
+
+        connection.on('close', async () => {
+          await saveApplicationInstanceStatus(podId, k8sContext, 'stopped')
+        })
+
+        connection.on('error', err => {
+          fastify.log.error({ err }, 'Connection error.')
+          connection.close()
+        })
+
+        await fastify.registerUpdates(connection, {
+          namespace: `applications/${applicationId}`
+        })
+        await saveApplicationInstanceStatus(podId, k8sContext, 'running')
+      }
     })
   })
 
@@ -51,13 +73,14 @@ module.exports = fp(async function (fastify, opts) {
       statusCodes: [502, 503, 504, 429]
     }))
 
-  async function saveApplicationInstanceStatus (podId, status) {
+  async function saveApplicationInstanceStatus (podId, k8sContext, status) {
     try {
       const url = controlPlaneUrl + `/pods/${podId}/instance/status`
       const { statusCode, body } = await request(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-k8s': JSON.stringify(k8sContext)
         },
         body: JSON.stringify({ status }),
         dispatcher: retryDispatcher
@@ -70,6 +93,21 @@ module.exports = fp(async function (fastify, opts) {
     } catch (err) {
       fastify.log.error({ err }, 'Error saving application instance status.')
     }
+  }
+
+  async function getDetectedPodDetails (podId) {
+    const url = controlPlaneUrl + `/detectedPods/${podId}`
+    const { statusCode, body } = await request(url, {
+      dispatcher: retryDispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      fastify.log.error({ err: error }, 'Failed to get pod details')
+    }
+
+    const podDetails = await body.json()
+    return podDetails
   }
 }, {
   name: 'websocket',

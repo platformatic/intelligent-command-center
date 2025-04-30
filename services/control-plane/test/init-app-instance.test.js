@@ -8,7 +8,8 @@ const {
   startActivities,
   startMetrics,
   startMachinist,
-  startMainService
+  startMainService,
+  generateK8sHeader
 } = require('./helper')
 
 const { startCompliance } = require('../../compliance/test/helper')
@@ -43,7 +44,8 @@ test('should save a detected pod of a new application', async (t) => {
     method: 'POST',
     url: `/pods/${podId}/instance`,
     headers: {
-      'content-type': 'application/json'
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
     },
     body: { applicationName }
   })
@@ -211,7 +213,8 @@ test('should save a new detected pod with the same image', async (t) => {
     method: 'POST',
     url: `/pods/${podId}/instance`,
     headers: {
-      'content-type': 'application/json'
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
     },
     body: { applicationName }
   })
@@ -357,7 +360,8 @@ test('should detect the same pod with the same image', async (t) => {
     method: 'POST',
     url: `/pods/${podId}/instance`,
     headers: {
-      'content-type': 'application/json'
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
     },
     body: { applicationName }
   })
@@ -461,7 +465,8 @@ test('should save an detected pod with a different image', async (t) => {
     method: 'POST',
     url: `/pods/${podId}/instance`,
     headers: {
-      'content-type': 'application/json'
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
     },
     body: { applicationName }
   })
@@ -607,7 +612,8 @@ test('should save a lot of simultaneous detected pods of different applications'
       method: 'POST',
       url: `/pods/${params.podId}/instance`,
       headers: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        'x-k8s': generateK8sHeader(params.podId)
       },
       body: { applicationName: params.applicationName }
     })
@@ -752,4 +758,58 @@ test('should save a lot of simultaneous detected pods of different applications'
     prevGenerationAppConfigs = generationAppConfigs
     prevGenerationDeployments = generationDeployments
   }
+})
+
+test('should throw 401 if x-k8s header is missing', async (t) => {
+  const applicationName = 'test-app'
+  const podId = randomUUID()
+
+  const controlPlane = await startControlPlane(t)
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: { applicationName }
+  })
+
+  assert.strictEqual(statusCode, 401, body)
+
+  const error = JSON.parse(body)
+  assert.deepStrictEqual(error, {
+    statusCode: 401,
+    code: 'PLT_CONTROL_PLANE_MISSING_K8S_AUTH_CONTEXT',
+    error: 'Unauthorized',
+    message: `Missing K8s auth context for pod "${podId}"`
+  })
+})
+
+test('should throw 401 if pod id param does match with a jwt pod id', async (t) => {
+  const applicationName = 'test-app'
+  const podId = randomUUID()
+  const jwtPodId = randomUUID()
+
+  const controlPlane = await startControlPlane(t)
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(jwtPodId)
+    },
+    body: { applicationName }
+  })
+
+  assert.strictEqual(statusCode, 401, body)
+
+  const error = JSON.parse(body)
+  assert.deepStrictEqual(error, {
+    statusCode: 401,
+    code: 'PLT_CONTROL_PLANE_POD_ID_NOT_AUTHORIZED',
+    error: 'Unauthorized',
+    message: `Request pod id "${podId}" does not match with a jwt pod id "${jwtPodId}"`
+  })
 })
