@@ -8,7 +8,8 @@ const {
   startActivities,
   startMachinist,
   startMainService,
-  generateApplicationState
+  generateApplicationState,
+  generateK8sHeader
 } = require('./helper')
 
 const { startCompliance } = require('../../compliance/test/helper')
@@ -322,7 +323,8 @@ test('should get a previous generation graph', async (t) => {
       method: 'POST',
       url: `/pods/${podId}/instance`,
       headers: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        'x-k8s': generateK8sHeader(podId)
       },
       body: { applicationName }
     })

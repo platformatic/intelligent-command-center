@@ -104,19 +104,16 @@ module.exports = fp(async function (app) {
       }
     },
     handler: async (req) => {
-      const { podId } = req.params
+      const { podId, namespace } = authK8sPodRequest(req.params.podId, req.k8s)
       const { applicationName } = req.body
 
       const logger = req.log.child({ applicationName, podId })
       const ctx = { req, logger }
 
-      // TODO: get pod namespace from a jwt
-      const podNamespace = 'platformatic'
-
       const { application, config, httpCache, iccServices } = await app.initApplicationInstance(
         applicationName,
         podId,
-        podNamespace,
+        namespace,
         ctx
       )
 
@@ -149,7 +146,7 @@ module.exports = fp(async function (app) {
       }
     },
     handler: async (req) => {
-      const podId = req.params.id
+      const { podId } = authK8sPodRequest(req.params.id, req.k8s)
 
       const detectedPod = await app.getDetectedPodByPodId(podId)
       if (detectedPod === null) {
@@ -203,7 +200,7 @@ module.exports = fp(async function (app) {
       }
     },
     handler: async (req) => {
-      const podId = req.params.id
+      const { podId } = authK8sPodRequest(req.params.id, req.k8s)
 
       const detectedPod = await app.getDetectedPodByPodId(podId)
       if (detectedPod === null) {
@@ -227,4 +224,22 @@ module.exports = fp(async function (app) {
       return {}
     }
   })
+
+  function authK8sPodRequest (podId, k8sContext) {
+    if (!k8sContext) {
+      throw new errors.MissingK8sAuthContext(podId)
+    }
+
+    const jwtPodId = k8sContext.pod?.name
+    if (!jwtPodId || podId !== jwtPodId) {
+      throw new errors.PodIdNotAuthorized(podId, jwtPodId)
+    }
+
+    const podNamespace = k8sContext.namespace
+    if (!podNamespace) {
+      throw new errors.PodNamespaceNotFound(podId)
+    }
+
+    return { podId, podNamespace }
+  }
 })

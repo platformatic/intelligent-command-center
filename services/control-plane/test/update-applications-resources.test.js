@@ -5,7 +5,8 @@ const { test } = require('node:test')
 const {
   startControlPlane,
   startMachinist,
-  startMainService
+  startMainService,
+  generateK8sHeader
 } = require('./helper')
 
 test('should update application resources', async (t) => {
@@ -144,7 +145,8 @@ test('should detect a new pod after updating application resources', async (t) =
       method: 'POST',
       url: `/pods/${podId}/instance`,
       headers: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        'x-k8s': generateK8sHeader(podId)
       },
       body: { applicationName }
     })

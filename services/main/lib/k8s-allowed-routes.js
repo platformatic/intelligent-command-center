@@ -11,6 +11,7 @@ const k8sAllowedRoutes = [
   ['/risk-manager/db-schema', ['POST']],
   ['/compliance/metadata', ['POST']],
   ['/compliance/compliance', ['POST']],
+  [/\/api\/updates\/applications\/[a-zA-z0-9-]+/, ['GET']],
   [/\/control-plane\/pods\/[a-zA-z0-9-]+\/instance/, ['POST']],
   [/\/control-plane\/pods\/[a-zA-z0-9-]+\/instance\/state/, ['POST']],
   [/\/compliance\/metadata/, ['POST']]
