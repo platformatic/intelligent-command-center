@@ -96,7 +96,7 @@ module.exports = fp(async function (fastify, opts) {
   }
 
   async function getDetectedPodDetails (podId) {
-    const url = controlPlaneUrl + '/detectedPods'
+    const url = controlPlaneUrl + '/instances'
     const { statusCode, body } = await request(url, {
       query: {
         'where.podId.eq': podId

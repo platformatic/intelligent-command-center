@@ -99,8 +99,8 @@ async function startControlPlane (t, entities = {}, env = {}) {
   }
 
   app.decorate('testApi', {
-    saveDetectedPod: async (applicationName, imageId, podId) => {
-      return app.saveDetectedPod(applicationName, imageId, podId, testCtx)
+    saveInstance: async (applicationName, imageId, podId) => {
+      return app.saveInstance(applicationName, imageId, podId, testCtx)
     }
   })
 
@@ -113,7 +113,7 @@ async function startControlPlane (t, entities = {}, env = {}) {
   await db.query(sql`DELETE FROM "generations_deployments"`)
   await db.query(sql`DELETE FROM "generations_applications_configs"`)
   await db.query(sql`DELETE FROM "graphs"`)
-  await db.query(sql`DELETE FROM "detected_pods"`)
+  await db.query(sql`DELETE FROM "instances"`)
   await db.query(sql`DELETE FROM "deployments"`)
   await db.query(sql`DELETE FROM "application_states"`)
   await db.query(sql`DELETE FROM "applications_configs"`)
@@ -175,11 +175,11 @@ async function startControlPlane (t, entities = {}, env = {}) {
   }
 
   if (
-    entities.detectedPods !== undefined &&
-    entities.detectedPods.length > 0
+    entities.instances !== undefined &&
+    entities.instances.length > 0
   ) {
-    await app.platformatic.entities.detectedPod.insert({
-      inputs: entities.detectedPods
+    await app.platformatic.entities.instance.insert({
+      inputs: entities.instances
     })
   }
 
@@ -296,7 +296,7 @@ function generateDeployment (
   }
 }
 
-function generateDetectedPod (
+function generateInstance (
   applicationId,
   deploymentId,
   podId,
@@ -474,7 +474,7 @@ module.exports = {
   generateApplicationState,
   generateApplicationConfig,
   generateDeployment,
-  generateDetectedPod,
+  generateInstance,
   generateGraph,
   generateK8sAuthContext,
   generateK8sHeader,

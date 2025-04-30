@@ -1,8 +1,8 @@
 /**
- * DetectedPod
- * A DetectedPod
+ * Instance
+ * A Instance
  */
-declare interface DetectedPod {
+declare interface Instance {
     id?: string;
     applicationId: string;
     createdAt?: string | null;
@@ -10,4 +10,4 @@ declare interface DetectedPod {
     podId: string;
     status: "running" | "starting" | "stopped";
 }
-export { DetectedPod };
+export { Instance };

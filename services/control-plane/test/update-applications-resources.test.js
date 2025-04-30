@@ -19,7 +19,7 @@ test('should update application resources', async (t) => {
 
   const controlPlane = await startControlPlane(t)
 
-  const { application } = await controlPlane.testApi.saveDetectedPod(
+  const { application } = await controlPlane.testApi.saveInstance(
     'test-app',
     'test-image',
     'test-pod'
@@ -111,8 +111,8 @@ test('should detect a new pod after updating application resources', async (t) =
 
   const {
     application,
-    detectedPod
-  } = await controlPlane.testApi.saveDetectedPod(
+    instance
+  } = await controlPlane.testApi.saveInstance(
     'test-app',
     'test-image',
     'test-pod'
@@ -139,7 +139,7 @@ test('should detect a new pod after updating application resources', async (t) =
 
   {
     const applicationName = application.name
-    const podId = detectedPod.podId
+    const podId = instance.podId
 
     const { statusCode, body } = await controlPlane.inject({
       method: 'POST',

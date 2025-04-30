@@ -56,7 +56,7 @@ test('should get a generation graph', async (t) => {
   const {
     application: application1,
     deployment: deployment1
-  } = await controlPlane.testApi.saveDetectedPod(
+  } = await controlPlane.testApi.saveInstance(
     'test-app-1',
     'test-image-1',
     'test-pod-1'
@@ -66,7 +66,7 @@ test('should get a generation graph', async (t) => {
     generation,
     application: application2,
     deployment: deployment2
-  } = await controlPlane.testApi.saveDetectedPod(
+  } = await controlPlane.testApi.saveInstance(
     'test-app-2',
     'test-image-2',
     'test-pod-2'
@@ -289,7 +289,7 @@ test('should get a previous generation graph', async (t) => {
   })
 
   await startMachinist(t, {
-    getPodDetails: (podId) => ({ image: 'test-image-2' })
+    getPodDetails: () => ({ image: 'test-image-2' })
   })
   await startMainService(t)
 
@@ -300,7 +300,7 @@ test('should get a previous generation graph', async (t) => {
     generation: generation1,
     application,
     deployment
-  } = await controlPlane.testApi.saveDetectedPod(
+  } = await controlPlane.testApi.saveInstance(
     'test-app-1',
     'test-image-1',
     'test-pod-1'

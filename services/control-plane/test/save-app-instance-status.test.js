@@ -9,7 +9,7 @@ const {
   generateGeneration,
   generateApplication,
   generateDeployment,
-  generateDetectedPod,
+  generateInstance,
   generateK8sHeader
 } = require('./helper')
 
@@ -20,11 +20,11 @@ test('should save a "running" app instance status', async (t) => {
   const deployment = generateDeployment(application.id)
   deployment.status = 'starting'
 
-  const detectedPod = generateDetectedPod(
+  const instance = generateInstance(
     application.id,
     deployment.id
   )
-  detectedPod.status = 'starting'
+  instance.status = 'starting'
 
   const events = []
   await startActivities(t, {
@@ -35,15 +35,15 @@ test('should save a "running" app instance status', async (t) => {
     generations: [generation],
     applications: [application],
     deployments: [deployment],
-    detectedPods: [detectedPod]
+    instances: [instance]
   })
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${detectedPod.podId}/instance/status`,
+    url: `/pods/${instance.podId}/instance/status`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(detectedPod.podId)
+      'x-k8s': generateK8sHeader(instance.podId)
     },
     body: { status: 'running' }
   })
@@ -60,11 +60,11 @@ test('should save a "running" app instance status', async (t) => {
   assert.strictEqual(foundDeployment.id, deployment.id)
   assert.strictEqual(foundDeployment.status, 'started')
 
-  const detectedPods = await entities.detectedPod.find()
-  assert.strictEqual(detectedPods.length, 1)
+  const instances = await entities.instance.find()
+  assert.strictEqual(instances.length, 1)
 
-  const foundDetectedPod = detectedPods[0]
-  assert.strictEqual(foundDetectedPod.id, detectedPod.id)
+  const foundInstance = instances[0]
+  assert.strictEqual(foundInstance.id, instance.id)
 
   // assert.strictEqual(events.length, 1)
   //
@@ -82,11 +82,11 @@ test('should set "started" deployment status if it is already set to "failed"', 
   const deployment = generateDeployment(application.id)
   deployment.status = 'failed'
 
-  const detectedPod = generateDetectedPod(
+  const instance = generateInstance(
     application.id,
     deployment.id
   )
-  detectedPod.status = 'starting'
+  instance.status = 'starting'
 
   const events = []
   await startActivities(t, {
@@ -97,15 +97,15 @@ test('should set "started" deployment status if it is already set to "failed"', 
     generations: [generation],
     applications: [application],
     deployments: [deployment],
-    detectedPods: [detectedPod]
+    instances: [instance]
   })
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${detectedPod.podId}/instance/status`,
+    url: `/pods/${instance.podId}/instance/status`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(detectedPod.podId)
+      'x-k8s': generateK8sHeader(instance.podId)
     },
     body: { status: 'running' }
   })
@@ -121,12 +121,12 @@ test('should set "started" deployment status if it is already set to "failed"', 
   assert.strictEqual(foundDeployment.id, deployment.id)
   assert.strictEqual(foundDeployment.status, 'started')
 
-  const detectedPods = await entities.detectedPod.find()
-  assert.strictEqual(detectedPods.length, 1)
+  const instances = await entities.instance.find()
+  assert.strictEqual(instances.length, 1)
 
-  const foundDetectedPod = detectedPods[0]
-  assert.strictEqual(foundDetectedPod.id, detectedPod.id)
-  assert.strictEqual(foundDetectedPod.status, 'running')
+  const foundInstance = instances[0]
+  assert.strictEqual(foundInstance.id, instance.id)
+  assert.strictEqual(foundInstance.status, 'running')
 
   // assert.strictEqual(events.length, 1)
   //
@@ -144,11 +144,11 @@ test('should set "failed" app instance status', async (t) => {
   const deployment = generateDeployment(application.id)
   deployment.status = 'starting'
 
-  const detectedPod = generateDetectedPod(
+  const instance = generateInstance(
     application.id,
     deployment.id
   )
-  detectedPod.status = 'starting'
+  instance.status = 'starting'
 
   const events = []
   await startActivities(t, {
@@ -159,15 +159,15 @@ test('should set "failed" app instance status', async (t) => {
     generations: [generation],
     applications: [application],
     deployments: [deployment],
-    detectedPods: [detectedPod]
+    instances: [instance]
   })
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${detectedPod.podId}/instance/status`,
+    url: `/pods/${instance.podId}/instance/status`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(detectedPod.podId)
+      'x-k8s': generateK8sHeader(instance.podId)
     },
     body: { status: 'stopped' }
   })
@@ -183,12 +183,12 @@ test('should set "failed" app instance status', async (t) => {
   assert.strictEqual(foundDeployment.id, deployment.id)
   assert.strictEqual(foundDeployment.status, 'failed')
 
-  const detectedPods = await entities.detectedPod.find()
-  assert.strictEqual(detectedPods.length, 1)
+  const instances = await entities.instance.find()
+  assert.strictEqual(instances.length, 1)
 
-  const foundDetectedPod = detectedPods[0]
-  assert.strictEqual(foundDetectedPod.id, detectedPod.id)
-  assert.strictEqual(foundDetectedPod.status, 'stopped')
+  const foundInstance = instances[0]
+  assert.strictEqual(foundInstance.id, instance.id)
+  assert.strictEqual(foundInstance.status, 'stopped')
 
   // assert.strictEqual(events.length, 1)
   //

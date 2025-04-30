@@ -9,7 +9,7 @@ const {
   generateApplication,
   generateApplicationState,
   generateDeployment,
-  generateDetectedPod,
+  generateInstance,
   generateK8sHeader
 } = require('./helper')
 
@@ -21,11 +21,11 @@ test('should save a application instance state', async (t) => {
   const deployment1 = generateDeployment(application1.id)
   const deployment2 = generateDeployment(application2.id)
 
-  const detectedPod1 = generateDetectedPod(
+  const instance1 = generateInstance(
     application1.id,
     deployment1.id
   )
-  const detectedPod2 = generateDetectedPod(
+  const instance2 = generateInstance(
     application2.id,
     deployment2.id
   )
@@ -34,7 +34,7 @@ test('should save a application instance state', async (t) => {
     generations: [generation],
     applications: [application1, application2],
     deployments: [deployment1, deployment2],
-    detectedPods: [detectedPod1, detectedPod2]
+    instances: [instance1, instance2]
   })
 
   const serviceMetadata1 = {
@@ -53,10 +53,10 @@ test('should save a application instance state', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${detectedPod1.podId}/instance/state`,
+    url: `/pods/${instance1.podId}/instance/state`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(detectedPod1.podId)
+      'x-k8s': generateK8sHeader(instance1.podId)
     },
     body: {
       metadata: {
@@ -104,7 +104,7 @@ test('should not set app instance state if it is already set', async (t) => {
 
   const applicationState = generateApplicationState(application.id)
   const deployment = generateDeployment(application.id, applicationState.id)
-  const detectedPod = generateDetectedPod(
+  const instance = generateInstance(
     application.id,
     deployment.id
   )
@@ -113,7 +113,7 @@ test('should not set app instance state if it is already set', async (t) => {
     generations: [generation],
     applications: [application],
     deployments: [deployment],
-    detectedPods: [detectedPod],
+    instances: [instance],
     applicationStates: [applicationState]
   })
 
@@ -126,10 +126,10 @@ test('should not set app instance state if it is already set', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${detectedPod.podId}/instance/state`,
+    url: `/pods/${instance.podId}/instance/state`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(detectedPod.podId)
+      'x-k8s': generateK8sHeader(instance.podId)
     },
     body: {
       metadata: {
