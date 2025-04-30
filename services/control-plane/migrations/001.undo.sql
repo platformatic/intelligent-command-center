@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS generations_deployments;
 DROP TABLE IF EXISTS generations_applications_configs;
 DROP TABLE IF EXISTS graphs;
-DROP TABLE IF EXISTS detected_pods;
+DROP TABLE IF EXISTS instances;
 DROP TABLE IF EXISTS applications_configs;
 DROP TABLE IF EXISTS deployments;
 DROP TABLE IF EXISTS application_states;

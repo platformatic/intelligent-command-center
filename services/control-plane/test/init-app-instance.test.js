@@ -14,7 +14,7 @@ const {
 
 const { startCompliance } = require('../../compliance/test/helper')
 
-test('should save a detected pod of a new application', async (t) => {
+test('should save an instance of a new application', async (t) => {
   const applicationName = 'test-app'
   const podId = randomUUID()
   const imageId = randomUUID()
@@ -117,14 +117,14 @@ test('should save a detected pod of a new application', async (t) => {
   assert.strictEqual(foundGenerationDeployment.generationId, generation.id)
   assert.strictEqual(foundGenerationDeployment.deploymentId, deployment.id)
 
-  const detectedPods = await entities.detectedPod.find()
-  assert.strictEqual(detectedPods.length, 1)
+  const instances = await entities.instance.find()
+  assert.strictEqual(instances.length, 1)
 
-  const detectedPod = detectedPods[0]
-  assert.strictEqual(detectedPod.applicationId, application.id)
-  assert.strictEqual(detectedPod.deploymentId, deployment.id)
-  assert.strictEqual(detectedPod.podId, podId)
-  assert.strictEqual(detectedPod.status, 'starting')
+  const instance = instances[0]
+  assert.strictEqual(instance.applicationId, application.id)
+  assert.strictEqual(instance.deploymentId, deployment.id)
+  assert.strictEqual(instance.podId, podId)
+  assert.strictEqual(instance.status, 'starting')
 
   const foundAppConfigs = await entities.applicationsConfig.find()
   assert.strictEqual(foundAppConfigs.length, 1)
@@ -173,7 +173,7 @@ test('should save a detected pod of a new application', async (t) => {
   })
 })
 
-test('should save a new detected pod with the same image', async (t) => {
+test('should save a new app instance with the same image', async (t) => {
   const applicationName = 'test-app'
   const podId = 'test-pod-3'
   const imageId = 'test-image-1'
@@ -193,7 +193,7 @@ test('should save a new detected pod with the same image', async (t) => {
     generation: generation1,
     application: application1,
     deployment: deployment1
-  } = await controlPlane.testApi.saveDetectedPod(
+  } = await controlPlane.testApi.saveInstance(
     applicationName,
     imageId,
     'test-pod-1'
@@ -203,7 +203,7 @@ test('should save a new detected pod with the same image', async (t) => {
     generation: generation2,
     application: application2,
     deployment: deployment2
-  } = await controlPlane.testApi.saveDetectedPod(
+  } = await controlPlane.testApi.saveInstance(
     'test-app-2',
     'test-image-2',
     'test-pod-2'
@@ -279,14 +279,14 @@ test('should save a new detected pod with the same image', async (t) => {
     assert.strictEqual(generation2Deployment2.id, deployment2.id)
   }
 
-  const detectedPods = await entities.detectedPod.find()
-  assert.strictEqual(detectedPods.length, 3)
+  const instances = await entities.instance.find()
+  assert.strictEqual(instances.length, 3)
 
-  const detectedPod3 = detectedPods.find((i) => i.podId === podId)
-  assert.strictEqual(detectedPod3.applicationId, application1.id)
-  assert.strictEqual(detectedPod3.deploymentId, deployment1.id)
-  assert.strictEqual(detectedPod3.podId, podId)
-  assert.strictEqual(detectedPod3.status, 'starting')
+  const instance3 = instances.find((i) => i.podId === podId)
+  assert.strictEqual(instance3.applicationId, application1.id)
+  assert.strictEqual(instance3.deploymentId, deployment1.id)
+  assert.strictEqual(instance3.podId, podId)
+  assert.strictEqual(instance3.status, 'starting')
 
   const foundAppConfigs = await entities.applicationsConfig.find()
   assert.strictEqual(foundAppConfigs.length, 2)
@@ -349,8 +349,8 @@ test('should detect the same pod with the same image', async (t) => {
     generation: generation1,
     application: application1,
     deployment: deployment1,
-    detectedPod: detectedPod1
-  } = await controlPlane.testApi.saveDetectedPod(
+    instance: instance1
+  } = await controlPlane.testApi.saveInstance(
     applicationName,
     imageId,
     podId
@@ -401,15 +401,15 @@ test('should detect the same pod with the same image', async (t) => {
   assert.strictEqual(foundDeployment1.imageId, imageId)
   assert.strictEqual(foundDeployment1.status, 'starting')
 
-  const detectedPods = await entities.detectedPod.find()
-  assert.strictEqual(detectedPods.length, 1)
+  const instances = await entities.instance.find()
+  assert.strictEqual(instances.length, 1)
 
-  const foundDetectedPod = detectedPods[0]
-  assert.strictEqual(foundDetectedPod.id, detectedPod1.id)
-  assert.strictEqual(foundDetectedPod.applicationId, application1.id)
-  assert.strictEqual(foundDetectedPod.deploymentId, deployment1.id)
-  assert.strictEqual(foundDetectedPod.podId, podId)
-  assert.strictEqual(foundDetectedPod.status, 'starting')
+  const foundInstance = instances[0]
+  assert.strictEqual(foundInstance.id, instance1.id)
+  assert.strictEqual(foundInstance.applicationId, application1.id)
+  assert.strictEqual(foundInstance.deploymentId, deployment1.id)
+  assert.strictEqual(foundInstance.podId, podId)
+  assert.strictEqual(foundInstance.status, 'starting')
 
   const foundAppConfigs = await entities.applicationsConfig.find()
   assert.strictEqual(foundAppConfigs.length, 1)
@@ -434,7 +434,7 @@ test('should detect the same pod with the same image', async (t) => {
   assert.strictEqual(activities.length, 0)
 })
 
-test('should save an detected pod with a different image', async (t) => {
+test('should save an app instance with a different image', async (t) => {
   const applicationName = 'test-app-1'
   const imageId = 'test-image-3'
   const podId = 'test-pod-3'
@@ -450,12 +450,12 @@ test('should save an detected pod with a different image', async (t) => {
 
   const controlPlane = await startControlPlane(t)
 
-  const { application: application1 } = await controlPlane.testApi.saveDetectedPod(
+  const { application: application1 } = await controlPlane.testApi.saveInstance(
     applicationName,
     'test-image-1',
     'test-pod-1'
   )
-  const { application: application2 } = await controlPlane.testApi.saveDetectedPod(
+  const { application: application2 } = await controlPlane.testApi.saveInstance(
     'test-app-2',
     'test-image-2',
     'test-pod-2'
@@ -512,16 +512,16 @@ test('should save an detected pod with a different image', async (t) => {
   assert.strictEqual(deployment3.imageId, imageId)
   assert.strictEqual(deployment3.status, 'starting')
 
-  const detectedPods = await entities.detectedPod.find()
-  assert.strictEqual(detectedPods.length, 3)
+  const instances = await entities.instance.find()
+  assert.strictEqual(instances.length, 3)
 
-  const detectedPod3 = detectedPods.find(
+  const instance3 = instances.find(
     (i) => i.deploymentId === deployment3.id
   )
-  assert.strictEqual(detectedPod3.applicationId, application1.id)
-  assert.strictEqual(detectedPod3.deploymentId, deployment3.id)
-  assert.strictEqual(detectedPod3.podId, podId)
-  assert.strictEqual(detectedPod3.status, 'starting')
+  assert.strictEqual(instance3.applicationId, application1.id)
+  assert.strictEqual(instance3.deploymentId, deployment3.id)
+  assert.strictEqual(instance3.podId, podId)
+  assert.strictEqual(instance3.status, 'starting')
 
   const foundAppConfigs = await entities.applicationsConfig.find()
   assert.strictEqual(foundAppConfigs.length, 2)
@@ -563,7 +563,7 @@ test('should save an detected pod with a different image', async (t) => {
   assert.deepStrictEqual(deployAppActivity.data, { applicationName, imageId })
 })
 
-test('should save a lot of simultaneous detected pods of different applications', async (t) => {
+test('should save a lot of simultaneous instances of different applications', async (t) => {
   const activities = []
   await startActivities(t, {
     saveEvent: (activity) => activities.push(activity)
@@ -607,7 +607,7 @@ test('should save a lot of simultaneous detected pods of different applications'
   const cacheUsernames = new Set()
   const cachePasswords = new Set()
 
-  const saveDetectedPod = async (params) => {
+  const saveInstance = async (params) => {
     const { statusCode, body } = await controlPlane.inject({
       method: 'POST',
       url: `/pods/${params.podId}/instance`,
@@ -629,7 +629,7 @@ test('should save a lot of simultaneous detected pods of different applications'
     cachePasswords.add(password)
   }
 
-  await Promise.all(params.map(saveDetectedPod))
+  await Promise.all(params.map(saveInstance))
 
   const { entities } = controlPlane.platformatic
 
@@ -648,8 +648,8 @@ test('should save a lot of simultaneous detected pods of different applications'
   const deployments = await entities.deployment.find()
   assert.strictEqual(deployments.length, APPS_COUNT)
 
-  const detectedPods = await entities.detectedPod.find()
-  assert.strictEqual(detectedPods.length, params.length)
+  const instances = await entities.instance.find()
+  assert.strictEqual(instances.length, params.length)
 
   const configs = await entities.applicationsConfig.find()
   assert.strictEqual(configs.length, APPS_COUNT)
@@ -681,16 +681,16 @@ test('should save a lot of simultaneous detected pods of different applications'
     assert.strictEqual(deployment.status, 'starting')
     assert.strictEqual(deployment.imageId, imageId)
 
-    const applicationPods = detectedPods.filter(
+    const applicationPods = instances.filter(
       (i) => i.applicationId === application.id
     )
     assert.strictEqual(applicationPods.length, APP_PODS_COUNT)
 
-    for (const detectedPod of applicationPods) {
-      assert.strictEqual(detectedPod.applicationId, application.id)
-      assert.strictEqual(detectedPod.deploymentId, deployment.id)
-      assert.strictEqual(detectedPod.status, 'starting')
-      assert.ok(detectedPod.podId)
+    for (const instance of applicationPods) {
+      assert.strictEqual(instance.applicationId, application.id)
+      assert.strictEqual(instance.deploymentId, deployment.id)
+      assert.strictEqual(instance.status, 'starting')
+      assert.ok(instance.podId)
     }
 
     const applicationActivities = activities.filter(
