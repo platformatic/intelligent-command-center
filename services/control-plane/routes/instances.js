@@ -235,11 +235,11 @@ module.exports = fp(async function (app) {
       throw new errors.PodIdNotAuthorized(podId, jwtPodId)
     }
 
-    const podNamespace = k8sContext.namespace
-    if (!podNamespace) {
+    const namespace = k8sContext.namespace
+    if (!namespace) {
       throw new errors.PodNamespaceNotFound(podId)
     }
 
-    return { podId, podNamespace }
+    return { podId, namespace }
   }
 })
