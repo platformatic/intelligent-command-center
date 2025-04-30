@@ -49,7 +49,7 @@ CREATE TABLE deployments (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE detected_pods (
+CREATE TABLE instances (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   application_id uuid NOT NULL REFERENCES applications(id),
   deployment_id uuid REFERENCES deployments(id),
@@ -57,7 +57,7 @@ CREATE TABLE detected_pods (
   status instance_status NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-  CONSTRAINT detected_pods_unique UNIQUE (deployment_id, pod_id)
+  CONSTRAINT instances_unique UNIQUE (deployment_id, pod_id)
 );
 
 CREATE TABLE generations_deployments (

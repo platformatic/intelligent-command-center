@@ -23,8 +23,8 @@ module.exports = {
   DeploymentNotFound: createError(
     `${ERROR_PREFIX}_DEPLOYMENT_NOT_FOUND`, 'Deployment with id "%s" not found', 404
   ),
-  DeploymentHasNoPods: createError(
-    `${ERROR_PREFIX}_DEPLOYMENT_HAS_NO_PODS`, 'Deployment with id "%s" has no pods', 404
+  DeploymentHasNoInstances: createError(
+    `${ERROR_PREFIX}_DEPLOYMENT_HAS_NO_INSTANCES`, 'Deployment with id "%s" has no instances', 404
   ),
   FailedToCreateValkeyUser: createError(
     `${ERROR_PREFIX}_FAILED_TO_CREATE_VALKEY_USER`, 'Failed to create Valkey user: %s'
@@ -35,8 +35,8 @@ module.exports = {
   FailedToRemoveValkeyUser: createError(
     `${ERROR_PREFIX}_FAILED_TO_REMOVE_VALKEY_USER`, 'Failed to remove Valkey user: %s'
   ),
-  DetectedPodNotFound: createError(
-    `${ERROR_PREFIX}_DETECTED_POD_NOT_FOUND`, 'Detected pod "%s" not found', 404
+  InstanceNotFound: createError(
+    `${ERROR_PREFIX}_INSTANCE_NOT_FOUND`, 'Application instance "%s" not found', 404
   ),
   PodAssignedToDifferentImage: createError(
     `${ERROR_PREFIX}_POD_ASSIGNED_TO_DIFFERENT_IMAGE`,
@@ -65,9 +65,9 @@ module.exports = {
     `${ERROR_PREFIX}_CACHE_PROVIDER_NOT_SETUP`,
     'The setup function was not run for this Cache provider'
   ),
-  FailedToGetPodDetails: createError(
-    `${ERROR_PREFIX}_FAILED_TO_GET_POD_DETAILS`,
-    'Failed to get pod details'
+  FailedToGetInstanceDetails: createError(
+    `${ERROR_PREFIX}_FAILED_TO_GET_INSTANCE_DETAILS`,
+    'Failed to get application instance details'
   ),
   FailedToSaveUpdate: createError(
     `${ERROR_PREFIX}_FAILED_TO_SAVE_UPDATE`,

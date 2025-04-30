@@ -92,7 +92,7 @@ const plugin = fp(async function (app) {
         resources: newApplicationConfig.resources
       }
     }).catch((err) => {
-      ctx.logger.error({ err }, 'Failed to send notification to pods')
+      ctx.logger.error({ err }, 'Failed to send notification to app instance')
     })
   })
 }, {

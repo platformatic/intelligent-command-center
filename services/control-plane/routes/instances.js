@@ -148,21 +148,21 @@ module.exports = fp(async function (app) {
     handler: async (req) => {
       const { podId } = authK8sPodRequest(req.params.id, req.k8s)
 
-      const detectedPod = await app.getDetectedPodByPodId(podId)
-      if (detectedPod === null) {
-        throw new errors.DetectedPodNotFound(podId)
+      const instance = await app.getInstanceByPodId(podId)
+      if (instance === null) {
+        throw new errors.InstanceNotFound(podId)
       }
 
       const { status } = req.body
 
       const logger = req.log.child({
-        applicationId: detectedPod.applicationId,
+        applicationId: instance.applicationId,
         podId
       })
 
       const ctx = { req, logger }
 
-      await app.saveApplicationInstanceStatus(detectedPod, status, ctx)
+      await app.saveApplicationInstanceStatus(instance, status, ctx)
       return {}
     }
   })
@@ -202,22 +202,22 @@ module.exports = fp(async function (app) {
     handler: async (req) => {
       const { podId } = authK8sPodRequest(req.params.id, req.k8s)
 
-      const detectedPod = await app.getDetectedPodByPodId(podId)
-      if (detectedPod === null) {
-        throw new errors.DetectedPodNotFound(podId)
+      const instance = await app.getInstanceByPodId(podId)
+      if (instance === null) {
+        throw new errors.InstanceNotFound(podId)
       }
 
       const { metadata, services } = req.body
 
       const logger = req.log.child({
-        applicationId: detectedPod.applicationId,
+        applicationId: instance.applicationId,
         podId
       })
 
       const ctx = { req, logger }
 
       await app.saveApplicationInstanceState(
-        detectedPod,
+        instance,
         { metadata, services },
         ctx
       )

@@ -115,7 +115,7 @@ module.exports.startControlPlane = async function (t, opts = {}) {
     return opts.savePodStatus?.({ podId, status })
   })
 
-  app.get('/detectedPods', async (request) => {
+  app.get('/instances', async (request) => {
     const podId = request.query['where.podId.eq']
     const podDetails = await opts.getPodDetails?.({ podId })
     return [podDetails]
