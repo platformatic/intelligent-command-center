@@ -96,8 +96,11 @@ module.exports = fp(async function (fastify, opts) {
   }
 
   async function getDetectedPodDetails (podId) {
-    const url = controlPlaneUrl + `/detectedPods/${podId}`
+    const url = controlPlaneUrl + '/detectedPods'
     const { statusCode, body } = await request(url, {
+      query: {
+        'where.podId.eq': podId
+      },
       dispatcher: retryDispatcher
     })
 
@@ -107,7 +110,7 @@ module.exports = fp(async function (fastify, opts) {
     }
 
     const podDetails = await body.json()
-    return podDetails
+    return podDetails.length > 0 ? podDetails[0] : null
   }
 }, {
   name: 'websocket',
