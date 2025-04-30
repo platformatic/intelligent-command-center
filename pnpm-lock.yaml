@@ -14,6 +14,9 @@ importers:
       fastify:
         specifier: ^5.2.1
         version: 5.3.2
+      fastify-plugin:
+        specifier: ^5.0.1
+        version: 5.0.1
       platformatic:
         specifier: ^2.50.0
         version: 2.62.1

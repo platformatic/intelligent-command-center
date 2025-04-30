@@ -6,7 +6,7 @@ const { once } = require('node:events')
 const { setTimeout: sleep } = require('node:timers/promises')
 const { request, MockAgent, setGlobalDispatcher } = require('undici')
 const WebSocket = require('ws')
-const { getServer, startControlPlane } = require('../helper')
+const { getServer, startControlPlane, startK8sAuthService } = require('../helper')
 
 const agent = new MockAgent()
 setGlobalDispatcher(agent)
@@ -75,21 +75,36 @@ test('the icc event should be sent to the websocket', async (t) => {
 })
 
 test('the application event should be sent to the websocket', async (t) => {
+  const podId = '33'
+  const applicationId = 'test-app-id'
+
   const podStatusChanges = []
   const controlPlaneUrl = await startControlPlane(t, {
     savePodStatus: async ({ podId, status }) => {
       podStatusChanges.push({ podId, status })
+    },
+    getPodDetails: async ({ podId }) => {
+      return { id: podId, applicationId }
     }
   })
 
+  const k8sAuth = await startK8sAuthService(t)
+
   const server = await getServer(t, {
-    PLT_CONTROL_PLANE_URL: controlPlaneUrl
+    PLT_CONTROL_PLANE_URL: controlPlaneUrl,
+    PLT_DISABLE_K8S_AUTH: false
   })
+
   const url = await server.start()
 
-  const wsUrl = url.replace('http', 'ws') + '/api/updates/applications/42?podId=33'
+  const jwt = k8sAuth.generateToken(podId)
+  const wsUrl = url.replace('http', 'ws') + `/api/updates/applications/${applicationId}`
 
-  const socket = new WebSocket(wsUrl)
+  const socket = new WebSocket(wsUrl, {
+    headers: {
+      Authorization: `Bearer ${jwt}`
+    }
+  })
   await once(socket, 'open')
 
   // subscribe to the topic
@@ -99,7 +114,7 @@ test('the application event should be sent to the websocket', async (t) => {
   assert.deepStrictEqual(JSON.parse(subscriptionAck[0]), { command: 'ack' })
 
   {
-    const { statusCode, body } = await request(`${url}/api/updates/applications/42`, {
+    const { statusCode, body } = await request(`${url}/api/updates/applications/${applicationId}`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json'
@@ -130,7 +145,7 @@ test('the application event should be sent to the websocket', async (t) => {
   assert.deepStrictEqual(JSON.parse(unsubscriptionAck[0]), { command: 'ack' })
 
   assert.deepStrictEqual(podStatusChanges, [
-    { podId: '33', status: 'running' }
+    { podId, status: 'running' }
   ])
 
   socket.close()
@@ -139,7 +154,7 @@ test('the application event should be sent to the websocket', async (t) => {
   await sleep(500)
 
   assert.deepStrictEqual(podStatusChanges, [
-    { podId: '33', status: 'running' },
-    { podId: '33', status: 'stopped' }
+    { podId, status: 'running' },
+    { podId, status: 'stopped' }
   ])
 })

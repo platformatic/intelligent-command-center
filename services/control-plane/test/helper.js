@@ -454,6 +454,15 @@ async function startMainService (t, opts = {}) {
   return main
 }
 
+function generateK8sAuthContext (podId, namespace) {
+  return { namespace, pod: { name: podId } }
+}
+
+function generateK8sHeader (podId, namespace) {
+  namespace = namespace || 'platformatic'
+  return JSON.stringify(generateK8sAuthContext(podId, namespace))
+}
+
 module.exports = {
   startControlPlane,
   startActivities,
@@ -467,5 +476,7 @@ module.exports = {
   generateDeployment,
   generateDetectedPod,
   generateGraph,
+  generateK8sAuthContext,
+  generateK8sHeader,
   defaultEnv
 }

@@ -76,5 +76,20 @@ module.exports = {
   CannotCreateComplianceRule: createError(
     `${ERROR_PREFIX}_CANNOT_CREATE_COMPLIANCE_RULE`,
     'Failed to create compliance rule: (%s) %s'
+  ),
+  MissingK8sAuthContext: createError(
+    `${ERROR_PREFIX}_MISSING_K8S_AUTH_CONTEXT`,
+    'Missing K8s auth context for pod "%s"',
+    401
+  ),
+  PodIdNotAuthorized: createError(
+    `${ERROR_PREFIX}_POD_ID_NOT_AUTHORIZED`,
+    'Request pod id "%s" does not match with a jwt pod id "%s"',
+    401
+  ),
+  PodNamespaceNotFound: createError(
+    `${ERROR_PREFIX}_POD_NAMESPACE_NOT_FOUND`,
+    'Pod "%s" namespace not found',
+    400
   )
 }
