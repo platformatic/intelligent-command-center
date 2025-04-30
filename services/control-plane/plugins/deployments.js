@@ -72,21 +72,21 @@ module.exports = fp(async function (app) {
 
     ctx.logger.info({ deploymentId }, 'Updating deployment status')
 
-    const detectedPods = await app.getDeploymentDetectedPods(deploymentId, ctx)
-    if (detectedPods.length === 0) {
-      ctx.logger.error({ deploymentId }, 'Deployment has no pods')
-      throw new errors.DeploymentHasNoPods(deployment.id)
+    const instances = await app.getDeploymentInstances(deploymentId, ctx)
+    if (instances.length === 0) {
+      ctx.logger.error({ deploymentId }, 'Deployment has no instances')
+      throw new errors.DeploymentHasNoInstances(deployment.id)
     }
 
     let status = 'failed'
-    for (const detectedPod of detectedPods) {
-      const podStatus = detectedPod.status
+    for (const instance of instances) {
+      const instanceStatus = instance.status
 
-      if (podStatus === 'running') {
+      if (instanceStatus === 'running') {
         status = 'started'
         break
       }
-      if (podStatus === 'starting') {
+      if (instanceStatus === 'starting') {
         status = 'starting'
       }
     }

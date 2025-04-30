@@ -1,9 +1,9 @@
 import type { PlatformaticApp, PlatformaticDBMixin, PlatformaticDBConfig, Entity, Entities, EntityHooks } from '@platformatic/db'
-import { EntityTypes, Application,ApplicationState,ApplicationsConfig,Deployment,DetectedPod,Generation,GenerationsApplicationsConfig,GenerationsDeployment,Graph } from './types'
+import { EntityTypes, Application,ApplicationState,ApplicationsConfig,Deployment,Generation,GenerationsApplicationsConfig,GenerationsDeployment,Graph,Instance } from './types'
 
 declare module 'fastify' {
   interface FastifyInstance {
-    getSchema<T extends 'Application' | 'ApplicationState' | 'ApplicationsConfig' | 'Deployment' | 'DetectedPod' | 'Generation' | 'GenerationsApplicationsConfig' | 'GenerationsDeployment' | 'Graph'>(schemaId: T): {
+    getSchema<T extends 'Application' | 'ApplicationState' | 'ApplicationsConfig' | 'Deployment' | 'Generation' | 'GenerationsApplicationsConfig' | 'GenerationsDeployment' | 'Graph' | 'Instance'>(schemaId: T): {
       '$id': string,
       title: string,
       description: string,
@@ -21,11 +21,11 @@ interface AppEntities extends Entities {
     applicationState: Entity<ApplicationState>,
     applicationsConfig: Entity<ApplicationsConfig>,
     deployment: Entity<Deployment>,
-    detectedPod: Entity<DetectedPod>,
     generation: Entity<Generation>,
     generationsApplicationsConfig: Entity<GenerationsApplicationsConfig>,
     generationsDeployment: Entity<GenerationsDeployment>,
     graph: Entity<Graph>,
+    instance: Entity<Instance>,
 }
 
 interface AppEntityHooks {
@@ -33,11 +33,11 @@ interface AppEntityHooks {
     addEntityHooks(entityName: 'applicationState', hooks: EntityHooks<ApplicationState>): any
     addEntityHooks(entityName: 'applicationsConfig', hooks: EntityHooks<ApplicationsConfig>): any
     addEntityHooks(entityName: 'deployment', hooks: EntityHooks<Deployment>): any
-    addEntityHooks(entityName: 'detectedPod', hooks: EntityHooks<DetectedPod>): any
     addEntityHooks(entityName: 'generation', hooks: EntityHooks<Generation>): any
     addEntityHooks(entityName: 'generationsApplicationsConfig', hooks: EntityHooks<GenerationsApplicationsConfig>): any
     addEntityHooks(entityName: 'generationsDeployment', hooks: EntityHooks<GenerationsDeployment>): any
     addEntityHooks(entityName: 'graph', hooks: EntityHooks<Graph>): any
+    addEntityHooks(entityName: 'instance', hooks: EntityHooks<Instance>): any
 }
 
 declare module 'fastify' {

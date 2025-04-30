@@ -7,19 +7,19 @@ const errors = require('./errors')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
-  app.decorate('getDetectedPodByPodId', async (podId) => {
-    const detectedPods = await app.platformatic.entities.detectedPod.find({
+  app.decorate('getInstanceByPodId', async (podId) => {
+    const instances = await app.platformatic.entities.instance.find({
       where: { podId: { eq: podId } }
     })
-    return detectedPods.length === 1 ? detectedPods[0] : null
+    return instances.length === 1 ? instances[0] : null
   })
 
-  app.decorate('getDeploymentDetectedPods', async (deploymentId, ctx) => {
-    const detectedPods = await app.platformatic.entities.detectedPod.find({
+  app.decorate('getDeploymentInstances', async (deploymentId, ctx) => {
+    const instances = await app.platformatic.entities.instance.find({
       where: { deploymentId: { eq: deploymentId } },
       tx: ctx?.tx
     })
-    return detectedPods
+    return instances
   })
 
   app.decorate('initApplicationInstance', async (
@@ -31,7 +31,7 @@ module.exports = fp(async function (app) {
     let application = null
     let deployment = null
 
-    ctx.logger.debug({ podId }, 'Getting detected pod')
+    ctx.logger.debug({ podId }, 'Getting application instance')
 
     const { image: imageId } = await app.machinist.getPodDetails(
       podId,
@@ -39,27 +39,27 @@ module.exports = fp(async function (app) {
       ctx
     )
 
-    const detectedPod = await app.getDetectedPodByPodId(podId)
-    if (detectedPod !== null) {
+    const instance = await app.getInstanceByPodId(podId)
+    if (instance !== null) {
       ([application, deployment] = await Promise.all([
-        app.getApplicationById(detectedPod.applicationId),
-        app.getDeploymentById(detectedPod.deploymentId)
+        app.getApplicationById(instance.applicationId),
+        app.getDeploymentById(instance.deploymentId)
       ]))
       if (applicationName !== application.name) {
         throw new errors.PodAssignedToDifferentApplication(
-          detectedPod.podId,
+          instance.podId,
           application.name
         )
       }
       if (imageId !== deployment.imageId) {
         throw new errors.PodAssignedToDifferentImage(
-          detectedPod.podId,
+          instance.podId,
           deployment.imageId
         )
       }
-      ctx.logger.debug({ detectedPod }, 'Got detected with the same pod id')
+      ctx.logger.debug({ instance }, 'Got app instance with the same pod id')
     } else {
-      const result = await app.saveDetectedPod(
+      const result = await app.saveInstance(
         applicationName, imageId, podId, ctx
       )
 
@@ -115,10 +115,10 @@ module.exports = fp(async function (app) {
     return { application, config, httpCache, iccServices }
   })
 
-  app.decorate('saveDetectedPod', async (applicationName, imageId, podId, ctx) => {
+  app.decorate('saveInstance', async (applicationName, imageId, podId, ctx) => {
     const { entities } = app.platformatic
 
-    ctx.logger.debug('Saving a new detected pod')
+    ctx.logger.debug('Saving a new application instance')
 
     return app.getGenerationLockTx(async (tx) => {
       ctx = { ...ctx, tx }
@@ -163,7 +163,7 @@ module.exports = fp(async function (app) {
         }, ctx)
       }
 
-      const detectedPod = await entities.detectedPod.save({
+      const instance = await entities.instance.save({
         input: {
           deploymentId: deployment.id,
           applicationId: application.id,
@@ -179,27 +179,27 @@ module.exports = fp(async function (app) {
         application,
         generation,
         deployment,
-        detectedPod
+        instance
       }
     }, ctx)
   })
 
-  app.decorate('getApplicationInstanceConfig', async (detectedPod, opts, ctx) => {
-    const application = await app.getApplicationById(detectedPod.applicationId)
+  app.decorate('getApplicationInstanceConfig', async (instance, opts, ctx) => {
+    const application = await app.getApplicationById(instance.applicationId)
     if (application === null) {
-      throw new errors.ApplicationNotFound(detectedPod.applicationId)
+      throw new errors.ApplicationNotFound(instance.applicationId)
     }
     return app.getApplicationConfig(application, opts, ctx)
   })
 
-  app.decorate('saveApplicationInstanceStatus', async (detectedPod, status, ctx) => {
-    if (detectedPod.status === status) return
+  app.decorate('saveApplicationInstanceStatus', async (instance, status, ctx) => {
+    if (instance.status === status) return
 
-    ctx.logger.debug({ status }, 'Saving detected pod status')
+    ctx.logger.debug({ status }, 'Saving app instance status')
 
-    const deployment = await app.getDeploymentById(detectedPod.deploymentId)
+    const deployment = await app.getDeploymentById(instance.deploymentId)
     if (deployment === null) {
-      throw new errors.DeploymentNotFound(detectedPod.deploymentId)
+      throw new errors.DeploymentNotFound(instance.deploymentId)
     }
 
     const { entities, db } = app.platformatic
@@ -207,25 +207,25 @@ module.exports = fp(async function (app) {
     await db.tx(async (tx) => {
       ctx = { ...ctx, tx }
 
-      const updatedPod = await entities.detectedPod.save({
-        input: { id: detectedPod.id, status },
+      const updatedInstance = await entities.instance.save({
+        input: { id: instance.id, status },
         tx
       })
       ctx.logger.debug(
-        { detectedPod: updatedPod },
-        'Saved detected pod with a new status'
+        { instance: updatedInstance },
+        'Saved app instance with a new status'
       )
 
       await app.updateDeploymentStatus(deployment, ctx)
     })
   })
 
-  app.decorate('saveApplicationInstanceState', async (detectedPod, state, ctx) => {
-    ctx.logger.debug({ state }, 'Saving detected pod state')
+  app.decorate('saveApplicationInstanceState', async (instance, state, ctx) => {
+    ctx.logger.debug({ state }, 'Saving app instance state')
 
-    const deployment = await app.getDeploymentById(detectedPod.deploymentId)
+    const deployment = await app.getDeploymentById(instance.deploymentId)
     if (deployment === null) {
-      throw new errors.DeploymentNotFound(detectedPod.deploymentId)
+      throw new errors.DeploymentNotFound(instance.deploymentId)
     }
 
     if (deployment.applicationStateId !== null) {
