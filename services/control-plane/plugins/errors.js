@@ -91,5 +91,9 @@ module.exports = {
     `${ERROR_PREFIX}_POD_NAMESPACE_NOT_FOUND`,
     'Pod "%s" namespace not found',
     400
+  ),
+  FailedToDecryptValkeyPassword: createError(
+    `${ERROR_PREFIX}_FAILED_TO_DECRYPT_VALKEY_PASSWORD`,
+    'Failed to decrypt valkey password for an application "%s"'
   )
 }

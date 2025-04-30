@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS generations_deployments;
 DROP TABLE IF EXISTS generations_applications_configs;
+DROP TABLE IF EXISTS valkey_users;
 DROP TABLE IF EXISTS graphs;
 DROP TABLE IF EXISTS instances;
 DROP TABLE IF EXISTS applications_configs;
