@@ -11,7 +11,7 @@ export default function ApplicationCard ({
   id,
   name = '',
   createdAt = '-',
-  url = '',
+  url = null,
   state = {},
   isDeployed
 }) {

@@ -4,6 +4,9 @@
 let baseUrl = ''
 // The default headers to send within each request. This can be overridden by calling `setDefaultHeaders`.
 let defaultHeaders = {}
+// The additional parameters you want to pass to the `fetch` instance.
+let defaultFetchParams = {}
+const defaultJsonType = { 'Content-type': 'application/json; charset=utf-8' }
 
 function sanitizeUrl (url) {
   if (url.endsWith('/')) { return url.slice(0, -1) } else { return url }
@@ -14,6 +17,9 @@ export const setBaseUrl = (newUrl) => { baseUrl = sanitizeUrl(newUrl) }
 /**  @type {import('./control-plane-types.d.ts').ControlPlane['setDefaultHeaders']} */
 export const setDefaultHeaders = (headers) => { defaultHeaders = headers }
 
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['setDefaultFetchParams']} */
+export const setDefaultFetchParams = (fetchParams) => { defaultFetchParams = fetchParams }
+
 function headersToJSON (headers) {
   const output = {}
   headers.forEach((value, key) => {
@@ -22,3157 +28,30 @@ function headersToJSON (headers) {
   return output
 }
 
-async function _getTaxonomies (url, request) {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.closedAt.eq', 'where.closedAt.neq', 'where.closedAt.gt', 'where.closedAt.gte', 'where.closedAt.lt', 'where.closedAt.lte', 'where.closedAt.like', 'where.closedAt.ilike', 'where.closedAt.in', 'where.closedAt.nin', 'where.closedAt.contains', 'where.closedAt.contained', 'where.closedAt.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.main.eq', 'where.main.neq', 'where.main.gt', 'where.main.gte', 'where.main.lt', 'where.main.lte', 'where.main.like', 'where.main.ilike', 'where.main.in', 'where.main.nin', 'where.main.contains', 'where.main.contained', 'where.main.overlaps', 'where.name.eq', 'where.name.neq', 'where.name.gt', 'where.name.gte', 'where.name.lt', 'where.name.lte', 'where.name.like', 'where.name.ilike', 'where.name.in', 'where.name.nin', 'where.name.contains', 'where.name.contained', 'where.name.overlaps', 'where.stage.eq', 'where.stage.neq', 'where.stage.gt', 'where.stage.gte', 'where.stage.lt', 'where.stage.lte', 'where.stage.like', 'where.stage.ilike', 'where.stage.in', 'where.stage.nin', 'where.stage.contains', 'where.stage.contained', 'where.stage.overlaps', 'where.status.eq', 'where.status.neq', 'where.status.gt', 'where.status.gte', 'where.status.lt', 'where.status.lte', 'where.status.like', 'where.status.ilike', 'where.status.in', 'where.status.nin', 'where.status.contains', 'where.status.contained', 'where.status.overlaps', 'where.or', 'orderby.closedAt', 'orderby.createdAt', 'orderby.id', 'orderby.main', 'orderby.name', 'orderby.stage', 'orderby.status']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomies/?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomies']} */
-export const getTaxonomies = async (request) => {
-  return await _getTaxonomies(baseUrl, request)
-}
-async function _createTaxonomy (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomies/`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['createTaxonomy']} */
-export const createTaxonomy = async (request) => {
-  return await _createTaxonomy(baseUrl, request)
-}
-async function _updateTaxonomies (url, request) {
-  const queryParameters = ['fields', 'where.closedAt.eq', 'where.closedAt.neq', 'where.closedAt.gt', 'where.closedAt.gte', 'where.closedAt.lt', 'where.closedAt.lte', 'where.closedAt.like', 'where.closedAt.ilike', 'where.closedAt.in', 'where.closedAt.nin', 'where.closedAt.contains', 'where.closedAt.contained', 'where.closedAt.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.main.eq', 'where.main.neq', 'where.main.gt', 'where.main.gte', 'where.main.lt', 'where.main.lte', 'where.main.like', 'where.main.ilike', 'where.main.in', 'where.main.nin', 'where.main.contains', 'where.main.contained', 'where.main.overlaps', 'where.name.eq', 'where.name.neq', 'where.name.gt', 'where.name.gte', 'where.name.lt', 'where.name.lte', 'where.name.like', 'where.name.ilike', 'where.name.in', 'where.name.nin', 'where.name.contains', 'where.name.contained', 'where.name.overlaps', 'where.stage.eq', 'where.stage.neq', 'where.stage.gt', 'where.stage.gte', 'where.stage.lt', 'where.stage.lte', 'where.stage.like', 'where.stage.ilike', 'where.stage.in', 'where.stage.nin', 'where.stage.contains', 'where.stage.contained', 'where.stage.overlaps', 'where.status.eq', 'where.status.neq', 'where.status.gt', 'where.status.gte', 'where.status.lt', 'where.status.lte', 'where.status.like', 'where.status.ilike', 'where.status.in', 'where.status.nin', 'where.status.contains', 'where.status.contained', 'where.status.overlaps', 'where.or']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomies/?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateTaxonomies']} */
-export const updateTaxonomies = async (request) => {
-  return await _updateTaxonomies(baseUrl, request)
-}
-async function _getTaxonomyById (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomyById']} */
-export const getTaxonomyById = async (request) => {
-  return await _getTaxonomyById(baseUrl, request)
-}
-async function _updateTaxonomy (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateTaxonomy']} */
-export const updateTaxonomy = async (request) => {
-  return await _updateTaxonomy(baseUrl, request)
-}
-async function _deleteTaxonomies (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}?${searchParams.toString()}`, {
-    method: 'DELETE',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteTaxonomies']} */
-export const deleteTaxonomies = async (request) => {
-  return await _deleteTaxonomies(baseUrl, request)
-}
-async function _getTaxonomiesApplicationsChangesForTaxonomy (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/taxonomiesApplicationsChangeTaxonomyId?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomiesApplicationsChangesForTaxonomy']} */
-export const getTaxonomiesApplicationsChangesForTaxonomy = async (request) => {
-  return await _getTaxonomiesApplicationsChangesForTaxonomy(baseUrl, request)
-}
-async function _getEnvironmentsForTaxonomy (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/environmentTaxonomyId?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getEnvironmentsForTaxonomy']} */
-export const getEnvironmentsForTaxonomy = async (request) => {
-  return await _getEnvironmentsForTaxonomy(baseUrl, request)
-}
-async function _getEntrypointsForTaxonomy (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/entrypointTaxonomyId?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getEntrypointsForTaxonomy']} */
-export const getEntrypointsForTaxonomy = async (request) => {
-  return await _getEntrypointsForTaxonomy(baseUrl, request)
-}
-async function _getDeploymentsForTaxonomy (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/deploymentTaxonomyId?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentsForTaxonomy']} */
-export const getDeploymentsForTaxonomy = async (request) => {
-  return await _getDeploymentsForTaxonomy(baseUrl, request)
-}
-async function _getGraphsForTaxonomy (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/graphTaxonomyId?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGraphsForTaxonomy']} */
-export const getGraphsForTaxonomy = async (request) => {
-  return await _getGraphsForTaxonomy(baseUrl, request)
-}
-async function _getGenerationsForTaxonomy (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/generations?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationsForTaxonomy']} */
-export const getGenerationsForTaxonomy = async (request) => {
-  return await _getGenerationsForTaxonomy(baseUrl, request)
-}
-async function _getTaxonomiesApplicationsChanges (url, request) {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or', 'orderby.applicationId', 'orderby.createdAt', 'orderby.id', 'orderby.taxonomyId']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomiesApplicationsChanges/?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomiesApplicationsChanges']} */
-export const getTaxonomiesApplicationsChanges = async (request) => {
-  return await _getTaxonomiesApplicationsChanges(baseUrl, request)
-}
-async function _createTaxonomiesApplicationsChange (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomiesApplicationsChanges/`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['createTaxonomiesApplicationsChange']} */
-export const createTaxonomiesApplicationsChange = async (request) => {
-  return await _createTaxonomiesApplicationsChange(baseUrl, request)
-}
-async function _updateTaxonomiesApplicationsChanges (url, request) {
-  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomiesApplicationsChanges/?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateTaxonomiesApplicationsChanges']} */
-export const updateTaxonomiesApplicationsChanges = async (request) => {
-  return await _updateTaxonomiesApplicationsChanges(baseUrl, request)
-}
-async function _getTaxonomiesApplicationsChangeById (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomiesApplicationsChanges/${request.id}?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomiesApplicationsChangeById']} */
-export const getTaxonomiesApplicationsChangeById = async (request) => {
-  return await _getTaxonomiesApplicationsChangeById(baseUrl, request)
-}
-async function _updateTaxonomiesApplicationsChange (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomiesApplicationsChanges/${request.id}?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateTaxonomiesApplicationsChange']} */
-export const updateTaxonomiesApplicationsChange = async (request) => {
-  return await _updateTaxonomiesApplicationsChange(baseUrl, request)
-}
-async function _deleteTaxonomiesApplicationsChanges (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomiesApplicationsChanges/${request.id}?${searchParams.toString()}`, {
-    method: 'DELETE',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteTaxonomiesApplicationsChanges']} */
-export const deleteTaxonomiesApplicationsChanges = async (request) => {
-  return await _deleteTaxonomiesApplicationsChanges(baseUrl, request)
-}
-async function _getTaxonomyForTaxonomiesApplicationsChange (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomiesApplicationsChanges/${request.id}/taxonomy?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomyForTaxonomiesApplicationsChange']} */
-export const getTaxonomyForTaxonomiesApplicationsChange = async (request) => {
-  return await _getTaxonomyForTaxonomiesApplicationsChange(baseUrl, request)
-}
-async function _getApplicationForTaxonomiesApplicationsChange (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomiesApplicationsChanges/${request.id}/application?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForTaxonomiesApplicationsChange']} */
-export const getApplicationForTaxonomiesApplicationsChange = async (request) => {
-  return await _getApplicationForTaxonomiesApplicationsChange(baseUrl, request)
-}
-async function _getEnvironments (url, request) {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.secretsKey.eq', 'where.secretsKey.neq', 'where.secretsKey.gt', 'where.secretsKey.gte', 'where.secretsKey.lt', 'where.secretsKey.lte', 'where.secretsKey.like', 'where.secretsKey.ilike', 'where.secretsKey.in', 'where.secretsKey.nin', 'where.secretsKey.contains', 'where.secretsKey.contained', 'where.secretsKey.overlaps', 'where.secretsStorageProvider.eq', 'where.secretsStorageProvider.neq', 'where.secretsStorageProvider.gt', 'where.secretsStorageProvider.gte', 'where.secretsStorageProvider.lt', 'where.secretsStorageProvider.lte', 'where.secretsStorageProvider.like', 'where.secretsStorageProvider.ilike', 'where.secretsStorageProvider.in', 'where.secretsStorageProvider.nin', 'where.secretsStorageProvider.contains', 'where.secretsStorageProvider.contained', 'where.secretsStorageProvider.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or', 'orderby.applicationId', 'orderby.createdAt', 'orderby.id', 'orderby.secretsKey', 'orderby.secretsStorageProvider', 'orderby.taxonomyId']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/environments/?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getEnvironments']} */
-export const getEnvironments = async (request) => {
-  return await _getEnvironments(baseUrl, request)
-}
-async function _createEnvironment (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/environments/`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['createEnvironment']} */
-export const createEnvironment = async (request) => {
-  return await _createEnvironment(baseUrl, request)
-}
-async function _updateEnvironments (url, request) {
-  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.secretsKey.eq', 'where.secretsKey.neq', 'where.secretsKey.gt', 'where.secretsKey.gte', 'where.secretsKey.lt', 'where.secretsKey.lte', 'where.secretsKey.like', 'where.secretsKey.ilike', 'where.secretsKey.in', 'where.secretsKey.nin', 'where.secretsKey.contains', 'where.secretsKey.contained', 'where.secretsKey.overlaps', 'where.secretsStorageProvider.eq', 'where.secretsStorageProvider.neq', 'where.secretsStorageProvider.gt', 'where.secretsStorageProvider.gte', 'where.secretsStorageProvider.lt', 'where.secretsStorageProvider.lte', 'where.secretsStorageProvider.like', 'where.secretsStorageProvider.ilike', 'where.secretsStorageProvider.in', 'where.secretsStorageProvider.nin', 'where.secretsStorageProvider.contains', 'where.secretsStorageProvider.contained', 'where.secretsStorageProvider.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/environments/?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateEnvironments']} */
-export const updateEnvironments = async (request) => {
-  return await _updateEnvironments(baseUrl, request)
-}
-async function _getEnvironmentById (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/environments/${request.id}?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getEnvironmentById']} */
-export const getEnvironmentById = async (request) => {
-  return await _getEnvironmentById(baseUrl, request)
-}
-async function _updateEnvironment (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/environments/${request.id}?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateEnvironment']} */
-export const updateEnvironment = async (request) => {
-  return await _updateEnvironment(baseUrl, request)
-}
-async function _deleteEnvironments (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/environments/${request.id}?${searchParams.toString()}`, {
-    method: 'DELETE',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteEnvironments']} */
-export const deleteEnvironments = async (request) => {
-  return await _deleteEnvironments(baseUrl, request)
-}
-async function _getTaxonomyForEnvironment (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/environments/${request.id}/taxonomy?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomyForEnvironment']} */
-export const getTaxonomyForEnvironment = async (request) => {
-  return await _getTaxonomyForEnvironment(baseUrl, request)
-}
-async function _getApplicationForEnvironment (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/environments/${request.id}/application?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForEnvironment']} */
-export const getApplicationForEnvironment = async (request) => {
-  return await _getApplicationForEnvironment(baseUrl, request)
-}
-async function _getEntrypoints (url, request) {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.path.eq', 'where.path.neq', 'where.path.gt', 'where.path.gte', 'where.path.lt', 'where.path.lte', 'where.path.like', 'where.path.ilike', 'where.path.in', 'where.path.nin', 'where.path.contains', 'where.path.contained', 'where.path.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or', 'orderby.applicationId', 'orderby.createdAt', 'orderby.id', 'orderby.path', 'orderby.taxonomyId']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/entrypoints/?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getEntrypoints']} */
-export const getEntrypoints = async (request) => {
-  return await _getEntrypoints(baseUrl, request)
-}
-async function _createEntrypoint (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/entrypoints/`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['createEntrypoint']} */
-export const createEntrypoint = async (request) => {
-  return await _createEntrypoint(baseUrl, request)
-}
-async function _updateEntrypoints (url, request) {
-  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.path.eq', 'where.path.neq', 'where.path.gt', 'where.path.gte', 'where.path.lt', 'where.path.lte', 'where.path.like', 'where.path.ilike', 'where.path.in', 'where.path.nin', 'where.path.contains', 'where.path.contained', 'where.path.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/entrypoints/?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateEntrypoints']} */
-export const updateEntrypoints = async (request) => {
-  return await _updateEntrypoints(baseUrl, request)
-}
-async function _getEntrypointById (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/entrypoints/${request.id}?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getEntrypointById']} */
-export const getEntrypointById = async (request) => {
-  return await _getEntrypointById(baseUrl, request)
-}
-async function _updateEntrypoint (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/entrypoints/${request.id}?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateEntrypoint']} */
-export const updateEntrypoint = async (request) => {
-  return await _updateEntrypoint(baseUrl, request)
-}
-async function _deleteEntrypoints (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/entrypoints/${request.id}?${searchParams.toString()}`, {
-    method: 'DELETE',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteEntrypoints']} */
-export const deleteEntrypoints = async (request) => {
-  return await _deleteEntrypoints(baseUrl, request)
-}
-async function _getTaxonomyForEntrypoint (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/entrypoints/${request.id}/taxonomy?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomyForEntrypoint']} */
-export const getTaxonomyForEntrypoint = async (request) => {
-  return await _getTaxonomyForEntrypoint(baseUrl, request)
-}
-async function _getApplicationForEntrypoint (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/entrypoints/${request.id}/application?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForEntrypoint']} */
-export const getApplicationForEntrypoint = async (request) => {
-  return await _getApplicationForEntrypoint(baseUrl, request)
-}
-async function _getApplicationStates (url, request) {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.pltVersion.eq', 'where.pltVersion.neq', 'where.pltVersion.gt', 'where.pltVersion.gte', 'where.pltVersion.lt', 'where.pltVersion.lte', 'where.pltVersion.like', 'where.pltVersion.ilike', 'where.pltVersion.in', 'where.pltVersion.nin', 'where.pltVersion.contains', 'where.pltVersion.contained', 'where.pltVersion.overlaps', 'where.state.eq', 'where.state.neq', 'where.state.gt', 'where.state.gte', 'where.state.lt', 'where.state.lte', 'where.state.like', 'where.state.ilike', 'where.state.in', 'where.state.nin', 'where.state.contains', 'where.state.contained', 'where.state.overlaps', 'where.or', 'orderby.applicationId', 'orderby.createdAt', 'orderby.id', 'orderby.pltVersion', 'orderby.state']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/applicationStates/?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationStates']} */
-export const getApplicationStates = async (request) => {
-  return await _getApplicationStates(baseUrl, request)
-}
-async function _createApplicationState (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/applicationStates/`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['createApplicationState']} */
-export const createApplicationState = async (request) => {
-  return await _createApplicationState(baseUrl, request)
-}
-async function _updateApplicationStates (url, request) {
-  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.pltVersion.eq', 'where.pltVersion.neq', 'where.pltVersion.gt', 'where.pltVersion.gte', 'where.pltVersion.lt', 'where.pltVersion.lte', 'where.pltVersion.like', 'where.pltVersion.ilike', 'where.pltVersion.in', 'where.pltVersion.nin', 'where.pltVersion.contains', 'where.pltVersion.contained', 'where.pltVersion.overlaps', 'where.state.eq', 'where.state.neq', 'where.state.gt', 'where.state.gte', 'where.state.lt', 'where.state.lte', 'where.state.like', 'where.state.ilike', 'where.state.in', 'where.state.nin', 'where.state.contains', 'where.state.contained', 'where.state.overlaps', 'where.or']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/applicationStates/?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateApplicationStates']} */
-export const updateApplicationStates = async (request) => {
-  return await _updateApplicationStates(baseUrl, request)
-}
-async function _getApplicationStateById (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/applicationStates/${request.id}?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationStateById']} */
-export const getApplicationStateById = async (request) => {
-  return await _getApplicationStateById(baseUrl, request)
-}
-async function _updateApplicationState (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/applicationStates/${request.id}?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateApplicationState']} */
-export const updateApplicationState = async (request) => {
-  return await _updateApplicationState(baseUrl, request)
-}
-async function _deleteApplicationStates (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/applicationStates/${request.id}?${searchParams.toString()}`, {
-    method: 'DELETE',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteApplicationStates']} */
-export const deleteApplicationStates = async (request) => {
-  return await _deleteApplicationStates(baseUrl, request)
-}
-async function _getDeploymentsForApplicationState (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/applicationStates/${request.id}/deploymentApplicationStateId?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentsForApplicationState']} */
-export const getDeploymentsForApplicationState = async (request) => {
-  return await _getDeploymentsForApplicationState(baseUrl, request)
-}
-async function _getApplicationForApplicationState (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/applicationStates/${request.id}/application?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForApplicationState']} */
-export const getApplicationForApplicationState = async (request) => {
-  return await _getApplicationForApplicationState(baseUrl, request)
-}
-async function _getDeployments (url, request) {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.applicationStateId.eq', 'where.applicationStateId.neq', 'where.applicationStateId.gt', 'where.applicationStateId.gte', 'where.applicationStateId.lt', 'where.applicationStateId.lte', 'where.applicationStateId.like', 'where.applicationStateId.ilike', 'where.applicationStateId.in', 'where.applicationStateId.nin', 'where.applicationStateId.contains', 'where.applicationStateId.contained', 'where.applicationStateId.overlaps', 'where.bundleId.eq', 'where.bundleId.neq', 'where.bundleId.gt', 'where.bundleId.gte', 'where.bundleId.lt', 'where.bundleId.lte', 'where.bundleId.like', 'where.bundleId.ilike', 'where.bundleId.in', 'where.bundleId.nin', 'where.bundleId.contains', 'where.bundleId.contained', 'where.bundleId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.deploymentSettingsId.eq', 'where.deploymentSettingsId.neq', 'where.deploymentSettingsId.gt', 'where.deploymentSettingsId.gte', 'where.deploymentSettingsId.lt', 'where.deploymentSettingsId.lte', 'where.deploymentSettingsId.like', 'where.deploymentSettingsId.ilike', 'where.deploymentSettingsId.in', 'where.deploymentSettingsId.nin', 'where.deploymentSettingsId.contains', 'where.deploymentSettingsId.contained', 'where.deploymentSettingsId.overlaps', 'where.generationId.eq', 'where.generationId.neq', 'where.generationId.gt', 'where.generationId.gte', 'where.generationId.lt', 'where.generationId.lte', 'where.generationId.like', 'where.generationId.ilike', 'where.generationId.in', 'where.generationId.nin', 'where.generationId.contains', 'where.generationId.contained', 'where.generationId.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.machineId.eq', 'where.machineId.neq', 'where.machineId.gt', 'where.machineId.gte', 'where.machineId.lt', 'where.machineId.lte', 'where.machineId.like', 'where.machineId.ilike', 'where.machineId.in', 'where.machineId.nin', 'where.machineId.contains', 'where.machineId.contained', 'where.machineId.overlaps', 'where.status.eq', 'where.status.neq', 'where.status.gt', 'where.status.gte', 'where.status.lt', 'where.status.lte', 'where.status.like', 'where.status.ilike', 'where.status.in', 'where.status.nin', 'where.status.contains', 'where.status.contained', 'where.status.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or', 'orderby.applicationId', 'orderby.applicationStateId', 'orderby.bundleId', 'orderby.createdAt', 'orderby.deploymentSettingsId', 'orderby.generationId', 'orderby.id', 'orderby.machineId', 'orderby.status', 'orderby.taxonomyId']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/deployments/?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeployments']} */
-export const getDeployments = async (request) => {
-  return await _getDeployments(baseUrl, request)
-}
-async function _createDeployment (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/deployments/`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['createDeployment']} */
-export const createDeployment = async (request) => {
-  return await _createDeployment(baseUrl, request)
-}
-async function _updateDeployments (url, request) {
-  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.applicationStateId.eq', 'where.applicationStateId.neq', 'where.applicationStateId.gt', 'where.applicationStateId.gte', 'where.applicationStateId.lt', 'where.applicationStateId.lte', 'where.applicationStateId.like', 'where.applicationStateId.ilike', 'where.applicationStateId.in', 'where.applicationStateId.nin', 'where.applicationStateId.contains', 'where.applicationStateId.contained', 'where.applicationStateId.overlaps', 'where.bundleId.eq', 'where.bundleId.neq', 'where.bundleId.gt', 'where.bundleId.gte', 'where.bundleId.lt', 'where.bundleId.lte', 'where.bundleId.like', 'where.bundleId.ilike', 'where.bundleId.in', 'where.bundleId.nin', 'where.bundleId.contains', 'where.bundleId.contained', 'where.bundleId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.deploymentSettingsId.eq', 'where.deploymentSettingsId.neq', 'where.deploymentSettingsId.gt', 'where.deploymentSettingsId.gte', 'where.deploymentSettingsId.lt', 'where.deploymentSettingsId.lte', 'where.deploymentSettingsId.like', 'where.deploymentSettingsId.ilike', 'where.deploymentSettingsId.in', 'where.deploymentSettingsId.nin', 'where.deploymentSettingsId.contains', 'where.deploymentSettingsId.contained', 'where.deploymentSettingsId.overlaps', 'where.generationId.eq', 'where.generationId.neq', 'where.generationId.gt', 'where.generationId.gte', 'where.generationId.lt', 'where.generationId.lte', 'where.generationId.like', 'where.generationId.ilike', 'where.generationId.in', 'where.generationId.nin', 'where.generationId.contains', 'where.generationId.contained', 'where.generationId.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.machineId.eq', 'where.machineId.neq', 'where.machineId.gt', 'where.machineId.gte', 'where.machineId.lt', 'where.machineId.lte', 'where.machineId.like', 'where.machineId.ilike', 'where.machineId.in', 'where.machineId.nin', 'where.machineId.contains', 'where.machineId.contained', 'where.machineId.overlaps', 'where.status.eq', 'where.status.neq', 'where.status.gt', 'where.status.gte', 'where.status.lt', 'where.status.lte', 'where.status.like', 'where.status.ilike', 'where.status.in', 'where.status.nin', 'where.status.contains', 'where.status.contained', 'where.status.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/deployments/?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateDeployments']} */
-export const updateDeployments = async (request) => {
-  return await _updateDeployments(baseUrl, request)
-}
-async function _getDeploymentById (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/deployments/${request.id}?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentById']} */
-export const getDeploymentById = async (request) => {
-  return await _getDeploymentById(baseUrl, request)
-}
-async function _updateDeployment (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/deployments/${request.id}?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateDeployment']} */
-export const updateDeployment = async (request) => {
-  return await _updateDeployment(baseUrl, request)
-}
-async function _deleteDeployments (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/deployments/${request.id}?${searchParams.toString()}`, {
-    method: 'DELETE',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteDeployments']} */
-export const deleteDeployments = async (request) => {
-  return await _deleteDeployments(baseUrl, request)
-}
-async function _getTaxonomyForDeployment (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/deployments/${request.id}/taxonomy?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomyForDeployment']} */
-export const getTaxonomyForDeployment = async (request) => {
-  return await _getTaxonomyForDeployment(baseUrl, request)
-}
-async function _getGenerationForDeployment (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/deployments/${request.id}/generation?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationForDeployment']} */
-export const getGenerationForDeployment = async (request) => {
-  return await _getGenerationForDeployment(baseUrl, request)
-}
-async function _getApplicationForDeployment (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/deployments/${request.id}/application?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForDeployment']} */
-export const getApplicationForDeployment = async (request) => {
-  return await _getApplicationForDeployment(baseUrl, request)
-}
-async function _getApplicationStateForDeployment (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/deployments/${request.id}/application_state?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationStateForDeployment']} */
-export const getApplicationStateForDeployment = async (request) => {
-  return await _getApplicationStateForDeployment(baseUrl, request)
-}
-async function _getDeploymentSettingForDeployment (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/deployments/${request.id}/deployment_settings?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentSettingForDeployment']} */
-export const getDeploymentSettingForDeployment = async (request) => {
-  return await _getDeploymentSettingForDeployment(baseUrl, request)
-}
-async function _getGraphs (url, request) {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.generationId.eq', 'where.generationId.neq', 'where.generationId.gt', 'where.generationId.gte', 'where.generationId.lt', 'where.generationId.lte', 'where.generationId.like', 'where.generationId.ilike', 'where.generationId.in', 'where.generationId.nin', 'where.generationId.contains', 'where.generationId.contained', 'where.generationId.overlaps', 'where.graph.eq', 'where.graph.neq', 'where.graph.gt', 'where.graph.gte', 'where.graph.lt', 'where.graph.lte', 'where.graph.like', 'where.graph.ilike', 'where.graph.in', 'where.graph.nin', 'where.graph.contains', 'where.graph.contained', 'where.graph.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or', 'orderby.createdAt', 'orderby.generationId', 'orderby.graph', 'orderby.id', 'orderby.taxonomyId']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/graphs/?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGraphs']} */
-export const getGraphs = async (request) => {
-  return await _getGraphs(baseUrl, request)
-}
-async function _createGraph (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/graphs/`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['createGraph']} */
-export const createGraph = async (request) => {
-  return await _createGraph(baseUrl, request)
-}
-async function _updateGraphs (url, request) {
-  const queryParameters = ['fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.generationId.eq', 'where.generationId.neq', 'where.generationId.gt', 'where.generationId.gte', 'where.generationId.lt', 'where.generationId.lte', 'where.generationId.like', 'where.generationId.ilike', 'where.generationId.in', 'where.generationId.nin', 'where.generationId.contains', 'where.generationId.contained', 'where.generationId.overlaps', 'where.graph.eq', 'where.graph.neq', 'where.graph.gt', 'where.graph.gte', 'where.graph.lt', 'where.graph.lte', 'where.graph.like', 'where.graph.ilike', 'where.graph.in', 'where.graph.nin', 'where.graph.contains', 'where.graph.contained', 'where.graph.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/graphs/?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateGraphs']} */
-export const updateGraphs = async (request) => {
-  return await _updateGraphs(baseUrl, request)
-}
-async function _getGraphById (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/graphs/${request.id}?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGraphById']} */
-export const getGraphById = async (request) => {
-  return await _getGraphById(baseUrl, request)
-}
-async function _updateGraph (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/graphs/${request.id}?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateGraph']} */
-export const updateGraph = async (request) => {
-  return await _updateGraph(baseUrl, request)
-}
-async function _deleteGraphs (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/graphs/${request.id}?${searchParams.toString()}`, {
-    method: 'DELETE',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteGraphs']} */
-export const deleteGraphs = async (request) => {
-  return await _deleteGraphs(baseUrl, request)
-}
-async function _getTaxonomyForGraph (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/graphs/${request.id}/taxonomy?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomyForGraph']} */
-export const getTaxonomyForGraph = async (request) => {
-  return await _getTaxonomyForGraph(baseUrl, request)
-}
-async function _getGenerationForGraph (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/graphs/${request.id}/generation?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationForGraph']} */
-export const getGenerationForGraph = async (request) => {
-  return await _getGenerationForGraph(baseUrl, request)
-}
 async function _getGenerations (url, request) {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.mainIteration.eq', 'where.mainIteration.neq', 'where.mainIteration.gt', 'where.mainIteration.gte', 'where.mainIteration.lt', 'where.mainIteration.lte', 'where.mainIteration.like', 'where.mainIteration.ilike', 'where.mainIteration.in', 'where.mainIteration.nin', 'where.mainIteration.contains', 'where.mainIteration.contained', 'where.mainIteration.overlaps', 'where.status.eq', 'where.status.neq', 'where.status.gt', 'where.status.gte', 'where.status.lt', 'where.status.lte', 'where.status.like', 'where.status.ilike', 'where.status.in', 'where.status.nin', 'where.status.contains', 'where.status.contained', 'where.status.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or', 'orderby.createdAt', 'orderby.id', 'orderby.mainIteration', 'orderby.status', 'orderby.taxonomyId']
+  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.version.eq', 'where.version.neq', 'where.version.gt', 'where.version.gte', 'where.version.lt', 'where.version.lte', 'where.version.like', 'where.version.ilike', 'where.version.in', 'where.version.nin', 'where.version.contains', 'where.version.contained', 'where.version.overlaps', 'where.or', 'orderby.createdAt', 'orderby.id', 'orderby.version']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
   const response = await fetch(`${url}/generations/?${searchParams.toString()}`, {
-    headers
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3183,17 +62,11 @@ async function _getGenerations (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -3202,15 +75,18 @@ export const getGenerations = async (request) => {
   return await _getGenerations(baseUrl, request)
 }
 async function _createGeneration (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
   const response = await fetch(`${url}/generations/`, {
     method: 'POST',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3221,17 +97,11 @@ async function _createGeneration (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -3240,30 +110,34 @@ export const createGeneration = async (request) => {
   return await _createGeneration(baseUrl, request)
 }
 async function _updateGenerations (url, request) {
-  const queryParameters = ['fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.mainIteration.eq', 'where.mainIteration.neq', 'where.mainIteration.gt', 'where.mainIteration.gte', 'where.mainIteration.lt', 'where.mainIteration.lte', 'where.mainIteration.like', 'where.mainIteration.ilike', 'where.mainIteration.in', 'where.mainIteration.nin', 'where.mainIteration.contains', 'where.mainIteration.contained', 'where.mainIteration.overlaps', 'where.status.eq', 'where.status.neq', 'where.status.gt', 'where.status.gte', 'where.status.lt', 'where.status.lte', 'where.status.like', 'where.status.ilike', 'where.status.in', 'where.status.nin', 'where.status.contains', 'where.status.contained', 'where.status.overlaps', 'where.taxonomyId.eq', 'where.taxonomyId.neq', 'where.taxonomyId.gt', 'where.taxonomyId.gte', 'where.taxonomyId.lt', 'where.taxonomyId.lte', 'where.taxonomyId.like', 'where.taxonomyId.ilike', 'where.taxonomyId.in', 'where.taxonomyId.nin', 'where.taxonomyId.contains', 'where.taxonomyId.contained', 'where.taxonomyId.overlaps', 'where.or']
+  const queryParameters = ['fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.version.eq', 'where.version.neq', 'where.version.gt', 'where.version.gte', 'where.version.lt', 'where.version.lte', 'where.version.like', 'where.version.ilike', 'where.version.in', 'where.version.nin', 'where.version.contains', 'where.version.contained', 'where.version.overlaps', 'where.or']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
   const response = await fetch(`${url}/generations/?${searchParams.toString()}`, {
     method: 'PUT',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3274,17 +148,11 @@ async function _updateGenerations (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -3295,25 +163,27 @@ export const updateGenerations = async (request) => {
 async function _getGenerationById (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
   const response = await fetch(`${url}/generations/${request.id}?${searchParams.toString()}`, {
-    headers
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3324,17 +194,11 @@ async function _getGenerationById (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -3345,28 +209,32 @@ export const getGenerationById = async (request) => {
 async function _updateGeneration (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
   const response = await fetch(`${url}/generations/${request.id}?${searchParams.toString()}`, {
     method: 'PUT',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3377,17 +245,11 @@ async function _updateGeneration (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -3398,28 +260,32 @@ export const updateGeneration = async (request) => {
 async function _deleteGenerations (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
   const response = await fetch(`${url}/generations/${request.id}?${searchParams.toString()}`, {
     method: 'DELETE',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3430,17 +296,11 @@ async function _deleteGenerations (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -3448,78 +308,30 @@ async function _deleteGenerations (url, request) {
 export const deleteGenerations = async (request) => {
   return await _deleteGenerations(baseUrl, request)
 }
-async function _getDeploymentsForGeneration (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/generations/${request.id}/deploymentGenerationId?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentsForGeneration']} */
-export const getDeploymentsForGeneration = async (request) => {
-  return await _getDeploymentsForGeneration(baseUrl, request)
-}
 async function _getGraphsForGeneration (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/generations/${request.id}/graphGenerationId?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/generations/${request.id}/graphs?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3530,17 +342,11 @@ async function _getGraphsForGeneration (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -3548,28 +354,30 @@ async function _getGraphsForGeneration (url, request) {
 export const getGraphsForGeneration = async (request) => {
   return await _getGraphsForGeneration(baseUrl, request)
 }
-async function _getTaxonomyForGeneration (url, request) {
+async function _getGenerationsDeploymentsForGeneration (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/generations/${request.id}/taxonomy?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/generations/${request.id}/generationsDeploymentGenerationId?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3580,46 +388,42 @@ async function _getTaxonomyForGeneration (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomyForGeneration']} */
-export const getTaxonomyForGeneration = async (request) => {
-  return await _getTaxonomyForGeneration(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationsDeploymentsForGeneration']} */
+export const getGenerationsDeploymentsForGeneration = async (request) => {
+  return await _getGenerationsDeploymentsForGeneration(baseUrl, request)
 }
-async function _getDeploymentSettings (url, request) {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.cores.eq', 'where.cores.neq', 'where.cores.gt', 'where.cores.gte', 'where.cores.lt', 'where.cores.lte', 'where.cores.like', 'where.cores.ilike', 'where.cores.in', 'where.cores.nin', 'where.cores.contains', 'where.cores.contained', 'where.cores.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.heap.eq', 'where.heap.neq', 'where.heap.gt', 'where.heap.gte', 'where.heap.lt', 'where.heap.lte', 'where.heap.like', 'where.heap.ilike', 'where.heap.in', 'where.heap.nin', 'where.heap.contains', 'where.heap.contained', 'where.heap.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.memory.eq', 'where.memory.neq', 'where.memory.gt', 'where.memory.gte', 'where.memory.lt', 'where.memory.lte', 'where.memory.like', 'where.memory.ilike', 'where.memory.in', 'where.memory.nin', 'where.memory.contains', 'where.memory.contained', 'where.memory.overlaps', 'where.services.eq', 'where.services.neq', 'where.services.gt', 'where.services.gte', 'where.services.lt', 'where.services.lte', 'where.services.like', 'where.services.ilike', 'where.services.in', 'where.services.nin', 'where.services.contains', 'where.services.contained', 'where.services.overlaps', 'where.threads.eq', 'where.threads.neq', 'where.threads.gt', 'where.threads.gte', 'where.threads.lt', 'where.threads.lte', 'where.threads.like', 'where.threads.ilike', 'where.threads.in', 'where.threads.nin', 'where.threads.contains', 'where.threads.contained', 'where.threads.overlaps', 'where.or', 'orderby.applicationId', 'orderby.cores', 'orderby.createdAt', 'orderby.heap', 'orderby.id', 'orderby.memory', 'orderby.services', 'orderby.threads']
+async function _getGenerationsApplicationsConfigsForGeneration (url, request) {
+  const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/deploymentSettings/?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/generations/${request.id}/generationsApplicationsConfigGenerationId?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3630,34 +434,77 @@ async function _getDeploymentSettings (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationsApplicationsConfigsForGeneration']} */
+export const getGenerationsApplicationsConfigsForGeneration = async (request) => {
+  return await _getGenerationsApplicationsConfigsForGeneration(baseUrl, request)
+}
+async function _getGraphs (url, request) {
+  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.generationId.eq', 'where.generationId.neq', 'where.generationId.gt', 'where.generationId.gte', 'where.generationId.lt', 'where.generationId.lte', 'where.generationId.like', 'where.generationId.ilike', 'where.generationId.in', 'where.generationId.nin', 'where.generationId.contains', 'where.generationId.contained', 'where.generationId.overlaps', 'where.graph.eq', 'where.graph.neq', 'where.graph.gt', 'where.graph.gte', 'where.graph.lt', 'where.graph.lte', 'where.graph.like', 'where.graph.ilike', 'where.graph.in', 'where.graph.nin', 'where.graph.contains', 'where.graph.contained', 'where.graph.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.or', 'orderby.createdAt', 'orderby.generationId', 'orderby.graph', 'orderby.id']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/graphs/?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
     return {
       statusCode: response.status,
       headers: headersToJSON(response.headers),
       body: await response.json()
     }
   }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentSettings']} */
-export const getDeploymentSettings = async (request) => {
-  return await _getDeploymentSettings(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGraphs']} */
+export const getGraphs = async (request) => {
+  return await _getGraphs(baseUrl, request)
 }
-async function _createDeploymentSetting (url, request) {
+async function _createGraph (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
-  const response = await fetch(`${url}/deploymentSettings/`, {
+  const response = await fetch(`${url}/graphs/`, {
     method: 'POST',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3668,49 +515,47 @@ async function _createDeploymentSetting (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['createDeploymentSetting']} */
-export const createDeploymentSetting = async (request) => {
-  return await _createDeploymentSetting(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['createGraph']} */
+export const createGraph = async (request) => {
+  return await _createGraph(baseUrl, request)
 }
-async function _updateDeploymentSettings (url, request) {
-  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.cores.eq', 'where.cores.neq', 'where.cores.gt', 'where.cores.gte', 'where.cores.lt', 'where.cores.lte', 'where.cores.like', 'where.cores.ilike', 'where.cores.in', 'where.cores.nin', 'where.cores.contains', 'where.cores.contained', 'where.cores.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.heap.eq', 'where.heap.neq', 'where.heap.gt', 'where.heap.gte', 'where.heap.lt', 'where.heap.lte', 'where.heap.like', 'where.heap.ilike', 'where.heap.in', 'where.heap.nin', 'where.heap.contains', 'where.heap.contained', 'where.heap.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.memory.eq', 'where.memory.neq', 'where.memory.gt', 'where.memory.gte', 'where.memory.lt', 'where.memory.lte', 'where.memory.like', 'where.memory.ilike', 'where.memory.in', 'where.memory.nin', 'where.memory.contains', 'where.memory.contained', 'where.memory.overlaps', 'where.services.eq', 'where.services.neq', 'where.services.gt', 'where.services.gte', 'where.services.lt', 'where.services.lte', 'where.services.like', 'where.services.ilike', 'where.services.in', 'where.services.nin', 'where.services.contains', 'where.services.contained', 'where.services.overlaps', 'where.threads.eq', 'where.threads.neq', 'where.threads.gt', 'where.threads.gte', 'where.threads.lt', 'where.threads.lte', 'where.threads.like', 'where.threads.ilike', 'where.threads.in', 'where.threads.nin', 'where.threads.contains', 'where.threads.contained', 'where.threads.overlaps', 'where.or']
+async function _updateGraphs (url, request) {
+  const queryParameters = ['fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.generationId.eq', 'where.generationId.neq', 'where.generationId.gt', 'where.generationId.gte', 'where.generationId.lt', 'where.generationId.lte', 'where.generationId.like', 'where.generationId.ilike', 'where.generationId.in', 'where.generationId.nin', 'where.generationId.contains', 'where.generationId.contained', 'where.generationId.overlaps', 'where.graph.eq', 'where.graph.neq', 'where.graph.gt', 'where.graph.gte', 'where.graph.lt', 'where.graph.lte', 'where.graph.like', 'where.graph.ilike', 'where.graph.in', 'where.graph.nin', 'where.graph.contains', 'where.graph.contained', 'where.graph.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.or']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
-  const response = await fetch(`${url}/deploymentSettings/?${searchParams.toString()}`, {
+  const response = await fetch(`${url}/graphs/?${searchParams.toString()}`, {
     method: 'PUT',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3721,46 +566,42 @@ async function _updateDeploymentSettings (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateDeploymentSettings']} */
-export const updateDeploymentSettings = async (request) => {
-  return await _updateDeploymentSettings(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateGraphs']} */
+export const updateGraphs = async (request) => {
+  return await _updateGraphs(baseUrl, request)
 }
-async function _getDeploymentSettingById (url, request) {
+async function _getGraphById (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/deploymentSettings/${request.id}?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/graphs/${request.id}?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3771,49 +612,47 @@ async function _getDeploymentSettingById (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentSettingById']} */
-export const getDeploymentSettingById = async (request) => {
-  return await _getDeploymentSettingById(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGraphById']} */
+export const getGraphById = async (request) => {
+  return await _getGraphById(baseUrl, request)
 }
-async function _updateDeploymentSetting (url, request) {
+async function _updateGraph (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+      delete request?.[qp]
+    })
   }
 
-  const response = await fetch(`${url}/deploymentSettings/${request.id}?${searchParams.toString()}`, {
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/graphs/${request.id}?${searchParams.toString()}`, {
     method: 'PUT',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3824,49 +663,47 @@ async function _updateDeploymentSetting (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateDeploymentSetting']} */
-export const updateDeploymentSetting = async (request) => {
-  return await _updateDeploymentSetting(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateGraph']} */
+export const updateGraph = async (request) => {
+  return await _updateGraph(baseUrl, request)
 }
-async function _deleteDeploymentSettings (url, request) {
+async function _deleteGraphs (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+      delete request?.[qp]
+    })
   }
 
-  const response = await fetch(`${url}/deploymentSettings/${request.id}?${searchParams.toString()}`, {
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/graphs/${request.id}?${searchParams.toString()}`, {
     method: 'DELETE',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3877,46 +714,42 @@ async function _deleteDeploymentSettings (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteDeploymentSettings']} */
-export const deleteDeploymentSettings = async (request) => {
-  return await _deleteDeploymentSettings(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteGraphs']} */
+export const deleteGraphs = async (request) => {
+  return await _deleteGraphs(baseUrl, request)
 }
-async function _getDeploymentsForDeploymentSetting (url, request) {
+async function _getGenerationForGraph (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/deploymentSettings/${request.id}/deploymentDeploymentSettingsId?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/graphs/${request.id}/generation?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -3927,96 +760,42 @@ async function _getDeploymentsForDeploymentSetting (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentsForDeploymentSetting']} */
-export const getDeploymentsForDeploymentSetting = async (request) => {
-  return await _getDeploymentsForDeploymentSetting(baseUrl, request)
-}
-async function _getApplicationForDeploymentSetting (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/deploymentSettings/${request.id}/application?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForDeploymentSetting']} */
-export const getApplicationForDeploymentSetting = async (request) => {
-  return await _getApplicationForDeploymentSetting(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationForGraph']} */
+export const getGenerationForGraph = async (request) => {
+  return await _getGenerationForGraph(baseUrl, request)
 }
 async function _getApplications (url, request) {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.deleted.eq', 'where.deleted.neq', 'where.deleted.gt', 'where.deleted.gte', 'where.deleted.lt', 'where.deleted.lte', 'where.deleted.like', 'where.deleted.ilike', 'where.deleted.in', 'where.deleted.nin', 'where.deleted.contains', 'where.deleted.contained', 'where.deleted.overlaps', 'where.deletedAt.eq', 'where.deletedAt.neq', 'where.deletedAt.gt', 'where.deletedAt.gte', 'where.deletedAt.lt', 'where.deletedAt.lte', 'where.deletedAt.like', 'where.deletedAt.ilike', 'where.deletedAt.in', 'where.deletedAt.nin', 'where.deletedAt.contains', 'where.deletedAt.contained', 'where.deletedAt.overlaps', 'where.deletedBy.eq', 'where.deletedBy.neq', 'where.deletedBy.gt', 'where.deletedBy.gte', 'where.deletedBy.lt', 'where.deletedBy.lte', 'where.deletedBy.like', 'where.deletedBy.ilike', 'where.deletedBy.in', 'where.deletedBy.nin', 'where.deletedBy.contains', 'where.deletedBy.contained', 'where.deletedBy.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.name.eq', 'where.name.neq', 'where.name.gt', 'where.name.gte', 'where.name.lt', 'where.name.lte', 'where.name.like', 'where.name.ilike', 'where.name.in', 'where.name.nin', 'where.name.contains', 'where.name.contained', 'where.name.overlaps', 'where.or', 'orderby.createdAt', 'orderby.deleted', 'orderby.deletedAt', 'orderby.deletedBy', 'orderby.id', 'orderby.name']
+  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.name.eq', 'where.name.neq', 'where.name.gt', 'where.name.gte', 'where.name.lt', 'where.name.lte', 'where.name.like', 'where.name.ilike', 'where.name.in', 'where.name.nin', 'where.name.contains', 'where.name.contained', 'where.name.overlaps', 'where.or', 'orderby.createdAt', 'orderby.id', 'orderby.name']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
   const response = await fetch(`${url}/applications/?${searchParams.toString()}`, {
-    headers
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4027,17 +806,11 @@ async function _getApplications (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -4045,69 +818,19 @@ async function _getApplications (url, request) {
 export const getApplications = async (request) => {
   return await _getApplications(baseUrl, request)
 }
-async function _updateApplications (url, request) {
-  const queryParameters = ['fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.deleted.eq', 'where.deleted.neq', 'where.deleted.gt', 'where.deleted.gte', 'where.deleted.lt', 'where.deleted.lte', 'where.deleted.like', 'where.deleted.ilike', 'where.deleted.in', 'where.deleted.nin', 'where.deleted.contains', 'where.deleted.contained', 'where.deleted.overlaps', 'where.deletedAt.eq', 'where.deletedAt.neq', 'where.deletedAt.gt', 'where.deletedAt.gte', 'where.deletedAt.lt', 'where.deletedAt.lte', 'where.deletedAt.like', 'where.deletedAt.ilike', 'where.deletedAt.in', 'where.deletedAt.nin', 'where.deletedAt.contains', 'where.deletedAt.contained', 'where.deletedAt.overlaps', 'where.deletedBy.eq', 'where.deletedBy.neq', 'where.deletedBy.gt', 'where.deletedBy.gte', 'where.deletedBy.lt', 'where.deletedBy.lte', 'where.deletedBy.like', 'where.deletedBy.ilike', 'where.deletedBy.in', 'where.deletedBy.nin', 'where.deletedBy.contains', 'where.deletedBy.contained', 'where.deletedBy.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.name.eq', 'where.name.neq', 'where.name.gt', 'where.name.gte', 'where.name.lt', 'where.name.lte', 'where.name.like', 'where.name.ilike', 'where.name.in', 'where.name.nin', 'where.name.contains', 'where.name.contained', 'where.name.overlaps', 'where.or']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/applications/?${searchParams.toString()}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateApplications']} */
-export const updateApplications = async (request) => {
-  return await _updateApplications(baseUrl, request)
-}
 async function _createApplication (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
   const response = await fetch(`${url}/applications/`, {
     method: 'POST',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4118,17 +841,11 @@ async function _createApplication (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -4136,28 +853,35 @@ async function _createApplication (url, request) {
 export const createApplication = async (request) => {
   return await _createApplication(baseUrl, request)
 }
-async function _getApplicationById (url, request) {
-  const queryParameters = ['fields']
+async function _updateApplications (url, request) {
+  const queryParameters = ['fields', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.name.eq', 'where.name.neq', 'where.name.gt', 'where.name.gte', 'where.name.lt', 'where.name.lte', 'where.name.like', 'where.name.ilike', 'where.name.in', 'where.name.nin', 'where.name.contains', 'where.name.contained', 'where.name.overlaps', 'where.or']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
+      delete request?.[qp]
+    })
   }
 
-  const response = await fetch(`${url}/applications/${request.id}?${searchParams.toString()}`, {
-    headers
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/applications/?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4168,17 +892,57 @@ async function _getApplicationById (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateApplications']} */
+export const updateApplications = async (request) => {
+  return await _updateApplications(baseUrl, request)
+}
+async function _getApplicationById (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/applications/${request.id}?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
     return {
       statusCode: response.status,
       headers: headersToJSON(response.headers),
       body: await response.json()
     }
   }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -4189,28 +953,32 @@ export const getApplicationById = async (request) => {
 async function _updateApplication (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
   const response = await fetch(`${url}/applications/${request.id}?${searchParams.toString()}`, {
     method: 'PUT',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4221,17 +989,11 @@ async function _updateApplication (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -4242,28 +1004,32 @@ export const updateApplication = async (request) => {
 async function _deleteApplications (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
   const response = await fetch(`${url}/applications/${request.id}?${searchParams.toString()}`, {
     method: 'DELETE',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4274,17 +1040,11 @@ async function _deleteApplications (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -4292,28 +1052,30 @@ async function _deleteApplications (url, request) {
 export const deleteApplications = async (request) => {
   return await _deleteApplications(baseUrl, request)
 }
-async function _getTaxonomiesApplicationsChangesForApplication (url, request) {
+async function _getApplicationsConfigsForApplication (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/applications/${request.id}/taxonomiesApplicationsChangeApplicationId?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/applications/${request.id}/applicationsConfigs?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4324,146 +1086,42 @@ async function _getTaxonomiesApplicationsChangesForApplication (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomiesApplicationsChangesForApplication']} */
-export const getTaxonomiesApplicationsChangesForApplication = async (request) => {
-  return await _getTaxonomiesApplicationsChangesForApplication(baseUrl, request)
-}
-async function _getEnvironmentsForApplication (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/applications/${request.id}/environmentApplicationId?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getEnvironmentsForApplication']} */
-export const getEnvironmentsForApplication = async (request) => {
-  return await _getEnvironmentsForApplication(baseUrl, request)
-}
-async function _getEntrypointsForApplication (url, request) {
-  const queryParameters = ['fields']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/applications/${request.id}/entrypointApplicationId?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getEntrypointsForApplication']} */
-export const getEntrypointsForApplication = async (request) => {
-  return await _getEntrypointsForApplication(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationsConfigsForApplication']} */
+export const getApplicationsConfigsForApplication = async (request) => {
+  return await _getApplicationsConfigsForApplication(baseUrl, request)
 }
 async function _getApplicationStatesForApplication (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
   const response = await fetch(`${url}/applications/${request.id}/applicationStates?${searchParams.toString()}`, {
-    headers
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4474,17 +1132,11 @@ async function _getApplicationStatesForApplication (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -4495,25 +1147,27 @@ export const getApplicationStatesForApplication = async (request) => {
 async function _getDeploymentsForApplication (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
   const response = await fetch(`${url}/applications/${request.id}/deploymentApplicationId?${searchParams.toString()}`, {
-    headers
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4524,17 +1178,11 @@ async function _getDeploymentsForApplication (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -4542,28 +1190,30 @@ async function _getDeploymentsForApplication (url, request) {
 export const getDeploymentsForApplication = async (request) => {
   return await _getDeploymentsForApplication(baseUrl, request)
 }
-async function _getDeploymentSettingsForApplication (url, request) {
+async function _getInstancesForApplication (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/applications/${request.id}/deploymentSettings?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/applications/${request.id}/instanceApplicationId?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4574,46 +1224,42 @@ async function _getDeploymentSettingsForApplication (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentSettingsForApplication']} */
-export const getDeploymentSettingsForApplication = async (request) => {
-  return await _getDeploymentSettingsForApplication(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getInstancesForApplication']} */
+export const getInstancesForApplication = async (request) => {
+  return await _getInstancesForApplication(baseUrl, request)
 }
-async function _getApplicationSettingsForApplication (url, request) {
-  const queryParameters = ['fields']
+async function _getApplicationsConfigs (url, request) {
+  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.resources.eq', 'where.resources.neq', 'where.resources.gt', 'where.resources.gte', 'where.resources.lt', 'where.resources.lte', 'where.resources.like', 'where.resources.ilike', 'where.resources.in', 'where.resources.nin', 'where.resources.contains', 'where.resources.contained', 'where.resources.overlaps', 'where.version.eq', 'where.version.neq', 'where.version.gt', 'where.version.gte', 'where.version.lt', 'where.version.lte', 'where.version.like', 'where.version.ilike', 'where.version.in', 'where.version.nin', 'where.version.contains', 'where.version.contained', 'where.version.overlaps', 'where.or', 'orderby.applicationId', 'orderby.createdAt', 'orderby.id', 'orderby.resources', 'orderby.version']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/applications/${request.id}/applicationSettings?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/applicationsConfigs/?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4624,84 +1270,31 @@ async function _getApplicationSettingsForApplication (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationSettingsForApplication']} */
-export const getApplicationSettingsForApplication = async (request) => {
-  return await _getApplicationSettingsForApplication(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationsConfigs']} */
+export const getApplicationsConfigs = async (request) => {
+  return await _getApplicationsConfigs(baseUrl, request)
 }
-async function _getApplicationSettings (url, request) {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.cores.eq', 'where.cores.neq', 'where.cores.gt', 'where.cores.gte', 'where.cores.lt', 'where.cores.lte', 'where.cores.like', 'where.cores.ilike', 'where.cores.in', 'where.cores.nin', 'where.cores.contains', 'where.cores.contained', 'where.cores.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.heap.eq', 'where.heap.neq', 'where.heap.gt', 'where.heap.gte', 'where.heap.lt', 'where.heap.lte', 'where.heap.like', 'where.heap.ilike', 'where.heap.in', 'where.heap.nin', 'where.heap.contains', 'where.heap.contained', 'where.heap.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.memory.eq', 'where.memory.neq', 'where.memory.gt', 'where.memory.gte', 'where.memory.lt', 'where.memory.lte', 'where.memory.like', 'where.memory.ilike', 'where.memory.in', 'where.memory.nin', 'where.memory.contains', 'where.memory.contained', 'where.memory.overlaps', 'where.services.eq', 'where.services.neq', 'where.services.gt', 'where.services.gte', 'where.services.lt', 'where.services.lte', 'where.services.like', 'where.services.ilike', 'where.services.in', 'where.services.nin', 'where.services.contains', 'where.services.contained', 'where.services.overlaps', 'where.threads.eq', 'where.threads.neq', 'where.threads.gt', 'where.threads.gte', 'where.threads.lt', 'where.threads.lte', 'where.threads.like', 'where.threads.ilike', 'where.threads.in', 'where.threads.nin', 'where.threads.contains', 'where.threads.contained', 'where.threads.overlaps', 'where.or', 'orderby.applicationId', 'orderby.cores', 'orderby.createdAt', 'orderby.heap', 'orderby.id', 'orderby.memory', 'orderby.services', 'orderby.threads']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/applicationSettings/?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationSettings']} */
-export const getApplicationSettings = async (request) => {
-  return await _getApplicationSettings(baseUrl, request)
-}
-async function _createApplicationSetting (url, request) {
+async function _createApplicationsConfig (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
-  const response = await fetch(`${url}/applicationSettings/`, {
+  const response = await fetch(`${url}/applicationsConfigs/`, {
     method: 'POST',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4712,49 +1305,47 @@ async function _createApplicationSetting (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['createApplicationSetting']} */
-export const createApplicationSetting = async (request) => {
-  return await _createApplicationSetting(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['createApplicationsConfig']} */
+export const createApplicationsConfig = async (request) => {
+  return await _createApplicationsConfig(baseUrl, request)
 }
-async function _updateApplicationSettings (url, request) {
-  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.cores.eq', 'where.cores.neq', 'where.cores.gt', 'where.cores.gte', 'where.cores.lt', 'where.cores.lte', 'where.cores.like', 'where.cores.ilike', 'where.cores.in', 'where.cores.nin', 'where.cores.contains', 'where.cores.contained', 'where.cores.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.heap.eq', 'where.heap.neq', 'where.heap.gt', 'where.heap.gte', 'where.heap.lt', 'where.heap.lte', 'where.heap.like', 'where.heap.ilike', 'where.heap.in', 'where.heap.nin', 'where.heap.contains', 'where.heap.contained', 'where.heap.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.memory.eq', 'where.memory.neq', 'where.memory.gt', 'where.memory.gte', 'where.memory.lt', 'where.memory.lte', 'where.memory.like', 'where.memory.ilike', 'where.memory.in', 'where.memory.nin', 'where.memory.contains', 'where.memory.contained', 'where.memory.overlaps', 'where.services.eq', 'where.services.neq', 'where.services.gt', 'where.services.gte', 'where.services.lt', 'where.services.lte', 'where.services.like', 'where.services.ilike', 'where.services.in', 'where.services.nin', 'where.services.contains', 'where.services.contained', 'where.services.overlaps', 'where.threads.eq', 'where.threads.neq', 'where.threads.gt', 'where.threads.gte', 'where.threads.lt', 'where.threads.lte', 'where.threads.like', 'where.threads.ilike', 'where.threads.in', 'where.threads.nin', 'where.threads.contains', 'where.threads.contained', 'where.threads.overlaps', 'where.or']
+async function _updateApplicationsConfigs (url, request) {
+  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.resources.eq', 'where.resources.neq', 'where.resources.gt', 'where.resources.gte', 'where.resources.lt', 'where.resources.lte', 'where.resources.like', 'where.resources.ilike', 'where.resources.in', 'where.resources.nin', 'where.resources.contains', 'where.resources.contained', 'where.resources.overlaps', 'where.version.eq', 'where.version.neq', 'where.version.gt', 'where.version.gte', 'where.version.lt', 'where.version.lte', 'where.version.like', 'where.version.ilike', 'where.version.in', 'where.version.nin', 'where.version.contains', 'where.version.contained', 'where.version.overlaps', 'where.or']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
-  const response = await fetch(`${url}/applicationSettings/?${searchParams.toString()}`, {
+  const response = await fetch(`${url}/applicationsConfigs/?${searchParams.toString()}`, {
     method: 'PUT',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4765,46 +1356,42 @@ async function _updateApplicationSettings (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateApplicationSettings']} */
-export const updateApplicationSettings = async (request) => {
-  return await _updateApplicationSettings(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateApplicationsConfigs']} */
+export const updateApplicationsConfigs = async (request) => {
+  return await _updateApplicationsConfigs(baseUrl, request)
 }
-async function _getApplicationSettingById (url, request) {
+async function _getApplicationsConfigById (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/applicationSettings/${request.id}?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/applicationsConfigs/${request.id}?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4815,49 +1402,47 @@ async function _getApplicationSettingById (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationSettingById']} */
-export const getApplicationSettingById = async (request) => {
-  return await _getApplicationSettingById(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationsConfigById']} */
+export const getApplicationsConfigById = async (request) => {
+  return await _getApplicationsConfigById(baseUrl, request)
 }
-async function _updateApplicationSetting (url, request) {
+async function _updateApplicationsConfig (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+      delete request?.[qp]
+    })
   }
 
-  const response = await fetch(`${url}/applicationSettings/${request.id}?${searchParams.toString()}`, {
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/applicationsConfigs/${request.id}?${searchParams.toString()}`, {
     method: 'PUT',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4868,49 +1453,47 @@ async function _updateApplicationSetting (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateApplicationSetting']} */
-export const updateApplicationSetting = async (request) => {
-  return await _updateApplicationSetting(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateApplicationsConfig']} */
+export const updateApplicationsConfig = async (request) => {
+  return await _updateApplicationsConfig(baseUrl, request)
 }
-async function _deleteApplicationSettings (url, request) {
+async function _deleteApplicationsConfigs (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+      delete request?.[qp]
+    })
   }
 
-  const response = await fetch(`${url}/applicationSettings/${request.id}?${searchParams.toString()}`, {
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/applicationsConfigs/${request.id}?${searchParams.toString()}`, {
     method: 'DELETE',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4921,46 +1504,42 @@ async function _deleteApplicationSettings (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteApplicationSettings']} */
-export const deleteApplicationSettings = async (request) => {
-  return await _deleteApplicationSettings(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteApplicationsConfigs']} */
+export const deleteApplicationsConfigs = async (request) => {
+  return await _deleteApplicationsConfigs(baseUrl, request)
 }
-async function _getApplicationForApplicationSetting (url, request) {
+async function _getGenerationsApplicationsConfigsForApplicationsConfig (url, request) {
   const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/applicationSettings/${request.id}/application?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/applicationsConfigs/${request.id}/generationsApplicationsConfigConfigId?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -4971,84 +1550,42 @@ async function _getApplicationForApplicationSetting (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForApplicationSetting']} */
-export const getApplicationForApplicationSetting = async (request) => {
-  return await _getApplicationForApplicationSetting(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationsApplicationsConfigsForApplicationsConfig']} */
+export const getGenerationsApplicationsConfigsForApplicationsConfig = async (request) => {
+  return await _getGenerationsApplicationsConfigsForApplicationsConfig(baseUrl, request)
 }
-async function _postUpdateApplicationSettings (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/applications/${request.id}/settings`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['postUpdateApplicationSettings']} */
-export const postUpdateApplicationSettings = async (request) => {
-  return await _postUpdateApplicationSettings(baseUrl, request)
-}
-async function _getApplicationDomains (url, request) {
-  const queryParameters = ['taxonomyId']
+async function _getApplicationForApplicationsConfig (url, request) {
+  const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/applications/${request.id}/domains?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/applicationsConfigs/${request.id}/application?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -5059,46 +1596,42 @@ async function _getApplicationDomains (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationDomains']} */
-export const getApplicationDomains = async (request) => {
-  return await _getApplicationDomains(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForApplicationsConfig']} */
+export const getApplicationForApplicationsConfig = async (request) => {
+  return await _getApplicationForApplicationsConfig(baseUrl, request)
 }
-async function _getApplicationInstances (url, request) {
-  const queryParameters = ['taxonomyId']
+async function _getApplicationStates (url, request) {
+  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.pltVersion.eq', 'where.pltVersion.neq', 'where.pltVersion.gt', 'where.pltVersion.gte', 'where.pltVersion.lt', 'where.pltVersion.lte', 'where.pltVersion.like', 'where.pltVersion.ilike', 'where.pltVersion.in', 'where.pltVersion.nin', 'where.pltVersion.contains', 'where.pltVersion.contained', 'where.pltVersion.overlaps', 'where.state.eq', 'where.state.neq', 'where.state.gt', 'where.state.gte', 'where.state.lt', 'where.state.lte', 'where.state.like', 'where.state.ilike', 'where.state.in', 'where.state.nin', 'where.state.contains', 'where.state.contained', 'where.state.overlaps', 'where.or', 'orderby.applicationId', 'orderby.createdAt', 'orderby.id', 'orderby.pltVersion', 'orderby.state']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/applications/${request.id}/instances?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/applicationStates/?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -5109,46 +1642,128 @@ async function _getApplicationInstances (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationStates']} */
+export const getApplicationStates = async (request) => {
+  return await _getApplicationStates(baseUrl, request)
+}
+async function _createApplicationState (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/applicationStates/`, {
+    method: 'POST',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
     return {
       statusCode: response.status,
       headers: headersToJSON(response.headers),
       body: await response.json()
     }
   }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationInstances']} */
-export const getApplicationInstances = async (request) => {
-  return await _getApplicationInstances(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['createApplicationState']} */
+export const createApplicationState = async (request) => {
+  return await _createApplicationState(baseUrl, request)
 }
-async function _getApplicationUrl (url, request) {
-  const queryParameters = ['taxonomyId']
+async function _updateApplicationStates (url, request) {
+  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.pltVersion.eq', 'where.pltVersion.neq', 'where.pltVersion.gt', 'where.pltVersion.gte', 'where.pltVersion.lt', 'where.pltVersion.lte', 'where.pltVersion.like', 'where.pltVersion.ilike', 'where.pltVersion.in', 'where.pltVersion.nin', 'where.pltVersion.contains', 'where.pltVersion.contained', 'where.pltVersion.overlaps', 'where.state.eq', 'where.state.neq', 'where.state.gt', 'where.state.gte', 'where.state.lt', 'where.state.lte', 'where.state.like', 'where.state.ilike', 'where.state.in', 'where.state.nin', 'where.state.contains', 'where.state.contained', 'where.state.overlaps', 'where.or']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/applicationStates/?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateApplicationStates']} */
+export const updateApplicationStates = async (request) => {
+  return await _updateApplicationStates(baseUrl, request)
+}
+async function _getApplicationStateById (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/applications/${request.id}/url?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/applicationStates/${request.id}?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -5159,49 +1774,47 @@ async function _getApplicationUrl (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationUrl']} */
-export const getApplicationUrl = async (request) => {
-  return await _getApplicationUrl(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationStateById']} */
+export const getApplicationStateById = async (request) => {
+  return await _getApplicationStateById(baseUrl, request)
 }
-async function _exposeApplication (url, request) {
-  const queryParameters = ['taxonomyId']
+async function _updateApplicationState (url, request) {
+  const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+      delete request?.[qp]
+    })
   }
 
-  const response = await fetch(`${url}/applications/${request.id}/expose?${searchParams.toString()}`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/applicationStates/${request.id}?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -5212,49 +1825,47 @@ async function _exposeApplication (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['exposeApplication']} */
-export const exposeApplication = async (request) => {
-  return await _exposeApplication(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateApplicationState']} */
+export const updateApplicationState = async (request) => {
+  return await _updateApplicationState(baseUrl, request)
 }
-async function _hideApplication (url, request) {
-  const queryParameters = ['taxonomyId']
+async function _deleteApplicationStates (url, request) {
+  const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+      delete request?.[qp]
+    })
   }
 
-  const response = await fetch(`${url}/applications/${request.id}/hide?${searchParams.toString()}`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/applicationStates/${request.id}?${searchParams.toString()}`, {
+    method: 'DELETE',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -5265,213 +1876,42 @@ async function _hideApplication (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['hideApplication']} */
-export const hideApplication = async (request) => {
-  return await _hideApplication(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteApplicationStates']} */
+export const deleteApplicationStates = async (request) => {
+  return await _deleteApplicationStates(baseUrl, request)
 }
-async function _deployApplication (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/applications/${request.id}/deploy`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['deployApplication']} */
-export const deployApplication = async (request) => {
-  return await _deployApplication(baseUrl, request)
-}
-async function _undeployApplication (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/applications/${request.id}/undeploy`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['undeployApplication']} */
-export const undeployApplication = async (request) => {
-  return await _undeployApplication(baseUrl, request)
-}
-async function _deleteApplication (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/applications/${request.id}/delete`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteApplication']} */
-export const deleteApplication = async (request) => {
-  return await _deleteApplication(baseUrl, request)
-}
-async function _restartDeployment (url, request) {
-  const queryParameters = ['taxonomyId']
+async function _getDeploymentsForApplicationState (url, request) {
+  const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+      delete request?.[qp]
+    })
   }
-
-  const response = await fetch(`${url}/applications/${request.id}/restart?${searchParams.toString()}`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const textResponses = [200]
-  if (textResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.text()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['restartDeployment']} */
-export const restartDeployment = async (request) => {
-  return await _restartDeployment(baseUrl, request)
-}
-async function _getApplicationSecretsKeys (url, request) {
-  const queryParameters = ['taxonomyId', 'full']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/applications/${request.id}/secrets-keys?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/applicationStates/${request.id}/deploymentApplicationStateId?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -5482,46 +1922,42 @@ async function _getApplicationSecretsKeys (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationSecretsKeys']} */
-export const getApplicationSecretsKeys = async (request) => {
-  return await _getApplicationSecretsKeys(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentsForApplicationState']} */
+export const getDeploymentsForApplicationState = async (request) => {
+  return await _getDeploymentsForApplicationState(baseUrl, request)
 }
-async function _getApplicationSecrets (url, request) {
-  const queryParameters = ['taxonomyId', 'full']
+async function _getApplicationForApplicationState (url, request) {
+  const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/applications/${request.id}/secrets?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/applicationStates/${request.id}/application?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -5532,244 +1968,77 @@ async function _getApplicationSecrets (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationSecrets']} */
-export const getApplicationSecrets = async (request) => {
-  return await _getApplicationSecrets(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForApplicationState']} */
+export const getApplicationForApplicationState = async (request) => {
+  return await _getApplicationForApplicationState(baseUrl, request)
 }
-async function _saveApplicationSecrets (url, request) {
-  const queryParameters = ['taxonomyId']
+async function _getDeployments (url, request) {
+  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.applicationStateId.eq', 'where.applicationStateId.neq', 'where.applicationStateId.gt', 'where.applicationStateId.gte', 'where.applicationStateId.lt', 'where.applicationStateId.lte', 'where.applicationStateId.like', 'where.applicationStateId.ilike', 'where.applicationStateId.in', 'where.applicationStateId.nin', 'where.applicationStateId.contains', 'where.applicationStateId.contained', 'where.applicationStateId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.imageId.eq', 'where.imageId.neq', 'where.imageId.gt', 'where.imageId.gte', 'where.imageId.lt', 'where.imageId.lte', 'where.imageId.like', 'where.imageId.ilike', 'where.imageId.in', 'where.imageId.nin', 'where.imageId.contains', 'where.imageId.contained', 'where.imageId.overlaps', 'where.status.eq', 'where.status.neq', 'where.status.gt', 'where.status.gte', 'where.status.lt', 'where.status.lte', 'where.status.like', 'where.status.ilike', 'where.status.in', 'where.status.nin', 'where.status.contains', 'where.status.contained', 'where.status.overlaps', 'where.or', 'orderby.applicationId', 'orderby.applicationStateId', 'orderby.createdAt', 'orderby.id', 'orderby.imageId', 'orderby.status']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+      delete request?.[qp]
+    })
   }
-
-  const response = await fetch(`${url}/applications/${request.id}/secrets?${searchParams.toString()}`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['saveApplicationSecrets']} */
-export const saveApplicationSecrets = async (request) => {
-  return await _saveApplicationSecrets(baseUrl, request)
-}
-async function _saveApplicationStatus (url, request) {
-  const queryParameters = ['taxonomyId', 'bundleId']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/applications/${request.id}/status?${searchParams.toString()}`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['saveApplicationStatus']} */
-export const saveApplicationStatus = async (request) => {
-  return await _saveApplicationStatus(baseUrl, request)
-}
-async function _saveApplicationState (url, request) {
-  const queryParameters = ['taxonomyId', 'bundleId']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/applications/${request.id}/state?${searchParams.toString()}`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['saveApplicationState']} */
-export const saveApplicationState = async (request) => {
-  return await _saveApplicationState(baseUrl, request)
-}
-async function _getApplicationsIdScaler (url, request) {
-  const queryParameters = ['taxonomyId']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/applications/${request.id}/scaler?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/deployments/?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
   if (jsonResponses.includes(response.status)) {
-    const body = await response.json()
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
     return {
       statusCode: response.status,
       headers: headersToJSON(response.headers),
       body: await response.json()
     }
   }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationsIdScaler']} */
-export const getApplicationsIdScaler = async (request) => {
-  return await _getApplicationsIdScaler(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeployments']} */
+export const getDeployments = async (request) => {
+  return await _getDeployments(baseUrl, request)
 }
-async function _postCreateApplication (url, request) {
+async function _createDeployment (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
     ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
+    ...(isFormData ? {} : defaultJsonType)
   }
 
-  const response = await fetch(`${url}/applications`, {
+  const response = await fetch(`${url}/deployments/`, {
     method: 'POST',
-    body: JSON.stringify(request),
-    headers
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -5780,46 +2049,93 @@ async function _postCreateApplication (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['createDeployment']} */
+export const createDeployment = async (request) => {
+  return await _createDeployment(baseUrl, request)
+}
+async function _updateDeployments (url, request) {
+  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.applicationStateId.eq', 'where.applicationStateId.neq', 'where.applicationStateId.gt', 'where.applicationStateId.gte', 'where.applicationStateId.lt', 'where.applicationStateId.lte', 'where.applicationStateId.like', 'where.applicationStateId.ilike', 'where.applicationStateId.in', 'where.applicationStateId.nin', 'where.applicationStateId.contains', 'where.applicationStateId.contained', 'where.applicationStateId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.imageId.eq', 'where.imageId.neq', 'where.imageId.gt', 'where.imageId.gte', 'where.imageId.lt', 'where.imageId.lte', 'where.imageId.like', 'where.imageId.ilike', 'where.imageId.in', 'where.imageId.nin', 'where.imageId.contains', 'where.imageId.contained', 'where.imageId.overlaps', 'where.status.eq', 'where.status.neq', 'where.status.gt', 'where.status.gte', 'where.status.lt', 'where.status.lte', 'where.status.like', 'where.status.ilike', 'where.status.in', 'where.status.nin', 'where.status.contains', 'where.status.contained', 'where.status.overlaps', 'where.or']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/deployments/?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
     return {
       statusCode: response.status,
       headers: headersToJSON(response.headers),
       body: await response.json()
     }
   }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['postCreateApplication']} */
-export const postCreateApplication = async (request) => {
-  return await _postCreateApplication(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateDeployments']} */
+export const updateDeployments = async (request) => {
+  return await _updateDeployments(baseUrl, request)
 }
-async function _getTaxonomiesChanges (url, request) {
-  const queryParameters = ['taxonomyIds', 'taxonomyStages', 'applicationIds']
+async function _getDeploymentById (url, request) {
+  const queryParameters = ['fields']
   const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
       }
-    }
-    delete request[qp]
-  })
+      delete request?.[qp]
+    })
+  }
 
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/changes?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/deployments/${request.id}?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -5830,31 +2146,1362 @@ async function _getTaxonomiesChanges (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentById']} */
+export const getDeploymentById = async (request) => {
+  return await _getDeploymentById(baseUrl, request)
+}
+async function _updateDeployment (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/deployments/${request.id}?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
     return {
       statusCode: response.status,
       headers: headersToJSON(response.headers),
       body: await response.json()
     }
   }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomiesChanges']} */
-export const getTaxonomiesChanges = async (request) => {
-  return await _getTaxonomiesChanges(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateDeployment']} */
+export const updateDeployment = async (request) => {
+  return await _updateDeployment(baseUrl, request)
+}
+async function _deleteDeployments (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/deployments/${request.id}?${searchParams.toString()}`, {
+    method: 'DELETE',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteDeployments']} */
+export const deleteDeployments = async (request) => {
+  return await _deleteDeployments(baseUrl, request)
+}
+async function _getInstancesForDeployment (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/deployments/${request.id}/instanceDeploymentId?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getInstancesForDeployment']} */
+export const getInstancesForDeployment = async (request) => {
+  return await _getInstancesForDeployment(baseUrl, request)
+}
+async function _getGenerationsDeploymentsForDeployment (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/deployments/${request.id}/generationsDeploymentDeploymentId?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationsDeploymentsForDeployment']} */
+export const getGenerationsDeploymentsForDeployment = async (request) => {
+  return await _getGenerationsDeploymentsForDeployment(baseUrl, request)
+}
+async function _getApplicationForDeployment (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/deployments/${request.id}/application?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForDeployment']} */
+export const getApplicationForDeployment = async (request) => {
+  return await _getApplicationForDeployment(baseUrl, request)
+}
+async function _getApplicationStateForDeployment (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/deployments/${request.id}/application_state?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationStateForDeployment']} */
+export const getApplicationStateForDeployment = async (request) => {
+  return await _getApplicationStateForDeployment(baseUrl, request)
+}
+async function _getInstances (url, request) {
+  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.deploymentId.eq', 'where.deploymentId.neq', 'where.deploymentId.gt', 'where.deploymentId.gte', 'where.deploymentId.lt', 'where.deploymentId.lte', 'where.deploymentId.like', 'where.deploymentId.ilike', 'where.deploymentId.in', 'where.deploymentId.nin', 'where.deploymentId.contains', 'where.deploymentId.contained', 'where.deploymentId.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.podId.eq', 'where.podId.neq', 'where.podId.gt', 'where.podId.gte', 'where.podId.lt', 'where.podId.lte', 'where.podId.like', 'where.podId.ilike', 'where.podId.in', 'where.podId.nin', 'where.podId.contains', 'where.podId.contained', 'where.podId.overlaps', 'where.status.eq', 'where.status.neq', 'where.status.gt', 'where.status.gte', 'where.status.lt', 'where.status.lte', 'where.status.like', 'where.status.ilike', 'where.status.in', 'where.status.nin', 'where.status.contains', 'where.status.contained', 'where.status.overlaps', 'where.or', 'orderby.applicationId', 'orderby.createdAt', 'orderby.deploymentId', 'orderby.id', 'orderby.podId', 'orderby.status']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/instances/?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getInstances']} */
+export const getInstances = async (request) => {
+  return await _getInstances(baseUrl, request)
+}
+async function _createInstance (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/instances/`, {
+    method: 'POST',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['createInstance']} */
+export const createInstance = async (request) => {
+  return await _createInstance(baseUrl, request)
+}
+async function _updateInstances (url, request) {
+  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.deploymentId.eq', 'where.deploymentId.neq', 'where.deploymentId.gt', 'where.deploymentId.gte', 'where.deploymentId.lt', 'where.deploymentId.lte', 'where.deploymentId.like', 'where.deploymentId.ilike', 'where.deploymentId.in', 'where.deploymentId.nin', 'where.deploymentId.contains', 'where.deploymentId.contained', 'where.deploymentId.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.podId.eq', 'where.podId.neq', 'where.podId.gt', 'where.podId.gte', 'where.podId.lt', 'where.podId.lte', 'where.podId.like', 'where.podId.ilike', 'where.podId.in', 'where.podId.nin', 'where.podId.contains', 'where.podId.contained', 'where.podId.overlaps', 'where.status.eq', 'where.status.neq', 'where.status.gt', 'where.status.gte', 'where.status.lt', 'where.status.lte', 'where.status.like', 'where.status.ilike', 'where.status.in', 'where.status.nin', 'where.status.contains', 'where.status.contained', 'where.status.overlaps', 'where.or']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/instances/?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateInstances']} */
+export const updateInstances = async (request) => {
+  return await _updateInstances(baseUrl, request)
+}
+async function _getInstanceById (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/instances/${request.id}?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getInstanceById']} */
+export const getInstanceById = async (request) => {
+  return await _getInstanceById(baseUrl, request)
+}
+async function _updateInstance (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/instances/${request.id}?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateInstance']} */
+export const updateInstance = async (request) => {
+  return await _updateInstance(baseUrl, request)
+}
+async function _deleteInstances (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/instances/${request.id}?${searchParams.toString()}`, {
+    method: 'DELETE',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteInstances']} */
+export const deleteInstances = async (request) => {
+  return await _deleteInstances(baseUrl, request)
+}
+async function _getApplicationForInstance (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/instances/${request.id}/application?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForInstance']} */
+export const getApplicationForInstance = async (request) => {
+  return await _getApplicationForInstance(baseUrl, request)
+}
+async function _getDeploymentForInstance (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/instances/${request.id}/deployment?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getDeploymentForInstance']} */
+export const getDeploymentForInstance = async (request) => {
+  return await _getDeploymentForInstance(baseUrl, request)
+}
+async function _getGenerationsDeployments (url, request) {
+  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.deploymentId.eq', 'where.deploymentId.neq', 'where.deploymentId.gt', 'where.deploymentId.gte', 'where.deploymentId.lt', 'where.deploymentId.lte', 'where.deploymentId.like', 'where.deploymentId.ilike', 'where.deploymentId.in', 'where.deploymentId.nin', 'where.deploymentId.contains', 'where.deploymentId.contained', 'where.deploymentId.overlaps', 'where.generationId.eq', 'where.generationId.neq', 'where.generationId.gt', 'where.generationId.gte', 'where.generationId.lt', 'where.generationId.lte', 'where.generationId.like', 'where.generationId.ilike', 'where.generationId.in', 'where.generationId.nin', 'where.generationId.contains', 'where.generationId.contained', 'where.generationId.overlaps', 'where.or', 'orderby.deploymentId', 'orderby.generationId']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/generationsDeployments/?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationsDeployments']} */
+export const getGenerationsDeployments = async (request) => {
+  return await _getGenerationsDeployments(baseUrl, request)
+}
+async function _createGenerationsDeployment (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/generationsDeployments/`, {
+    method: 'POST',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['createGenerationsDeployment']} */
+export const createGenerationsDeployment = async (request) => {
+  return await _createGenerationsDeployment(baseUrl, request)
+}
+async function _updateGenerationsDeployments (url, request) {
+  const queryParameters = ['fields', 'where.deploymentId.eq', 'where.deploymentId.neq', 'where.deploymentId.gt', 'where.deploymentId.gte', 'where.deploymentId.lt', 'where.deploymentId.lte', 'where.deploymentId.like', 'where.deploymentId.ilike', 'where.deploymentId.in', 'where.deploymentId.nin', 'where.deploymentId.contains', 'where.deploymentId.contained', 'where.deploymentId.overlaps', 'where.generationId.eq', 'where.generationId.neq', 'where.generationId.gt', 'where.generationId.gte', 'where.generationId.lt', 'where.generationId.lte', 'where.generationId.like', 'where.generationId.ilike', 'where.generationId.in', 'where.generationId.nin', 'where.generationId.contains', 'where.generationId.contained', 'where.generationId.overlaps', 'where.or']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/generationsDeployments/?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateGenerationsDeployments']} */
+export const updateGenerationsDeployments = async (request) => {
+  return await _updateGenerationsDeployments(baseUrl, request)
+}
+async function _getGenerationsDeploymentByGenerationIdAndDeploymentId (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/generationsDeployments/generation/${request.generationId}/deployment/${request.deploymentId}?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationsDeploymentByGenerationIdAndDeploymentId']} */
+export const getGenerationsDeploymentByGenerationIdAndDeploymentId = async (request) => {
+  return await _getGenerationsDeploymentByGenerationIdAndDeploymentId(baseUrl, request)
+}
+async function _postGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/generationsDeployments/generation/${request.generationId}/deployment/${request.deploymentId}?${searchParams.toString()}`, {
+    method: 'POST',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['postGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId']} */
+export const postGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId = async (request) => {
+  return await _postGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId(baseUrl, request)
+}
+async function _putGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/generationsDeployments/generation/${request.generationId}/deployment/${request.deploymentId}?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['putGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId']} */
+export const putGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId = async (request) => {
+  return await _putGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId(baseUrl, request)
+}
+async function _deleteGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/generationsDeployments/generation/${request.generationId}/deployment/${request.deploymentId}?${searchParams.toString()}`, {
+    method: 'DELETE',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId']} */
+export const deleteGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId = async (request) => {
+  return await _deleteGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId(baseUrl, request)
+}
+async function _getGenerationsApplicationsConfigs (url, request) {
+  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.configId.eq', 'where.configId.neq', 'where.configId.gt', 'where.configId.gte', 'where.configId.lt', 'where.configId.lte', 'where.configId.like', 'where.configId.ilike', 'where.configId.in', 'where.configId.nin', 'where.configId.contains', 'where.configId.contained', 'where.configId.overlaps', 'where.generationId.eq', 'where.generationId.neq', 'where.generationId.gt', 'where.generationId.gte', 'where.generationId.lt', 'where.generationId.lte', 'where.generationId.like', 'where.generationId.ilike', 'where.generationId.in', 'where.generationId.nin', 'where.generationId.contains', 'where.generationId.contained', 'where.generationId.overlaps', 'where.or', 'orderby.configId', 'orderby.generationId']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/generationsApplicationsConfigs/?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationsApplicationsConfigs']} */
+export const getGenerationsApplicationsConfigs = async (request) => {
+  return await _getGenerationsApplicationsConfigs(baseUrl, request)
+}
+async function _createGenerationsApplicationsConfig (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/generationsApplicationsConfigs/`, {
+    method: 'POST',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['createGenerationsApplicationsConfig']} */
+export const createGenerationsApplicationsConfig = async (request) => {
+  return await _createGenerationsApplicationsConfig(baseUrl, request)
+}
+async function _updateGenerationsApplicationsConfigs (url, request) {
+  const queryParameters = ['fields', 'where.configId.eq', 'where.configId.neq', 'where.configId.gt', 'where.configId.gte', 'where.configId.lt', 'where.configId.lte', 'where.configId.like', 'where.configId.ilike', 'where.configId.in', 'where.configId.nin', 'where.configId.contains', 'where.configId.contained', 'where.configId.overlaps', 'where.generationId.eq', 'where.generationId.neq', 'where.generationId.gt', 'where.generationId.gte', 'where.generationId.lt', 'where.generationId.lte', 'where.generationId.like', 'where.generationId.ilike', 'where.generationId.in', 'where.generationId.nin', 'where.generationId.contains', 'where.generationId.contained', 'where.generationId.overlaps', 'where.or']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/generationsApplicationsConfigs/?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateGenerationsApplicationsConfigs']} */
+export const updateGenerationsApplicationsConfigs = async (request) => {
+  return await _updateGenerationsApplicationsConfigs(baseUrl, request)
+}
+async function _getGenerationsApplicationsConfigByGenerationIdAndConfigId (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/generationsApplicationsConfigs/generation/${request.generationId}/applicationsConfig/${request.configId}?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getGenerationsApplicationsConfigByGenerationIdAndConfigId']} */
+export const getGenerationsApplicationsConfigByGenerationIdAndConfigId = async (request) => {
+  return await _getGenerationsApplicationsConfigByGenerationIdAndConfigId(baseUrl, request)
+}
+async function _postGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/generationsApplicationsConfigs/generation/${request.generationId}/applicationsConfig/${request.configId}?${searchParams.toString()}`, {
+    method: 'POST',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['postGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId']} */
+export const postGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId = async (request) => {
+  return await _postGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId(baseUrl, request)
+}
+async function _putGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/generationsApplicationsConfigs/generation/${request.generationId}/applicationsConfig/${request.configId}?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['putGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId']} */
+export const putGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId = async (request) => {
+  return await _putGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId(baseUrl, request)
+}
+async function _deleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/generationsApplicationsConfigs/generation/${request.generationId}/applicationsConfig/${request.configId}?${searchParams.toString()}`, {
+    method: 'DELETE',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId']} */
+export const deleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId = async (request) => {
+  return await _deleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId(baseUrl, request)
 }
 async function _getGenerationGraph (url, request) {
+  const queryParameters = ['generationId']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
   const headers = {
     ...defaultHeaders
   }
 
-  const response = await fetch(`${url}/generations/${request.id}/graph`, {
-    headers
+  const response = await fetch(`${url}/graph?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -5865,17 +3512,11 @@ async function _getGenerationGraph (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
@@ -5883,83 +3524,19 @@ async function _getGenerationGraph (url, request) {
 export const getGenerationGraph = async (request) => {
   return await _getGenerationGraph(baseUrl, request)
 }
-async function _getMachines (url, request) {
+async function _initApplicationInstance (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
-    ...defaultHeaders
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
   }
 
-  const response = await fetch(`${url}/machines`, {
-    headers
-  })
-
-  const textResponses = [200]
-  if (textResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.text()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getMachines']} */
-export const getMachines = async (request) => {
-  return await _getMachines(baseUrl, request)
-}
-async function _getMachinesId (url, request) {
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/machines/${request.id}`, {
-    headers
-  })
-
-  const textResponses = [200]
-  if (textResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.text()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getMachinesId']} */
-export const getMachinesId = async (request) => {
-  return await _getMachinesId(baseUrl, request)
-}
-async function _getNpmConfig (url, request) {
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/npm-config`, {
-    headers
+  const response = await fetch(`${url}/pods/${request.podId}/instance`, {
+    method: 'POST',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -5970,31 +3547,66 @@ async function _getNpmConfig (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getNpmConfig']} */
-export const getNpmConfig = async (request) => {
-  return await _getNpmConfig(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['initApplicationInstance']} */
+export const initApplicationInstance = async (request) => {
+  return await _initApplicationInstance(baseUrl, request)
 }
-async function _getTaxonomyUrls (url, request) {
+async function _saveApplicationInstanceStatus (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
-    ...defaultHeaders
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
   }
 
-  const response = await fetch(`${url}/taxonomies/${request.id}/urls`, {
-    headers
+  const response = await fetch(`${url}/pods/${request.id}/instance/status`, {
+    method: 'POST',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const textResponses = [200]
+  if (textResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.text()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['saveApplicationInstanceStatus']} */
+export const saveApplicationInstanceStatus = async (request) => {
+  return await _saveApplicationInstanceStatus(baseUrl, request)
+}
+async function _saveApplicationInstanceState (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/pods/${request.id}/instance/state`, {
+    method: 'POST',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -6005,46 +3617,31 @@ async function _getTaxonomyUrls (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomyUrls']} */
-export const getTaxonomyUrls = async (request) => {
-  return await _getTaxonomyUrls(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['saveApplicationInstanceState']} */
+export const saveApplicationInstanceState = async (request) => {
+  return await _saveApplicationInstanceState(baseUrl, request)
 }
-async function _getMainTaxonomyGraph (url, request) {
-  const queryParameters = ['generationId']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
+async function _setApplicationResources (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
   const headers = {
-    ...defaultHeaders
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
   }
 
-  const response = await fetch(`${url}/taxonomies/${request.id}/graph?${searchParams.toString()}`, {
-    headers
+  const response = await fetch(`${url}/applications/${request.id}/resources`, {
+    method: 'POST',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
   })
 
   const jsonResponses = [200]
@@ -6055,397 +3652,17 @@ async function _getMainTaxonomyGraph (url, request) {
       body: await response.json()
     }
   }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
   return {
     statusCode: response.status,
     headers: headersToJSON(response.headers),
-    body: await response.text()
+    body: await response[responseType]()
   }
 }
 
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getMainTaxonomyGraph']} */
-export const getMainTaxonomyGraph = async (request) => {
-  return await _getMainTaxonomyGraph(baseUrl, request)
-}
-async function _getPreviewTaxonomyGraph (url, request) {
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/diff-graph`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getPreviewTaxonomyGraph']} */
-export const getPreviewTaxonomyGraph = async (request) => {
-  return await _getPreviewTaxonomyGraph(baseUrl, request)
-}
-async function _startTaxonomy (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/start`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const textResponses = [200]
-  if (textResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.text()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['startTaxonomy']} */
-export const startTaxonomy = async (request) => {
-  return await _startTaxonomy(baseUrl, request)
-}
-async function _stopTaxonomy (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/stop`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const textResponses = [200]
-  if (textResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.text()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['stopTaxonomy']} */
-export const stopTaxonomy = async (request) => {
-  return await _stopTaxonomy(baseUrl, request)
-}
-async function _syncPreviewTaxonomy (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/sync`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const textResponses = [200]
-  if (textResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.text()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['syncPreviewTaxonomy']} */
-export const syncPreviewTaxonomy = async (request) => {
-  return await _syncPreviewTaxonomy(baseUrl, request)
-}
-async function _getTaxonomySecrets (url, request) {
-  const queryParameters = ['full']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/secrets?${searchParams.toString()}`, {
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['getTaxonomySecrets']} */
-export const getTaxonomySecrets = async (request) => {
-  return await _getTaxonomySecrets(baseUrl, request)
-}
-async function _saveTaxonomySecrets (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/secrets`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const jsonResponses = [200]
-  if (jsonResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['saveTaxonomySecrets']} */
-export const saveTaxonomySecrets = async (request) => {
-  return await _saveTaxonomySecrets(baseUrl, request)
-}
-async function _importTaxonomy (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-  if (request['x-user'] !== undefined) {
-    headers['x-user'] = request['x-user']
-    delete request['x-user']
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/import`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const textResponses = [200]
-  if (textResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.text()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['importTaxonomy']} */
-export const importTaxonomy = async (request) => {
-  return await _importTaxonomy(baseUrl, request)
-}
-async function _exportTaxonomy (url, request) {
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-  if (request['x-user'] !== undefined) {
-    headers['x-user'] = request['x-user']
-    delete request['x-user']
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/export`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const textResponses = [200]
-  if (textResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.text()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['exportTaxonomy']} */
-export const exportTaxonomy = async (request) => {
-  return await _exportTaxonomy(baseUrl, request)
-}
-async function _closeTaxonomy (url, request) {
-  const queryParameters = ['merge']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      if (Array.isArray(request[qp])) {
-        request[qp].forEach((p) => {
-          searchParams.append(qp, p)
-        })
-      } else {
-        searchParams.append(qp, request[qp]?.toString() || '')
-      }
-    }
-    delete request[qp]
-  })
-
-  const headers = {
-    ...defaultHeaders,
-    'Content-type': 'application/json; charset=utf-8'
-  }
-
-  const response = await fetch(`${url}/taxonomies/${request.id}/close?${searchParams.toString()}`, {
-    method: 'POST',
-    body: JSON.stringify(request),
-    headers
-  })
-
-  const textResponses = [200]
-  if (textResponses.includes(response.status)) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.text()
-    }
-  }
-  if (response.headers.get('content-type')?.startsWith('application/json')) {
-    return {
-      statusCode: response.status,
-      headers: headersToJSON(response.headers),
-      body: await response.json()
-    }
-  }
-  return {
-    statusCode: response.status,
-    headers: headersToJSON(response.headers),
-    body: await response.text()
-  }
-}
-
-/**  @type {import('./control-plane-types.d.ts').ControlPlane['closeTaxonomy']} */
-export const closeTaxonomy = async (request) => {
-  return await _closeTaxonomy(baseUrl, request)
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['setApplicationResources']} */
+export const setApplicationResources = async (request) => {
+  return await _setApplicationResources(baseUrl, request)
 }
 export default function build (url, options) {
   url = sanitizeUrl(url)
@@ -6453,42 +3670,40 @@ export default function build (url, options) {
     defaultHeaders = options.headers
   }
   return {
-    getTaxonomies: _getTaxonomies.bind(url, ...arguments),
-    createTaxonomy: _createTaxonomy.bind(url, ...arguments),
-    updateTaxonomies: _updateTaxonomies.bind(url, ...arguments),
-    getTaxonomyById: _getTaxonomyById.bind(url, ...arguments),
-    updateTaxonomy: _updateTaxonomy.bind(url, ...arguments),
-    deleteTaxonomies: _deleteTaxonomies.bind(url, ...arguments),
-    getTaxonomiesApplicationsChangesForTaxonomy: _getTaxonomiesApplicationsChangesForTaxonomy.bind(url, ...arguments),
-    getEnvironmentsForTaxonomy: _getEnvironmentsForTaxonomy.bind(url, ...arguments),
-    getEntrypointsForTaxonomy: _getEntrypointsForTaxonomy.bind(url, ...arguments),
-    getDeploymentsForTaxonomy: _getDeploymentsForTaxonomy.bind(url, ...arguments),
-    getGraphsForTaxonomy: _getGraphsForTaxonomy.bind(url, ...arguments),
-    getGenerationsForTaxonomy: _getGenerationsForTaxonomy.bind(url, ...arguments),
-    getTaxonomiesApplicationsChanges: _getTaxonomiesApplicationsChanges.bind(url, ...arguments),
-    createTaxonomiesApplicationsChange: _createTaxonomiesApplicationsChange.bind(url, ...arguments),
-    updateTaxonomiesApplicationsChanges: _updateTaxonomiesApplicationsChanges.bind(url, ...arguments),
-    getTaxonomiesApplicationsChangeById: _getTaxonomiesApplicationsChangeById.bind(url, ...arguments),
-    updateTaxonomiesApplicationsChange: _updateTaxonomiesApplicationsChange.bind(url, ...arguments),
-    deleteTaxonomiesApplicationsChanges: _deleteTaxonomiesApplicationsChanges.bind(url, ...arguments),
-    getTaxonomyForTaxonomiesApplicationsChange: _getTaxonomyForTaxonomiesApplicationsChange.bind(url, ...arguments),
-    getApplicationForTaxonomiesApplicationsChange: _getApplicationForTaxonomiesApplicationsChange.bind(url, ...arguments),
-    getEnvironments: _getEnvironments.bind(url, ...arguments),
-    createEnvironment: _createEnvironment.bind(url, ...arguments),
-    updateEnvironments: _updateEnvironments.bind(url, ...arguments),
-    getEnvironmentById: _getEnvironmentById.bind(url, ...arguments),
-    updateEnvironment: _updateEnvironment.bind(url, ...arguments),
-    deleteEnvironments: _deleteEnvironments.bind(url, ...arguments),
-    getTaxonomyForEnvironment: _getTaxonomyForEnvironment.bind(url, ...arguments),
-    getApplicationForEnvironment: _getApplicationForEnvironment.bind(url, ...arguments),
-    getEntrypoints: _getEntrypoints.bind(url, ...arguments),
-    createEntrypoint: _createEntrypoint.bind(url, ...arguments),
-    updateEntrypoints: _updateEntrypoints.bind(url, ...arguments),
-    getEntrypointById: _getEntrypointById.bind(url, ...arguments),
-    updateEntrypoint: _updateEntrypoint.bind(url, ...arguments),
-    deleteEntrypoints: _deleteEntrypoints.bind(url, ...arguments),
-    getTaxonomyForEntrypoint: _getTaxonomyForEntrypoint.bind(url, ...arguments),
-    getApplicationForEntrypoint: _getApplicationForEntrypoint.bind(url, ...arguments),
+    getGenerations: _getGenerations.bind(url, ...arguments),
+    createGeneration: _createGeneration.bind(url, ...arguments),
+    updateGenerations: _updateGenerations.bind(url, ...arguments),
+    getGenerationById: _getGenerationById.bind(url, ...arguments),
+    updateGeneration: _updateGeneration.bind(url, ...arguments),
+    deleteGenerations: _deleteGenerations.bind(url, ...arguments),
+    getGraphsForGeneration: _getGraphsForGeneration.bind(url, ...arguments),
+    getGenerationsDeploymentsForGeneration: _getGenerationsDeploymentsForGeneration.bind(url, ...arguments),
+    getGenerationsApplicationsConfigsForGeneration: _getGenerationsApplicationsConfigsForGeneration.bind(url, ...arguments),
+    getGraphs: _getGraphs.bind(url, ...arguments),
+    createGraph: _createGraph.bind(url, ...arguments),
+    updateGraphs: _updateGraphs.bind(url, ...arguments),
+    getGraphById: _getGraphById.bind(url, ...arguments),
+    updateGraph: _updateGraph.bind(url, ...arguments),
+    deleteGraphs: _deleteGraphs.bind(url, ...arguments),
+    getGenerationForGraph: _getGenerationForGraph.bind(url, ...arguments),
+    getApplications: _getApplications.bind(url, ...arguments),
+    createApplication: _createApplication.bind(url, ...arguments),
+    updateApplications: _updateApplications.bind(url, ...arguments),
+    getApplicationById: _getApplicationById.bind(url, ...arguments),
+    updateApplication: _updateApplication.bind(url, ...arguments),
+    deleteApplications: _deleteApplications.bind(url, ...arguments),
+    getApplicationsConfigsForApplication: _getApplicationsConfigsForApplication.bind(url, ...arguments),
+    getApplicationStatesForApplication: _getApplicationStatesForApplication.bind(url, ...arguments),
+    getDeploymentsForApplication: _getDeploymentsForApplication.bind(url, ...arguments),
+    getInstancesForApplication: _getInstancesForApplication.bind(url, ...arguments),
+    getApplicationsConfigs: _getApplicationsConfigs.bind(url, ...arguments),
+    createApplicationsConfig: _createApplicationsConfig.bind(url, ...arguments),
+    updateApplicationsConfigs: _updateApplicationsConfigs.bind(url, ...arguments),
+    getApplicationsConfigById: _getApplicationsConfigById.bind(url, ...arguments),
+    updateApplicationsConfig: _updateApplicationsConfig.bind(url, ...arguments),
+    deleteApplicationsConfigs: _deleteApplicationsConfigs.bind(url, ...arguments),
+    getGenerationsApplicationsConfigsForApplicationsConfig: _getGenerationsApplicationsConfigsForApplicationsConfig.bind(url, ...arguments),
+    getApplicationForApplicationsConfig: _getApplicationForApplicationsConfig.bind(url, ...arguments),
     getApplicationStates: _getApplicationStates.bind(url, ...arguments),
     createApplicationState: _createApplicationState.bind(url, ...arguments),
     updateApplicationStates: _updateApplicationStates.bind(url, ...arguments),
@@ -6503,88 +3718,36 @@ export default function build (url, options) {
     getDeploymentById: _getDeploymentById.bind(url, ...arguments),
     updateDeployment: _updateDeployment.bind(url, ...arguments),
     deleteDeployments: _deleteDeployments.bind(url, ...arguments),
-    getTaxonomyForDeployment: _getTaxonomyForDeployment.bind(url, ...arguments),
-    getGenerationForDeployment: _getGenerationForDeployment.bind(url, ...arguments),
+    getInstancesForDeployment: _getInstancesForDeployment.bind(url, ...arguments),
+    getGenerationsDeploymentsForDeployment: _getGenerationsDeploymentsForDeployment.bind(url, ...arguments),
     getApplicationForDeployment: _getApplicationForDeployment.bind(url, ...arguments),
     getApplicationStateForDeployment: _getApplicationStateForDeployment.bind(url, ...arguments),
-    getDeploymentSettingForDeployment: _getDeploymentSettingForDeployment.bind(url, ...arguments),
-    getGraphs: _getGraphs.bind(url, ...arguments),
-    createGraph: _createGraph.bind(url, ...arguments),
-    updateGraphs: _updateGraphs.bind(url, ...arguments),
-    getGraphById: _getGraphById.bind(url, ...arguments),
-    updateGraph: _updateGraph.bind(url, ...arguments),
-    deleteGraphs: _deleteGraphs.bind(url, ...arguments),
-    getTaxonomyForGraph: _getTaxonomyForGraph.bind(url, ...arguments),
-    getGenerationForGraph: _getGenerationForGraph.bind(url, ...arguments),
-    getGenerations: _getGenerations.bind(url, ...arguments),
-    createGeneration: _createGeneration.bind(url, ...arguments),
-    updateGenerations: _updateGenerations.bind(url, ...arguments),
-    getGenerationById: _getGenerationById.bind(url, ...arguments),
-    updateGeneration: _updateGeneration.bind(url, ...arguments),
-    deleteGenerations: _deleteGenerations.bind(url, ...arguments),
-    getDeploymentsForGeneration: _getDeploymentsForGeneration.bind(url, ...arguments),
-    getGraphsForGeneration: _getGraphsForGeneration.bind(url, ...arguments),
-    getTaxonomyForGeneration: _getTaxonomyForGeneration.bind(url, ...arguments),
-    getDeploymentSettings: _getDeploymentSettings.bind(url, ...arguments),
-    createDeploymentSetting: _createDeploymentSetting.bind(url, ...arguments),
-    updateDeploymentSettings: _updateDeploymentSettings.bind(url, ...arguments),
-    getDeploymentSettingById: _getDeploymentSettingById.bind(url, ...arguments),
-    updateDeploymentSetting: _updateDeploymentSetting.bind(url, ...arguments),
-    deleteDeploymentSettings: _deleteDeploymentSettings.bind(url, ...arguments),
-    getDeploymentsForDeploymentSetting: _getDeploymentsForDeploymentSetting.bind(url, ...arguments),
-    getApplicationForDeploymentSetting: _getApplicationForDeploymentSetting.bind(url, ...arguments),
-    getApplications: _getApplications.bind(url, ...arguments),
-    updateApplications: _updateApplications.bind(url, ...arguments),
-    createApplication: _createApplication.bind(url, ...arguments),
-    getApplicationById: _getApplicationById.bind(url, ...arguments),
-    updateApplication: _updateApplication.bind(url, ...arguments),
-    deleteApplications: _deleteApplications.bind(url, ...arguments),
-    getTaxonomiesApplicationsChangesForApplication: _getTaxonomiesApplicationsChangesForApplication.bind(url, ...arguments),
-    getEnvironmentsForApplication: _getEnvironmentsForApplication.bind(url, ...arguments),
-    getEntrypointsForApplication: _getEntrypointsForApplication.bind(url, ...arguments),
-    getApplicationStatesForApplication: _getApplicationStatesForApplication.bind(url, ...arguments),
-    getDeploymentsForApplication: _getDeploymentsForApplication.bind(url, ...arguments),
-    getDeploymentSettingsForApplication: _getDeploymentSettingsForApplication.bind(url, ...arguments),
-    getApplicationSettingsForApplication: _getApplicationSettingsForApplication.bind(url, ...arguments),
-    getApplicationSettings: _getApplicationSettings.bind(url, ...arguments),
-    createApplicationSetting: _createApplicationSetting.bind(url, ...arguments),
-    updateApplicationSettings: _updateApplicationSettings.bind(url, ...arguments),
-    getApplicationSettingById: _getApplicationSettingById.bind(url, ...arguments),
-    updateApplicationSetting: _updateApplicationSetting.bind(url, ...arguments),
-    deleteApplicationSettings: _deleteApplicationSettings.bind(url, ...arguments),
-    getApplicationForApplicationSetting: _getApplicationForApplicationSetting.bind(url, ...arguments),
-    postUpdateApplicationSettings: _postUpdateApplicationSettings.bind(url, ...arguments),
-    getApplicationDomains: _getApplicationDomains.bind(url, ...arguments),
-    getApplicationInstances: _getApplicationInstances.bind(url, ...arguments),
-    getApplicationUrl: _getApplicationUrl.bind(url, ...arguments),
-    exposeApplication: _exposeApplication.bind(url, ...arguments),
-    hideApplication: _hideApplication.bind(url, ...arguments),
-    deployApplication: _deployApplication.bind(url, ...arguments),
-    undeployApplication: _undeployApplication.bind(url, ...arguments),
-    deleteApplication: _deleteApplication.bind(url, ...arguments),
-    restartDeployment: _restartDeployment.bind(url, ...arguments),
-    getApplicationSecretsKeys: _getApplicationSecretsKeys.bind(url, ...arguments),
-    getApplicationSecrets: _getApplicationSecrets.bind(url, ...arguments),
-    saveApplicationSecrets: _saveApplicationSecrets.bind(url, ...arguments),
-    saveApplicationStatus: _saveApplicationStatus.bind(url, ...arguments),
-    saveApplicationState: _saveApplicationState.bind(url, ...arguments),
-    getApplicationsIdScaler: _getApplicationsIdScaler.bind(url, ...arguments),
-    postCreateApplication: _postCreateApplication.bind(url, ...arguments),
-    getTaxonomiesChanges: _getTaxonomiesChanges.bind(url, ...arguments),
+    getInstances: _getInstances.bind(url, ...arguments),
+    createInstance: _createInstance.bind(url, ...arguments),
+    updateInstances: _updateInstances.bind(url, ...arguments),
+    getInstanceById: _getInstanceById.bind(url, ...arguments),
+    updateInstance: _updateInstance.bind(url, ...arguments),
+    deleteInstances: _deleteInstances.bind(url, ...arguments),
+    getApplicationForInstance: _getApplicationForInstance.bind(url, ...arguments),
+    getDeploymentForInstance: _getDeploymentForInstance.bind(url, ...arguments),
+    getGenerationsDeployments: _getGenerationsDeployments.bind(url, ...arguments),
+    createGenerationsDeployment: _createGenerationsDeployment.bind(url, ...arguments),
+    updateGenerationsDeployments: _updateGenerationsDeployments.bind(url, ...arguments),
+    getGenerationsDeploymentByGenerationIdAndDeploymentId: _getGenerationsDeploymentByGenerationIdAndDeploymentId.bind(url, ...arguments),
+    postGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId: _postGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId.bind(url, ...arguments),
+    putGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId: _putGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId.bind(url, ...arguments),
+    deleteGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId: _deleteGenerationsDeploymentsGenerationGenerationIdDeploymentDeploymentId.bind(url, ...arguments),
+    getGenerationsApplicationsConfigs: _getGenerationsApplicationsConfigs.bind(url, ...arguments),
+    createGenerationsApplicationsConfig: _createGenerationsApplicationsConfig.bind(url, ...arguments),
+    updateGenerationsApplicationsConfigs: _updateGenerationsApplicationsConfigs.bind(url, ...arguments),
+    getGenerationsApplicationsConfigByGenerationIdAndConfigId: _getGenerationsApplicationsConfigByGenerationIdAndConfigId.bind(url, ...arguments),
+    postGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId: _postGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId.bind(url, ...arguments),
+    putGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId: _putGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId.bind(url, ...arguments),
+    deleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId: _deleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId.bind(url, ...arguments),
     getGenerationGraph: _getGenerationGraph.bind(url, ...arguments),
-    getMachines: _getMachines.bind(url, ...arguments),
-    getMachinesId: _getMachinesId.bind(url, ...arguments),
-    getNpmConfig: _getNpmConfig.bind(url, ...arguments),
-    getTaxonomyUrls: _getTaxonomyUrls.bind(url, ...arguments),
-    getMainTaxonomyGraph: _getMainTaxonomyGraph.bind(url, ...arguments),
-    getPreviewTaxonomyGraph: _getPreviewTaxonomyGraph.bind(url, ...arguments),
-    startTaxonomy: _startTaxonomy.bind(url, ...arguments),
-    stopTaxonomy: _stopTaxonomy.bind(url, ...arguments),
-    syncPreviewTaxonomy: _syncPreviewTaxonomy.bind(url, ...arguments),
-    getTaxonomySecrets: _getTaxonomySecrets.bind(url, ...arguments),
-    saveTaxonomySecrets: _saveTaxonomySecrets.bind(url, ...arguments),
-    importTaxonomy: _importTaxonomy.bind(url, ...arguments),
-    exportTaxonomy: _exportTaxonomy.bind(url, ...arguments),
-    closeTaxonomy: _closeTaxonomy.bind(url, ...arguments)
+    initApplicationInstance: _initApplicationInstance.bind(url, ...arguments),
+    saveApplicationInstanceStatus: _saveApplicationInstanceStatus.bind(url, ...arguments),
+    saveApplicationInstanceState: _saveApplicationInstanceState.bind(url, ...arguments),
+    setApplicationResources: _setApplicationResources.bind(url, ...arguments)
   }
 }

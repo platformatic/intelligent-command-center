@@ -40,24 +40,9 @@ export default function HomeContainer () {
     iconName: 'CachingIcon',
     disabled: !enableSidebarFirstLevel
   }, {
-    link: '/previews',
-    label: 'Previews',
-    iconName: 'CodeTestingIcon',
-    disabled: !enableSidebarFirstLevel
-  }, {
     link: '/deployments',
     label: 'Deployments',
     iconName: 'RocketIcon',
-    disabled: !enableSidebarFirstLevel
-  }, {
-    link: '/activities',
-    label: 'Activities',
-    iconName: 'CheckListIcon',
-    disabled: !enableSidebarFirstLevel
-  }, {
-    link: '/ingress-paths',
-    label: 'Configure Ingress paths',
-    iconName: 'IngressControllIcon',
     disabled: !enableSidebarFirstLevel
   }]
 
