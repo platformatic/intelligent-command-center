@@ -1,21 +1,14 @@
-import React, { useState } from 'react'
+import React from 'react'
 import styles from './AllApplications.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import GridApplications from './GridApplications'
-import ErrorComponent from '~/components/errors/ErrorComponent'
-import { Modal } from '@platformatic/ui-components'
-import { WHITE, MODAL_FULL_RICH_BLACK_V2, MEDIUM } from '@platformatic/ui-components/src/components/constants'
+import { WHITE, MEDIUM } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
-import AddApplication from '~/components/application/AddApplication'
+
 // import RecommendationBanner from './RecommendationBanner'
 
 const AllApplications = React.forwardRef(({ _ }, ref) => {
-  const [showErrorComponent, setShowErrorComponent] = useState(false)
-  const [error, setError] = useState(null)
-  const [showModalAddApplication, setShowModalAddApplication] = useState(false)
-  const [successFullApplicationAdded, setSuccessFullApplicationAdded] = useState(false)
-
   // function hasNewRecommendations () {
   //   return updates['cluster-manager']?.filter((u) => {
   //     return u.type === 'new-recommendation'
@@ -27,25 +20,6 @@ const AllApplications = React.forwardRef(({ _ }, ref) => {
   //   }).length > 0
   // }
 
-  function handleAddApplicationError (error) {
-    handleCloseModalAddApplication()
-    setError(error)
-    setShowErrorComponent(true)
-  }
-
-  function handleCloseAddApplication () {
-    handleCloseModalAddApplication()
-    setSuccessFullApplicationAdded(false)
-  }
-
-  function handleAddApplication () {
-    setShowModalAddApplication(true)
-  }
-
-  function handleCloseModalAddApplication () {
-    setShowModalAddApplication(false)
-  }
-
   function renderRecommendationBanner () {
     // if (hasNewCacheRecommendations()) {
     //   return <RecommendationBanner cache />
@@ -54,42 +28,22 @@ const AllApplications = React.forwardRef(({ _ }, ref) => {
     //   return <RecommendationBanner cache={false} />
     // }
   }
-  return showErrorComponent
-    ? <ErrorComponent error={error} onClickDismiss={() => setShowErrorComponent(false)} />
-    : (
-      <>
-        <div className={styles.container} ref={ref}>
-          <div className={styles.content}>
-            <div className={`${commonStyles.tinyFlexBlock}`}>
-              <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
-                <Icons.AllAppsIcon color={WHITE} size={MEDIUM} />
-                <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Applications</p>
-              </div>
+  return (
+    <>
+      <div className={styles.container} ref={ref}>
+        <div className={styles.content}>
+          <div className={`${commonStyles.tinyFlexBlock}`}>
+            <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
+              <Icons.AllAppsIcon color={WHITE} size={MEDIUM} />
+              <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Applications</p>
             </div>
-            {renderRecommendationBanner()}
-            <GridApplications
-              onAddApplication={handleAddApplication}
-            />
           </div>
+          {renderRecommendationBanner()}
+          <GridApplications />
         </div>
-        {showModalAddApplication && (
-          <Modal
-            key='addApplication'
-            layout={MODAL_FULL_RICH_BLACK_V2}
-            setIsOpen={() => successFullApplicationAdded ? handleCloseAddApplication() : handleCloseModalAddApplication()}
-            childrenClassContainer={`${styles.modalClassName} ${styles.rootV1}`}
-            modalCloseClassName={styles.modalCloseClassName}
-            permanent
-          >
-            <AddApplication
-              onSuccessFullApplicationAdded={() => setSuccessFullApplicationAdded(true)}
-              onClickCloseApplication={() => handleCloseAddApplication()}
-              onError={(errorReturned) => handleAddApplicationError(errorReturned)}
-            />
-          </Modal>
-        )}
-      </>
-      )
+      </div>
+    </>
+  )
 })
 
 export default AllApplications

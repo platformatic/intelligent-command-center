@@ -2,31 +2,11 @@ import {
   getGenerations,
   getDeployments,
   getApplicationStates,
-  getApplicationStateById,
   getApplications,
-  getApplicationsIdScaler,
   setBaseUrl as setBaseUrlControlPlane,
   getApplicationById,
-  restartDeployment,
-  getApplicationSecrets,
-  saveApplicationSecrets,
-  getTaxonomies,
-  getTaxonomiesChanges,
-  getGenerationsForTaxonomy,
-  getMainTaxonomyGraph,
-  getPreviewTaxonomyGraph,
-  syncPreviewTaxonomy,
-  getApplicationUrl,
-  getApplicationInstances,
-  createApplication,
-  exposeApplication,
-  getTaxonomySecrets,
-  deleteApplication,
-  getGenerationById,
-  getTaxonomyById,
-  closeTaxonomy,
-  getEntrypoints,
-  hideApplication
+  getApplicationStatesForApplication
+
 } from '../clients/control-plane/control-plane.mjs'
 import {
   getBundlesWithMetadata,
@@ -34,7 +14,6 @@ import {
 } from '../clients/compendium/compendium.mjs'
 
 import {
-  getRisks,
   setBaseUrl as setBaseURiskManager
 } from '../clients/risk-manager/risk-manager.mjs'
 
@@ -60,6 +39,23 @@ setBaseUrlControlPlane(`${baseUrl}/control-plane`)
 setBaseUrlCompendium(`${baseUrl}/compendium`)
 setBaseURiskManager(`${baseUrl}/risk-manager`)
 setBaseURLCompliance(`${baseUrl}/compliance`)
+
+// TODO: remove these mocks
+// These are function that have been removed from the control-plane client
+
+async function getTaxonomies () {}
+async function getMainTaxonomyGraph () {}
+async function getGenerationById () {}
+async function getTaxonomyById () {}
+async function getGenerationsForTaxonomy () {}
+async function getPreviewTaxonomyGraph () {}
+async function getApplicationSecrets () {}
+async function saveApplicationSecrets () {}
+async function getTaxonomySecrets () {}
+async function getApplicationInstances () {}
+async function syncPreviewTaxonomy () {}
+async function getApplicationsIdScaler () {}
+async function getEntrypoints () {}
 
 const getHeaders = () => {
   const headers = {
@@ -103,52 +99,24 @@ export const getLastStartedGeneration = async () => {
 }
 
 export const getApplicationsWithMetadata = async () => {
-  const { statusCode, body: applications } = await getApplications({
-    'where.deleted.eq': 'false'
-  })
-  if (statusCode !== 200) return []
+  const { body: applications } = await getApplications({})
   if (applications.length === 0) return []
   const applicationsWithMetadata = applications.map(
     application => ({
       ...application,
       state: {},
       url: null,
-      isDeployed: false
+      isDeployed: true
     })
   )
-
-  const mainTaxonomyId = '00000000-0000-0000-0000-000000000000'
-  const lastGeneration = getLastStartedGeneration(mainTaxonomyId)
-  if (lastGeneration === null) {
-    return applicationsWithMetadata
+  for (let i = 0; i < applications.length; i++) {
+    const currentApplication = applications[i]
+    const { body: applicationState } = await getApplicationStatesForApplication({
+      id: currentApplication.id
+    })
+    applicationsWithMetadata[i].state = applicationState[0].state
+    applicationsWithMetadata[i].pltVersion = applicationState[0].pltVersion
   }
-
-  const { body: deployments } = await getDeployments({
-    'where.generationId.eq': lastGeneration.id
-  })
-
-  for (const deployment of deployments) {
-    const applicationId = deployment.applicationId
-    const applicationWithMetadata = applicationsWithMetadata.find(
-      app => app.id === applicationId
-    )
-    if (!applicationWithMetadata) continue
-
-    applicationWithMetadata.isDeployed = true
-
-    if (deployment.applicationStateId !== null) {
-      const { body: applicationState } = await getApplicationStateById({
-        id: deployment.applicationStateId
-      })
-      applicationWithMetadata.state = applicationState.state
-    }
-
-    // TODO: remove this once we have a real URL
-    // const { body: applicationUrl } = await getApplicationUrl({ id: applicationId })
-    // applicationWithMetadata.url = applicationUrl.url
-    applicationWithMetadata.url = 'https://www.google.com'
-  }
-
   return applicationsWithMetadata
 }
 
@@ -171,28 +139,16 @@ export const getApiApplication = async (id) => {
   }
 
   const { body: deployments } = await getDeployments({
-    'where.taxonomyId.eq': application.taxonomyId,
     'orderby.createdAt': DESC,
     limit: 1
   })
 
   if (deployments.length > 0) {
-    // const bundleMetaData = await getBundlesWithMetadata({ bundleIds: deployments[0].bundleId })
-
     lastStarted = deployments[0].createdAt
-    // if (bundleMetaData.length > 0 && bundleMetaData.metadata) {
-    //   latestDeployment = {
-    //     createdAt: bundleMetaData.metadata?.createdAt,
-    //     commitUserEmail: bundleMetaData.metadata?.commit?.userEmail,
-    //     pltVersion
-    //   }
-    // }
   }
 
-  // const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
   const { body: deploymentsOnMainTaxonomy } = await getDeployments({
     'where.applicationId.eq': id,
-    // 'where.taxonomyId.eq': taxonomy[0].id,
     'where.status.neq': 'failed',
     'orderby.createdAt': DESC,
     limit: 1
@@ -222,46 +178,6 @@ export const getApiApplication = async (id) => {
     lastStarted,
     lastUpdated
   }
-}
-
-export const addApiApplication = async (name, path, environmentVariables) => {
-  const { body: application } = await createApplication({
-    name
-  })
-
-  const { body: taxonomies } = await getTaxonomies({ 'where.main.eq': true })
-  const taxonomy = taxonomies[0] ?? null
-
-  await exposeApplication({
-    id: application.id,
-    taxonomyId: taxonomy?.id,
-    path
-  })
-
-  await saveApplicationSecrets({ id: application.id, secrets: { ...environmentVariables } })
-
-  const url = `${baseUrl}/user-manager/appApiKeys`
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({
-      applicationId: application.id,
-      key: '',
-      name: 'Application Api Key'
-    })
-  })
-
-  const { key: apiSecretsKey } = await response.json()
-
-  return {
-    id: application.id,
-    apiSecretsKey
-  }
-}
-
-export const callApiDeleteApplication = async (id) => {
-  return await deleteApplication({ id })
 }
 
 export const getApiApplicationUrl = async (id) => {
@@ -338,7 +254,7 @@ export const getApiActivities = async (applicationId, filters = { limit: 10, off
 
   const activities = await response.json()
   for await (const activity of activities) {
-    const { body: application } = await getApplicationById({ id: activity.applicationId })
+    const application = await getApplicationById({ id: activity.applicationId })
     activity.applicationName = application.name
   }
   return { activities, totalCount }
@@ -372,59 +288,32 @@ export const getApiDeploymentsHistory = async (payload) => {
     queryObject['where.applicationId.eq'] = payload.filterDeploymentsByApplicationId
   }
 
-  const { body: deployments, headers } = await getDeployments(queryObject)
-  const totalCount = headers['x-total-count']
+  const deployments = await getDeployments(queryObject)
 
-  const deploymentHistory = []
-  const promises = []
-  let promisesResolved = []
-  let generation = {}
-  let taxonomy = {}
-  if (deployments.length === 0) {
-    return { deployments: deploymentHistory, totalCount: 0 }
-  }
-  for await (const deployment of deployments) {
-    const { bundleId, generationId, taxonomyId } = deployment
-    promises.splice(0, promises.length)
-    if (bundleId) {
-      promises.push(getBundlesWithMetadata({ bundleIds: bundleId }))
-    }
-    if (generationId) {
-      promises.push(getGenerationById({ id: generationId }))
-    }
-    if (taxonomyId) {
-      promises.push(getTaxonomyById({ id: taxonomyId }))
-    }
-    promisesResolved = await Promise.all(promises)
-    const bundleMetaData = promisesResolved[0]
-    generation = {}
-    taxonomy = {}
-    if (generationId) {
-      generation = promisesResolved[1].body
-    }
-    if (taxonomyId) {
-      taxonomy = promisesResolved[2].body
-    }
+  // const deploymentHistory = []
+  // let promisesResolved = []
+  // let generation = {}
+  // if (deployments.length === 0) {
+  //   return { deployments: deploymentHistory, totalCount: 0 }
+  // }
+  // for await (const deployment of deployments) {
+  //   const { generationId } = deployment
 
-    let metadata = {}
-    if (bundleMetaData.length > 0) {
-      metadata = bundleMetaData[0]?.metadata ?? {}
-    }
+  //   if (generationId) {
+  //     promises.push(getGenerationById({ id: generationId }))
+  //   }
+  //   promisesResolved = await Promise.all(promises)
+  //   if (generationId) {
+  //     generation = promisesResolved[0].body
+  //   }
+  //   deploymentHistory.push({
+  //     id: deployment.id,
+  //     mainIteration: generation?.mainIteration,
+  //     deployedOn: deployment.createdAt
+  //   })
+  // }
 
-    deploymentHistory.push({
-      id: deployment.id,
-      taxonomyId,
-      mainIteration: generation?.mainIteration,
-      main: taxonomy?.main ?? false,
-      taxonomyName: taxonomy?.name,
-      branch: metadata?.branch?.name,
-      deployedOn: deployment.createdAt,
-      commitMessage: metadata?.commit?.message,
-      commitUserEmail: metadata?.commit?.userEmail
-    })
-  }
-
-  return { deployments: deploymentHistory, totalCount }
+  return { deployments, totalCount: deployments.length }
 }
 
 // TODO: this and getApiDeploymentsHistory should share the same code
@@ -477,11 +366,6 @@ export const getApiDeployments = async (payload) => {
   return { deployments: deploymentsReturned, totalCount }
 }
 
-/* HANDLING STATUS APPLICATIONS */
-export const restartApiApplication = async (applicationId) => {
-  return await restartDeployment({ id: applicationId })
-}
-
 /* GITHUB */
 const gitHubUserCache = {}
 export const getGithubUserInfo = async (commitUserEmail) => {
@@ -495,20 +379,7 @@ export const getGithubUserInfo = async (commitUserEmail) => {
   return gitHubUserCache[commitUserEmail]
 }
 
-let mainTaxonomy = null
 /* TAXONOMY */
-export const getApiMainTaxonomy = async () => {
-  if (mainTaxonomy === null) {
-    const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-    mainTaxonomy = taxonomy[0]
-  }
-  return mainTaxonomy
-}
-
-export const getApiTaxonomy = async (id) => {
-  const { body: taxononmy } = await getTaxonomies({ 'where.id.eq': id })
-  return taxononmy
-}
 
 export const getApiMainTaxonomyGraph = async (generationId) => {
   const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
@@ -532,10 +403,7 @@ export const getApiTaxonomyGenerations = async (options = {}) => {
   const skipFirst = options.skipFirst ?? false
   const includeFailed = options.includeFailed ?? false
 
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-  let { body: generations } = await getGenerationsForTaxonomy({
-    id: taxonomy[0].id
-  })
+  let { body: generations } = await getGenerationsForTaxonomy()
 
   if (skipFirst) {
     generations = generations.filter(
@@ -600,174 +468,6 @@ export const getPackageVersions = async () => {
     headers: getHeaders(),
     credentials: 'include'
   })
-}
-
-/* PREVIEWS */
-const getPreviewTaxonomies = async (request) => {
-  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.closedAt.eq', 'where.closedAt.neq', 'where.closedAt.gt', 'where.closedAt.gte', 'where.closedAt.lt', 'where.closedAt.lte', 'where.closedAt.like', 'where.closedAt.in', 'where.closedAt.nin', 'where.closedAt.contains', 'where.closedAt.contained', 'where.closedAt.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.main.eq', 'where.main.neq', 'where.main.gt', 'where.main.gte', 'where.main.lt', 'where.main.lte', 'where.main.like', 'where.main.in', 'where.main.nin', 'where.main.contains', 'where.main.contained', 'where.main.overlaps', 'where.name.eq', 'where.name.neq', 'where.name.gt', 'where.name.gte', 'where.name.lt', 'where.name.lte', 'where.name.like', 'where.name.in', 'where.name.nin', 'where.name.contains', 'where.name.contained', 'where.name.overlaps', 'where.stage.eq', 'where.stage.neq', 'where.stage.gt', 'where.stage.gte', 'where.stage.lt', 'where.stage.lte', 'where.stage.like', 'where.stage.in', 'where.stage.nin', 'where.stage.contains', 'where.stage.contained', 'where.stage.overlaps', 'where.status.eq', 'where.status.neq', 'where.status.gt', 'where.status.gte', 'where.status.lt', 'where.status.lte', 'where.status.like', 'where.status.in', 'where.status.nin', 'where.status.contains', 'where.status.contained', 'where.status.overlaps', 'where.or', 'orderby.closedAt', 'orderby.createdAt', 'orderby.id', 'orderby.main', 'orderby.name', 'orderby.stage', 'orderby.status']
-  const searchParams = new URLSearchParams()
-  queryParameters.forEach((qp) => {
-    if (request[qp]) {
-      searchParams.append(qp, request[qp]?.toString() || '')
-      delete request[qp]
-    }
-  })
-
-  const response = await fetch(`${baseUrl}/control-plane/taxonomies/?${searchParams.toString()}`, {
-    credentials: 'include'
-  })
-
-  if (!response.ok) {
-    throw new Error(await response.text())
-  }
-
-  const totalCount = response.headers.get('X-Total-Count')
-
-  const taxonomies = await response.json()
-
-  return { taxonomies, totalCount }
-}
-
-/* PREVIEWS */
-export const getApiPreviewsFiltered = async (filters = { limit: 1, offset: 0 }) => {
-  const { taxonomies, totalCount } = await getPreviewTaxonomies({
-    'where.main.neq': true,
-    totalCount: true,
-    ...filters
-  })
-  const previews = await getPreviews(taxonomies)
-
-  return { previews, totalCount }
-}
-
-export const getApiPreviews = async (taxonomyId) => {
-  const { body: taxonomies } = taxonomyId ? await getTaxonomies({ 'where.id.eq': taxonomyId }) : await getTaxonomies({ 'where.main.neq': true })
-  return await getPreviews(taxonomies)
-}
-
-const getPreviews = async (taxonomies) => {
-  const changes = []
-  for (const taxonomy of taxonomies) {
-    const { body: change } = await getTaxonomiesChanges({
-      taxonomyIds: taxonomy.id
-    })
-    changes.push(...change)
-  }
-
-  const changesMap = changes.reduce((acc, change) => {
-    if (acc[change.taxonomyId]) {
-      acc[change.taxonomyId].push(change.bundleId)
-    } else {
-      acc[change.taxonomyId] = [change.bundleId]
-    }
-    return acc
-  }, {})
-
-  const applicationMap = changes.reduce((acc, change) => {
-    if (!acc[change.taxonomyId]) {
-      acc[change.taxonomyId] = change.applicationId
-    }
-    return acc
-  }, {})
-
-  const bundleIds = changes.map(change => change.bundleId)
-  const bundles = bundleIds.length > 0
-    ? await getBundlesWithMetadata([bundleIds])
-    : []
-
-  const bundlesMap = bundles.reduce((acc, bundle) => {
-    acc[bundle.id] = bundle.metadata
-    return acc
-  }, {})
-  const risks = []
-  let risk
-  for (const taxonomy of taxonomies) {
-    risk = await getRisks({
-      'where.branchTaxonomyId.eq': taxonomy.id,
-      'orderby.createdAt': DESC,
-      limit: 1
-    })
-    if (risk[0]) {
-      risks.push(risk[0])
-    }
-  }
-  const risksMap = risks.reduce((acc, risk) => {
-    acc[risk.branchTaxonomyId] = risk
-    return acc
-  }, [])
-
-  const previews = []
-  for (const taxonomy of taxonomies) {
-    const { id, name, closedAt } = taxonomy
-    const open = taxonomy.stage === 'opened'
-    const merged = taxonomy.stage === 'merged'
-    const risk = risksMap[id]?.risk
-    const openapi = risksMap[id]?.openapi
-    const db = risksMap[id]?.db
-    const graphql = risksMap[id]?.graphql
-    const openapiChanges = openapi?.changes
-    const graphqlChanges = graphql?.changes
-    const changes = {
-      edited: openapiChanges?.edited || 0 + graphqlChanges?.edited || 0,
-      added: openapiChanges?.added || 0 + graphqlChanges?.added || 0,
-      removed: openapiChanges?.removed || 0 + graphqlChanges?.removed || 0
-    }
-    const { body: taxonomyGenerations } = await getGenerationsForTaxonomy({ id })
-
-    const taxonomyGeneration = (taxonomyGenerations?.length ?? 0) > 0 ? taxonomyGenerations[0] : null
-    const bundleIds = changesMap[id]
-    const applicationId = applicationMap[id]
-
-    let previewUrl = { url: '' }
-    if (applicationId) {
-      const { body } = await getApplicationUrl({ id: applicationId, taxonomyId: id })
-      previewUrl = body
-    }
-
-    const pullRequests = []
-    if (bundleIds) {
-      for (const bundleId of bundleIds) {
-        const prMetadata = bundlesMap[bundleId]
-        const pullRequest = prMetadata?.pullRequest
-
-        if (pullRequest) {
-          pullRequests.push({
-            number: pullRequest.number,
-            title: pullRequest.title,
-            commitUserEmail: prMetadata.commit.userEmail,
-            repositoryName: prMetadata.repository?.name
-          })
-        }
-      }
-    }
-
-    const preview = {
-      taxonomyId: id,
-      taxonomyName: name,
-      open,
-      merged,
-      taxonomyGeneration: taxonomyGeneration.mainIteration,
-      generationId: taxonomyGeneration.id,
-      risk,
-      changes,
-      openapi,
-      graphql,
-      db,
-      pullRequests,
-      closedAt,
-      applicationId,
-      url: previewUrl.url
-    }
-    previews.push(preview)
-  }
-  // Needed for debug
-  console.log('previews', previews)
-  return previews
-}
-
-/* CLOSE ENVIRONMENT */
-export const callApiClosePreview = async (id) => {
-  return await closeTaxonomy({ id })
 }
 
 /* INSTANCES */
@@ -899,15 +599,8 @@ export const callApiAddKey = async (id, name) => {
 
 /* COMPLIANCY */
 export const getApiCompliancy = async (applicationId) => {
-  const { body: deployments } = await getDeployments({
-    'where.applicationId.eq': applicationId,
-    'orderby.createdAt': DESC,
-    limit: 1
-  })
-
   return await getReports({
-    'where.applicationId.eq': applicationId,
-    'where.bundleId.eq': deployments[0].bundleId
+    'where.applicationId.eq': applicationId
   })
 }
 
@@ -991,9 +684,7 @@ export const getApiEntrypoints = async () => {
   const taxonomy = taxonomies[0] ?? null
 
   const ingressPathToReturn = []
-  const { body: applications } = await getApplications({
-    'where.deleted.eq': 'false'
-  })
+  const { body: applications } = await getApplications({})
   const { body: entrypoints } = await getEntrypoints({
     'where.taxonomyId.eq': taxonomy.id
   })
@@ -1009,15 +700,6 @@ export const getApiEntrypoints = async () => {
   }
 
   return ingressPathToReturn
-}
-
-export const callApiApplicationHide = async (applicationId) => {
-  return await hideApplication({ id: applicationId })
-}
-
-export const callApiApplicationExpose = async (applicationId, path) => {
-  const { body } = await exposeApplication({ id: applicationId, path })
-  return body
 }
 
 /* USER AND ROLES */
@@ -1210,8 +892,8 @@ export const callApiInvalidateApplicationHttpCache = async (appId, entries) => {
   return true
 }
 
-export const callApiGetApplicationSettings = async (appId) => {
-  const url = `${baseUrl}/control-plane/applicationSettings?` + new URLSearchParams({
+export const callApiGetApplicationsConfigs = async (appId) => {
+  const url = `${baseUrl}/control-plane/applicationsConfigs?` + new URLSearchParams({
     'where.applicationId.eq': appId
   }).toString()
   const response = await fetch(url, {
@@ -1222,8 +904,8 @@ export const callApiGetApplicationSettings = async (appId) => {
   const { status } = response
   if (status !== 200) {
     const error = await response.text()
-    console.error(`Failed to get application settings: ${error}`)
-    throw new Error(`Failed to get application settings: ${error}`)
+    console.error(`Failed to get applications configs: ${error}`)
+    throw new Error(`Failed to get applications configs: ${error}`)
   }
   const json = await response.json()
   if (json.length === 1) {
@@ -1238,22 +920,24 @@ export const callApiGetApplicationSettings = async (appId) => {
   return null
 }
 
-export const callApiUpdateApplicationSettings = async (appId, settings) => {
-  if (!Array.isArray(settings.services)) {
-    settings.services = Object.values(settings.services)
+export const callApiUpdateApplicationConfigs = async (appId, configs) => {
+  if (!Array.isArray(configs.services)) {
+    configs.services = Object.values(configs.services)
   }
-  const url = `${baseUrl}/control-plane/applications/${appId}/settings`
+  const url = `${baseUrl}/control-plane/applications/${appId}/resources`
   const response = await fetch(url, {
     method: 'POST',
     credentials: 'include',
     headers: getHeaders(),
-    body: JSON.stringify({ ...settings })
+    body: JSON.stringify({
+      ...configs
+    })
   })
   const { status } = response
   if (status !== 200) {
     const error = await response.text()
-    console.error(`Failed to set application settings: ${error}`)
-    throw new Error(`Failed to set application settings: ${error}`)
+    console.error(`Failed to set application configs: ${error}`)
+    throw new Error(`Failed to set application configs: ${error}`)
   }
   return true
 }

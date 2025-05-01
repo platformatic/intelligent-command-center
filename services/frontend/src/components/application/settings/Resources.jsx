@@ -4,26 +4,24 @@ import { BLACK_RUSSIAN, MEDIUM, TRANSPARENT, WHITE } from '@platformatic/ui-comp
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './Resources.module.css'
-import { callApiGetApplicationSettings, callApiUpdateApplicationSettings, callApiDeployApplication } from '../../../api'
+import { callApiGetApplicationsConfigs, callApiUpdateApplicationConfigs } from '../../../api'
 import Slider from './Slider'
-import ConfirmationModal from '../../common/ConfirmationModal'
-import SplashScreen from '../../common/SplashScreen'
 import { getMaxValuesForResource, getTooltipTextForResource, getTresholdValuesForResource } from '../../../utilities/resources'
 import SaveButtons from './SaveButtons'
+import useICCStore from '../../../useICCStore'
 
 export default function Resources ({
   applicationId
 }) {
   const [resources, setResources] = useState(null)
   const [showForm, setShowForm] = useState(false)
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
-  const [showDeploySplashScreen, setShowDeploySplashScreen] = useState(false)
   const [enableSaveButton, setEnableSaveButton] = useState(false)
-
+  const globalState = useICCStore()
+  const { showSplashScreen } = globalState
   useEffect(() => {
     async function getApplicationSettings () {
-      const json = await callApiGetApplicationSettings(applicationId)
-      setResources(json)
+      const json = await callApiGetApplicationsConfigs(applicationId)
+      setResources(json.resources)
     }
 
     getApplicationSettings()
@@ -35,28 +33,22 @@ export default function Resources ({
     }
   }, [resources])
 
-  async function deployWithNewSettings () {
-    setShowConfirmationModal(false)
-    callApiDeployApplication(applicationId)
-    setShowDeploySplashScreen(true)
-  }
-  async function updateResources (deploy = false) {
-    const res = await callApiUpdateApplicationSettings(applicationId, resources)
+  async function updateResources () {
+    const res = await callApiUpdateApplicationConfigs(applicationId, resources)
     if (res === true) {
-      if (deploy) {
-        setShowConfirmationModal(true)
-      } else {
-        window.alert('Resources saved')
-      }
+      showSplashScreen({
+        title: 'Resources saved',
+        content: 'Resources saved successfully and applied to the application',
+        type: 'success',
+        timeout: 3000
+      })
     }
   }
 
   function getLabelForResource (s) {
     const map = {
-      cores: 'Number of Cores',
       threads: 'Threads per service',
-      heap: <span>Max Heap <span className={styles.unit}>(MB)</span></span>,
-      memory: <span>Max Memory <span className={styles.unit}>(MB)</span></span>
+      heap: <span>Max Heap <span className={styles.unit}>(MB)</span></span>
     }
     return map[s]
   }
@@ -70,7 +62,7 @@ export default function Resources ({
   }
   function renderResources () {
     const output = []
-    for (const s of ['cores', 'threads', 'heap', 'memory']) {
+    for (const s of ['threads', 'heap']) {
       output.push(
         <div key={`form_field_${s}`} className={styles.rangeContainer}>
           <Slider
@@ -88,28 +80,6 @@ export default function Resources ({
   }
   return (
     <div>
-      {showDeploySplashScreen && (
-        <SplashScreen
-          title='Replica set deployed'
-          message='You successfully deploy the replica set with the new resources.'
-          onDestroyed={() => setShowDeploySplashScreen(false)}
-        />
-      )}
-      {showConfirmationModal && (
-        <ConfirmationModal
-          setIsOpen={setShowConfirmationModal}
-          onProceed={deployWithNewSettings}
-          title='Save and Deploy'
-          buttonText='Save and Deploy'
-          text={
-            <div>
-              <p>By clicking “Save and Deploy” you will deploy the entire Replica Set.</p>
-              <br />
-              <p>Are you sure you want to continue?</p>
-            </div>
-          }
-        />
-      )}
       <BorderedBox
         color={TRANSPARENT}
         backgroundColor={BLACK_RUSSIAN}

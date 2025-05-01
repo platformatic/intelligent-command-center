@@ -8,13 +8,13 @@ import { MEDIUM, RICH_BLACK, WHITE, BLACK_RUSSIAN, TRANSPARENT } from '@platform
 import { BorderedBox, Button, LoadingSpinnerV2 } from '@platformatic/ui-components'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import commonStyles from '~/styles/CommonStyles.module.css'
-import { APPLICATION_DETAIL_ACTIVITIES_PATH } from '~/ui-constants'
+
 import Row from '~/components/application/activities/Row'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
 import gridStyles from '~/styles/GridStyles.module.css'
 import { useNavigate } from 'react-router-dom'
-
-function AppDetailActivities ({ gridClassName = '', application, taxonomyId }) {
+import { APPLICATION_DETAILS_ALL_ACTIVITIES } from '~/paths'
+function AppDetailActivities ({ gridClassName = '', application }) {
   const MAX_ACTIVITIES = 5
 
   const navigate = useNavigate()
@@ -46,9 +46,8 @@ function AppDetailActivities ({ gridClassName = '', application, taxonomyId }) {
   }, [])
 
   function viewAllActivities () {
-    navigate(APPLICATION_DETAIL_ACTIVITIES_PATH
-      .replace(':taxonomyId', taxonomyId)
-      .replace(':appId', application.id)
+    navigate(APPLICATION_DETAILS_ALL_ACTIVITIES
+      .replace(':applicationId', application.id)
     )
   }
 

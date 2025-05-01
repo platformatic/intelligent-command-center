@@ -7,7 +7,7 @@ import AllApplications from './components/applications/all/AllApplications'
 import RecommendationsHistory from './components/recommendations/RecommendationHistory'
 import Settings from './components/settings/Settings'
 import Profile from './components/profile/Profile'
-import { getApiActivities, getApiActivitiesTypes, getApiApplicationUrl, getApiActivitiesUsers, getApiDeploymentsHistory, getApiApplication } from './api'
+import { getApiActivities, getApiActivitiesUsers, getApiDeploymentsHistory, getApiApplication, getApiActivitiesTypes } from './api'
 import Activities from '~/components/application/activities/Activities'
 import DeploymentHistory from '~/components/application/deployment_history/DeploymentHistory'
 import AppDetailsV2 from '~/components/application/detail/AppDetailsV2'
@@ -16,10 +16,8 @@ import ApplicationContainer from '~/layout/ApplicationContainer'
 // Import Root Pages
 import Taxonomy from './components/taxonomy/Taxonomy'
 import Caching from './components/caching/Caching'
-import Previews from './components/previews/Previews'
 import AllDeployments from './components/deployments/AllDeployments'
 import AllActivities from './components/activities/Activities'
-import ConfigureIngressPaths from './components/ingress-paths/ConfigureIngressPaths'
 import Services from './components/application/services/Services'
 import ErrorPage from './pages/ErrorPage'
 // Import App Details Pages
@@ -234,11 +232,6 @@ export function getRouter () {
           element: <Caching />
         },
         {
-          id: 'previews',
-          path: '/previews',
-          element: <Previews />
-        },
-        {
           id: 'deployments',
           path: '/deployments',
           element: <AllDeployments />
@@ -247,11 +240,6 @@ export function getRouter () {
           id: 'activities',
           path: '/activities',
           element: <AllActivities />
-        },
-        {
-          id: 'ingressPaths',
-          path: '/ingress-paths',
-          element: <ConfigureIngressPaths />
         }
       ]
     },
@@ -262,10 +250,9 @@ export function getRouter () {
       id: 'appRoot',
       loader: async ({ params }) => {
         const application = await getApiApplication(params.applicationId)
-        const applicationPublicUrl = await getApiApplicationUrl(application.id)
         return {
           application,
-          publicUrl: applicationPublicUrl.url
+          publicUrl: null // TODO: use real url when we have it
         }
       },
       element: (

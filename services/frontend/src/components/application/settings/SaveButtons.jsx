@@ -7,27 +7,17 @@ import React from 'react'
 
 export default function SaveButtons ({
   enabled,
-  onSaveButtonClicked = (deploy) => {}
+  onSaveButtonClicked = () => {}
 }) {
   return (
     <div className={`${styles.buttons}`}>
       <Button
         textClass={typographyStyles.desktopButtonSmall}
         paddingClass={commonStyles.smallButtonPadding}
-        onClick={() => onSaveButtonClicked(false)}
+        onClick={() => onSaveButtonClicked()}
         label='Save'
         color={RICH_BLACK}
         backgroundColor={WHITE}
-        disabled={!enabled}
-      />
-      <Button
-        textClass={typographyStyles.desktopButtonSmall}
-        paddingClass={commonStyles.smallButtonPadding}
-        onClick={() => onSaveButtonClicked(true)}
-        label='Save and Re-Deploy'
-        color={WHITE}
-        backgroundColor={RICH_BLACK}
-        bordered
         disabled={!enabled}
       />
     </div>

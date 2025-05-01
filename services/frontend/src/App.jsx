@@ -7,18 +7,18 @@ import {
   getPackageVersions
 } from '~/api'
 
-import { LoadingSpinnerV2 } from '@platformatic/ui-components'
+import { LoadingSpinnerV2, SplashScreen } from '@platformatic/ui-components'
+import useICCStore from '~/useICCStore'
+import { getRouter } from './Router'
+
 import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
-import useICCStore from '~/useICCStore'
-
-import { getRouter } from './Router'
-import { getLastStartedGeneration } from './api'
+import styles from './App.module.css'
 
 export default function App () {
   const globalState = useICCStore()
-  const { user, setUser, isAuthenticated, setIsAuthenticated, setPackageVersions, setCurrentWindowWidth, setEnableSidebarFirstLevel } = globalState
+  const { user, setUser, isAuthenticated, setIsAuthenticated, setPackageVersions, setCurrentWindowWidth, setEnableSidebarFirstLevel, splashScreen, hideSplashScreen } = globalState
   const [innerLoading, setInnerLoading] = useState(false)
 
   useEffect(() => {
@@ -72,8 +72,7 @@ export default function App () {
           if (data?.package_versions) {
             setPackageVersions(data.package_versions)
           }
-          const lastGeneration = await getLastStartedGeneration()
-          setEnableSidebarFirstLevel(lastGeneration !== null)
+          setEnableSidebarFirstLevel(true)
         } catch (error) {
           console.error('Error on loadPackageVersions', error)
         } finally {
@@ -104,6 +103,23 @@ export default function App () {
   const router = getRouter()
   return (
     <CustomAuthProvider value={{ user, setUser, isAuthenticated, setIsAuthenticated }}>
+      {splashScreen.show && (
+        <div className={styles.splashScreenContainer}>
+          <SplashScreen
+            title={splashScreen.title}
+            success={splashScreen.type === 'success'}
+            timeout={splashScreen.timeout}
+            onDestroyed={() => {
+              if (splashScreen.onDismiss) {
+                splashScreen.onDismiss()
+              }
+              hideSplashScreen()
+            }}
+          >
+            <div>{splashScreen.content}</div>
+          </SplashScreen>
+        </div>
+      )}
       <RouterProvider router={router} />
     </CustomAuthProvider>
   )
