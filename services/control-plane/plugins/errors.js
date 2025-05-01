@@ -47,7 +47,7 @@ module.exports = {
     'Pod "%s" is assigned to a different application "%s"'
   ),
   FailedToGetLock: createError(
-    `${ERROR_PREFIX}_FAILED_TO_GET_LOCK`, 'Failed to get lock: "%s"'
+    `${ERROR_PREFIX}_FAILED_TO_GET_LOCK`, 'Failed to get lock"'
   ),
   CannotCreateApplicationWithoutGenerationLock: createError(
     `${ERROR_PREFIX}_CANNOT_CREATE_APPLICATION_WITHOUT_GENERATION_LOCK`,
