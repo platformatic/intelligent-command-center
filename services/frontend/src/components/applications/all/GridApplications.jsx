@@ -2,16 +2,15 @@ import React, { useEffect, useState } from 'react'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './GridApplications.module.css'
-import { Button, LoadingSpinnerV2, SearchBarV2 } from '@platformatic/ui-components'
+import { LoadingSpinnerV2, SearchBarV2 } from '@platformatic/ui-components'
 import ApplicationCard from './ApplicationCard'
 import NoDataFound from '~/components/ui/NoDataFound'
-import { DULLS_BACKGROUND_COLOR, MEDIUM, RICH_BLACK, WHITE } from '@platformatic/ui-components/src/components/constants'
+import { MEDIUM, WHITE } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import { getApplicationsWithMetadata } from '../../../api'
 import useSubscribeToUpdates from '~/hooks/useSubscribeToUpdates'
-function GridApplications ({
-  onAddApplication = () => {}
-}) {
+
+function GridApplications () {
   const [allApplications, setAllApplications] = useState([])
   const [innerLoading, setInnerLoading] = useState(true)
   const [filteredApplications, setFilteredApplications] = useState([])
@@ -83,22 +82,9 @@ function GridApplications ({
 
     if (allApplications.length === 0) {
       return (
-        <NoDataFound title='No applications found' subTitle={<span>There are no existing application yet. <br />Click on the button below to add your first application.</span>}>
-          <Button
-            label='Add Application'
-            onClick={() => onAddApplication()}
-            color={RICH_BLACK}
-            backgroundColor={WHITE}
-            hoverEffect={DULLS_BACKGROUND_COLOR}
-            paddingClass={commonStyles.smallButtonPadding}
-            textClass={typographyStyles.desktopButtonSmall}
-            platformaticIcon={{ iconName: 'CreateAppIcon', color: RICH_BLACK }}
-            bordered={false}
-          />
-        </NoDataFound>
+        <NoDataFound title='No applications found' subTitle={<span>There are no existing application yet.</span>} />
       )
     }
-
     return (
       <div className={styles.content}>
         <div className={styles.filtersContainer}>
@@ -108,17 +94,6 @@ function GridApplications ({
             onChange={onChangeFilterApplicationName}
             inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}
             paddingClass={styles.searchBarPaddingClass}
-          />
-          <Button
-            label='Add Application'
-            onClick={() => onAddApplication()}
-            color={RICH_BLACK}
-            backgroundColor={WHITE}
-            hoverEffect={DULLS_BACKGROUND_COLOR}
-            paddingClass={commonStyles.smallButtonPaddingForNoBordered}
-            textClass={typographyStyles.desktopButtonSmall}
-            platformaticIcon={{ iconName: 'CreateAppIcon', color: RICH_BLACK }}
-            bordered={false}
           />
         </div>
         {filteredApplications.length === 0 && (

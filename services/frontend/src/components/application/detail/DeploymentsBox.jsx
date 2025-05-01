@@ -108,7 +108,7 @@ function DeploymentsBox ({
 
           <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
             <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Deployed on:</span>
-            <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>{getFormattedTimeAndDate(latestDeployment?.deployedOn ?? '-')}</span>
+            <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>{getFormattedTimeAndDate(latestDeployment?.createdAt ?? '-')}</span>
           </div>
 
           {(latestDeployment?.commitUserEmail ?? '-') !== '-' && (
