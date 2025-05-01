@@ -1,20 +1,17 @@
-import React, { useState } from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
 import { WHITE, OPACITY_30, TRANSPARENT, WARNING_YELLOW, SMALL, BLACK_RUSSIAN, MEDIUM } from '@platformatic/ui-components/src/components/constants'
 import styles from './AppNameBox.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import tooltipStyles from '~/styles/TooltipStyles.module.css'
-import { BorderedBox, Button, PlatformaticIcon, Tooltip, VerticalSeparator } from '@platformatic/ui-components'
+import { BorderedBox, PlatformaticIcon, Tooltip, VerticalSeparator } from '@platformatic/ui-components'
 import { getFormattedDate } from '~/utilities/dates'
-import { STATUS_STOPPED } from '~/ui-constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import ApplicationStatusPills from '~/components/ui/ApplicationStatusPills'
 import useICCStore from '~/useICCStore'
-import { restartApiApplication } from '../../../api'
 
 function AppNameBox ({
-  onErrorOccurred = () => {},
   gridClassName = '',
   application,
   applicationPublicUrl = ''
@@ -22,19 +19,6 @@ function AppNameBox ({
   const globalState = useICCStore()
 
   const { taxonomyStatus, packageVersions } = globalState
-  const [changingRestartStatus, setChangingRestartStatus] = useState(false)
-
-  async function handleRestartApplication () {
-    try {
-      setChangingRestartStatus(true)
-      await restartApiApplication(application.id)
-    } catch (error) {
-      console.error(`Error on handleRestartApplication ${error}`)
-      onErrorOccurred(error)
-    } finally {
-      setChangingRestartStatus(false)
-    }
-  }
 
   return (
     <BorderedBox classes={`${styles.borderexBoxContainer} ${gridClassName}`} backgroundColor={BLACK_RUSSIAN} color={TRANSPARENT}>
@@ -51,35 +35,6 @@ function AppNameBox ({
               </div>
             </div>
             {taxonomyStatus && <ApplicationStatusPills status={taxonomyStatus} />}
-          </div>
-          <div className={styles.buttonContainer}>
-            {changingRestartStatus
-              ? (
-                <Button
-                  type='button'
-                  label='Restarting...'
-                  onClick={() => {}}
-                  color={WHITE}
-                  backgroundColor={TRANSPARENT}
-                  paddingClass={commonStyles.smallButtonPadding}
-                  platformaticIcon={{ iconName: 'RestartIcon', color: WHITE }}
-                  textClass={typographyStyles.desktopButtonSmall}
-                />
-                )
-              : (
-                <Button
-                  type='button'
-                  label='Restart'
-                  onClick={() => handleRestartApplication()}
-                  color={WHITE}
-                  backgroundColor={TRANSPARENT}
-                  paddingClass={commonStyles.smallButtonPadding}
-                  platformaticIcon={{ iconName: 'RestartIcon', color: WHITE }}
-                  textClass={typographyStyles.desktopButtonSmall}
-                  disabled={!taxonomyStatus || taxonomyStatus === STATUS_STOPPED}
-                />
-                )}
-
           </div>
         </div>
         <div className={`${commonStyles.tinyFlexBlock} ${commonStyles.fullWidth}`}>
@@ -133,13 +88,15 @@ function AppNameBox ({
             </div>
           </div>
 
-          <div className={styles.rowContainer}>
-            <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
-              <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>URL:</span>
-              <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>{applicationPublicUrl} </span>
-              <PlatformaticIcon iconName='ExpandIcon' color={WHITE} size={SMALL} onClick={() => window.open(applicationPublicUrl, '_blank')} internalOverHandling disabled={applicationPublicUrl === ''} />
+          {applicationPublicUrl && (
+            <div className={styles.rowContainer}>
+              <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
+                <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>URL:</span>
+                <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>{applicationPublicUrl} </span>
+                <PlatformaticIcon iconName='ExpandIcon' color={WHITE} size={SMALL} onClick={() => window.open(applicationPublicUrl, '_blank')} internalOverHandling disabled={applicationPublicUrl === ''} />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </BorderedBox>

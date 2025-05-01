@@ -41,7 +41,7 @@ function getRootPageBreadcrumbs (routeId) {
   }
   return output
 }
-function getApplicationPageBreadcrumbs (routeId, taxonomyId, application) {
+function getApplicationPageBreadcrumbs (routeId, application) {
   const output = []
   output.push({
     label: 'All Applications',
@@ -68,7 +68,7 @@ function getApplicationPageBreadcrumbs (routeId, taxonomyId, application) {
       output.push({ label: 'Scheduled Jobs' })
       break
     case 'application/scheduled-jobs-detail':
-      output.push({ label: 'Scheduled Jobs', link: generatePath('/:taxonomyId/applications/:applicationId/scheduled-jobs', { taxonomyId, applicationId: application.id }) })
+      output.push({ label: 'Scheduled Jobs', link: generatePath('/applications/:applicationId/scheduled-jobs', { applicationId: application.id }) })
       output.push({ label: 'Scheduled Job Detail' })
       break
     case 'application/logs':
@@ -103,8 +103,8 @@ export default function Navigation () {
       const breadCrumbs = getRootPageBreadcrumbs(routes[routes.length - 1].id)
       setBreadCrumbs(breadCrumbs)
     } else {
-      const { taxonomyId, application } = appRootLoaderData
-      const breadCrumbs = getApplicationPageBreadcrumbs(routes[routes.length - 1].id, taxonomyId, application)
+      const { application } = appRootLoaderData
+      const breadCrumbs = getApplicationPageBreadcrumbs(routes[routes.length - 1].id, application)
       setBreadCrumbs(breadCrumbs)
     }
   }, [location.pathname])

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useRouteLoaderData } from 'react-router-dom'
 import styles from './AppDetails.module.css'
 import AppNameBox from './AppNameBox'
@@ -7,17 +7,10 @@ import DeploymentsBox from './DeploymentsBox'
 import NodeJSMetrics from './NodeJSMetrics'
 import KubernetesResources from './KubernetesResources'
 import AppDetailActivities from './AppDetailActivities'
-import ErrorComponent from '~/components/errors/ErrorComponent'
 
 export default function AppDetailsV2 () {
-  const [showErrorComponent, setShowErrorComponent] = useState(false)
-  const [error, setError] = useState(false)
-
   const { publicUrl, application } = useRouteLoaderData('appRoot')
 
-  if (showErrorComponent) {
-    return <ErrorComponent error={error} message={error.message} onClickDismiss={() => setShowErrorComponent(false)} />
-  }
   return (
     <div className={styles.container}>
       <div className={styles.containerElement}>
@@ -25,10 +18,6 @@ export default function AppDetailsV2 () {
           <AppNameBox
             application={application}
             gridClassName={styles.appNameBox}
-            onErrorOccurred={(error) => {
-              setError(error)
-              setShowErrorComponent(true)
-            }}
             applicationPublicUrl={publicUrl}
           />
           <ServicesBox
