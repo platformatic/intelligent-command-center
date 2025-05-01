@@ -105,7 +105,7 @@ module.exports = fp(async function (app) {
     }
 
     const [config, httpCacheClientOpts] = await Promise.all([
-      app.getApplicationConfig(application, null, ctx),
+      app.getApplicationConfig(application, ctx),
       app.getValkeyClientOpts(application.id, ctx)
     ])
 
@@ -182,14 +182,6 @@ module.exports = fp(async function (app) {
         instance
       }
     }, ctx)
-  })
-
-  app.decorate('getApplicationInstanceConfig', async (instance, opts, ctx) => {
-    const application = await app.getApplicationById(instance.applicationId)
-    if (application === null) {
-      throw new errors.ApplicationNotFound(instance.applicationId)
-    }
-    return app.getApplicationConfig(application, opts, ctx)
   })
 
   app.decorate('saveApplicationInstanceStatus', async (instance, status, ctx) => {
