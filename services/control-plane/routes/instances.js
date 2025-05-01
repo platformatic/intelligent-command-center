@@ -36,6 +36,7 @@ module.exports = fp(async function (app) {
   })
 
   app.post('/pods/:podId/instance', {
+    logLevel: 'info',
     schema: {
       operationId: 'initApplicationInstance',
       params: {
@@ -127,6 +128,7 @@ module.exports = fp(async function (app) {
   })
 
   app.post('/pods/:id/instance/status', {
+    logLevel: 'info',
     schema: {
       operationId: 'saveApplicationInstanceStatus',
       params: {
