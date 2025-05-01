@@ -10,6 +10,8 @@ const GenerationLockSymbol = Symbol('createGenerationLock')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
+  const lockMinTimeout = app.env.PLT_CONTROL_PLANE_DB_LOCK_MIN_TIMEOUT
+
   app.decorate('getGenerationById', async (generationId) => {
     const generations = await app.platformatic.entities.generation.find({
       where: { id: { eq: generationId } }
@@ -79,10 +81,17 @@ module.exports = fp(async function (app) {
         result = await callback(tx)
       })
     } catch (err) {
-      if (err instanceof errors.FailedToGetLock && attempt < 10) {
-        ctx.logger.warn({ err }, 'Failed to get generation lock, retrying')
-        // Set a random timeout from 100ms to 200ms
-        await sleep(Math.floor(Math.random() * 100) + 100)
+      if (err instanceof errors.FailedToGetLock && attempt < 30) {
+        const baseTimeout = lockMinTimeout * attempt
+        const diffTimeout = lockMinTimeout * (Math.random() - 0.5)
+        const timeout = baseTimeout + diffTimeout
+
+        ctx.logger.warn(
+          { err, attempt, timeout },
+          'Failed to get generation lock, retrying'
+        )
+
+        await sleep(timeout)
         return app.getGenerationLockTx(callback, ctx, attempt + 1)
       }
       throw err
