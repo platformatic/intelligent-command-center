@@ -41,7 +41,8 @@ const schema = {
     PLT_CONTROL_PLANE_ELASTICACHE_ACCESS_KEY: { type: 'string' },
     PLT_CONTROL_PLANE_ELASTICACHE_SECRET_KEY: { type: 'string' },
     PLT_CONTROL_PLANE_ELASTICACHE_CLUSTERID_PREFIX: { type: 'string' },
-    PLT_CONTROL_PLANE_SECRET_KEYS: { type: 'string' }
+    PLT_CONTROL_PLANE_SECRET_KEYS: { type: 'string' },
+    PLT_CONTROL_PLANE_DB_LOCK_MIN_TIMEOUT: { type: 'number', default: 100 }
   }
 }
 
