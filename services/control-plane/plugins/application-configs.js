@@ -30,21 +30,16 @@ const plugin = fp(async function (app) {
     return configs
   })
 
-  app.decorate('getApplicationConfig', async (application, opts, ctx) => {
-    const findOpts = {
+  app.decorate('getApplicationConfig', async (application, ctx) => {
+    ctx.logger.debug({ application }, 'Getting application config')
+
+    const configs = await app.platformatic.entities.applicationsConfig.find({
       where: { applicationId: { eq: application.id } },
       orderBy: [{ field: 'version', direction: 'DESC' }],
       limit: 1,
       tx: ctx?.tx
-    }
+    })
 
-    if (opts?.fields) {
-      findOpts.fields = ['version']
-    }
-
-    ctx.logger.debug({ application, findOpts }, 'Getting application config')
-
-    const configs = await app.platformatic.entities.applicationsConfig.find(findOpts)
     if (configs.length === 0) {
       ctx.logger.error({ application }, 'Application config not found')
       throw new errors.ApplicationConfigNotFound(application.name)
@@ -70,7 +65,7 @@ const plugin = fp(async function (app) {
     await app.getGenerationLockTx(async (tx) => {
       ctx = { ...ctx, tx }
 
-      const applicationConfig = await app.getApplicationConfig(application, null, ctx)
+      const applicationConfig = await app.getApplicationConfig(application, ctx)
 
       await app.createGeneration(async () => {
         newApplicationConfig = await app.platformatic.entities.applicationsConfig.save({
