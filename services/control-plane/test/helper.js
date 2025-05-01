@@ -27,7 +27,9 @@ const defaultEnv = {
   PLT_MAIN_SERVICE_URL: 'http://localhost:3010',
 
   PLT_CONTROL_PLANE_CACHE_PROVIDER: 'valkey-oss',
-  PLT_CONTROL_PLANE_SECRET_KEYS: 'secret'
+  PLT_CONTROL_PLANE_SECRET_KEYS: 'secret',
+
+  PLT_CONTROL_PLANE_DB_LOCK_MIN_TIMEOUT: 300
 }
 
 function setUpEnvironment (env = {}) {
