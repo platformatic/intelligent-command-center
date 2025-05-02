@@ -17,6 +17,10 @@ test('should return 204 when posting an update', async (t) => {
   const res = await server.inject({
     method: 'POST',
     url: '/api/updates/icc',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-plt-icc-session-secret': 'test-secret'
+    },
     body: {
       topic: 'ui-updates/applications',
       data: { foo: 'bar' }
@@ -33,7 +37,11 @@ test('the icc event should be sent to the websocket', async (t) => {
 
   const wsUrl = url.replace('http', 'ws') + '/api/updates/icc'
 
-  const socket = new WebSocket(wsUrl)
+  const socket = new WebSocket(wsUrl, {
+    headers: {
+      'x-plt-icc-session-secret': 'test-secret'
+    }
+  })
   await once(socket, 'open')
 
   t.after(() => {
@@ -50,7 +58,8 @@ test('the icc event should be sent to the websocket', async (t) => {
     const { statusCode, body } = await request(`${url}/api/updates/icc`, {
       method: 'POST',
       headers: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        'x-plt-icc-session-secret': 'test-secret'
       },
       body: JSON.stringify({
         topic: 'ui-updates/applications',
@@ -114,10 +123,11 @@ test('the application event should be sent to the websocket', async (t) => {
   assert.deepStrictEqual(JSON.parse(subscriptionAck[0]), { command: 'ack' })
 
   {
-    const { statusCode, body } = await request(`${url}/api/updates/applications/${applicationId}`, {
+    const { statusCode } = await request(`${url}/api/updates/applications/${applicationId}`, {
       method: 'POST',
       headers: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        'x-plt-icc-session-secret': 'test-secret'
       },
       body: JSON.stringify({
         topic: 'config',
@@ -127,7 +137,7 @@ test('the application event should be sent to the websocket', async (t) => {
         }
       })
     })
-    assert.strictEqual(statusCode, 204, body)
+    assert.strictEqual(statusCode, 204)
   }
 
   const notification = await once(socket, 'message')

@@ -24,15 +24,8 @@ async function getWhitelistedPaths () {
     ['/fonts', '*'],
     ['/backgrounds', '*'],
     ['/assets', '*'],
-    ['/api/updates', ['POST']],
-    [/\/api\/updates\/.*/, ['GET']],
     ['/trafficante/requests', ['POST']],
-    ['/cron/watt-jobs', ['PUT']],
-
-    // temp routes for icc-3
-    [/\/control-plane\/pods\/[a-zA-z0-9-.]+\/instance/, ['POST']],
-    [/\/control-plane\/pods\/[a-zA-z0-9-.]+\/instance\/state/, ['POST']],
-    [/\/compliance/, '*']
+    ['/cron/watt-jobs', ['PUT']]
   ]
 
   // add OpenaAPI spec route for each internal service
@@ -77,6 +70,15 @@ function isWebSocketRequest (req) {
   return req.headers.connection &&
     req.headers.connection.toLowerCase() === 'upgrade' &&
     req.headers.upgrade.toLowerCase() === 'websocket'
+}
+
+function isInternalICCRequest (req) {
+  const PLT_ICC_SESSION_SECRET = process.env.PLT_ICC_SESSION_SECRET
+  if (!PLT_ICC_SESSION_SECRET) {
+    throw new Error('PLT_ICC_SESSION_SECRET is not set')
+  }
+
+  return req.headers['x-plt-icc-session-secret'] === PLT_ICC_SESSION_SECRET
 }
 
 async function authorizeRouteWithCookie (req) {
@@ -137,6 +139,9 @@ async function plugin (app) {
   // and if it's a browser call, the call MUST use the cookie
   // TODO:: now @fastify/auth is proably useless, as we are deciding
     // which auth method to use depending on the route
+    if (isInternalICCRequest(req)) {
+      return true
+    }
     if (isK8SAllowedUrl(req)) {
       return app.k8sJWTAuth(req)
     }
