@@ -1,0 +1,17 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/service/2.16.0.json",
+  "server": {
+    "logger": {
+      "level": "info"
+    },
+    "maxParamLength": 1000,
+    "pluginTimeout": 60000
+  },
+  "service": {
+    "openapi": true
+  },
+  "plugins": {
+    "paths": ["./plugins", "./routes"]
+  },
+  "watch": "{DEV_K8S}"
+}
