@@ -15,7 +15,8 @@ function setUpEnvironment (env = {}) {
     PLT_ICC_VALKEY_CONNECTION_STRING: 'redis://localhost:6343',
     PLT_MAIN_URL: 'http://localhost:1234',
     PLT_CONTROL_PLANE_URL: 'http://localhost:1234',
-    PLT_DISABLE_K8S_AUTH: true
+    PLT_DISABLE_K8S_AUTH: true,
+    PLT_ICC_SESSION_SECRET: 'test-secret'
   }
 
   Object.assign(process.env, defaultEnv, env)
