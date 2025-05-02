@@ -9,6 +9,7 @@ test('should list all ICC services name', async (t) => {
 
   assert.deepEqual(svcs, [
     'activities',
+    'cache-manager',
     'compliance',
     'control-plane',
     'cron',
@@ -24,6 +25,7 @@ test('should list all ICC services name excluding \'main\'', async (t) => {
 
   assert.deepEqual(svcs, [
     'activities',
+    'cache-manager',
     'compliance',
     'control-plane',
     'cron',
