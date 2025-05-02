@@ -8,6 +8,7 @@ const errors = require('./errors')
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
   const mainServiceUrl = app.env.PLT_MAIN_SERVICE_URL
+  const sessionSecret = app.env.PLT_ICC_SESSION_SECRET
 
   const retryDispatcher = getGlobalDispatcher()
     .compose(interceptors.retry({
@@ -23,7 +24,8 @@ module.exports = fp(async function (app) {
     const { statusCode, body } = await request(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-plt-icc-session-secret': sessionSecret
       },
       body: JSON.stringify(message),
       dispatcher: retryDispatcher
