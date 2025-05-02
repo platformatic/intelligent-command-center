@@ -41,7 +41,7 @@ function getRootPageBreadcrumbs (routeId) {
   }
   return output
 }
-function getApplicationPageBreadcrumbs (routeId, application) {
+function getApplicationPageBreadcrumbs (routeId, application, otherParams) {
   const output = []
   output.push({
     label: 'All Applications',
@@ -80,6 +80,10 @@ function getApplicationPageBreadcrumbs (routeId, application) {
     case 'application/settings':
       output.push({ label: 'Settings' })
       break
+    case 'application/services/detail':
+      output.push({ label: 'Services', link: generatePath('/applications/:applicationId/services', { applicationId: application.id }) })
+      output.push({ label: otherParams.serviceId })
+      break
   }
   return output
 }
@@ -93,18 +97,21 @@ export default function Navigation () {
 
   /** @type {[BreadCrumb[], React.Dispatch<React.SetStateAction<BreadCrumb[]>>]} */
   const [breadCrumbs, setBreadCrumbs] = useState([])
+
   const appRootLoaderData = useRouteLoaderData('appRoot')
   const location = useLocation()
   const routes = useMatches()
   const navigation = useNavigation()
+  const routeId = routes[routes.length - 1].id
+  const params = useRouteLoaderData(routeId)
   useEffect(() => {
     if (!appRootLoaderData) {
       // we are not in an application specific route
-      const breadCrumbs = getRootPageBreadcrumbs(routes[routes.length - 1].id)
+      const breadCrumbs = getRootPageBreadcrumbs(routeId)
       setBreadCrumbs(breadCrumbs)
     } else {
       const { application } = appRootLoaderData
-      const breadCrumbs = getApplicationPageBreadcrumbs(routes[routes.length - 1].id, application)
+      const breadCrumbs = getApplicationPageBreadcrumbs(routeId, application, params)
       setBreadCrumbs(breadCrumbs)
     }
   }, [location.pathname])

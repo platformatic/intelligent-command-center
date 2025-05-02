@@ -1,36 +1,33 @@
 import React, { useEffect, useState } from 'react'
-import useICCStore from '../../../useICCStore'
-import { APPLICATION_DETAIL_SERVICES_PATH, APPLICATION_PATH, HOME_PATH, PAGE_APPLICATION_DETAILS, PAGE_APPLICATION_DETAILS_SERVICE_DETAIL, PAGE_APPLICATION_DETAILS_SERVICES, PAGE_APPS } from '../../../ui-constants'
-import { useNavigate, useParams } from 'react-router-dom'
-import styles from './ServiceDetails.module.css'
-import typographyStyles from '~/styles/Typography.module.css'
-import commonStyles from '~/styles/CommonStyles.module.css'
+import { useParams, useRouteLoaderData } from 'react-router-dom'
+
 import { BorderedBox, Icons } from '@platformatic/ui-components'
 import { BLACK_RUSSIAN, MEDIUM, TRANSPARENT, WHITE } from '@platformatic/ui-components/src/components/constants'
 import PanelCompliancyService from './PanelCompliancyService'
-import { callApiDeployApplication, callApiGetApplicationSettings, callApiUpdateApplicationSettings, getApiApplication, getApiCompliancy } from '../../../api'
+import { callApiGetApplicationsConfigs, callApiUpdateApplicationConfigs, getApiCompliancy } from '../../../api'
 import Slider from '../settings/Slider'
 import { getMaxValuesForResource, getTooltipTextForResource, getTresholdValuesForResource } from '../../../utilities/resources'
-import SplashScreen from '../../common/SplashScreen'
-import ConfirmationModal from '../../common/ConfirmationModal'
 import SaveButtons from '../settings/SaveButtons'
+
+import styles from './ServiceDetails.module.css'
+import typographyStyles from '~/styles/Typography.module.css'
+import commonStyles from '~/styles/CommonStyles.module.css'
+import useICCStore from '../../../useICCStore'
+
 export default function ServiceDetails () {
+  const { application } = useRouteLoaderData('appRoot')
+  const { serviceId } = useParams()
   const globalState = useICCStore()
-  const { setFullNavigation, setCurrentPage, applicationSelected, setApplicationSelected, popNavigation } = globalState
+  const { showSplashScreen } = globalState
   const [service, setService] = useState(null)
   const [appResources, setAppResources] = useState({})
   const [serviceResources, setServiceResources] = useState({})
   const [showComponent, setShowComponent] = useState(false)
   const [enableSaveButton, setEnableSaveButton] = useState(false)
   const [compliancyReport, setCompliancyReport] = useState(null)
-  const [showSplashScreen, setShowSplashScreen] = useState(false)
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
-
-  const navigate = useNavigate()
-  const { serviceId, taxonomyId, appId } = useParams()
 
   async function getApplicationResources () {
-    const res = await callApiGetApplicationSettings(appId)
+    const res = await callApiGetApplicationsConfigs(application.id)
     setAppResources(res)
     return res
   }
@@ -42,12 +39,7 @@ export default function ServiceDetails () {
     })
   }
 
-  async function deployWithNewSettings () {
-    setShowConfirmationModal(false)
-    callApiDeployApplication(applicationSelected.id)
-    setShowSplashScreen(true)
-  }
-  async function onSaveButtonClicked (deploy) {
+  async function onSaveButtonClicked () {
     const payload = appResources
     const servicesData = []
     if (Object.values(payload.services) === 0) {
@@ -79,16 +71,20 @@ export default function ServiceDetails () {
     }
     payload.services = servicesData
 
-    await callApiUpdateApplicationSettings(applicationSelected.id, payload)
-    window.alert('Resources saved')
-    if (deploy) {
-      setShowConfirmationModal(true)
-    }
-    getApplicationResources()
-    setEnableSaveButton(false)
+    await callApiUpdateApplicationConfigs(application.id, payload)
+    showSplashScreen({
+      title: 'Resources saved',
+      content: 'Resources saved successfully and applied to the application',
+      type: 'success',
+      timeout: 3000,
+      onDismiss: () => {
+        getApplicationResources()
+        setEnableSaveButton(false)
+      }
+    })
   }
   async function getServiceCompliancyReport () {
-    const report = await getApiCompliancy(taxonomyId, appId)
+    const report = await getApiCompliancy(application.id)
     let services = {}
     if (report.length > 0) {
       const ruleSet = report[0].ruleSet
@@ -105,62 +101,7 @@ export default function ServiceDetails () {
     }
     return map[s]
   }
-  useEffect(() => {
-    async function loadApplication () {
-      try {
-        const app = await getApiApplication(appId)
-        setApplicationSelected(app)
-      } catch (error) {
-        console.error(`Error on getApiApplication ${error}`)
-      }
-    }
-    if (appId) {
-      if (!applicationSelected) {
-        loadApplication()
-      }
-    }
-  }, [appId])
 
-  useEffect(() => {
-    if (applicationSelected) {
-      setFullNavigation([{
-        label: 'Applications',
-        handleClick: () => {
-          navigate(HOME_PATH)
-          setCurrentPage(PAGE_APPS)
-        },
-        key: PAGE_APPS,
-        page: PAGE_APPS
-      }, {
-        label: applicationSelected.name,
-        handleClick: () => {
-          navigate(APPLICATION_PATH.replace(':taxonomyId', taxonomyId).replace(':appId', appId))
-          setCurrentPage(PAGE_APPLICATION_DETAILS)
-        },
-        key: PAGE_APPLICATION_DETAILS,
-        page: PAGE_APPLICATION_DETAILS
-      }, {
-        label: 'Services',
-        handleClick: () => {
-          popNavigation()
-          navigate(APPLICATION_DETAIL_SERVICES_PATH.replace(':taxonomyId', taxonomyId).replace(':appId', appId))
-          setCurrentPage(PAGE_APPLICATION_DETAILS_SERVICES)
-        },
-        key: PAGE_APPLICATION_DETAILS_SERVICES,
-        page: PAGE_APPLICATION_DETAILS_SERVICES
-      }, {
-        label: serviceId,
-        handleClick: () => {
-          setCurrentPage(PAGE_APPLICATION_DETAILS_SERVICE_DETAIL)
-        },
-        key: PAGE_APPLICATION_DETAILS_SERVICE_DETAIL,
-        page: PAGE_APPLICATION_DETAILS_SERVICE_DETAIL
-      }])
-      setCurrentPage(PAGE_APPLICATION_DETAILS_SERVICE_DETAIL)
-      getServiceCompliancyReport()
-      getApplicationResources()
-    }
-  }, [applicationSelected])
   function getResourcesForService () {
     const output = {
       threads: null,
@@ -197,12 +138,13 @@ export default function ServiceDetails () {
   }, [serviceResources])
 
   useEffect(() => {
-    if (applicationSelected) {
+    if (application) {
       getApplicationResources()
-      const theService = applicationSelected.state.services.find((s) => s.id === serviceId)
+      const theService = application.state.services.find((s) => s.id === serviceId)
       setService(theService)
+      getServiceCompliancyReport()
     }
-  }, [applicationSelected])
+  }, [application])
 
   function renderComponent () {
     if (serviceResources) {
@@ -233,29 +175,6 @@ export default function ServiceDetails () {
   if (showComponent) {
     return (
       <div className={styles.container}>
-        {showConfirmationModal && (
-          <ConfirmationModal
-            setIsOpen={setShowConfirmationModal}
-            onProceed={deployWithNewSettings}
-            title='Save and Deploy'
-            buttonText='Save and Deploy'
-            text={
-              <div>
-                <p>By clicking “Save and Deploy” you will deploy the entire Replica Set.</p>
-                <br />
-                <p>Are you sure you want to continue?</p>
-              </div>
-                  }
-          />
-        )}
-        {showSplashScreen && (
-          <SplashScreen
-            title='Replica set deployed'
-            message='You successfully deploy the replica set with the new resources.'
-            onDestroyed={() => setShowSplashScreen(false)}
-          />
-        )}
-
         <div className={styles.title}>
           <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
             <Icons.ServiceIcon color={WHITE} size={MEDIUM} />
