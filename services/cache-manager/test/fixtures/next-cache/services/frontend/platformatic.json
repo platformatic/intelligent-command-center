@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/next/2.16.0.json",
+  "server": {
+    "port": 0
+  },
+  "logger": {
+    "level": "info"
+  },
+  "cache": {
+    "adapter": "valkey",
+    "url": "{PLT_NEXT_CACHE_REDIS_URL}",
+    "prefix": "{PLT_NEXT_CACHE_REDIS_PREFIX}"
+  }
+}
