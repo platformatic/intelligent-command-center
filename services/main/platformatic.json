@@ -57,6 +57,12 @@
         "proxy": {
           "prefix": "compliance"
         }
+      },
+      {
+        "id": "cache-manager",
+        "proxy": {
+          "prefix": "cache-manager"
+        }
       }
     ]
   },
