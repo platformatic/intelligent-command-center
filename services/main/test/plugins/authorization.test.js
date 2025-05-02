@@ -14,6 +14,8 @@ const { mockAuthorizeEndpoint } = require('../helper')
 const agent = new MockAgent()
 setGlobalDispatcher(agent)
 
+process.env.PLT_ICC_SESSION_SECRET = 'test-secret'
+
 async function createMinimalFastifyInstance (t, config = {}) {
   const server = fastify()
   server.register(cookiePlugin)

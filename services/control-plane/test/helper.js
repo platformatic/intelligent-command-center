@@ -29,7 +29,8 @@ const defaultEnv = {
   PLT_CONTROL_PLANE_CACHE_PROVIDER: 'valkey-oss',
   PLT_CONTROL_PLANE_SECRET_KEYS: 'secret',
 
-  PLT_CONTROL_PLANE_DB_LOCK_MIN_TIMEOUT: 300
+  PLT_CONTROL_PLANE_DB_LOCK_MIN_TIMEOUT: 300,
+  PLT_ICC_SESSION_SECRET: 'session-secret'
 }
 
 function setUpEnvironment (env = {}) {
