@@ -1236,6 +1236,52 @@ async function _getInstancesForApplication (url, request) {
 export const getInstancesForApplication = async (request) => {
   return await _getInstancesForApplication(baseUrl, request)
 }
+async function _getValkeyUsersForApplication (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/applications/${request.id}/valkeyUsers?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getValkeyUsersForApplication']} */
+export const getValkeyUsersForApplication = async (request) => {
+  return await _getValkeyUsersForApplication(baseUrl, request)
+}
 async function _getApplicationsConfigs (url, request) {
   const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.resources.eq', 'where.resources.neq', 'where.resources.gt', 'where.resources.gte', 'where.resources.lt', 'where.resources.lte', 'where.resources.like', 'where.resources.ilike', 'where.resources.in', 'where.resources.nin', 'where.resources.contains', 'where.resources.contained', 'where.resources.overlaps', 'where.version.eq', 'where.version.neq', 'where.version.gt', 'where.version.gte', 'where.version.lt', 'where.version.lte', 'where.version.like', 'where.version.ilike', 'where.version.in', 'where.version.nin', 'where.version.contains', 'where.version.contained', 'where.version.overlaps', 'where.or', 'orderby.applicationId', 'orderby.createdAt', 'orderby.id', 'orderby.resources', 'orderby.version']
   const searchParams = new URLSearchParams()
@@ -2816,6 +2862,332 @@ async function _getDeploymentForInstance (url, request) {
 export const getDeploymentForInstance = async (request) => {
   return await _getDeploymentForInstance(baseUrl, request)
 }
+async function _getValkeyUsers (url, request) {
+  const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.encryptedPassword.eq', 'where.encryptedPassword.neq', 'where.encryptedPassword.gt', 'where.encryptedPassword.gte', 'where.encryptedPassword.lt', 'where.encryptedPassword.lte', 'where.encryptedPassword.like', 'where.encryptedPassword.ilike', 'where.encryptedPassword.in', 'where.encryptedPassword.nin', 'where.encryptedPassword.contains', 'where.encryptedPassword.contained', 'where.encryptedPassword.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.keyPrefix.eq', 'where.keyPrefix.neq', 'where.keyPrefix.gt', 'where.keyPrefix.gte', 'where.keyPrefix.lt', 'where.keyPrefix.lte', 'where.keyPrefix.like', 'where.keyPrefix.ilike', 'where.keyPrefix.in', 'where.keyPrefix.nin', 'where.keyPrefix.contains', 'where.keyPrefix.contained', 'where.keyPrefix.overlaps', 'where.username.eq', 'where.username.neq', 'where.username.gt', 'where.username.gte', 'where.username.lt', 'where.username.lte', 'where.username.like', 'where.username.ilike', 'where.username.in', 'where.username.nin', 'where.username.contains', 'where.username.contained', 'where.username.overlaps', 'where.or', 'orderby.applicationId', 'orderby.createdAt', 'orderby.encryptedPassword', 'orderby.id', 'orderby.keyPrefix', 'orderby.username']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/valkeyUsers/?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getValkeyUsers']} */
+export const getValkeyUsers = async (request) => {
+  return await _getValkeyUsers(baseUrl, request)
+}
+async function _createValkeyUser (url, request) {
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/valkeyUsers/`, {
+    method: 'POST',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['createValkeyUser']} */
+export const createValkeyUser = async (request) => {
+  return await _createValkeyUser(baseUrl, request)
+}
+async function _updateValkeyUsers (url, request) {
+  const queryParameters = ['fields', 'where.applicationId.eq', 'where.applicationId.neq', 'where.applicationId.gt', 'where.applicationId.gte', 'where.applicationId.lt', 'where.applicationId.lte', 'where.applicationId.like', 'where.applicationId.ilike', 'where.applicationId.in', 'where.applicationId.nin', 'where.applicationId.contains', 'where.applicationId.contained', 'where.applicationId.overlaps', 'where.createdAt.eq', 'where.createdAt.neq', 'where.createdAt.gt', 'where.createdAt.gte', 'where.createdAt.lt', 'where.createdAt.lte', 'where.createdAt.like', 'where.createdAt.ilike', 'where.createdAt.in', 'where.createdAt.nin', 'where.createdAt.contains', 'where.createdAt.contained', 'where.createdAt.overlaps', 'where.encryptedPassword.eq', 'where.encryptedPassword.neq', 'where.encryptedPassword.gt', 'where.encryptedPassword.gte', 'where.encryptedPassword.lt', 'where.encryptedPassword.lte', 'where.encryptedPassword.like', 'where.encryptedPassword.ilike', 'where.encryptedPassword.in', 'where.encryptedPassword.nin', 'where.encryptedPassword.contains', 'where.encryptedPassword.contained', 'where.encryptedPassword.overlaps', 'where.id.eq', 'where.id.neq', 'where.id.gt', 'where.id.gte', 'where.id.lt', 'where.id.lte', 'where.id.like', 'where.id.ilike', 'where.id.in', 'where.id.nin', 'where.id.contains', 'where.id.contained', 'where.id.overlaps', 'where.keyPrefix.eq', 'where.keyPrefix.neq', 'where.keyPrefix.gt', 'where.keyPrefix.gte', 'where.keyPrefix.lt', 'where.keyPrefix.lte', 'where.keyPrefix.like', 'where.keyPrefix.ilike', 'where.keyPrefix.in', 'where.keyPrefix.nin', 'where.keyPrefix.contains', 'where.keyPrefix.contained', 'where.keyPrefix.overlaps', 'where.username.eq', 'where.username.neq', 'where.username.gt', 'where.username.gte', 'where.username.lt', 'where.username.lte', 'where.username.like', 'where.username.ilike', 'where.username.in', 'where.username.nin', 'where.username.contains', 'where.username.contained', 'where.username.overlaps', 'where.or']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/valkeyUsers/?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateValkeyUsers']} */
+export const updateValkeyUsers = async (request) => {
+  return await _updateValkeyUsers(baseUrl, request)
+}
+async function _getValkeyUserById (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/valkeyUsers/${request.id}?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getValkeyUserById']} */
+export const getValkeyUserById = async (request) => {
+  return await _getValkeyUserById(baseUrl, request)
+}
+async function _updateValkeyUser (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/valkeyUsers/${request.id}?${searchParams.toString()}`, {
+    method: 'PUT',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['updateValkeyUser']} */
+export const updateValkeyUser = async (request) => {
+  return await _updateValkeyUser(baseUrl, request)
+}
+async function _deleteValkeyUsers (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const body = request
+  const isFormData = body instanceof FormData
+  const headers = {
+    ...defaultHeaders,
+    ...(isFormData ? {} : defaultJsonType)
+  }
+
+  const response = await fetch(`${url}/valkeyUsers/${request.id}?${searchParams.toString()}`, {
+    method: 'DELETE',
+    body: isFormData ? body : JSON.stringify(body),
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['deleteValkeyUsers']} */
+export const deleteValkeyUsers = async (request) => {
+  return await _deleteValkeyUsers(baseUrl, request)
+}
+async function _getApplicationForValkeyUser (url, request) {
+  const queryParameters = ['fields']
+  const searchParams = new URLSearchParams()
+  if (request) {
+    queryParameters.forEach((qp) => {
+      const queryValue = request?.[qp]
+      if (queryValue) {
+        if (Array.isArray(queryValue)) {
+          queryValue.forEach((p) => searchParams.append(qp, p))
+        } else {
+          searchParams.append(qp, queryValue.toString())
+        }
+      }
+      delete request?.[qp]
+    })
+  }
+
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/valkeyUsers/${request.id}/application?${searchParams.toString()}`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationForValkeyUser']} */
+export const getApplicationForValkeyUser = async (request) => {
+  return await _getApplicationForValkeyUser(baseUrl, request)
+}
 async function _getGenerationsDeployments (url, request) {
   const queryParameters = ['limit', 'offset', 'totalCount', 'fields', 'where.deploymentId.eq', 'where.deploymentId.neq', 'where.deploymentId.gt', 'where.deploymentId.gte', 'where.deploymentId.lt', 'where.deploymentId.lte', 'where.deploymentId.like', 'where.deploymentId.ilike', 'where.deploymentId.in', 'where.deploymentId.nin', 'where.deploymentId.contains', 'where.deploymentId.contained', 'where.deploymentId.overlaps', 'where.generationId.eq', 'where.generationId.neq', 'where.generationId.gt', 'where.generationId.gte', 'where.generationId.lt', 'where.generationId.lte', 'where.generationId.like', 'where.generationId.ilike', 'where.generationId.in', 'where.generationId.nin', 'where.generationId.contains', 'where.generationId.contained', 'where.generationId.overlaps', 'where.or', 'orderby.deploymentId', 'orderby.generationId']
   const searchParams = new URLSearchParams()
@@ -3629,6 +4001,36 @@ async function _saveApplicationInstanceState (url, request) {
 export const saveApplicationInstanceState = async (request) => {
   return await _saveApplicationInstanceState(baseUrl, request)
 }
+async function _getApplicationResources (url, request) {
+  const headers = {
+    ...defaultHeaders
+  }
+
+  const response = await fetch(`${url}/applications/${request.id}/resources`, {
+    headers,
+    ...defaultFetchParams
+  })
+
+  const jsonResponses = [200]
+  if (jsonResponses.includes(response.status)) {
+    return {
+      statusCode: response.status,
+      headers: headersToJSON(response.headers),
+      body: await response.json()
+    }
+  }
+  const responseType = response.headers.get('content-type')?.startsWith('application/json') ? 'json' : 'text'
+  return {
+    statusCode: response.status,
+    headers: headersToJSON(response.headers),
+    body: await response[responseType]()
+  }
+}
+
+/**  @type {import('./control-plane-types.d.ts').ControlPlane['getApplicationResources']} */
+export const getApplicationResources = async (request) => {
+  return await _getApplicationResources(baseUrl, request)
+}
 async function _setApplicationResources (url, request) {
   const body = request
   const isFormData = body instanceof FormData
@@ -3696,6 +4098,7 @@ export default function build (url, options) {
     getApplicationStatesForApplication: _getApplicationStatesForApplication.bind(url, ...arguments),
     getDeploymentsForApplication: _getDeploymentsForApplication.bind(url, ...arguments),
     getInstancesForApplication: _getInstancesForApplication.bind(url, ...arguments),
+    getValkeyUsersForApplication: _getValkeyUsersForApplication.bind(url, ...arguments),
     getApplicationsConfigs: _getApplicationsConfigs.bind(url, ...arguments),
     createApplicationsConfig: _createApplicationsConfig.bind(url, ...arguments),
     updateApplicationsConfigs: _updateApplicationsConfigs.bind(url, ...arguments),
@@ -3730,6 +4133,13 @@ export default function build (url, options) {
     deleteInstances: _deleteInstances.bind(url, ...arguments),
     getApplicationForInstance: _getApplicationForInstance.bind(url, ...arguments),
     getDeploymentForInstance: _getDeploymentForInstance.bind(url, ...arguments),
+    getValkeyUsers: _getValkeyUsers.bind(url, ...arguments),
+    createValkeyUser: _createValkeyUser.bind(url, ...arguments),
+    updateValkeyUsers: _updateValkeyUsers.bind(url, ...arguments),
+    getValkeyUserById: _getValkeyUserById.bind(url, ...arguments),
+    updateValkeyUser: _updateValkeyUser.bind(url, ...arguments),
+    deleteValkeyUsers: _deleteValkeyUsers.bind(url, ...arguments),
+    getApplicationForValkeyUser: _getApplicationForValkeyUser.bind(url, ...arguments),
     getGenerationsDeployments: _getGenerationsDeployments.bind(url, ...arguments),
     createGenerationsDeployment: _createGenerationsDeployment.bind(url, ...arguments),
     updateGenerationsDeployments: _updateGenerationsDeployments.bind(url, ...arguments),
@@ -3748,6 +4158,7 @@ export default function build (url, options) {
     initApplicationInstance: _initApplicationInstance.bind(url, ...arguments),
     saveApplicationInstanceStatus: _saveApplicationInstanceStatus.bind(url, ...arguments),
     saveApplicationInstanceState: _saveApplicationInstanceState.bind(url, ...arguments),
+    getApplicationResources: _getApplicationResources.bind(url, ...arguments),
     setApplicationResources: _setApplicationResources.bind(url, ...arguments)
   }
 }

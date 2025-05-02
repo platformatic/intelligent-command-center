@@ -5,7 +5,8 @@ import {
   getApplications,
   setBaseUrl as setBaseUrlControlPlane,
   getApplicationById,
-  getApplicationStatesForApplication
+  getApplicationStatesForApplication,
+  getApplicationResources
 
 } from '../clients/control-plane/control-plane.mjs'
 import {
@@ -893,31 +894,17 @@ export const callApiInvalidateApplicationHttpCache = async (appId, entries) => {
 }
 
 export const callApiGetApplicationsConfigs = async (appId) => {
-  const url = `${baseUrl}/control-plane/applicationsConfigs?` + new URLSearchParams({
-    'where.applicationId.eq': appId
-  }).toString()
-  const response = await fetch(url, {
-    method: 'GET',
-    credentials: 'include',
-    headers: getHeaders()
-  })
-  const { status } = response
-  if (status !== 200) {
-    const error = await response.text()
+  const { body: applicationResources, statusCode } = await getApplicationResources({ id: appId })
+  if (statusCode !== 200) {
+    const error = await applicationResources
     console.error(`Failed to get applications configs: ${error}`)
     throw new Error(`Failed to get applications configs: ${error}`)
   }
-  const json = await response.json()
-  if (json.length === 1) {
-    // empty services are returned as {} but the value needs to be an array
-    // so we convert the empty object to empty array
-    const output = json[0]
-    if (!output.services || Object.keys(output.services).length === 0) {
-      output.services = []
-    }
-    return output
+  const output = applicationResources
+  if (!output.services || Object.keys(output.services).length === 0) {
+    output.services = []
   }
-  return null
+  return output
 }
 
 export const callApiUpdateApplicationConfigs = async (appId, configs) => {
