@@ -5,14 +5,13 @@ import styles from './ListView.module.css'
 import { Button, LoadingSpinnerV2, SearchBarV2 } from '@platformatic/ui-components'
 import ServiceElement from './ServiceElement'
 import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
-import useICCStore from '~/useICCStore'
 import { STATUS_STOPPED, FILTER_ALL, SERVICE_OUTDATED } from '~/ui-constants'
 import { MEDIUM, RICH_BLACK, WHITE } from '@platformatic/ui-components/src/components/constants'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
-import { useNavigate, useParams } from 'react-router-dom'
+import { generatePath, useNavigate, useRouteLoaderData } from 'react-router-dom'
 import { getApiCompliancy } from '~/api'
 import Icons from '@platformatic/ui-components/src/components/icons'
-import { APPLICATION_DETAIL_SERVICE_DETAIL_PATH } from '../../../ui-constants'
+import { APPLICATION_DETAILS_ALL_SERVICES_DETAIL } from '../../../paths'
 
 function getFilteredOutdatedServices (allServices, comparingServices) {
   return allServices.filter(service => {
@@ -34,11 +33,9 @@ function getStatusService (allServices, comparingServices, service) {
 }
 
 function ListView () {
-  const globalState = useICCStore()
   const navigate = useNavigate()
-  const { applicationSelected } = globalState
-  const applicationSelectedServices = globalState.computed.getApplicationSelectedServices
-  const { taxonomyId } = useParams()
+  const { application } = useRouteLoaderData('appRoot')
+  const applicationSelectedServices = application.state.services
   const [innerLoading, setInnerLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
   const [filteredServices, setFilteredServices] = useState([])
@@ -48,12 +45,12 @@ function ListView () {
   const [reportServices, setReportServices] = useState({})
 
   useEffect(() => {
-    if (taxonomyId && applicationSelected?.id && applicationSelectedServices.length > 0) {
+    if (applicationSelectedServices.length > 0) {
       async function loadCompliancy () {
         setShowNoResult(false)
         setInnerLoading(true)
 
-        const report = await getApiCompliancy(taxonomyId, applicationSelected?.id)
+        const report = await getApiCompliancy(application.id)
         let services = {}
         if (report.length > 0) {
           const ruleSet = report[0].ruleSet
@@ -84,7 +81,7 @@ function ListView () {
       setShowNoResult(true)
       setInnerLoading(false)
     }
-  }, [taxonomyId, applicationSelected?.id, applicationSelectedServices.length])
+  }, [applicationSelectedServices.length])
 
   useEffect(() => {
     if (filterServiceByStatus.value || filterServiceByName) {
@@ -111,13 +108,7 @@ function ListView () {
   }
 
   function handleSelectedService (service) {
-    const basePath = APPLICATION_DETAIL_SERVICE_DETAIL_PATH
-    const newPath = basePath
-      .replace(':taxonomyId', taxonomyId)
-      .replace(':appId', applicationSelected.id)
-      .replace(':serviceId', service.id)
-
-    navigate(newPath)
+    navigate(generatePath(APPLICATION_DETAILS_ALL_SERVICES_DETAIL, { applicationId: application.id, serviceId: service.id }))
   }
 
   function handleSelectService (event) {
