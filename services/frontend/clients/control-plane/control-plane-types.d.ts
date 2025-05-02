@@ -625,6 +625,18 @@ export type GetInstancesForApplicationResponseOK = Array<{ 'id'?: string | null;
 export type GetInstancesForApplicationResponses =
   FullResponse<GetInstancesForApplicationResponseOK, 200>
 
+export type GetValkeyUsersForApplicationRequest = {
+  'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+  'id': string;
+}
+
+/**
+ * Default Response
+ */
+export type GetValkeyUsersForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }>
+export type GetValkeyUsersForApplicationResponses =
+  FullResponse<GetValkeyUsersForApplicationResponseOK, 200>
+
 export type GetApplicationsConfigsRequest = {
   /**
    * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
@@ -1705,6 +1717,273 @@ export type GetDeploymentForInstanceResponseOK = { 'id'?: string | null; 'applic
 export type GetDeploymentForInstanceResponses =
   FullResponse<GetDeploymentForInstanceResponseOK, 200>
 
+export type GetValkeyUsersRequest = {
+  /**
+   * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+   */
+  'limit'?: number;
+  'offset'?: number;
+  'totalCount'?: boolean;
+  'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+  'where.applicationId.eq'?: string;
+  'where.applicationId.neq'?: string;
+  'where.applicationId.gt'?: string;
+  'where.applicationId.gte'?: string;
+  'where.applicationId.lt'?: string;
+  'where.applicationId.lte'?: string;
+  'where.applicationId.like'?: string;
+  'where.applicationId.ilike'?: string;
+  'where.applicationId.in'?: string;
+  'where.applicationId.nin'?: string;
+  'where.applicationId.contains'?: string;
+  'where.applicationId.contained'?: string;
+  'where.applicationId.overlaps'?: string;
+  'where.createdAt.eq'?: string;
+  'where.createdAt.neq'?: string;
+  'where.createdAt.gt'?: string;
+  'where.createdAt.gte'?: string;
+  'where.createdAt.lt'?: string;
+  'where.createdAt.lte'?: string;
+  'where.createdAt.like'?: string;
+  'where.createdAt.ilike'?: string;
+  'where.createdAt.in'?: string;
+  'where.createdAt.nin'?: string;
+  'where.createdAt.contains'?: string;
+  'where.createdAt.contained'?: string;
+  'where.createdAt.overlaps'?: string;
+  'where.encryptedPassword.eq'?: string;
+  'where.encryptedPassword.neq'?: string;
+  'where.encryptedPassword.gt'?: string;
+  'where.encryptedPassword.gte'?: string;
+  'where.encryptedPassword.lt'?: string;
+  'where.encryptedPassword.lte'?: string;
+  'where.encryptedPassword.like'?: string;
+  'where.encryptedPassword.ilike'?: string;
+  'where.encryptedPassword.in'?: string;
+  'where.encryptedPassword.nin'?: string;
+  'where.encryptedPassword.contains'?: string;
+  'where.encryptedPassword.contained'?: string;
+  'where.encryptedPassword.overlaps'?: string;
+  'where.id.eq'?: string;
+  'where.id.neq'?: string;
+  'where.id.gt'?: string;
+  'where.id.gte'?: string;
+  'where.id.lt'?: string;
+  'where.id.lte'?: string;
+  'where.id.like'?: string;
+  'where.id.ilike'?: string;
+  'where.id.in'?: string;
+  'where.id.nin'?: string;
+  'where.id.contains'?: string;
+  'where.id.contained'?: string;
+  'where.id.overlaps'?: string;
+  'where.keyPrefix.eq'?: string;
+  'where.keyPrefix.neq'?: string;
+  'where.keyPrefix.gt'?: string;
+  'where.keyPrefix.gte'?: string;
+  'where.keyPrefix.lt'?: string;
+  'where.keyPrefix.lte'?: string;
+  'where.keyPrefix.like'?: string;
+  'where.keyPrefix.ilike'?: string;
+  'where.keyPrefix.in'?: string;
+  'where.keyPrefix.nin'?: string;
+  'where.keyPrefix.contains'?: string;
+  'where.keyPrefix.contained'?: string;
+  'where.keyPrefix.overlaps'?: string;
+  'where.username.eq'?: string;
+  'where.username.neq'?: string;
+  'where.username.gt'?: string;
+  'where.username.gte'?: string;
+  'where.username.lt'?: string;
+  'where.username.lte'?: string;
+  'where.username.like'?: string;
+  'where.username.ilike'?: string;
+  'where.username.in'?: string;
+  'where.username.nin'?: string;
+  'where.username.contains'?: string;
+  'where.username.contained'?: string;
+  'where.username.overlaps'?: string;
+  'where.or'?: Array<string>;
+  'orderby.applicationId'?: 'asc' | 'desc';
+  'orderby.createdAt'?: 'asc' | 'desc';
+  'orderby.encryptedPassword'?: 'asc' | 'desc';
+  'orderby.id'?: 'asc' | 'desc';
+  'orderby.keyPrefix'?: 'asc' | 'desc';
+  'orderby.username'?: 'asc' | 'desc';
+}
+
+/**
+ * Default Response
+ */
+export type GetValkeyUsersResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }>
+export type GetValkeyUsersResponses =
+  FullResponse<GetValkeyUsersResponseOK, 200>
+
+export type CreateValkeyUserRequest = {
+  'id'?: string;
+  'applicationId': string;
+  'username': string;
+  'encryptedPassword': string;
+  'keyPrefix': string;
+  'createdAt'?: string | null;
+}
+
+/**
+ * A ValkeyUser
+ */
+export type CreateValkeyUserResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }
+export type CreateValkeyUserResponses =
+  FullResponse<CreateValkeyUserResponseOK, 200>
+
+export type UpdateValkeyUsersRequest = {
+  'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+  'where.applicationId.eq'?: string;
+  'where.applicationId.neq'?: string;
+  'where.applicationId.gt'?: string;
+  'where.applicationId.gte'?: string;
+  'where.applicationId.lt'?: string;
+  'where.applicationId.lte'?: string;
+  'where.applicationId.like'?: string;
+  'where.applicationId.ilike'?: string;
+  'where.applicationId.in'?: string;
+  'where.applicationId.nin'?: string;
+  'where.applicationId.contains'?: string;
+  'where.applicationId.contained'?: string;
+  'where.applicationId.overlaps'?: string;
+  'where.createdAt.eq'?: string;
+  'where.createdAt.neq'?: string;
+  'where.createdAt.gt'?: string;
+  'where.createdAt.gte'?: string;
+  'where.createdAt.lt'?: string;
+  'where.createdAt.lte'?: string;
+  'where.createdAt.like'?: string;
+  'where.createdAt.ilike'?: string;
+  'where.createdAt.in'?: string;
+  'where.createdAt.nin'?: string;
+  'where.createdAt.contains'?: string;
+  'where.createdAt.contained'?: string;
+  'where.createdAt.overlaps'?: string;
+  'where.encryptedPassword.eq'?: string;
+  'where.encryptedPassword.neq'?: string;
+  'where.encryptedPassword.gt'?: string;
+  'where.encryptedPassword.gte'?: string;
+  'where.encryptedPassword.lt'?: string;
+  'where.encryptedPassword.lte'?: string;
+  'where.encryptedPassword.like'?: string;
+  'where.encryptedPassword.ilike'?: string;
+  'where.encryptedPassword.in'?: string;
+  'where.encryptedPassword.nin'?: string;
+  'where.encryptedPassword.contains'?: string;
+  'where.encryptedPassword.contained'?: string;
+  'where.encryptedPassword.overlaps'?: string;
+  'where.id.eq'?: string;
+  'where.id.neq'?: string;
+  'where.id.gt'?: string;
+  'where.id.gte'?: string;
+  'where.id.lt'?: string;
+  'where.id.lte'?: string;
+  'where.id.like'?: string;
+  'where.id.ilike'?: string;
+  'where.id.in'?: string;
+  'where.id.nin'?: string;
+  'where.id.contains'?: string;
+  'where.id.contained'?: string;
+  'where.id.overlaps'?: string;
+  'where.keyPrefix.eq'?: string;
+  'where.keyPrefix.neq'?: string;
+  'where.keyPrefix.gt'?: string;
+  'where.keyPrefix.gte'?: string;
+  'where.keyPrefix.lt'?: string;
+  'where.keyPrefix.lte'?: string;
+  'where.keyPrefix.like'?: string;
+  'where.keyPrefix.ilike'?: string;
+  'where.keyPrefix.in'?: string;
+  'where.keyPrefix.nin'?: string;
+  'where.keyPrefix.contains'?: string;
+  'where.keyPrefix.contained'?: string;
+  'where.keyPrefix.overlaps'?: string;
+  'where.username.eq'?: string;
+  'where.username.neq'?: string;
+  'where.username.gt'?: string;
+  'where.username.gte'?: string;
+  'where.username.lt'?: string;
+  'where.username.lte'?: string;
+  'where.username.like'?: string;
+  'where.username.ilike'?: string;
+  'where.username.in'?: string;
+  'where.username.nin'?: string;
+  'where.username.contains'?: string;
+  'where.username.contained'?: string;
+  'where.username.overlaps'?: string;
+  'where.or'?: Array<string>;
+  'id'?: string;
+  'applicationId': string;
+  'username': string;
+  'encryptedPassword': string;
+  'keyPrefix': string;
+  'createdAt'?: string | null;
+}
+
+/**
+ * Default Response
+ */
+export type UpdateValkeyUsersResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }>
+export type UpdateValkeyUsersResponses =
+  FullResponse<UpdateValkeyUsersResponseOK, 200>
+
+export type GetValkeyUserByIdRequest = {
+  'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+  'id': string;
+}
+
+/**
+ * A ValkeyUser
+ */
+export type GetValkeyUserByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }
+export type GetValkeyUserByIdResponses =
+  FullResponse<GetValkeyUserByIdResponseOK, 200>
+
+export type UpdateValkeyUserRequest = {
+  'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+  'id': string;
+  'applicationId': string;
+  'username': string;
+  'encryptedPassword': string;
+  'keyPrefix': string;
+  'createdAt'?: string | null;
+}
+
+/**
+ * A ValkeyUser
+ */
+export type UpdateValkeyUserResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }
+export type UpdateValkeyUserResponses =
+  FullResponse<UpdateValkeyUserResponseOK, 200>
+
+export type DeleteValkeyUsersRequest = {
+  'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+  'id': string;
+}
+
+/**
+ * A ValkeyUser
+ */
+export type DeleteValkeyUsersResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }
+export type DeleteValkeyUsersResponses =
+  FullResponse<DeleteValkeyUsersResponseOK, 200>
+
+export type GetApplicationForValkeyUserRequest = {
+  'fields'?: Array<'createdAt' | 'id' | 'name'>;
+  'id': string;
+}
+
+/**
+ * A Application
+ */
+export type GetApplicationForValkeyUserResponseOK = { 'id'?: string | null; 'name'?: string | null; 'createdAt'?: string | null }
+export type GetApplicationForValkeyUserResponses =
+  FullResponse<GetApplicationForValkeyUserResponseOK, 200>
+
 export type GetGenerationsDeploymentsRequest = {
   /**
    * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
@@ -2050,6 +2329,17 @@ export type SaveApplicationInstanceStateResponseOK = object
 export type SaveApplicationInstanceStateResponses =
   FullResponse<SaveApplicationInstanceStateResponseOK, 200>
 
+export type GetApplicationResourcesRequest = {
+  'id': string;
+}
+
+/**
+ * Default Response
+ */
+export type GetApplicationResourcesResponseOK = { 'threads': number; 'heap': number; 'services': Array<{ 'name'?: string; 'heap'?: number; 'threads'?: number }> }
+export type GetApplicationResourcesResponses =
+  FullResponse<GetApplicationResourcesResponseOK, 200>
+
 export type SetApplicationResourcesRequest = {
   'id': string;
   'threads': number;
@@ -2278,6 +2568,14 @@ export interface ControlPlane {
    * @returns the API response
    */
   getInstancesForApplication(req: GetInstancesForApplicationRequest): Promise<GetInstancesForApplicationResponses>;
+  /**
+   * Get valkeyUsers for application.
+   *
+   * Fetch all the valkeyUsers for application from the database.
+   * @param req - request parameters object
+   * @returns the API response
+   */
+  getValkeyUsersForApplication(req: GetValkeyUsersForApplicationRequest): Promise<GetValkeyUsersForApplicationResponses>;
   /**
    * Get applicationsConfigs.
    *
@@ -2551,6 +2849,62 @@ export interface ControlPlane {
    */
   getDeploymentForInstance(req: GetDeploymentForInstanceRequest): Promise<GetDeploymentForInstanceResponses>;
   /**
+   * Get valkeyUsers.
+   *
+   * Fetch valkeyUsers from the database.
+   * @param req - request parameters object
+   * @returns the API response
+   */
+  getValkeyUsers(req: GetValkeyUsersRequest): Promise<GetValkeyUsersResponses>;
+  /**
+   * Create valkeyUser.
+   *
+   * Add new valkeyUser to the database.
+   * @param req - request parameters object
+   * @returns the API response
+   */
+  createValkeyUser(req: CreateValkeyUserRequest): Promise<CreateValkeyUserResponses>;
+  /**
+   * Update valkeyUsers.
+   *
+   * Update one or more valkeyUsers in the database.
+   * @param req - request parameters object
+   * @returns the API response
+   */
+  updateValkeyUsers(req: UpdateValkeyUsersRequest): Promise<UpdateValkeyUsersResponses>;
+  /**
+   * Get ValkeyUser by id.
+   *
+   * Fetch ValkeyUser using its id from the database.
+   * @param req - request parameters object
+   * @returns the API response
+   */
+  getValkeyUserById(req: GetValkeyUserByIdRequest): Promise<GetValkeyUserByIdResponses>;
+  /**
+   * Update valkeyUser.
+   *
+   * Update valkeyUser in the database.
+   * @param req - request parameters object
+   * @returns the API response
+   */
+  updateValkeyUser(req: UpdateValkeyUserRequest): Promise<UpdateValkeyUserResponses>;
+  /**
+   * Delete valkeyUsers.
+   *
+   * Delete one or more valkeyUsers from the Database.
+   * @param req - request parameters object
+   * @returns the API response
+   */
+  deleteValkeyUsers(req: DeleteValkeyUsersRequest): Promise<DeleteValkeyUsersResponses>;
+  /**
+   * Get application for valkeyUser.
+   *
+   * Fetch the application for valkeyUser from the database.
+   * @param req - request parameters object
+   * @returns the API response
+   */
+  getApplicationForValkeyUser(req: GetApplicationForValkeyUserRequest): Promise<GetApplicationForValkeyUserResponses>;
+  /**
    * Get generationsDeployments.
    *
    * Fetch generationsDeployments from the database.
@@ -2682,6 +3036,11 @@ export interface ControlPlane {
    * @returns the API response
    */
   saveApplicationInstanceState(req: SaveApplicationInstanceStateRequest): Promise<SaveApplicationInstanceStateResponses>;
+  /**
+   * @param req - request parameters object
+   * @returns the API response
+   */
+  getApplicationResources(req: GetApplicationResourcesRequest): Promise<GetApplicationResourcesResponses>;
   /**
    * @param req - request parameters object
    * @returns the API response

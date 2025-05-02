@@ -1,34 +1,14 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import styles from './Services.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
-import { PAGE_APPLICATION_DETAILS_SERVICES } from '~/ui-constants'
-import useICCStore from '~/useICCStore'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import { MEDIUM, WHITE } from '@platformatic/ui-components/src/components/constants'
-import ListView from '~/components/application/services/ListView'
+import ListView from './ListView'
 
-const Services = React.forwardRef(({ _ }, ref) => {
-  const globalState = useICCStore()
-  const {
-    setNavigation,
-    setCurrentPage
-  } = globalState
-
-  useEffect(() => {
-    setCurrentPage(PAGE_APPLICATION_DETAILS_SERVICES)
-    setNavigation({
-      label: 'Services',
-      handleClick: () => {
-        setCurrentPage(PAGE_APPLICATION_DETAILS_SERVICES)
-      },
-      key: PAGE_APPLICATION_DETAILS_SERVICES,
-      page: PAGE_APPLICATION_DETAILS_SERVICES
-    }, 2)
-  }, [])
-
+export default function Services () {
   return (
-    <div className={styles.servicesContainer} ref={ref}>
+    <div className={styles.servicesContainer}>
       <div className={styles.content}>
         <div className={`${styles.elementContainer} ${commonStyles.tinyFlexBlock}`}>
           <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
@@ -40,6 +20,4 @@ const Services = React.forwardRef(({ _ }, ref) => {
       </div>
     </div>
   )
-})
-
-export default Services
+}

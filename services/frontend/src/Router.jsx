@@ -20,6 +20,7 @@ import AllDeployments from './components/deployments/AllDeployments'
 import AllActivities from './components/activities/Activities'
 import Services from './components/application/services/Services'
 import ErrorPage from './pages/ErrorPage'
+
 // Import App Details Pages
 import ScheduledJobs from './components/scheduled-jobs/ScheduledJobs'
 import ScheduledJobDetail from './components/scheduled-jobs/ScheduledJobDetail'
@@ -27,6 +28,8 @@ import Logs from './components/application/application-detail-logs/Logs'
 import Autoscaler from './components/application/autoscaler/Autoscaler'
 import ApplicationSettings from './components/application/settings/Settings'
 import NotFound from './pages/NotFound'
+import ServiceDetails from './components/application/services/ServiceDetails'
+
 export function getRouter () {
   // TODO: check if this is needed
   // import useErrorBoundary from 'use-error-boundary'
@@ -307,6 +310,14 @@ export function getRouter () {
           id: 'application/services',
           path: 'services',
           element: <Services />
+        },
+        {
+          id: 'application/services/detail',
+          loader: async ({ params }) => {
+            return { serviceId: params.serviceId }
+          },
+          path: 'services/:serviceId',
+          element: <ServiceDetails />
         },
         {
           id: 'application/scheduled-jobs',
