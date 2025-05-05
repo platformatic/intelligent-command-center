@@ -63,6 +63,12 @@
         "proxy": {
           "prefix": "cache-manager"
         }
+      },
+      {
+        "id": "scaler",
+        "proxy": {
+          "prefix": "scaler"
+        }
       }
     ]
   },

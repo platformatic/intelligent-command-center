@@ -14,7 +14,8 @@ const k8sAllowedRoutes = [
   [/\/api\/updates\/applications\/[a-zA-z0-9-]+/, ['GET']],
   [/\/control-plane\/pods\/[a-zA-z0-9-]+\/instance/, ['POST']],
   [/\/control-plane\/pods\/[a-zA-z0-9-]+\/instance\/state/, ['POST']],
-  [/\/compliance\/metadata/, ['POST']]
+  [/\/compliance\/metadata/, ['POST']],
+  ['/scaler/alerts', ['POST']]
 ]
 
 function methodIsAllowed (method, allowedMethods) {

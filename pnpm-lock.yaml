@@ -456,6 +456,43 @@ importers:
         specifier: ^0.6.0
         version: 0.6.0
 
+  services/scaler:
+    dependencies:
+      '@databases/pg':
+        specifier: ^5.5.0
+        version: 5.5.0
+      '@fastify/env':
+        specifier: ^5.0.1
+        version: 5.0.2
+      '@platformatic/db':
+        specifier: ^2.62.1
+        version: 2.62.1
+      fastify-plugin:
+        specifier: ^5.0.1
+        version: 5.0.1
+      iovalkey:
+        specifier: ^0.3.1
+        version: 0.3.1
+      undici:
+        specifier: ^7.8.0
+        version: 7.8.0
+    devDependencies:
+      borp:
+        specifier: ^0.19.0
+        version: 0.19.0
+      fastify:
+        specifier: ^5.01.0
+        version: 5.3.2
+      platformatic:
+        specifier: ^2.50.0
+        version: 2.62.1
+      snazzy:
+        specifier: ^9.0.0
+        version: 9.0.0
+      standard:
+        specifier: ^17.1.2
+        version: 17.1.2
+
   services/user-manager:
     dependencies:
       '@fastify/cookie':
