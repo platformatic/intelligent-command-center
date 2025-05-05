@@ -3,3 +3,4 @@ CREATE DATABASE activities;
 CREATE DATABASE control_plane;
 CREATE DATABASE cron;
 CREATE DATABASE compliance;
+CREATE DATABASE scaler;
