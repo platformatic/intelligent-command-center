@@ -14,6 +14,7 @@
   "dependencies": {
     "@databases/pg": "^5.5.0",
     "@fastify/env": "^5.0.1",
+    "@fastify/error": "^4.1.0",
     "@platformatic/db": "^2.62.1",
     "fastify-plugin": "^5.0.1",
     "iovalkey": "^0.3.1",
