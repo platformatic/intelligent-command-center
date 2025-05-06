@@ -464,6 +464,9 @@ importers:
       '@fastify/env':
         specifier: ^5.0.1
         version: 5.0.2
+      '@fastify/error':
+        specifier: ^4.1.0
+        version: 4.1.0
       '@platformatic/db':
         specifier: ^2.62.1
         version: 2.62.1
