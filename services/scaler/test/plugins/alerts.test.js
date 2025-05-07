@@ -20,7 +20,7 @@ async function cleanRedisData () {
   }
 }
 
-test('should save alerts through the alertStore decorator', async (t) => {
+test('should save alerts through the store decorator', async (t) => {
   await cleanRedisData()
 
   const server = await buildServer(t)
@@ -42,9 +42,9 @@ test('should save alerts through the alertStore decorator', async (t) => {
     heapTotal: 340
   }
 
-  await server.alertStore.saveAlert(alert)
+  await server.store.saveAlert(alert)
 
-  const alerts = await server.alertStore.getAlerts(applicationId)
+  const alerts = await server.store.getAlerts(applicationId)
   assert.strictEqual(alerts.length, 1)
 
   // Check main properties
@@ -91,11 +91,11 @@ test('should get alerts by applicationId in chronological order', async (t) => {
 
   // Save alerts with a delay between them
   for (const alert of alerts) {
-    await server.alertStore.saveAlert(alert)
+    await server.store.saveAlert(alert)
     await sleep(50) // Small delay to ensure different timestamps
   }
 
-  const retrievedAlerts = await server.alertStore.getAlerts(applicationId)
+  const retrievedAlerts = await server.store.getAlerts(applicationId)
   assert.strictEqual(retrievedAlerts.length, 2)
 
   // Verify all alerts have timestamps
@@ -103,9 +103,9 @@ test('should get alerts by applicationId in chronological order', async (t) => {
     assert.ok(alert.timestamp, 'Alert should have a timestamp')
   }
 
-  // Verify the alerts are in reverse chronological order (newest first)
-  assert.ok(retrievedAlerts[0].timestamp > retrievedAlerts[1].timestamp,
-    'Alerts should be in reverse chronological order')
+  // Verify the alerts are in chronological order (oldest first)
+  assert.ok(retrievedAlerts[0].timestamp < retrievedAlerts[1].timestamp,
+    'Alerts should be in chronological order')
 
   // Verify service/pod IDs match our original alerts
   const serviceIds = retrievedAlerts.map(a => a.serviceId)
@@ -146,12 +146,12 @@ test('should get alerts by podId in chronological order', async (t) => {
 
   // Save alerts with a delay between them
   for (const alert of alerts) {
-    await server.alertStore.saveAlert(alert)
+    await server.store.saveAlert(alert)
     await sleep(50) // Small delay to ensure different timestamps
   }
 
   // Also save an alert with a different podId to ensure filtering works
-  await server.alertStore.saveAlert({
+  await server.store.saveAlert({
     applicationId: 'test:' + randomUUID(),
     serviceId: randomUUID(),
     podId: randomUUID(),
@@ -160,7 +160,7 @@ test('should get alerts by podId in chronological order', async (t) => {
     heapTotal: 200
   })
 
-  const retrievedAlerts = await server.alertStore.getAlertByPodId(podId)
+  const retrievedAlerts = await server.store.getAlertByPodId(podId)
   assert.strictEqual(retrievedAlerts.length, 2)
 
   // Verify all alerts have timestamps
@@ -168,9 +168,9 @@ test('should get alerts by podId in chronological order', async (t) => {
     assert.ok(alert.timestamp, 'Alert should have a timestamp')
   }
 
-  // Verify the alerts are in reverse chronological order (newest first)
-  assert.ok(retrievedAlerts[0].timestamp > retrievedAlerts[1].timestamp,
-    'Alerts should be in reverse chronological order')
+  // Verify the alerts are in chronological order (oldest first)
+  assert.ok(retrievedAlerts[0].timestamp < retrievedAlerts[1].timestamp,
+    'Alerts should be in chronological order')
 
   // Verify application IDs match our original alerts
   const applicationIds = retrievedAlerts.map(a => a.applicationId)
@@ -213,19 +213,19 @@ test('should store multiple alerts for the same pod/app/service', async (t) => {
   ]
 
   for (const alert of alerts) {
-    await server.alertStore.saveAlert(alert)
-    await new Promise(resolve => setTimeout(resolve, 50)) // Small delay to ensure different timestamps
+    await server.store.saveAlert(alert)
+    await sleep(50) // Small delay to ensure different timestamps
   }
 
-  const appAlerts = await server.alertStore.getAlerts(applicationId)
+  const appAlerts = await server.store.getAlerts(applicationId)
   assert.strictEqual(appAlerts.length, 2, 'Should store both alerts for the same application')
 
-  const podAlerts = await server.alertStore.getAlertByPodId(podId)
+  const podAlerts = await server.store.getAlertByPodId(podId)
   assert.strictEqual(podAlerts.length, 2, 'Should store both alerts for the same pod')
 
-  // Verify metrics match in reverse order (newest first)
-  assert.strictEqual(podAlerts[0].elu, 75)
-  assert.strictEqual(podAlerts[0].heapUsed, 150)
-  assert.strictEqual(podAlerts[1].elu, 50)
-  assert.strictEqual(podAlerts[1].heapUsed, 100)
+  // Verify metrics match in chronological order (oldest first)
+  assert.strictEqual(podAlerts[0].elu, 50)
+  assert.strictEqual(podAlerts[0].heapUsed, 100)
+  assert.strictEqual(podAlerts[1].elu, 75)
+  assert.strictEqual(podAlerts[1].heapUsed, 150)
 })

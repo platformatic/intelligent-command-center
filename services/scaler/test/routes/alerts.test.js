@@ -6,7 +6,6 @@ const { randomUUID } = require('node:crypto')
 const assert = require('node:assert')
 const Redis = require('iovalkey')
 
-// Helper function to clean Redis data
 async function cleanRedisData () {
   const redis = new Redis(valkeyConnectionString)
   try {
@@ -71,7 +70,7 @@ test('receive and save alert successfully', async (t) => {
   assert.deepStrictEqual(responseBody, { success: true })
 
   // Verify alert was saved by applicationId
-  const savedAlertsByApp = await server.alertStore.getAlerts(applicationId)
+  const savedAlertsByApp = await server.store.getAlerts(applicationId)
   assert.strictEqual(savedAlertsByApp.length, 1)
   const savedAlertByApp = savedAlertsByApp[0]
   assert.strictEqual(savedAlertByApp.applicationId, applicationId)
@@ -82,7 +81,7 @@ test('receive and save alert successfully', async (t) => {
   assert.strictEqual(savedAlertByApp.heapTotal, alert.currentHealth.heapTotal)
 
   // Verify alert was saved by podId
-  const savedAlertsByPod = await server.alertStore.getAlertByPodId(podId)
+  const savedAlertsByPod = await server.store.getAlertByPodId(podId)
   assert.strictEqual(savedAlertsByPod.length, 1)
   const savedAlertByPod = savedAlertsByPod[0]
   assert.strictEqual(savedAlertByPod.applicationId, applicationId)
@@ -142,27 +141,23 @@ test('receive multiple alerts for the same pod', async (t) => {
   })
 
   // Verify alerts were saved correctly
-  const savedAlerts = await server.alertStore.getAlertByPodId(podId)
+  const savedAlerts = await server.store.getAlertByPodId(podId)
   assert.strictEqual(savedAlerts.length, 2, 'Both alerts should be saved')
 
-  // Verify the alerts are in reverse chronological order (newest first)
   const firstAlert = savedAlerts[0]
   const secondAlert = savedAlerts[1]
 
-  // The newest alert (first in list) should have the latest metrics
-  assert.strictEqual(firstAlert.elu, alert2.currentHealth.elu)
-  assert.strictEqual(firstAlert.heapUsed, alert2.currentHealth.heapUsed)
-  assert.strictEqual(firstAlert.heapTotal, alert2.currentHealth.heapTotal)
+  assert.strictEqual(firstAlert.elu, alert1.currentHealth.elu)
+  assert.strictEqual(firstAlert.heapUsed, alert1.currentHealth.heapUsed)
+  assert.strictEqual(firstAlert.heapTotal, alert1.currentHealth.heapTotal)
 
-  // The older alert (second in list) should have the first metrics
-  assert.strictEqual(secondAlert.elu, alert1.currentHealth.elu)
-  assert.strictEqual(secondAlert.heapUsed, alert1.currentHealth.heapUsed)
-  assert.strictEqual(secondAlert.heapTotal, alert1.currentHealth.heapTotal)
+  assert.strictEqual(secondAlert.elu, alert2.currentHealth.elu)
+  assert.strictEqual(secondAlert.heapUsed, alert2.currentHealth.heapUsed)
+  assert.strictEqual(secondAlert.heapTotal, alert2.currentHealth.heapTotal)
 
-  // Verify timestamps are present and in correct order
   assert.ok(firstAlert.timestamp, 'First alert should have a timestamp')
   assert.ok(secondAlert.timestamp, 'Second alert should have a timestamp')
-  assert.ok(firstAlert.timestamp > secondAlert.timestamp, 'First alert should have a newer timestamp')
+  assert.ok(firstAlert.timestamp < secondAlert.timestamp, 'First alert should have a older timestamp')
 })
 
 test('fail when missing k8s context', async (t) => {
