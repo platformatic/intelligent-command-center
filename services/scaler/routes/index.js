@@ -43,8 +43,7 @@ module.exports = async function (app) {
       const { elu, heapUsed, heapTotal } = currentHealth
       app.log.debug({ serviceId, applicationId, currentHealth, unhealthy, healthConfig, podId }, 'received alert')
 
-      // Save the alert using alertsStore
-      await app.alertStore.saveAlert({
+      await app.processAlert({
         applicationId,
         serviceId,
         podId,

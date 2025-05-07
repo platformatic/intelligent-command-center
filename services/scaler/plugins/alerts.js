@@ -1,18 +1,35 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const AlertStore = require('../lib/alert-store')
 
 module.exports = fp(async function (app) {
-  const redisUrl = app.env.PLT_ICC_VALKEY_CONNECTION_STRING
-  const alertStore = new AlertStore(redisUrl, app.log)
+  async function processAlert (alert) {
+    const { applicationId, serviceId, podId, elu, heapUsed, heapTotal } = alert
 
-  app.addHook('onClose', async () => {
-    await alertStore.close()
-  })
+    app.log.debug({
+      applicationId,
+      serviceId,
+      podId,
+      elu,
+      heapUsed,
+      heapTotal
+    }, 'Processing alert')
 
-  app.decorate('alertStore', alertStore)
+    // Save the alert.
+    await app.store.saveAlert({
+      applicationId,
+      serviceId,
+      podId,
+      elu,
+      heapUsed,
+      heapTotal
+    })
+
+    // TODO:: The alsert should trigger the scaler.
+  }
+
+  app.decorate('processAlert', processAlert)
 }, {
   name: 'alerts',
-  dependencies: ['env']
+  dependencies: ['store']
 })

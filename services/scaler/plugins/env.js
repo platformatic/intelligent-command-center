@@ -7,10 +7,11 @@ const schema = {
   type: 'object',
   required: [
     'PLT_ICC_VALKEY_CONNECTION_STRING'
-    // 'PLT_SCALER_PROMETHEUS_URL' // Not used so far
   ],
   properties: {
     PLT_ICC_VALKEY_CONNECTION_STRING: { type: 'string' },
+    PLT_METRICS_POLLING_INTERVAL: { type: 'number', default: 5000 },
+    PLT_METRICS_TIME_RANGE: { type: 'string', default: '1m' },
     PLT_SCALER_PROMETHEUS_URL: { type: 'string' }
   }
 }
