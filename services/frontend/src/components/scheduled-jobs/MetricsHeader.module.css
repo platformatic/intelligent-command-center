@@ -13,7 +13,11 @@
 }
 
 .metricBox {
-  @apply bg-black-russian p-4 min-w-[200px] flex flex-col;
+  @apply bg-black-russian p-4 min-w-[200px] flex flex-col rounded-lg;
+}
+
+.metricBox:hover {
+  @apply bg-black-russian/50;
 }
 
 .title {

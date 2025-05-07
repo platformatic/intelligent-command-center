@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 
-import { MEDIUM, MODAL_FULL_RICH_BLACK, RICH_BLACK, WHITE } from '@platformatic/ui-components/src/components/constants'
+import { MEDIUM, MODAL_FULL_RICH_BLACK_V2, RICH_BLACK, WHITE } from '@platformatic/ui-components/src/components/constants'
 import { Button, Forms, Icons, Modal, SearchBarV2 } from '@platformatic/ui-components'
 
 import styles from './ScheduledJobs.module.css'
@@ -23,7 +23,7 @@ export default function ScheduledJob () {
   const [metrics, setMetrics] = useState({})
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState({ label: 'All statuses', value: 'all' })
-  const { taxonomyId, application } = useRouteLoaderData('appRoot')
+  const { application } = useRouteLoaderData('appRoot')
   const globalState = useICCStore()
   const {
     showSplashScreen
@@ -35,13 +35,13 @@ export default function ScheduledJob () {
     { label: 'Failed', value: 'failed' }
   ]
   async function getJobs () {
-    const jobs = await callApiGetScheduledJobs(taxonomyId, application.id)
+    const jobs = await callApiGetScheduledJobs(application.id)
     setJobs(jobs)
     setFilteredJobs(jobs)
   }
 
   async function getMetrics () {
-    const metrics = await callApiGetScheduledJobsMetrics(taxonomyId, application.id)
+    const metrics = await callApiGetScheduledJobsMetrics(application.id)
     setMetrics(metrics)
   }
 
@@ -94,14 +94,13 @@ export default function ScheduledJob () {
         ...formData,
         paused: false,
         protected: false,
-        taxonomyId,
         applicationId: application.id,
         jobType: 'USER'
       }
       await callApiCreateScheduledJob(payload)
       showSplashScreen({
         title: 'Job updated',
-        content: 'You successfully updated the job',
+        message: 'You successfully updated the job',
         type: 'success',
         onDismiss: () => {
           setShowModal(false)
@@ -122,7 +121,7 @@ export default function ScheduledJob () {
   function renderJobs () {
     if (filteredJobs.length === 0) {
       return (
-        <NoDataFound fullCentered title='No scheduled jobs found' />
+        <NoDataFound fullCentered title='No scheduled jobs found' subTitle="You haven't created and scheduled any job yet. Click on Create new Job to add it now." />
       )
     }
     return <JobsTable jobs={filteredJobs} />
@@ -151,7 +150,15 @@ export default function ScheduledJob () {
 
       <div className={styles.searchAndFilter}>
         <div className={styles.search}>
-          <SearchBarV2 onChange={handleSearch} placeholder='Search for Job name or target endpoint' onClear={() => setSearch('')} />
+          <SearchBarV2
+            onChange={handleSearch}
+            placeholder='Search for Job name or target endpoint'
+            onClear={() => setSearch('')}
+            color={WHITE}
+            inputTextClassName={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite}`}
+            paddingClass={styles.searchBarPaddingClass}
+            disabled={jobs.length === 0}
+          />
         </div>
         <div className={styles.filter}>
           <Forms.Select
@@ -177,12 +184,13 @@ export default function ScheduledJob () {
 
       {showModal && (
         <Modal
-          layout={MODAL_FULL_RICH_BLACK}
+          layout={MODAL_FULL_RICH_BLACK_V2}
           setIsOpen={handleCloseModal}
           title='Create Scheduled Job'
-          titleClassName={typographyStyles.desktopBodyLargeSemibold}
+          childrenClassContainer={`${styles.modal}`}
+          showCloseButtonOnTop={false}
         >
-          <div className={commonStyles.modalContent}>
+          <div className={styles.modalContent}>
             <JobForm
               onSubmit={handleCreateJob}
               onCancel={handleCloseModal}

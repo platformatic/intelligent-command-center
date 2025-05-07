@@ -69,10 +69,7 @@ function getApplicationPageBreadcrumbs (routeId, application, otherParams) {
       break
     case 'application/scheduled-jobs-detail':
       output.push({ label: 'Scheduled Jobs', link: generatePath('/applications/:applicationId/scheduled-jobs', { applicationId: application.id }) })
-      output.push({ label: 'Scheduled Job Detail' })
-      break
-    case 'application/logs':
-      output.push({ label: 'Logs' })
+      output.push({ label: otherParams.jobName })
       break
     case 'application/autoscaler':
       output.push({ label: 'Autoscaler' })

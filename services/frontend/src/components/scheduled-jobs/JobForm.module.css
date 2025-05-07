@@ -1,5 +1,5 @@
 .form {
-  @apply flex flex-col gap-y-6;
+  @apply flex flex-col gap-y-6 w-full;
 }
 .buttonsContainer {
   @apply flex justify-center gap-2 mt-4;
@@ -21,9 +21,29 @@
   @apply w-full flex flex-row items-center justify-between p-2 border border-solid rounded-[4px] border-white bg-rich-black;
 }
 
+.fieldPaddingClass {
+  @apply px-2 py-1;
+}
+
 .cronContainer {
   @apply flex flex-col gap-y-2 w-full;
 }
 .cronDescription {
   @apply text-sm text-white/70;
+}
+
+.formHeader {
+  @apply flex flex-col gap-y-2 items-center mb-4;
+}
+
+.icon {
+  @apply flex items-center justify-center;
+}
+
+.formHeader .title {
+  @apply text-white text-xl font-semibold;
+}
+
+.formHeader .secondaryText {
+  @apply text-white/70 text-sm;
 }

@@ -27,6 +27,8 @@ const initialState = {
     content: '',
     type: 'success',
     timeout: 5000,
+    showDismissButton: true,
+    message: '',
     onDismiss: () => {}
   },
   currentApplication: null
@@ -185,7 +187,7 @@ const useICCStore = create((set, get) => ({
       }
     })
   },
-  showSplashScreen: ({ title, content, type = 'success', timeout = 3000, onDismiss }) => {
+  showSplashScreen: ({ title, content, type = 'success', timeout = 3000, onDismiss, showDismissButton = true, message }) => {
     set((state) => ({
       ...state,
       splashScreen: {
@@ -194,7 +196,9 @@ const useICCStore = create((set, get) => ({
         content,
         type,
         timeout,
-        onDismiss
+        onDismiss,
+        showDismissButton,
+        message
       }
     }))
   },

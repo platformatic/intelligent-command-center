@@ -20,5 +20,5 @@
 }
 
 .jobRow {
-  @apply hover:bg-white/10 text-[14px];
+  @apply text-[14px];
 }
