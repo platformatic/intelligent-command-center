@@ -108,7 +108,9 @@ export default function App () {
           <SplashScreen
             title={splashScreen.title}
             success={splashScreen.type === 'success'}
+            message={splashScreen.message}
             timeout={splashScreen.timeout}
+            showDismissButton={splashScreen.showDismissButton}
             onDestroyed={() => {
               if (splashScreen.onDismiss) {
                 splashScreen.onDismiss()

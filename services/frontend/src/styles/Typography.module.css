@@ -108,3 +108,7 @@
 .onHoverUnderline {
   @apply no-underline hover:underline;
 }
+
+.textWhite70 {
+  @apply text-white/70;
+}

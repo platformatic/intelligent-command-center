@@ -9,12 +9,16 @@ import ErrorComponent from '~/components/errors/ErrorComponent'
 
 const AutoscalerOverview = React.forwardRef(({
   applicationId,
-  taxonomyId,
   onViewFullHistory = () => {},
   onViewPodsDetails = () => {}
 }, ref) => {
   const [showErrorComponent, setShowErrorComponent] = useState(false)
   const [error, setError] = useState(false)
+
+  function onInternalError (error) {
+    setError(error)
+    setShowErrorComponent(true)
+  }
 
   if (showErrorComponent) {
     return <ErrorComponent error={error} message={error.message} onClickDismiss={() => setShowErrorComponent(false)} />
@@ -27,29 +31,20 @@ const AutoscalerOverview = React.forwardRef(({
             <Requests
               gridClassName={styles.boxRequests}
               applicationId={applicationId}
-              taxonomyId={taxonomyId}
             />
             <ReplicaSetOverview
               gridClassName={styles.boxReplicaSetOverview}
               applicationId={applicationId}
-              taxonomyId={taxonomyId}
               onViewPodsDetails={onViewPodsDetails}
             />
           </div>
           <ReplicaSetScaling
             gridClassName={styles.boxReplicaSetScaling}
-            onErrorOccurred={(error) => {
-              setError(error)
-              setShowErrorComponent(true)
-            }}
+            onErrorOccurred={onInternalError}
             applicationId={applicationId}
-            taxonomyId={taxonomyId}
           />
           <ScalingHistory
-            onErrorOccurred={(error) => {
-              setError(error)
-              setShowErrorComponent(true)
-            }}
+            onErrorOccurred={onInternalError}
             onViewFullHistory={onViewFullHistory}
           />
         </div>

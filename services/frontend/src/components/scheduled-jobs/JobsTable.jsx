@@ -21,7 +21,7 @@ export default function JobsTable ({ jobs }) {
   const [pagesCount, setPagesCount] = useState(0)
   const [visibleJobs, setVisibleJobs] = useState([])
   const [currentPage, setCurrentPage] = useState(0)
-  const { taxonomyId, application } = useRouteLoaderData('appRoot')
+  const { application } = useRouteLoaderData('appRoot')
   useEffect(() => {
     setPagesCount(Math.ceil(jobs.length / VISIBLE_ROWS))
     setVisibleJobs(jobs.slice(0, VISIBLE_ROWS))
@@ -106,7 +106,6 @@ export default function JobsTable ({ jobs }) {
                 immediateActive={false}
                 tooltipClassName={tooltipStyles.tooltipDarkStyle}
                 content={(<span>Job Created by the Application</span>)}
-
               >
                 <Icons.ScheduledJobsAppIcon
                   color={WHITE}
@@ -147,8 +146,7 @@ export default function JobsTable ({ jobs }) {
                   paddingClass={commonStyles.smallButtonPadding}
                   textClass={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite}`}
                   onClick={() => {
-                    const newPath = `/${taxonomyId}/applications/${application.id}/scheduled-jobs/${job.id}`
-                    console.log(newPath, 'newPath')
+                    const newPath = `/applications/${application.id}/scheduled-jobs/${job.id}`
                     navigate(newPath)
                   }}
                   bordered={false}

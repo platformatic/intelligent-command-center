@@ -24,11 +24,11 @@ import ErrorPage from './pages/ErrorPage'
 // Import App Details Pages
 import ScheduledJobs from './components/scheduled-jobs/ScheduledJobs'
 import ScheduledJobDetail from './components/scheduled-jobs/ScheduledJobDetail'
-import Logs from './components/application/application-detail-logs/Logs'
 import Autoscaler from './components/application/autoscaler/Autoscaler'
 import ApplicationSettings from './components/application/settings/Settings'
 import NotFound from './pages/NotFound'
 import ServiceDetails from './components/application/services/ServiceDetails'
+import callApi from './api/common'
 
 export function getRouter () {
   // TODO: check if this is needed
@@ -86,19 +86,6 @@ export function getRouter () {
   //         </PrivateRouteContainer>
   //           }
   //     />
-  //     <Route
-  //       path={AUTOSCALER_POD_DETAIL_LOGS_PATH}
-  //       element={
-  //         <PrivateRouteContainer>
-  //           <AutoscalerPodDetailContainer>
-  //             <PodDetailLogs
-  //               ref={autoscalerPodDetailLogsRef}
-  //               key={AUTOSCALER_POD_DETAIL_LOGS_PATH}
-  //             />
-  //           </AutoscalerPodDetailContainer>
-  //         </PrivateRouteContainer>
-  //           }
-  //     />
 
   //     {/* Preview Pod Detail Container Routes */}
   //     <Route
@@ -122,19 +109,6 @@ export function getRouter () {
   //             <PodServicesCharts
   //               ref={previewPodDetailServicesRef}
   //               key={PREVIEW_POD_DETAIL_SERVICES_PATH}
-  //             />
-  //           </PreviewPodDetailContainer>
-  //         </PrivateRouteContainer>
-  //           }
-  //     />
-  //     <Route
-  //       path={PREVIEW_POD_DETAIL_LOGS_PATH}
-  //       element={
-  //         <PrivateRouteContainer>
-  //           <PreviewPodDetailContainer>
-  //             <PodDetailLogs
-  //               ref={previewPodDetailLogsRef}
-  //               key={PREVIEW_POD_DETAIL_LOGS_PATH}
   //             />
   //           </PreviewPodDetailContainer>
   //         </PrivateRouteContainer>
@@ -326,13 +300,12 @@ export function getRouter () {
         },
         {
           id: 'application/scheduled-jobs-detail',
+          loader: async ({ params }) => {
+            const job = await callApi('cron', `jobs/${params.id}`, 'GET')
+            return { jobName: job.name }
+          },
           path: 'scheduled-jobs/:id',
           element: <ScheduledJobDetail />
-        },
-        {
-          id: 'application/logs',
-          path: 'logs',
-          element: <Logs />
         },
         {
           id: 'application/autoscaler',
