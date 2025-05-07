@@ -53,8 +53,8 @@ importers:
         version: 2.63.2
     devDependencies:
       borp:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^0.20.0
+        version: 0.20.0
       fastify:
         specifier: ^5.2.1
         version: 5.3.2
@@ -108,8 +108,8 @@ importers:
         specifier: ^2.50.0
         version: 2.63.2
       borp:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^0.20.0
+        version: 0.20.0
       fastify:
         specifier: ^5.2.1
         version: 5.3.2
@@ -148,8 +148,8 @@ importers:
         version: 7.8.0
     devDependencies:
       borp:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^0.20.0
+        version: 0.20.0
       fastify:
         specifier: ^5.2.1
         version: 5.3.2
@@ -185,8 +185,8 @@ importers:
         specifier: ^2.56.0
         version: 2.63.2
       borp:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^0.20.0
+        version: 0.20.0
       fastify:
         specifier: ^5.2.2
         version: 5.3.2
@@ -228,8 +228,8 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0
       borp:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^0.20.0
+        version: 0.20.0
       fastify:
         specifier: ^5.01.0
         version: 5.3.2
@@ -280,8 +280,8 @@ importers:
         specifier: ^10.4.20
         version: 10.4.21(postcss@8.5.3)
       borp:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^0.20.0
+        version: 0.20.0
       d3:
         specifier: ~7.9.0
         version: 7.9.0
@@ -398,8 +398,8 @@ importers:
         specifier: ^8.2.0
         version: 8.2.0
       borp:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^0.20.0
+        version: 0.20.0
       fast-jwt:
         specifier: ^6.0.1
         version: 6.0.1
@@ -441,8 +441,8 @@ importers:
         version: 7.8.0
     devDependencies:
       borp:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^0.20.0
+        version: 0.20.0
       fastify:
         specifier: ^5.3.0
         version: 5.3.2
@@ -481,8 +481,8 @@ importers:
         version: 7.8.0
     devDependencies:
       borp:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^0.20.0
+        version: 0.20.0
       fastify:
         specifier: ^5.01.0
         version: 5.3.2
@@ -518,8 +518,8 @@ importers:
         version: 5.0.1
     devDependencies:
       borp:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^0.20.0
+        version: 0.20.0
       fastify:
         specifier: ^5.2.1
         version: 5.3.2
@@ -2763,8 +2763,8 @@ packages:
     resolution: {integrity: sha512-1wEo1pNahY9js7Vkp1RQa/VWdWrXYJnVAmsHV3Pw/0YzspjABLw7dcekjukOMTIYWr8ir/aG0GX1eoEkYhpnUg==}
     hasBin: true
 
-  borp@0.19.0:
-    resolution: {integrity: sha512-rPO/r9XEXSbihEAZEhsO30SrncSciEB61xrOi8RhbaAKrp7qFuOGn1cUXYW8EwrPXlCvPhSN3+tllrSbIpowyg==}
+  borp@0.20.0:
+    resolution: {integrity: sha512-SZhSNosPoX6c9gtXKnakpkUYdAyQMkQDQwPzpPoIBV9ErWhWH2ks6paai27R37O/MNC9jLMW1lQojuZEOAF87g==}
     hasBin: true
 
   bowser@2.11.0:
@@ -9370,7 +9370,7 @@ snapshots:
       commander: 6.2.1
       lodash: 4.17.21
 
-  borp@0.19.0:
+  borp@0.20.0:
     dependencies:
       '@reporters/github': 1.7.2
       c8: 10.1.3
