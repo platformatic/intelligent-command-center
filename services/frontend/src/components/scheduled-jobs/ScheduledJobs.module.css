@@ -1,10 +1,9 @@
 .container {
-  @apply p-4 w-full text-white;
+  @apply p-4 w-full text-white flex flex-col gap-y-4;
 }
 
 .jobs {
-  height: calc(100vh - 150px); /* Adjust this value based on the header height */
-  overflow-y: auto;
+  @apply h-[calc(100vh-250px)] overflow-y-auto;
 }
 
 .searchAndFilter {
@@ -19,3 +18,18 @@
   @apply hover:cursor-pointer;
 }
 
+.searchBarPaddingClass {
+  @apply px-2 py-1 md:px-3 text-white;
+}
+
+.selectPaddingClass {
+  @apply px-3 py-2;
+}
+
+.modal {
+  @apply w-full flex items-center justify-center;
+}
+
+.modalContent {
+  @apply w-[768px] mt-44;
+}

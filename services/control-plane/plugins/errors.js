@@ -95,5 +95,9 @@ module.exports = {
   FailedToDecryptValkeyPassword: createError(
     `${ERROR_PREFIX}_FAILED_TO_DECRYPT_VALKEY_PASSWORD`,
     'Failed to decrypt valkey password for an application "%s"'
+  ),
+  FailedToGetPodDetails: createError(
+    `${ERROR_PREFIX}_FAILED_TO_GET_POD_DETAILS`,
+    'Failed to get pod details'
   )
 }

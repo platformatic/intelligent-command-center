@@ -1,22 +1,25 @@
 import React, { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { PAGE_SCHEDULED_JOBS } from '~/ui-constants'
+import { useNavigate, generatePath, useRouteLoaderData, useParams } from 'react-router-dom'
 import useICCStore from '~/useICCStore'
-import { TRANSPARENT, ERROR_RED, WHITE, RICH_BLACK, MEDIUM, MODAL_FULL_RICH_BLACK, WARNING_YELLOW, OPACITY_30, TERTIARY_BLUE } from '@platformatic/ui-components/src/components/constants'
-import { Button, ButtonOnlyIcon, Modal, PlatformaticIcon, Tag } from '@platformatic/ui-components'
+import { TRANSPARENT, ERROR_RED, WHITE, RICH_BLACK, MEDIUM, MODAL_FULL_RICH_BLACK_V2, WARNING_YELLOW, OPACITY_30, TERTIARY_BLUE } from '@platformatic/ui-components/src/components/constants'
+import { Button, ButtonOnlyIcon, Modal, PlatformaticIcon, Tag, Tooltip } from '@platformatic/ui-components'
 
-import styles from './ScheduledJobDetail.module.css'
-import typographyStyles from '~/styles/Typography.module.css'
-import commonStyles from '~/styles/CommonStyles.module.css'
 import ConfirmationModal from '../common/ConfirmationModal'
 import { callApiCancelRetryingMessage, callApiDeleteScheduledJob, callApiGetScheduledJobById, callApiGetScheduledJobMessages, callApiGetScheduledJobMetrics, callApiResumeScheduledJob, callApiRunScheduledJobNow, callApiSuspendScheduledJob, callApiUpdateScheduledJob } from '../../api/scheduled-jobs'
-import { PAGE_SCHEDULED_JOB_DETAIL, SCHEDULED_JOB_PATH } from '../../ui-constants'
+import { APPLICATION_DETAILS_SCHEDULED_JOBS } from '../../paths'
 import MetricsHeader from './MetricsHeader'
 import CallbackUrl from './CallbackUrl'
 import MessageTable from './MessageTable'
 import JobForm from './JobForm'
 import { getFormattedTimeAndDate } from '../../utilities/dates'
 import dayjs from 'dayjs'
+import cronstrue from 'cronstrue'
+
+import styles from './ScheduledJobDetail.module.css'
+import typographyStyles from '~/styles/Typography.module.css'
+import commonStyles from '~/styles/CommonStyles.module.css'
+import tooltipStyles from '~/styles/TooltipStyles.module.css'
+
 /**
  * @typedef {Object} JobDetails
  * @property {string} name - The name of the job
@@ -35,8 +38,8 @@ import dayjs from 'dayjs'
 
 export default function ScheduledJobDetail () {
   const globalState = useICCStore()
-  const { setCurrentPage, showSplashScreen, setNavigation, applicationSelected, taxonomySelected } = globalState
-  const { id } = useParams()
+  const { showSplashScreen } = globalState
+  const { application } = useRouteLoaderData('appRoot')
   const navigate = useNavigate()
   const [showConfirmDeleteJobModal, setShowConfirmDeleteJobModal] = useState(false)
   const [showConfirmDeleteMessageModal, setShowConfirmDeleteMessageModal] = useState(false)
@@ -45,10 +48,9 @@ export default function ScheduledJobDetail () {
   const [showEditJobModal, setShowEditJobModal] = useState(false)
   const [jobDetails, setJobDetails] = useState(/** @type {JobDetails | null} */ (null))
   const [jobMetrics, setJobMetrics] = useState(/** @type {JobMetrics | null} */ (null))
-  const [enableRunButton, setEnableRunButton] = useState(false)
   const [messages, setMessages] = useState(/** @type {Message[]} */ ([]))
   const [nextScheduledMessage, setNextScheduledMessage] = useState(/** @type {Message | null} */ (null))
-
+  const { id } = useParams()
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -62,7 +64,7 @@ export default function ScheduledJobDetail () {
       } catch (err) {
         showSplashScreen({
           title: 'Error',
-          content: `Failed to get messages: ${err}`,
+          message: `Failed to get messages: ${err}`,
           type: 'error'
         })
       }
@@ -99,13 +101,15 @@ export default function ScheduledJobDetail () {
       await callApiRunScheduledJobNow(id)
       showSplashScreen({
         title: 'Job run now',
-        content: 'You successfully run the job now',
+        message: 'You successfully run the job now',
+        showDismissButton: false,
         type: 'success'
       })
     } catch (error) {
       showSplashScreen({
         title: 'Error',
-        content: `Failed to run job: ${error}`,
+        message: `Failed to run job: ${error}`,
+        showDismissButton: false,
         type: 'error'
       })
     }
@@ -115,8 +119,9 @@ export default function ScheduledJobDetail () {
       await callApiUpdateScheduledJob(id, formData)
       showSplashScreen({
         title: 'Job updated',
-        content: 'You successfully updated the job',
+        message: 'You successfully updated the job',
         type: 'success',
+        showDismissButton: false,
         onDismiss: () => {
           setShowEditJobModal(false)
           getJobDetails()
@@ -125,7 +130,7 @@ export default function ScheduledJobDetail () {
     } catch (error) {
       showSplashScreen({
         title: 'Error',
-        content: `Failed to update job: ${error}`,
+        message: `Failed to update job: ${error}`,
         type: 'error'
       })
     }
@@ -139,13 +144,13 @@ export default function ScheduledJobDetail () {
     await callApiDeleteScheduledJob(id)
     showSplashScreen({
       title: 'Job deleted',
-      content: 'You successfully deleted the job',
+      message: 'You successfully deleted the job',
       type: 'success',
+      showDismissButton: false,
       onDismiss: () => {
-        setCurrentPage(PAGE_SCHEDULED_JOBS)
-        const newPath = SCHEDULED_JOB_PATH
-          .replace(':taxonomyId', taxonomySelected?.id)
-          .replace(':appId', applicationSelected?.id)
+        const newPath = generatePath(APPLICATION_DETAILS_SCHEDULED_JOBS, {
+          applicationId: application.id
+        })
         navigate(newPath)
       }
     })
@@ -156,8 +161,9 @@ export default function ScheduledJobDetail () {
       await callApiSuspendScheduledJob(id)
       showSplashScreen({
         title: 'Job suspended',
-        content: 'You successfully suspended the job',
+        message: 'You successfully suspended the job',
         type: 'success',
+        showDismissButton: false,
         onDismiss: () => {
           setShowSuspendJobModal(false)
           getJobDetails()
@@ -166,7 +172,7 @@ export default function ScheduledJobDetail () {
     } catch (error) {
       showSplashScreen({
         title: 'Error',
-        content: `Failed to suspend job: ${error}`,
+        message: `Failed to suspend job: ${error}`,
         type: 'error'
       })
     }
@@ -177,8 +183,9 @@ export default function ScheduledJobDetail () {
       await callApiResumeScheduledJob(id)
       showSplashScreen({
         title: 'Job resumed',
-        content: 'You successfully resumed the job',
+        message: 'You successfully resumed the job',
         type: 'success',
+        showDismissButton: false,
         onDismiss: () => {
           setShowResumeJobModal(false)
           getJobDetails()
@@ -187,7 +194,7 @@ export default function ScheduledJobDetail () {
     } catch (error) {
       showSplashScreen({
         title: 'Error',
-        content: `Failed to resume job: ${error}`,
+        message: `Failed to resume job: ${error}`,
         type: 'error'
       })
     }
@@ -195,11 +202,15 @@ export default function ScheduledJobDetail () {
 
   async function onProceedDeleteMessage (messageId) {
     await callApiCancelRetryingMessage(messageId)
-    setShowConfirmDeleteMessageModal(false)
     showSplashScreen({
       title: 'Message cancelled',
-      content: 'You successfully cancelled the message',
-      type: 'success'
+      message: 'You successfully cancelled the message',
+      type: 'success',
+      showDismissButton: false,
+      onDismiss: () => {
+        setShowConfirmDeleteMessageModal(false)
+        getJobDetails()
+      }
     })
   }
   async function getJobMetrics () {
@@ -209,21 +220,11 @@ export default function ScheduledJobDetail () {
 
   useEffect(() => {
     getJobMetrics()
-    setEnableRunButton(jobDetails?.paused)
   }, [jobDetails])
 
   useEffect(() => {
     getJobDetails()
   }, [id])
-
-  useEffect(() => {
-    if (jobDetails) {
-      setNavigation({
-        label: jobDetails.name,
-        page: PAGE_SCHEDULED_JOB_DETAIL
-      })
-    }
-  }, [jobDetails])
 
   function renderSuspendPlayButton () {
     if (jobDetails?.paused) {
@@ -319,11 +320,12 @@ export default function ScheduledJobDetail () {
     <div className={styles.container}>
       {showEditJobModal && (
         <Modal
-          layout={MODAL_FULL_RICH_BLACK}
+          layout={MODAL_FULL_RICH_BLACK_V2}
           titleClassName={typographyStyles.desktopBodyLargeSemibold}
           title='Edit Job'
           setIsOpen={setShowEditJobModal}
           onClose={() => setShowEditJobModal(false)}
+          showCloseButtonOnTop={false}
         >
           <JobForm
             onSubmit={onSubmitEditJob}
@@ -341,7 +343,7 @@ export default function ScheduledJobDetail () {
           type='confirm'
           text={
             <div>
-              <p>Are you sure you want to suspend <span className={typographyStyles.desktopBodySmallSemibold}>{jobDetails.name}</span>?</p>
+              <p>This action will halt the Job messaging. It will only resume once you decide to restart it.</p>
               <br />
               <p>You can restart it anytime.</p>
             </div>
@@ -412,7 +414,6 @@ export default function ScheduledJobDetail () {
                   backgroundColor={WHITE}
                   textClass={typographyStyles.desktopButtonSmall}
                   paddingClass={commonStyles.smallButtonPadding}
-                  disabled={!enableRunButton}
                 />
 
               </div>
@@ -446,7 +447,17 @@ export default function ScheduledJobDetail () {
           </div>
 
           <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth}`}>
-            <span className={styles.label}>Crontab:</span> {jobDetails.schedule}
+            <div className={styles.label}>Crontab: &nbsp;
+              <Tooltip
+                tooltipClassName={tooltipStyles.tooltipDarkStyle}
+                content={<span>{cronstrue.toString(jobDetails.schedule)}</span>}
+                delay={0}
+                offset={20}
+                immediateActive={false}
+              >
+                <span className={styles.value}>{jobDetails.schedule}</span>
+              </Tooltip>
+            </div>
             <span className={styles.separator}>|</span>
             <span className={styles.label}>
               Target Endpoint:

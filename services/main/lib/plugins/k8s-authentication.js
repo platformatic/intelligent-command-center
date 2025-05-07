@@ -70,7 +70,6 @@ async function plugin (app) {
       app.log.warn('K8s authentication disabled: PLT_DISABLE_K8S_AUTH is set')
       return
     }
-
     try {
       const undecoded = await request.jwtVerify()
       request.k8s = undecoded['kubernetes.io']

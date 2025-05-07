@@ -9,3 +9,7 @@
 .container {
   @apply w-full;
 }
+
+.fieldPaddingClass {
+  @apply px-2 py-1;
+}

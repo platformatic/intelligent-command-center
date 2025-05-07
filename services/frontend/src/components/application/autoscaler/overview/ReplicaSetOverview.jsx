@@ -14,7 +14,6 @@ import Icons from '@platformatic/ui-components/src/components/icons'
 function ReplicaSetOverview ({
   gridClassName = '',
   applicationId,
-  taxonomyId,
   onViewPodsDetails = () => {}
 }) {
   const [initialLoading, setInitialLoading] = useState(true)
@@ -40,7 +39,7 @@ function ReplicaSetOverview ({
   }, [startPolling])
 
   useEffect(() => {
-    if (applicationId && taxonomyId && Object.keys(displayedValues).length > 0 && initialLoading) {
+    if (applicationId && Object.keys(displayedValues).length > 0 && initialLoading) {
       async function loadMetrics () {
         await loadMetricsReplicaSetOverview()
         setStartPolling(true)
@@ -49,12 +48,12 @@ function ReplicaSetOverview ({
       }
       loadMetrics()
     }
-  }, [applicationId, taxonomyId, Object.keys(displayedValues), initialLoading])
+  }, [applicationId, Object.keys(displayedValues), initialLoading])
 
   async function loadMetricsReplicaSetOverview () {
     try {
       setBorderexBoxClassName(`${styles.borderexBoxContainer} ${styles.borderedBoxHeigthLoading} ${gridClassName}`)
-      const dataValues = await getApiMetricsReplicaSetOverview(taxonomyId, applicationId)
+      const dataValues = await getApiMetricsReplicaSetOverview(applicationId)
 
       if (Object.keys(dataValues).length > 0) {
         setDisplayedValues({ ...dataValues })
