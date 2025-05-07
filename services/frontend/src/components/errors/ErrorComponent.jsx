@@ -7,6 +7,9 @@ import Icons from '@platformatic/ui-components/src/components/icons'
 import { ANTI_FLASH_WHITE, DULLS_BACKGROUND_COLOR, ERROR_RED, LARGE, SMALL, RICH_BLACK, WHITE, TRANSPARENT, OPACITY_30, MARGIN_0 } from '@platformatic/ui-components/src/components/constants'
 import { BorderedBox, Button, HorizontalSeparator, Tooltip } from '@platformatic/ui-components'
 import tooltipStyles from '~/styles/TooltipStyles.module.css'
+import { HOME_PATH } from '../../ui-constants'
+import useICCStore from '../../useICCStore'
+import { useNavigate } from 'react-router-dom'
 
 // eslint-disable-next-line no-unused-vars
 function ErrorComponent ({
@@ -20,6 +23,25 @@ function ErrorComponent ({
   const [logsCopied, setLogsCopied] = useState(false)
   const [errorStack] = useState(error?.stack?.split('\n') || [])
 
+  const navigate = useNavigate()
+  const globalState = useICCStore()
+  const { setUser, setIsAuthenticated } = globalState
+  function shouldLogout () {
+    try {
+      return error.message.includes('PLT_USER_MANAGER_MISSING_CREDENTIALS')
+    } catch (err) {
+      return false
+    }
+  }
+
+  if (shouldLogout()) {
+    logout()
+  }
+  function logout () {
+    setUser({})
+    setIsAuthenticated(false)
+    navigate(HOME_PATH)
+  }
   function copyLogs () {
     setLogsCopied(true)
     navigator.clipboard.writeText(error.stack)

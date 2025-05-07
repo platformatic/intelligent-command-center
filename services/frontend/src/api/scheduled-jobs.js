@@ -29,8 +29,8 @@ export const callApiGetScheduledJobById = async (id) => {
   return payload
 }
 
-export const callApiGetScheduledJobs = async (taxonomyId, applicationId) => {
-  const query = { 'where.applicationId.eq': applicationId, 'where.taxonomyId.eq': taxonomyId }
+export const callApiGetScheduledJobs = async (applicationId) => {
+  const query = { 'where.applicationId.eq': applicationId }
   const url = `${baseUrl}/cron/jobs`
   const response = await fetch(`${url}?${new URLSearchParams(query).toString()}`, {
     method: 'GET',
@@ -68,8 +68,8 @@ export const callApiCreateScheduledJob = async (job) => {
   return json
 }
 
-export const callApiGetScheduledJobsMetrics = async (taxonomyId, applicationId) => {
-  const res = await fetch(`${baseUrl}/metrics/taxonomies/${taxonomyId}/apps/${applicationId}/jobs`, {
+export const callApiGetScheduledJobsMetrics = async (applicationId) => {
+  const res = await fetch(`${baseUrl}/metrics/apps/${applicationId}/jobs`, {
     method: 'GET',
     credentials: 'include'
   })

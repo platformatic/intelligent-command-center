@@ -606,9 +606,9 @@ export const getApiCompliancy = async (applicationId) => {
 }
 
 /* AUTOSCALER */
-export const getApiMetricsReplicaSetOverview = async (taxonomyId, applicationId) => {
-  const { body: pods } = await getApplicationInstances({ id: applicationId, taxonomyId })
-  const { events } = await getScalingEventHistory(taxonomyId, applicationId)
+export const getApiMetricsReplicaSetOverview = async (applicationId) => {
+  const { body: pods } = await getApplicationInstances({ id: applicationId })
+  const { events } = await getScalingEventHistory(applicationId)
   const eventCounts = events.reduce((counts, ev) => {
     if (ev.scaleType === 'UP') counts.up += 1
     else counts.down += 1

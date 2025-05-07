@@ -15,16 +15,16 @@ import gridStyles from '~/styles/GridStyles.module.css'
 import ErrorComponent from '~/components/errors/ErrorComponent'
 import HistoricalScalerTrendChart from './HistoricalScalerTrendChart'
 import { REFRESH_INTERVAL_METRICS } from '~/ui-constants'
+import { useRouteLoaderData } from 'react-router-dom'
 
 function ScalingHistory ({ onViewFullHistory = () => {} }) {
   const MAX_ACTIVITIES = 5
   const globalState = useICCStore()
   const {
-    applicationSelected,
-    taxonomySelected,
     setActivitySelected
   } = globalState
 
+  const { application } = useRouteLoaderData('appRoot')
   const [activities, setActivities] = useState([])
   const [chartEvents, setChartEvents] = useState([])
   const [showNoResult, setShowNoResult] = useState(false)
@@ -45,7 +45,7 @@ function ScalingHistory ({ onViewFullHistory = () => {} }) {
   }, [startPolling])
 
   useEffect(() => {
-    if (applicationSelected && taxonomySelected && initialLoading) {
+    if (application && initialLoading) {
       async function loadMetrics () {
         await loadScalingHistoryActivities()
         setStartPolling(true)
@@ -53,11 +53,12 @@ function ScalingHistory ({ onViewFullHistory = () => {} }) {
       }
       loadMetrics()
     }
-  }, [applicationSelected, taxonomySelected, initialLoading])
+  }, [application, initialLoading])
 
   async function loadScalingHistoryActivities () {
     try {
-      const response = await getScalingEventHistory(taxonomySelected.id, applicationSelected.id)
+      const response = await getScalingEventHistory(application.id)
+      console.log('response', response)
       const { events, chartEvents } = response
       if (events.length > 0) {
         setShowNoResult(false)

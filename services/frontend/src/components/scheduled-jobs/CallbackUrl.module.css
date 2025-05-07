@@ -3,5 +3,5 @@
 }
 
 .method {
-  @apply text-xs mr-2 border border-white rounded-md px-2 border-solid bg-white/30 py-1;
+  @apply text-xs mr-2 border border-white rounded-md px-2 border-solid bg-white/15 py-0.5;
 }

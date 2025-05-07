@@ -23,7 +23,7 @@ export default function ConfirmationModal ({
       setIsOpen={setIsOpen}
       childrenClassContainer={`${styles.modalClassName} ${styles.rootV1}`}
       modalCloseClassName={styles.modalCloseClassName}
-      titleClassName={`${typographyStyles.textWhite} ${typographyStyles.desktopHeadline5}`}
+      titleClassName={`${typographyStyles.textWhite} ${typographyStyles.desktopHeadline4}`}
     >
       <div className={styles.modal}>
         <div className={`${styles.modalText} ${typographyStyles.desktopBodySmall}`}>
@@ -33,8 +33,8 @@ export default function ConfirmationModal ({
         <div className={styles.modalButtons}>
           <Button
             type='button'
-            textClass={typographyStyles.desktopButtonSmallest}
-            paddingClass={commonStyles.mediumButtonPadding}
+            textClass={typographyStyles.desktopBodySmallest}
+            paddingClass={commonStyles.smallButtonPadding}
             label='Cancel'
             onClick={() => { setIsOpen(false) }}
             color={WHITE}
@@ -43,8 +43,8 @@ export default function ConfirmationModal ({
           />
           <Button
             type='button'
-            textClass={typographyStyles.desktopButtonSmallest}
-            paddingClass={commonStyles.mediumButtonPadding}
+            textClass={typographyStyles.desktopBodySmallest}
+            paddingClass={commonStyles.smallButtonPadding}
             label={buttonText}
             bordered={false}
             onClick={onProceed}

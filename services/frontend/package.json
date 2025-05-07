@@ -14,7 +14,7 @@
   },
   "type": "module",
   "devDependencies": {
-    "@platformatic/ui-components": "^0.15.0",
+    "@platformatic/ui-components": "^0.15.4",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
     "@vitejs/plugin-react": "^4.3.3",

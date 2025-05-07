@@ -26,7 +26,7 @@ function HeaderRow ({ name, value, onAdd = () => {}, onRemove = () => {} }) {
         placeholder='Enter header name'
         borderColor={WHITE}
         backgroundColor={RICH_BLACK}
-        inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}
+        inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${styles.fieldPaddingClass}`}
       />
 
       <Forms.Input
@@ -36,7 +36,7 @@ function HeaderRow ({ name, value, onAdd = () => {}, onRemove = () => {} }) {
         placeholder='Enter header value'
         borderColor={WHITE}
         backgroundColor={RICH_BLACK}
-        inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}
+        inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${styles.fieldPaddingClass}`}
       />
       {name && value && (
 

@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { SMALL, ACTIVE_AND_INACTIVE_STATUS, TRANSPARENT, WHITE, MEDIUM } from '@platformatic/ui-components/src/components/constants'
 import { Button, ModalDirectional, PlatformaticIcon } from '@platformatic/ui-components'
 import StatusPill from './StatusPill'
-import PropTypes from 'prop-types'
 import CallbackUrl from './CallbackUrl'
 import { getFormattedTimeAndDate } from '../../utilities/dates'
 import ResponsePanel from '../common/ResponsePanel'
@@ -81,18 +80,6 @@ function MessageDetails ({ message, onClose, jobDetails }) {
     </div>
 
   )
-}
-
-MessageDetails.propTypes = {
-  message: PropTypes.shape({
-    sentAt: PropTypes.string.isRequired,
-    status: PropTypes.string.isRequired,
-    headers: PropTypes.object,
-    body: PropTypes.object,
-    responseHeaders: PropTypes.object,
-    responseBody: PropTypes.object
-  }).isRequired,
-  onClose: PropTypes.func.isRequired
 }
 
 export default function MessageTable ({ messages, jobDetails }) {
@@ -184,15 +171,4 @@ export default function MessageTable ({ messages, jobDetails }) {
       )}
     </>
   )
-}
-
-MessageTable.propTypes = {
-  /**
-   * The ID of the scheduled job
-   */
-  id: PropTypes.string.isRequired,
-  /**
-   * The job details object
-   */
-  jobDetails: PropTypes.object.isRequired
 }

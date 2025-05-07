@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import { WHITE, MEDIUM, BLACK_RUSSIAN, TRANSPARENT } from '@platformatic/ui-components/src/components/constants'
 import styles from './Requests.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -13,8 +12,7 @@ import Icons from '@platformatic/ui-components/src/components/icons'
 
 function Requests ({
   gridClassName = '',
-  applicationId,
-  taxonomyId
+  applicationId
 }) {
   const UP = 'up'
   const DOWN = 'down'
@@ -36,7 +34,7 @@ function Requests ({
   }, [startPolling])
 
   useEffect(() => {
-    if (applicationId && taxonomyId && Object.keys(displayedValue).length > 0 && initialLoading) {
+    if (applicationId && Object.keys(displayedValue).length > 0 && initialLoading) {
       async function loadRequests () {
         await loadRequestsCount()
         setStartPolling(true)
@@ -45,20 +43,19 @@ function Requests ({
       }
       loadRequests()
     }
-  }, [applicationId, taxonomyId, Object.keys(displayedValue), initialLoading])
+  }, [applicationId, Object.keys(displayedValue), initialLoading])
 
   async function loadRequestsCount () {
     try {
       setBorderexBoxClassName(`${styles.borderexBoxContainer} ${styles.borderedBoxHeigthLoading} ${gridClassName}`)
-      const data = await getRequestsPerSecond(taxonomyId, applicationId)
+      const data = await getRequestsPerSecond(applicationId)
       if (data.ok) {
         const { rps = '-' } = await data.json()
-
         setDisplayedValue({
           value: rps || '-',
           direction: displayedValue.value !== '-' ? (displayedValue.value > rps ? UP : DOWN) : STALE
         })
-        setShowNoResult(false)
+        setShowNoResult(true)
       } else {
         setShowNoResult(true)
         console.error('Error on ', data)
@@ -90,7 +87,6 @@ function Requests ({
         />
       )
     }
-
     if (showNoResult) { return <NoDataAvailable iconName='NodeJSMetricsIcon' /> }
 
     return (
@@ -136,21 +132,6 @@ function Requests ({
       </div>
     </BorderedBox>
   )
-}
-
-Requests.propTypes = {
-  /**
-   * gridClassName
-    */
-  gridClassName: PropTypes.string,
-  /**
-   * applicationId
-    */
-  applicationId: PropTypes.string,
-  /**
-   * taxonomyId
-    */
-  taxonomyId: PropTypes.string
 }
 
 export default Requests

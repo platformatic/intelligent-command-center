@@ -1,5 +1,6 @@
 import React from 'react'
 import styles from './SuccessRate.module.css'
+import NoDataAvailable from '../ui/NoDataAvailable'
 
 function ProgressBar ({ value, label }) {
   return (
@@ -20,6 +21,12 @@ function getSuccessAndFailureRateLabels (successes, failures) {
   return { successRate: `${successRate.toFixed(2)}%`, failureRate: `${failureRate.toFixed()}%` }
 }
 export default function SuccessRate ({ successes, failures }) {
+  if (successes === 0 && failures === 0) {
+    return <NoDataAvailable />
+  }
+  if (successes === undefined || failures === undefined) {
+    return <NoDataAvailable />
+  }
   if (successes < 0) {
     successes = 0
   }

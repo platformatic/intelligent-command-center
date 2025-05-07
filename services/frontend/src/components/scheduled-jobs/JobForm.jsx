@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
-import { Button } from '@platformatic/ui-components'
+import { Button, PlatformaticIcon } from '@platformatic/ui-components'
 import Forms from '@platformatic/ui-components/src/components/forms'
-import { RICH_BLACK, WHITE } from '@platformatic/ui-components/src/components/constants'
+import { MEDIUM, RICH_BLACK, WHITE } from '@platformatic/ui-components/src/components/constants'
 import styles from './JobForm.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -16,6 +15,7 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
   useEffect(() => {
     if (model) {
       setFormData(model)
+      setIsFormDirty(false)
     } else {
       setFormData({
         name: '',
@@ -31,15 +31,7 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
   useEffect(() => {
     setIsFormDirty(true)
   }, [formData])
-  useEffect(() => {
-    window.addEventListener('beforeunload', (e) => {
-      console.log('beforeunload', e)
-      if (isFormDirty) {
-        e.preventDefault()
-        e.returnValue = false
-      }
-    })
-  }, [])
+
   const [cronDescription, setCronDescription] = useState('')
 
   const [formErrors, setFormErrors] = useState({})
@@ -54,6 +46,7 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
   }
 
   const handleChange = (e) => {
+    console.log('handleChange', e)
     const { name, value } = e.target
     switch (name) {
       case 'schedule':
@@ -100,7 +93,6 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
         }
         break
     }
-
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -126,8 +118,25 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
   if (formData.method === undefined) {
     return <div>Loading...</div>
   }
+
+  let modalTitle = 'Create New Job'
+  let modalSecondaryText = 'Set up and configure your new Job'
+  let icon = 'ScheduledJobsCreateIcon'
+  if (model) {
+    modalTitle = 'Update Job'
+    modalSecondaryText = 'Update and configure your Job'
+    icon = 'ScheduledJobSettingsIcon'
+  }
   return (
     <div className={styles.form}>
+      <div className={styles.formHeader}>
+        <div className={styles.icon}>
+          <PlatformaticIcon iconName={icon} color={WHITE} size={MEDIUM} />
+        </div>
+        <div className={styles.title}>{modalTitle}</div>
+        <div className={styles.secondaryText}>{modalSecondaryText}</div>
+
+      </div>
       <div className={`${styles.row} ${styles.twoFields}`}>
         <Forms.Field
           title='Job Name'
@@ -141,7 +150,7 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
             placeholder='Enter job name'
             borderColor={WHITE}
             backgroundColor={RICH_BLACK}
-            inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}
+            inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${styles.fieldPaddingClass}`}
             errorMessage={formErrors.name}
           />
         </Forms.Field>
@@ -159,7 +168,7 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
               placeholder='* * * * *'
               borderColor={WHITE}
               backgroundColor={RICH_BLACK}
-              inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}
+              inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${styles.fieldPaddingClass}`}
               errorMessage={formErrors.schedule}
             />
 
@@ -173,6 +182,7 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
         <div>
           <Forms.Field
             title='Method'
+            required
             titleClassName={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite}`}
           >
             <MethodSelector
@@ -183,6 +193,7 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
         </div>
 
         <Forms.Field
+          required
           title='Target Endpoint'
           titleClassName={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite}`}
         >
@@ -193,7 +204,7 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
             placeholder='Enter callback URL'
             borderColor={WHITE}
             backgroundColor={RICH_BLACK}
-            inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}
+            inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${styles.fieldPaddingClass}`}
             errorMessage={formErrors.callbackUrl}
           />
         </Forms.Field>
@@ -240,16 +251,10 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
           textClass={typographyStyles.desktopButtonSmall}
           paddingClass={commonStyles.smallButtonPadding}
           onClick={handleSubmit}
-          disabled={!formIsValid() || formHasErrors()}
+          disabled={!isFormDirty || (!formIsValid() || formHasErrors())}
         />
       </div>
 
     </div>
   )
-}
-
-JobForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  model: PropTypes.object
 }
