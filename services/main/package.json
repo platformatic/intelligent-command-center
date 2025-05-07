@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@fastify/secure-session": "^8.2.0",
-    "borp": "^0.19.0",
+    "borp": "^0.20.0",
     "fastify": "^5.2.1",
     "fast-jwt": "^6.0.1",
     "mercurius": "^16.0.0",
