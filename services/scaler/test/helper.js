@@ -43,7 +43,8 @@ async function getConfig (enableMetrics) {
 
 const defaultEnv = {
   PLT_SCALER_DATABASE_URL: connectionString,
-  PLT_ICC_VALKEY_CONNECTION_STRING: valkeyConnectionString
+  PLT_ICC_VALKEY_CONNECTION_STRING: valkeyConnectionString,
+  PLT_SCALER_PROMETHEUS_URL: 'http://localhost:9090'
 }
 
 function setUpEnvironment (env = {}) {
