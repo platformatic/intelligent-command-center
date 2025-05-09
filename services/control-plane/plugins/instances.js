@@ -7,9 +7,12 @@ const errors = require('./errors')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
-  app.decorate('getInstanceByPodId', async (podId) => {
+  app.decorate('getInstanceByPodId', async (podId, namespace) => {
     const instances = await app.platformatic.entities.instance.find({
-      where: { podId: { eq: podId } }
+      where: {
+        podId: { eq: podId },
+        podNamespace: { eq: namespace }
+      }
     })
     return instances.length === 1 ? instances[0] : null
   })
@@ -39,7 +42,7 @@ module.exports = fp(async function (app) {
       ctx
     )
 
-    const instance = await app.getInstanceByPodId(podId)
+    const instance = await app.getInstanceByPodId(podId, podNamespace)
     if (instance !== null) {
       ([application, deployment] = await Promise.all([
         app.getApplicationById(instance.applicationId),
@@ -60,7 +63,7 @@ module.exports = fp(async function (app) {
       ctx.logger.debug({ instance }, 'Got app instance with the same pod id')
     } else {
       const result = await app.saveInstance(
-        applicationName, imageId, podId, ctx
+        applicationName, imageId, podId, podNamespace, ctx
       )
 
       if (result.isNewApplication) {
@@ -115,7 +118,13 @@ module.exports = fp(async function (app) {
     return { application, config, httpCache, iccServices }
   })
 
-  app.decorate('saveInstance', async (applicationName, imageId, podId, ctx) => {
+  app.decorate('saveInstance', async (
+    applicationName,
+    imageId,
+    podId,
+    podNamespace,
+    ctx
+  ) => {
     const { entities } = app.platformatic
 
     ctx.logger.debug('Saving a new application instance')
@@ -168,6 +177,7 @@ module.exports = fp(async function (app) {
           deploymentId: deployment.id,
           applicationId: application.id,
           podId,
+          podNamespace,
           status: 'starting'
         },
         tx

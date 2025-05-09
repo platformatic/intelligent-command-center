@@ -102,8 +102,16 @@ async function startControlPlane (t, entities = {}, env = {}) {
   }
 
   app.decorate('testApi', {
-    saveInstance: async (applicationName, imageId, podId) => {
-      return app.saveInstance(applicationName, imageId, podId, testCtx)
+    saveInstance: async (applicationName, imageId, podId, podNamespace) => {
+      podNamespace = podNamespace || 'platformatic'
+
+      return app.saveInstance(
+        applicationName,
+        imageId,
+        podId,
+        podNamespace,
+        testCtx
+      )
     }
   })
 
@@ -311,6 +319,7 @@ function generateInstance (
     applicationId,
     deploymentId,
     podId: podId || randomUUID(),
+    podNamespace: 'platformatic',
     status: status || 'starting'
   }
 }
