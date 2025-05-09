@@ -13,7 +13,6 @@ export default function DeploymentHistory () {
   const LIMIT = 10
   const [deploymentsPage, setDeploymentsPage] = useState(0)
   const { deployments, totalCount } = useLoaderData()
-
   return (
     <div className={styles.container}>
       <div className={styles.content}>

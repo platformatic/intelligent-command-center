@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
-import { WHITE, OPACITY_30, TRANSPARENT, MEDIUM, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
+import { WHITE, TRANSPARENT, MEDIUM, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
 import styles from './DeploymentsBox.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
-import { BorderedBox, Button, LoadingSpinnerV2, VerticalSeparator } from '@platformatic/ui-components'
+import { BorderedBox, Button, LoadingSpinnerV2 } from '@platformatic/ui-components'
 import { getFormattedTimeAndDate } from '~/utilities/dates'
 import Icons from '@platformatic/ui-components/src/components/icons'
-import { getApiDeploymentsHistory, getGithubUserInfo } from '~/api'
-import { NavLink, useParams } from 'react-router-dom'
+import { getApiDeploymentsHistory } from '~/api'
+import { NavLink } from 'react-router-dom'
 
 function DeploymentsBox ({
   gridClassName = '',
@@ -20,8 +19,6 @@ function DeploymentsBox ({
   const [innerLoading, setInnerLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
   const [disabledDeploymentHistory, setDisabledDeploymentHistory] = useState(true)
-  const [gravatarUrl, setGravatarUrl] = useState('./githubUser.png')
-  const { taxonomyId } = useParams()
 
   useEffect(() => {
     setInnerLoading(true)
@@ -46,23 +43,6 @@ function DeploymentsBox ({
     setInnerLoading(false)
   }, [])
 
-  useEffect(() => {
-    if (latestDeployment?.commitUserEmail !== '-') {
-      async function getAvatarUrl () {
-        try {
-          const data = await getGithubUserInfo(latestDeployment.commitUserEmail)
-          const data1 = await data.json()
-          if ((data1.items?.length ?? 0) > 0 && data1.items[0]?.avatar_url) {
-            setGravatarUrl(`${data1.items[0]?.avatar_url}&s=24`)
-          }
-        } catch (error) {
-          console.error(`Error getting image gravatar: ${error}`)
-        }
-      }
-      getAvatarUrl()
-    }
-  }, [latestDeployment.commitUserEmail])
-
   function renderContent () {
     if (innerLoading) {
       return (
@@ -82,50 +62,20 @@ function DeploymentsBox ({
     }
 
     if (showNoResult) { return <NoDataAvailable iconName='NoDeploymentsIcon' title='There are no deployments yet' /> }
-
     return (
       <div className={`${commonStyles.smallFlexBlock} ${commonStyles.fullWidth} ${commonStyles.justifyCenter} ${commonStyles.flexGrow}`}>
         <div className={styles.rowContainer}>
           <div className={commonStyles.tinyFlexRow}>
-            <p className={`${typographyStyles.desktopBodySmallSemibold} ${typographyStyles.textWhite}`}>{latestDeployment?.taxonomyName ?? '-'}</p>
-            <p className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>
-              <span className={` ${typographyStyles.opacity70} `}>Manually deployed</span>
-            </p>
+            <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70} `}>Image Id:</span>
+            <span className={`${typographyStyles.desktopBodySmallSemibold} ${typographyStyles.textWhite} ${typographyStyles.terminal}`}>{latestDeployment.imageId}</span>
           </div>
-
-          {(latestDeployment?.mainIteration ?? 0) >= 0 && (
-            <>
-              <VerticalSeparator color={WHITE} backgroundColorOpacity={OPACITY_30} classes={styles.verticalSeparator} />
-              <div className={commonStyles.tinyFlexRow}>
-                <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70} `}>Generation number:</span>
-                <span className={`${typographyStyles.desktopBodySmallSemibold} ${typographyStyles.textWhite}`}>{latestDeployment.mainIteration}</span>
-              </div>
-            </>
-          )}
         </div>
 
         <div className={styles.rowContainer}>
-
           <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
             <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Deployed on:</span>
             <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>{getFormattedTimeAndDate(latestDeployment?.createdAt ?? '-')}</span>
           </div>
-
-          {(latestDeployment?.commitUserEmail ?? '-') !== '-' && (
-            <>
-              <VerticalSeparator color={WHITE} backgroundColorOpacity={OPACITY_30} classes={styles.verticalSeparator} />
-              <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
-                <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>by:</span>
-                <div className={`${commonStyles.tinyFlexRow}`}>
-                  <div className={commonStyles.githubUser} style={{ backgroundImage: `url(${gravatarUrl}` }} />
-                  <div className={`${commonStyles.flexGrow}`}>
-                    <p className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.ellipsis}`}>{latestDeployment.commitUserEmail}</p>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
         </div>
       </div>
     )
@@ -145,11 +95,10 @@ function DeploymentsBox ({
             </div>
           </div>
           <div className={styles.buttonContainer}>
-            <NavLink to={`/${taxonomyId}/applications/${application.id}/deployment-history`}>
+            <NavLink to={`/applications/${application.id}/deployment-history`}>
               <Button
                 type='button'
                 label='View Deployment History'
-                // onClick={() => viewDeploymentHistory()}
                 color={WHITE}
                 backgroundColor={TRANSPARENT}
                 paddingClass={commonStyles.smallButtonPadding}
@@ -164,13 +113,6 @@ function DeploymentsBox ({
       </div>
     </BorderedBox>
   )
-}
-
-DeploymentsBox.propTypes = {
-  /**
-   * gridClassName
-    */
-  gridClassName: PropTypes.string
 }
 
 export default DeploymentsBox
