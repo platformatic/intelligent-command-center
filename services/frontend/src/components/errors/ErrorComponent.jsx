@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -28,15 +28,21 @@ function ErrorComponent ({
   const { setUser, setIsAuthenticated } = globalState
   function shouldLogout () {
     try {
-      return error.message.includes('PLT_USER_MANAGER_MISSING_CREDENTIALS')
+      // TODO: investigate why this is not working
+      // sometimes page loops over and over again
+      // return false
+      return false && error.message.includes('PLT_USER_MANAGER_MISSING_CREDENTIALS')
     } catch (err) {
+      console.error('Error in shouldLogout', err)
       return false
     }
   }
 
-  if (shouldLogout()) {
-    logout()
-  }
+  useEffect(() => {
+    if (shouldLogout()) {
+      logout()
+    }
+  }, [])
   function logout () {
     setUser({})
     setIsAuthenticated(false)

@@ -1,75 +1,69 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
-import commonStyles from '~/styles/CommonStyles.module.css'
-import styles from './TableDeployments.module.css'
-import RowDeployment from './RowDeployment'
-import { useNavigate } from 'react-router-dom'
-import { TAXONOMY_PATH, PREVIEWS_DETAIL_PATH } from '~/ui-constants'
-
+import { getFormattedTimeAndDate } from '~/utilities/dates'
+import StatusPill from '../../common/StatusPill'
 function TableDeployments ({
-  deployments = []
+  deployments = [],
+  withApplicationName = false
 }) {
-  const navigate = useNavigate()
-
-  function handleClickTaxonomy (taxonomyId, main) {
-    navigate(main ? TAXONOMY_PATH : PREVIEWS_DETAIL_PATH.replace(':taxonomyId', taxonomyId))
+  const columns = [
+    {
+      label: 'Deployment Id',
+      key: 'id'
+    }
+  ]
+  if (withApplicationName) {
+    columns.push({
+      label: 'Application Name',
+      key: 'applicationName'
+    })
   }
+  columns.push({
+    label: 'Deployed on (GMT)',
+    key: 'createdAt'
+  })
+  columns.push({
+    label: 'Image Id',
+    key: 'imageId'
+  })
+  columns.push({
+    label: 'Status',
+    key: 'status'
+  })
 
-  function renderComponent () {
-    return (
-      <div className={styles.tableDeploymentsContent}>
-        <div className={styles.tableDeployments}>
-          <div className={styles.tableHeaders}>
-            <div className={`${styles.tableHeader}`}>
-              <div className={styles.thWithIcon}>
-                <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Deployed</span>
-              </div>
-            </div>
-            <div className={`${styles.tableHeader}`}>
-              <div className={styles.thWithIcon}>
-                <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Deployed on (GMT)</span>
-              </div>
-            </div>
-            <div className={`${styles.tableHeader}`}>
-              <div className={styles.thWithIcon}>
-                <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Commit Message</span>
-              </div>
-            </div>
-            <div className={`${styles.tableHeader}`}>
-              <div className={styles.thWithIcon}>
-                <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Last Commit by</span>
-              </div>
-            </div>
-            <div className={`${styles.tableHeader}`}>
-              <div className={styles.thWithIcon}>
-                <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>&nbsp;</span>
-              </div>
-            </div>
-          </div>
-
-          {deployments.map((deployment, index) => (
-            <RowDeployment key={deployment.id} {...deployment} historyMode index={index} onClickTaxonomy={handleClickTaxonomy} />
-          ))}
-
-        </div>
-      </div>
-    )
+  function renderColumn (column, deployment) {
+    switch (column.key) {
+      case 'id':
+      case 'imageId':
+        return <td key={column.key} className={typographyStyles.terminal}>{deployment[column.key]}</td>
+      case 'status':
+        return <td key={column.key}><StatusPill status={deployment[column.key]} /></td>
+      case 'createdAt':
+        return <td key={column.key}>{getFormattedTimeAndDate(deployment[column.key])}</td>
+      default:
+        return <td key={column.key}>{deployment[column.key]}</td>
+    }
   }
-
   return (
-    <div className={`${styles.tableDeploymentsContainer} ${commonStyles.fullWidth}`}>
-      {renderComponent()}
-    </div>
+    <table>
+      <thead>
+        <tr>
+          {columns.map((column) => (
+            <th key={column.key}>{column.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {deployments.map((deployment) => (
+          <tr key={deployment.id}>
+            {columns.map((column) => (
+              renderColumn(column, deployment)
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
-}
-
-TableDeployments.propTypes = {
-  /**
-   * deployments
-    */
-  deployments: PropTypes.array
-
 }
 
 export default TableDeployments

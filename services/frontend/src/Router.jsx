@@ -7,7 +7,7 @@ import AllApplications from './components/applications/all/AllApplications'
 import RecommendationsHistory from './components/recommendations/RecommendationHistory'
 import Settings from './components/settings/Settings'
 import Profile from './components/profile/Profile'
-import { getApiActivities, getApiActivitiesUsers, getApiDeploymentsHistory, getApiApplication, getApiActivitiesTypes } from './api'
+import { getApiActivities, getApiActivitiesUsers, getApiDeploymentsHistory, getApiApplication, getApiActivitiesTypes, getApplicationsRaw } from './api'
 import Activities from '~/components/application/activities/Activities'
 import DeploymentHistory from '~/components/application/deployment_history/DeploymentHistory'
 import AppDetailsV2 from '~/components/application/detail/AppDetailsV2'
@@ -211,6 +211,22 @@ export function getRouter () {
         {
           id: 'deployments',
           path: '/deployments',
+          loader: async ({ request }) => {
+            const applications = await getApplicationsRaw()
+            const url = new URL(request.url)
+            const page = parseInt(url.searchParams.get('page') || '0')
+            const LIMIT = 10
+            const response = await getApiDeploymentsHistory({
+              limit: LIMIT,
+              offset: page * LIMIT
+            })
+            const { totalCount, deployments } = response
+            const d = deployments.map(deployment => {
+              const application = applications.find(application => application.id === deployment.applicationId)
+              return { ...deployment, applicationName: application.name }
+            })
+            return { totalCount, deployments: d, applications }
+          },
           element: <AllDeployments />
         },
         {

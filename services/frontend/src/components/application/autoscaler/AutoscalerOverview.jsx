@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import PropTypes from 'prop-types'
 import styles from './AutoscalerOverview.module.css'
 import ReplicaSetScaling from './overview/ReplicaSetScaling'
 import ScalingHistory from './overview/ScalingHistory'
@@ -52,24 +51,5 @@ const AutoscalerOverview = React.forwardRef(({
     </div>
   )
 })
-
-AutoscalerOverview.propTypes = {
-  /**
-   * applicationId
-   */
-  applicationId: PropTypes.string,
-  /**
-   * taxonomyId
-   */
-  taxonomyId: PropTypes.string,
-  /**
-   * onViewFullHistory
-    */
-  onViewFullHistory: PropTypes.func,
-  /**
-   * onViewPodsDetails
-    */
-  onViewPodsDetails: PropTypes.func
-}
 
 export default AutoscalerOverview
