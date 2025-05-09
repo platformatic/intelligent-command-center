@@ -54,6 +54,7 @@ CREATE TABLE instances (
   application_id uuid NOT NULL REFERENCES applications(id),
   deployment_id uuid REFERENCES deployments(id),
   pod_id VARCHAR(255) NOT NULL,
+  pod_namespace VARCHAR(255) NOT NULL,
   status instance_status NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 

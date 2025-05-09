@@ -8,6 +8,7 @@ declare interface Instance {
     createdAt?: string | null;
     deploymentId?: string | null;
     podId: string;
+    podNamespace: string;
     status: "running" | "starting" | "stopped";
 }
 export { Instance };

@@ -148,9 +148,9 @@ module.exports = fp(async function (app) {
       }
     },
     handler: async (req) => {
-      const { podId } = authK8sPodRequest(req.params.id, req.k8s)
+      const { podId, namespace } = authK8sPodRequest(req.params.id, req.k8s)
 
-      const instance = await app.getInstanceByPodId(podId)
+      const instance = await app.getInstanceByPodId(podId, namespace)
       if (instance === null) {
         throw new errors.InstanceNotFound(podId)
       }
@@ -202,9 +202,9 @@ module.exports = fp(async function (app) {
       }
     },
     handler: async (req) => {
-      const { podId } = authK8sPodRequest(req.params.id, req.k8s)
+      const { podId, namespace } = authK8sPodRequest(req.params.id, req.k8s)
 
-      const instance = await app.getInstanceByPodId(podId)
+      const instance = await app.getInstanceByPodId(podId, namespace)
       if (instance === null) {
         throw new errors.InstanceNotFound(podId)
       }
