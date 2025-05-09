@@ -8,7 +8,7 @@ import { BorderedBox } from '@platformatic/ui-components'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import KubernetesResourcePercentage from '~/components/application/detail/kubernetes_resources/KubernetesResourcePercentage'
 import KubernetesResourceNumeric from '~/components/application/detail/kubernetes_resources/KubernetesResourceNumeric'
-import { getKubernetesResources, getApiApplicationInstances } from '~/api'
+import { getKubernetesResources } from '~/api'
 import { REFRESH_INTERVAL } from '~/ui-constants'
 
 function KubernetesResources ({
@@ -42,8 +42,6 @@ function KubernetesResources ({
     try {
       const data = await getKubernetesResources(application.id)
       const values = await data.json()
-      const { maximumInstanceCount = 0 } = await getApiApplicationInstances(application.id)
-      values.pods.podsAll = maximumInstanceCount > values.pods.podsAll ? maximumInstanceCount : values.pods.podsAll
 
       setValues(values)
     } catch (error) {

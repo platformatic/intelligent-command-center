@@ -11,6 +11,9 @@ module.exports = async function (app) {
       app.log.info({ appId }, 'Getting K8s metrics')
       const { controlPlane } = req
       const deployment = await getDeployment(controlPlane, appId, app.log)
+      if (!deployment) {
+        throw new Error(`No deployment found for application ${appId}`)
+      }
       const machineId = deployment.machineId
       return getAppK8SMetrics(machineId, appId)
     }
@@ -21,6 +24,9 @@ module.exports = async function (app) {
       const { appId } = req.params
       const { controlPlane } = req
       const deployment = await getDeployment(controlPlane, appId, app.log)
+      if (!deployment) {
+        throw new Error(`No deployment found for application ${appId}`)
+      }
       const machineId = deployment.machineId
 
       return getAppK8sRPS(machineId)
