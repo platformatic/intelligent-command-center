@@ -1,7 +1,10 @@
 const baseUrl = `${import.meta.env.VITE_API_BASE_URL}`
 
 export default async function callApi (service, url, method, body, headers) {
-  const response = await fetch(`${baseUrl}/${service}/${url}`, {
+  if (!url.startsWith('/')) {
+    url = `/${url}`
+  }
+  const response = await fetch(`${baseUrl}/${service}${url}`, {
     method,
     body,
     headers,

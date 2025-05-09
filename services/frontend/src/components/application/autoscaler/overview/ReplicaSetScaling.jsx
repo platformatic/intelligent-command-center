@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import { RICH_BLACK, WHITE, OPACITY_30, MEDIUM, SMALL, TRANSPARENT, ACTIVE_AND_INACTIVE_STATUS, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
 import styles from './ReplicaSetScaling.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -13,8 +12,7 @@ import gridStyles from '~/styles/GridStyles.module.css'
 
 function ReplicaSetScaling ({
   gridClassName = '',
-  applicationId,
-  taxonomyId
+  applicationId
 }) {
   const [displayedValues, setDisplayedValues] = useState([{
     value: '-',
@@ -80,7 +78,7 @@ function ReplicaSetScaling ({
   }, [startPolling])
 
   useEffect(() => {
-    if (applicationId && taxonomyId && displayedValues.length > 0 && initialLoading) {
+    if (applicationId && displayedValues.length > 0 && initialLoading) {
       async function loadMetrics () {
         await loadMetricsReplicaSetScaling()
         setStartPolling(true)
@@ -88,13 +86,13 @@ function ReplicaSetScaling ({
       }
       loadMetrics()
     }
-  }, [applicationId, taxonomyId, displayedValues, initialLoading])
+  }, [applicationId, displayedValues, initialLoading])
 
   useEffect(() => {
-    if (!applicationId || !taxonomyId) return
+    if (!applicationId) return
 
     async function loadScalingMarkers () {
-      const markers = await getScalingMarkers(taxonomyId, applicationId)
+      const markers = await getScalingMarkers(applicationId)
       const updatedMarkers = Object.entries(markers).reduce((updates, [id, marker]) => {
         let value = marker.targetValue
         if (marker.targetType === 'bytes') value = value / 1024 / 1024
@@ -108,11 +106,11 @@ function ReplicaSetScaling ({
       setScalingMarkers({ ...updatedMarkers })
     }
     loadScalingMarkers()
-  }, [applicationId, taxonomyId])
+  }, [applicationId])
 
   async function loadMetricsReplicaSetScaling () {
     try {
-      const data = await getKubernetesResources(taxonomyId, applicationId)
+      const data = await getKubernetesResources(applicationId)
       const kubernetesResourceValues = await data.json()
       const newValues = []
 
@@ -219,21 +217,6 @@ function ReplicaSetScaling ({
       </div>
     </BorderedBox>
   )
-}
-
-ReplicaSetScaling.propTypes = {
-  /**
-   * applicationId
-    */
-  applicationId: PropTypes.string,
-  /**
-   * taxonomyId
-    */
-  taxonomyId: PropTypes.string,
-  /**
-   * gridClassName
-    */
-  gridClassName: PropTypes.string
 }
 
 export default ReplicaSetScaling

@@ -6,11 +6,11 @@ import {
   setBaseUrl as setBaseUrlControlPlane,
   getApplicationById,
   getApplicationStatesForApplication,
-  getApplicationResources
+  getApplicationResources,
+  getInstances
 
 } from '../clients/control-plane/control-plane.mjs'
 import {
-  getBundlesWithMetadata,
   setBaseUrl as setBaseUrlCompendium
 } from '../clients/compendium/compendium.mjs'
 
@@ -34,6 +34,7 @@ import extractScalingEvents from './utilities/extract-scaling-events'
 
 import { sortCollection, sortCollectionByDate } from './utilitySorting'
 
+import callApi from './api/common'
 const baseUrl = `${import.meta.env.VITE_API_BASE_URL}`
 const baseApiUrl = `${baseUrl}/api`
 setBaseUrlControlPlane(`${baseUrl}/control-plane`)
@@ -46,8 +47,6 @@ setBaseURLCompliance(`${baseUrl}/compliance`)
 
 async function getTaxonomies () {}
 async function getMainTaxonomyGraph () {}
-async function getGenerationById () {}
-async function getTaxonomyById () {}
 async function getGenerationsForTaxonomy () {}
 async function getPreviewTaxonomyGraph () {}
 async function getApplicationSecrets () {}
@@ -56,7 +55,6 @@ async function getTaxonomySecrets () {}
 async function getApplicationInstances () {}
 async function syncPreviewTaxonomy () {}
 async function getApplicationsIdScaler () {}
-async function getEntrypoints () {}
 
 const getHeaders = () => {
   const headers = {
@@ -289,82 +287,9 @@ export const getApiDeploymentsHistory = async (payload) => {
     queryObject['where.applicationId.eq'] = payload.filterDeploymentsByApplicationId
   }
 
-  const deployments = await getDeployments(queryObject)
+  const { headers, body: deployments } = await getDeployments(queryObject)
 
-  // const deploymentHistory = []
-  // let promisesResolved = []
-  // let generation = {}
-  // if (deployments.length === 0) {
-  //   return { deployments: deploymentHistory, totalCount: 0 }
-  // }
-  // for await (const deployment of deployments) {
-  //   const { generationId } = deployment
-
-  //   if (generationId) {
-  //     promises.push(getGenerationById({ id: generationId }))
-  //   }
-  //   promisesResolved = await Promise.all(promises)
-  //   if (generationId) {
-  //     generation = promisesResolved[0].body
-  //   }
-  //   deploymentHistory.push({
-  //     id: deployment.id,
-  //     mainIteration: generation?.mainIteration,
-  //     deployedOn: deployment.createdAt
-  //   })
-  // }
-
-  return { deployments, totalCount: deployments.length }
-}
-
-// TODO: this and getApiDeploymentsHistory should share the same code
-export const getApiDeployments = async (payload) => {
-  const deploymentsReturned = []
-  const queryObject = {
-    'orderby.createdAt': DESC,
-    totalCount: true,
-    limit: payload.limit,
-    offset: payload.offset
-  }
-  if (payload.filterDeploymentsByApplicationId) {
-    queryObject['where.applicationId.eq'] = payload.filterDeploymentsByApplicationId
-  }
-
-  const { body: deployments, headers } = await getDeployments(queryObject)
-  const totalCount = headers['x-total-count']
-
-  let bundlesWithMetadata = {}
-  let generation = {}
-  let taxonomy = {}
-  for await (const deployment of deployments) {
-    const { body: applications } = await getApplications({
-      'where.id.eq': deployment.applicationId,
-      'where.deleted.eq': 'false'
-    })
-
-    bundlesWithMetadata = await getBundlesWithMetadata({ bundleIds: deployment.bundleId })
-
-    const { body: getGenerationBody } = await getGenerationById({ id: deployment.generationId })
-    generation = getGenerationBody
-    const { body: getTaxonomyByIdBody } = await getTaxonomyById({ id: deployment.taxonomyId })
-    taxonomy = getTaxonomyByIdBody
-
-    const bundleWithMetadata = bundlesWithMetadata[0]
-    deploymentsReturned.push({
-      id: deployment.id,
-      taxonomyId: deployment.taxonomyId,
-      mainIteration: generation?.mainIteration,
-      main: taxonomy?.main ?? false,
-      deployedOn: deployment.createdAt,
-      applicationName: applications[0]?.name,
-      taxonomyName: taxonomy?.name,
-      branch: bundleWithMetadata?.metadata?.branch?.name,
-      commitMessage: bundleWithMetadata.metadata?.commit?.message,
-      commitUserEmail: bundleWithMetadata.metadata?.commit?.userEmail
-    })
-  }
-
-  return { deployments: deploymentsReturned, totalCount }
+  return { deployments, totalCount: headers['x-total-count'] }
 }
 
 /* GITHUB */
@@ -473,14 +398,14 @@ export const getPackageVersions = async () => {
 
 /* INSTANCES */
 export const getApiApplicationInstances = async (applicationId) => {
-  const { body } = await getApplicationInstances({ id: applicationId })
-  return body
+  const res = await callApi('control-plane', `/instances?where.applicationId.eq=${applicationId}`, 'GET')
+  return res.body
 }
 
 /* PODS */
 export const getApiPods = async (applicationId) => {
-  const { body: appInstances } = await getApplicationInstances({ id: applicationId })
-  const pods = appInstances?.instances ?? []
+  const { body: appInstances } = await getInstances({ 'where.applicationId.eq': applicationId })
+  const pods = appInstances.map(({ podId }) => podId) ?? []
 
   for (const pod of pods) {
     const { id } = pod
@@ -677,30 +602,6 @@ export const getScalingEventHistory = async (taxonomyId, applicationId) => {
     chartEvents,
     totalCount: scalingHistory.length
   }
-}
-
-// CONFIGURE INGRESS CONTROLLER PATHS
-export const getApiEntrypoints = async () => {
-  const { body: taxonomies } = await getTaxonomies({ 'where.main.eq': true })
-  const taxonomy = taxonomies[0] ?? null
-
-  const ingressPathToReturn = []
-  const { body: applications } = await getApplications({})
-  const { body: entrypoints } = await getEntrypoints({
-    'where.taxonomyId.eq': taxonomy.id
-  })
-  let entrypoint = {}
-
-  for await (const application of applications) {
-    entrypoint = entrypoints.find(entrypoint => entrypoint.applicationId === application.id) || {}
-    ingressPathToReturn.push({
-      applicationName: application.name,
-      applicationId: application.id,
-      ...entrypoint
-    })
-  }
-
-  return ingressPathToReturn
 }
 
 /* USER AND ROLES */
