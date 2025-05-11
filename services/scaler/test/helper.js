@@ -4,6 +4,7 @@ const { beforeEach, afterEach } = require('node:test')
 const { join } = require('path')
 const { setGlobalDispatcher, Agent } = require('undici')
 const { buildServer: buildDbServer } = require('@platformatic/db')
+const fp = require('fastify-plugin')
 const createConnectionPool = require('@databases/pg')
 
 const connectionString = 'postgres://postgres:postgres@127.0.0.1:5433/scaler'
@@ -14,7 +15,7 @@ setGlobalDispatcher(new Agent({
   keepAliveMaxTimeout: 10
 }))
 
-async function getConfig (enableMetrics) {
+async function getConfig () {
   const config = {}
   config.server = {
     port: 0,
@@ -51,10 +52,29 @@ function setUpEnvironment (env = {}) {
   Object.assign(process.env, defaultEnv, env)
 }
 
-async function buildServer (t, env = {}) {
+async function buildServer (t, options = {}) {
+  const env = options.env || {}
   setUpEnvironment(env)
   const { config } = await getConfig()
   const server = await buildDbServer(config)
+  t.after(() => server.close())
+  return server
+}
+
+async function buildServerWithPlugins (t, options = {}, plugins = []) {
+  const env = options.env || {}
+  setUpEnvironment(env)
+  const { config } = await getConfig()
+  config.plugins = {
+    paths: []
+  }
+
+  const server = await buildDbServer(config)
+
+  for (const plugin of plugins) {
+    await server.register(plugin)
+  }
+
   t.after(() => server.close())
   return server
 }
@@ -88,11 +108,21 @@ function generateK8sHeader (podId, namespace) {
   return JSON.stringify(generateK8sAuthContext(podId, namespace))
 }
 
+const createExecutor = (executor) => fp(async function (app) {
+  app.decorate('scalerExecutor', executor)
+}, {
+  name: 'scaler-executor',
+  dependencies: []
+})
+
 module.exports = {
   setUpEnvironment,
   buildServer,
+  buildServerWithPlugins,
   cleandb,
   generateK8sHeader,
   getConfig,
-  valkeyConnectionString
+  createExecutor,
+  valkeyConnectionString,
+  connectionString
 }
