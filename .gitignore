@@ -143,3 +143,5 @@ schema.lock
 .backup-env
 backup_node_modules
 .pnpm-store
+
+**/.claude/settings.local.json
