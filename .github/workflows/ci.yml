@@ -6,7 +6,7 @@ env:
 
 # This allows a subsequently queued workflow run to interrupt previous runs
 concurrency:
-  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  group: "${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
   cancel-in-progress: true
 
 jobs:
@@ -21,10 +21,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           # https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#use-private-packages
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
-          cache: 'pnpm'
-      - uses: 'nick-fields/retry@v3.0.2'
+          cache: "pnpm"
+      - uses: "nick-fields/retry@v3.0.2"
         with:
           max_attempts: 10
           timeout_minutes: 5
@@ -44,9 +44,9 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -69,13 +69,13 @@ jobs:
       #   ports:
       #     - '6379:6379'
       cache-valkey:
-        image: 'valkey/valkey:8.1'
+        image: "valkey/valkey:8.1"
         ports:
-          - '6342:6379'
+          - "6342:6379"
       main-valkey:
-        image: 'valkey/valkey:8.1'
+        image: "valkey/valkey:8.1"
         ports:
-          - '6343:6379'
+          - "6343:6379"
       icc-postgres:
         image: postgres
         env:
@@ -96,9 +96,9 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
@@ -140,9 +140,9 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
@@ -228,9 +228,9 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
@@ -264,9 +264,9 @@ jobs:
         ports:
           - 5433:5432
       cache-valkey:
-        image: 'valkey/valkey:8.1'
+        image: "valkey/valkey:8.1"
         ports:
-          - '6342:6379'
+          - "6342:6379"
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4.1.0
@@ -274,9 +274,9 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
@@ -306,12 +306,12 @@ jobs:
   #         --name icc-postgres
   #       ports:
   #         - 5433:5432
-  
+
   #     valkey:
   #       image: 'valkey/valkey:8.1'
   #       ports:
   #         - '6379:6379'
-  
+
   #   needs: setup-node_modules
   #   runs-on: ubuntu-latest
   #   timeout-minutes: 15
@@ -336,7 +336,7 @@ jobs:
   #       env:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - run: cd services/risk-service && pnpm run test
-  
+
   # ci-risk-cold-storage:
   #   services:
   #     icc-postgres:
@@ -357,7 +357,7 @@ jobs:
   #       image: 'valkey/valkey:8.1'
   #       ports:
   #         - '6379:6379'
-  
+
   #   needs: setup-node_modules
   #   runs-on: ubuntu-latest
   #   timeout-minutes: 15
@@ -382,7 +382,7 @@ jobs:
   #       env:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - run: cd services/risk-cold-storage && pnpm run test
-  
+
   # ci-risk-manager:
   #   services:
   #     icc-postgres:
@@ -398,12 +398,12 @@ jobs:
   #         --name icc-postgres
   #       ports:
   #         - 5433:5432
-  
+
   #     valkey:
   #       image: 'valkey/valkey:8.1'
   #       ports:
   #         - '6379:6379'
-  
+
   #   needs: setup-node_modules
   #   runs-on: ubuntu-latest
   #   timeout-minutes: 15
@@ -429,13 +429,13 @@ jobs:
   #       env:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - run: cd services/risk-manager && pnpm run test
-  
+
   ci-cache-manager:
     services:
       valkey:
-        image: 'valkey/valkey:8.1'
+        image: "valkey/valkey:8.1"
         ports:
-          - '6342:6379'
+          - "6342:6379"
     needs: setup-node_modules
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -446,7 +446,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
@@ -458,7 +458,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: cd services/cache-manager && pnpm run test
-  
+
   # ci-cluster-manager:
   #   services:
   #     valkey:
@@ -502,7 +502,7 @@ jobs:
   #       env:
   #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   #     - run: cd services/cluster-manager && pnpm run test
-  
+
   ci-compliance:
     services:
       icc-postgres:
@@ -529,9 +529,9 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
@@ -558,9 +558,9 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -584,9 +584,9 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -626,7 +626,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -640,3 +640,47 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: cd services/cron && pnpm run test
+
+  ci-scaler:
+    services:
+      main-valkey:
+        image: "valkey/valkey:8.1"
+        ports:
+          - "6343:6379"
+      icc-postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --name icc-postgres
+        ports:
+          - 5433:5432
+    needs: setup-node_modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: "https://registry.npmjs.org"
+          node-version: 20
+      - name: Configure postgres
+        run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
+      - name: pnpm install
+        uses: nick-fields/retry@v3.0.2
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: cd services/scaler && pnpm run test
