@@ -44,6 +44,7 @@ module.exports = async function (app) {
       offset = 0,
       search,
       userId,
+      event,
       applicationId
     } = req.query
 
@@ -80,6 +81,9 @@ module.exports = async function (app) {
       wheres.push(sql`(to_tsvector(event) || to_tsvector(username)) @@ plainto_tsquery(${search})`)
     }
 
+    if (event) {
+      wheres.push(sql`event = ${event}`)
+    }
     if (wheres.length > 0) {
       query = sql`${query} WHERE ${sql.join(wheres, sql` AND `)}`
       queryCount = sql`${queryCount} WHERE ${sql.join(wheres, sql` AND `)}`

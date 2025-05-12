@@ -10,7 +10,7 @@ import Profile from './components/profile/Profile'
 import { getApiActivities, getApiActivitiesUsers, getApiDeploymentsHistory, getApiApplication, getApiActivitiesTypes, getApplicationsRaw } from './api'
 import Activities from '~/components/application/activities/Activities'
 import DeploymentHistory from '~/components/application/deployment_history/DeploymentHistory'
-import AppDetailsV2 from '~/components/application/detail/AppDetailsV2'
+import AppDetails from '~/components/application/detail/AppDetails'
 import ApplicationContainer from '~/layout/ApplicationContainer'
 
 // Import Root Pages
@@ -230,6 +230,10 @@ export function getRouter () {
           element: <AllDeployments />
         },
         {
+          loader: async () => {
+            const applications = await getApplicationsRaw()
+            return { applications }
+          },
           id: 'activities',
           path: '/activities',
           element: <AllActivities />
@@ -257,7 +261,7 @@ export function getRouter () {
         {
           path: '',
           id: 'application/details',
-          element: <AppDetailsV2 />
+          element: <AppDetails />
         },
         {
           path: 'activities',

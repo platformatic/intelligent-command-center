@@ -237,13 +237,14 @@ export const getRequestsPerSecond = async (applicationId) => {
 }
 
 /* ACTIVITIES */
-export const getApiActivities = async (applicationId, filters = { limit: 10, offset: 0, search: '', userId: '' }) => {
+export const getApiActivities = async (applicationId, filters = { limit: 10, offset: 0, search: '', userId: '', event: '' }) => {
   let url = `${baseApiUrl}/events?limit=${filters.limit}&offset=${filters.offset}`
   if (applicationId) {
     url += `&applicationId=${applicationId}`
   }
   if ((filters?.search ?? '') !== '') url += `&search=${filters.search}`
   if ((filters?.userId ?? '') !== '') url += `&userId=${filters.userId}`
+  if ((filters?.event ?? '') !== '') url += `&event=${filters.event}`
   const response = await fetch(url, {
     method: 'GET',
     headers: getHeaders(),
@@ -252,10 +253,6 @@ export const getApiActivities = async (applicationId, filters = { limit: 10, off
   const totalCount = response.headers.get('X-Total-Count')
 
   const activities = await response.json()
-  for await (const activity of activities) {
-    const application = await getApplicationById({ id: activity.applicationId })
-    activity.applicationName = application.name
-  }
   return { activities, totalCount }
 }
 
