@@ -4,8 +4,6 @@ import styles from './Settings.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import Icons from '@platformatic/ui-components/src/components/icons'
-import useICCStore from '~/useICCStore'
-import { PAGE_SETTINGS } from '~/ui-constants'
 import Users from './users/Users'
 import Environments from './environments/Environments'
 import Exports from './sync/Exports'
@@ -18,19 +16,6 @@ const Settings = React.forwardRef(({ _ }, ref) => {
   const [component, setComponent] = useState(<Users key='users' />)
   const [syncConfig, setSyncConfig] = useState({})
   const [syncEnabled, setSyncEnabled] = useState(false)
-  const globalState = useICCStore()
-  const { setNavigation, setCurrentPage } = globalState
-
-  useEffect(() => {
-    setNavigation({
-      label: 'Settings',
-      handleClick: () => {
-        setCurrentPage(PAGE_SETTINGS)
-      },
-      key: PAGE_SETTINGS,
-      page: PAGE_SETTINGS
-    }, 0)
-  }, [])
 
   // sync might be not configured (so we don't show the button).
   // If it is configured, we show the button that redirect to import

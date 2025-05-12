@@ -3,8 +3,7 @@ import styles from './Taxonomy.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import modalStyles from '~/styles/ModalStyles.module.css'
-import { PAGE_TAXONOMY, TAXONOMY_NOT_FOUND_GENERATION } from '~/ui-constants'
-import useICCStore from '~/useICCStore'
+import { TAXONOMY_NOT_FOUND_GENERATION } from '~/ui-constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import { MEDIUM, OPACITY_30, RICH_BLACK, SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
 import TaxonomyView from './TaxonomyView'
@@ -18,11 +17,6 @@ import { Button, ModalDirectional, VerticalSeparator } from '@platformatic/ui-co
 import ErrorComponent from '~/components/errors/ErrorComponent'
 
 const Taxonomy = React.forwardRef(({ _ }, ref) => {
-  const globalState = useICCStore()
-  const {
-    setNavigation,
-    setCurrentPage
-  } = globalState
   const [version, setVersion] = useState({})
   const [latestGeneration, setLatestGeneration] = useState(null)
   const [showModalVersions, setShowModalVersions] = useState(false)
@@ -36,17 +30,6 @@ const Taxonomy = React.forwardRef(({ _ }, ref) => {
   const [hightLightMermaid, setHightLightMermaid] = useState(null)
   const [showErrorComponent, setShowErrorComponent] = useState(false)
   const [error, setError] = useState(null)
-
-  useEffect(() => {
-    setNavigation({
-      label: 'Taxonomy',
-      handleClick: () => {
-        setCurrentPage(PAGE_TAXONOMY)
-      },
-      key: PAGE_TAXONOMY,
-      page: PAGE_TAXONOMY
-    }, 0)
-  }, [])
 
   useEffect(() => {
     async function loadTaxonomomyVersions () {

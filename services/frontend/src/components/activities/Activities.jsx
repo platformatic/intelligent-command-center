@@ -3,13 +3,14 @@ import styles from './Activities.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import TableActivities from './TableActivities'
-import { getApiActivities, getApplicationsRaw, getApiActivitiesTypes, getApiActivitiesUsers } from '~/api'
+import { getApiActivities, getApiActivitiesTypes, getApiActivitiesUsers } from '~/api'
 import ErrorComponent from '~/components/errors/ErrorComponent'
 import { FILTER_ALL } from '~/ui-constants'
 import { MEDIUM, RICH_BLACK, TRANSPARENT, WHITE } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import { Button } from '@platformatic/ui-components'
 import Forms from '@platformatic/ui-components/src/components/forms'
+import { useLoaderData } from 'react-router-dom'
 
 const Activities = React.forwardRef(({ _ }, ref) => {
   const ALL_APPLICATIONS = { label: 'All applications', value: FILTER_ALL }
@@ -20,7 +21,6 @@ const Activities = React.forwardRef(({ _ }, ref) => {
   const [showErrorComponent, setShowErrorComponent] = useState(false)
   const [error, setError] = useState(null)
   const [activitiesLoaded, setActivitiesLoaded] = useState(false)
-  const [applicationsLoaded, setApplicationsLoaded] = useState(false)
   const [reloadActivities, setReloadActivities] = useState(true)
   const [pages, setPages] = useState([])
   const [activitiesPage, setActivitiesPage] = useState(0)
@@ -32,18 +32,30 @@ const Activities = React.forwardRef(({ _ }, ref) => {
   const [optionsUsers, setOptionsUsers] = useState([])
   const [optionsEvents, setOptionsEvents] = useState([])
   const [enableFilters, setEnableFilter] = useState(false)
+  const { applications } = useLoaderData()
 
   useEffect(() => {
-    if (applicationsLoaded && (activitiesPage >= 0 || reloadActivities)) {
+    const apps = {
+      label: 'All applications',
+      value: FILTER_ALL
+    }
+    setOptionApplications([apps].concat(applications.map(app => ({
+      label: app.name,
+      value: app.id
+    }))))
+  }, [applications])
+
+  useEffect(() => {
+    if ((activitiesPage >= 0 || reloadActivities)) {
       setActivitiesLoaded(false)
-      async function loadApplications () {
+      async function loadActivities () {
         try {
           let response = await getApiActivities(
             filterActivitiesByApplicationId.value === FILTER_ALL ? '' : filterActivitiesByApplicationId.value,
             {
               limit: LIMIT,
               offset: activitiesPage * LIMIT,
-              search: filterActivitiesByEventId.value === FILTER_ALL ? '' : filterActivitiesByEventId.value,
+              event: filterActivitiesByEventId.value === FILTER_ALL ? '' : filterActivitiesByEventId.value,
               userId: filterActivitiesByUserId.value === FILTER_ALL ? '' : filterActivitiesByUserId.value
             })
           const { activities, totalCount } = response
@@ -76,27 +88,9 @@ const Activities = React.forwardRef(({ _ }, ref) => {
           setShowErrorComponent(true)
         }
       }
-      loadApplications()
+      loadActivities()
     }
-  }, [applicationsLoaded, activitiesPage, reloadActivities])
-
-  useEffect(() => {
-    async function loadApplications () {
-      try {
-        const applications = await getApplicationsRaw()
-        setOptionApplications([ALL_APPLICATIONS].concat(
-          applications.map(application => ({
-            value: application.id,
-            label: application.name
-          }))))
-        setApplicationsLoaded(true)
-      } catch (error) {
-        console.error(`error ${error}`)
-        setShowErrorComponent(true)
-      }
-    }
-    loadApplications()
-  }, [])
+  }, [activitiesPage, reloadActivities])
 
   useEffect(() => {
     if (filterActivitiesByUserId.value || filterActivitiesByEventId.value || filterActivitiesByApplicationId.value) {
@@ -191,6 +185,7 @@ const Activities = React.forwardRef(({ _ }, ref) => {
           </div>
           <TableActivities
             activitiesLoaded={activitiesLoaded}
+            applications={applications}
             activities={filteredActivities}
             onErrorOccurred={() => setShowErrorComponent(true)}
           />
