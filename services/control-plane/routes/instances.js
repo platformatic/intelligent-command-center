@@ -244,20 +244,4 @@ module.exports = fp(async function (app) {
 
     return { podId, namespace }
   }
-
-  app.get('/new', async (request, reply) => {
-    await app.emitUpdate('icc', {
-      topic: 'ui-updates/applications',
-      type: 'application-created',
-      data: {
-        applicationId: '123',
-        applicationName: 'test'
-      }
-    }).catch((err) => {
-      request.log.error({ err }, 'Failed to send notification to ui')
-    })
-    return {
-      message: 'Hello World'
-    }
-  })
 })

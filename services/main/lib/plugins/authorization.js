@@ -125,6 +125,11 @@ async function authorizeRouteWithCookie (req) {
       req.headers['x-user'] = JSON.stringify(payload.user)
       return true
     }
+  } else if (res.statusCode === 400) {
+    if (payload.code === 'PLT_USER_MANAGER_MISSING_CREDENTIALS') {
+      throw new MissingAuthCredentialsError()
+    }
+    throw new UnknownResponseFromAuthorizeError(JSON.stringify(payload))
   } else {
     throw new UnknownResponseFromAuthorizeError(JSON.stringify(payload))
   }
