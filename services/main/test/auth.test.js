@@ -57,6 +57,10 @@ test('report user-manager error if its response is not 200', async (t) => {
   const res = await server.inject({
     method: 'GET',
     path: '/api/events',
+    query: {
+      limit: '10',
+      offset: '0'
+    },
     headers: {
       cookie: 'auth-cookie-name=this-is-a-mocked-cookie',
       'x-random-header': 'random-value'
@@ -69,6 +73,47 @@ test('report user-manager error if its response is not 200', async (t) => {
     code: 'PLT_MAIN_UNKNOWN_RESPONSE_FROM_AUTHORIZE_ENDPOINT',
     error: 'Unauthorized',
     message: 'Unknown response from /authorize endpoint: {"statusCode":400,"code":"FST_ERR_FOOBAR_ERROR","error":"Foobar error","message":"This is a foobar error"}'
+  })
+})
+
+test.only('handle user-manager missing credentials error', async (t) => {
+  const server = await getServer(t)
+  await server.start()
+  agent
+    .get('http://user-manager.plt.local')
+    .intercept({
+      method: 'POST',
+      path: '/authorize'
+    }).reply(() => {
+      return {
+        statusCode: 400,
+        data: {
+          statusCode: 400,
+          code: 'PLT_USER_MANAGER_MISSING_CREDENTIALS',
+          error: 'Missing credentials due to missing cookie',
+          message: 'Missing credentials due to missing cookie'
+        }
+      }
+    })
+  const res = await server.inject({
+    method: 'GET',
+    path: '/api/events',
+    query: {
+      limit: '10',
+      offset: '0'
+    },
+    headers: {
+      cookie: 'auth-cookie-name=this-is-a-mocked-cookie',
+      'x-random-header': 'random-value'
+    }
+  })
+  const payload = res.json()
+  assert.equal(res.statusCode, 401)
+  assert.deepEqual(payload, {
+    statusCode: 401,
+    code: 'PLT_MAIN_MISSING_AUTH_CREDENTIALS',
+    error: 'Unauthorized',
+    message: 'Missing authorization credentials'
   })
 })
 
