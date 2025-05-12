@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './TableActivities.module.css'
@@ -9,23 +8,21 @@ import NoDataFound from '~/components/ui/NoDataFound'
 import gridStyles from '~/styles/GridStyles.module.css'
 
 function TableActivities ({
-  activitiesLoaded = false,
   activities = [],
+  applications = [],
   onErrorOccurred = () => {}
 }) {
   const [innerLoading, setInnerLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
 
   useEffect(() => {
-    if (activitiesLoaded) {
-      if (activities.length === 0) {
-        setShowNoResult(true)
-      } else {
-        setShowNoResult(false)
-      }
-      setInnerLoading(false)
+    if (activities.length === 0) {
+      setShowNoResult(true)
+    } else {
+      setShowNoResult(false)
     }
-  }, [activitiesLoaded, activities.length])
+    setInnerLoading(false)
+  }, [activities.length])
 
   function renderComponent () {
     if (innerLoading) {
@@ -77,7 +74,7 @@ function TableActivities ({
           </div>
 
           {activities.map(activity => (
-            <Row key={activity.id} {...activity} />
+            <Row key={activity.id} {...activity} applicationName={applications.find(app => app.id === activity.applicationId)?.name} />
           ))}
 
         </div>
@@ -90,21 +87,6 @@ function TableActivities ({
       {renderComponent()}
     </div>
   )
-}
-
-TableActivities.propTypes = {
-  /**
-   * activitiesLoaded
-    */
-  activitiesLoaded: PropTypes.bool,
-  /**
-   * activities
-    */
-  activities: PropTypes.array,
-  /**
-   * onErrorOccurred
-    */
-  onErrorOccurred: PropTypes.func
 }
 
 export default TableActivities

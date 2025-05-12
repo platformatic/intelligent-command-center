@@ -3,8 +3,6 @@ import { WHITE, RICH_BLACK, BLACK_RUSSIAN, MEDIUM, SMALL, TRANSPARENT } from '@p
 import styles from './Caching.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
-import useICCStore from '~/useICCStore'
-import { PAGE_CACHING } from '~/ui-constants'
 import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
 import { Forms, Icons, LoadingSpinnerV2, BorderedBox } from '@platformatic/ui-components'
 import {
@@ -21,8 +19,6 @@ const Caching = React.forwardRef(({ _ }, ref) => {
   const [selectedApplication, setSelectedApplication] = useState(null)
   const [applicationsOptions, setApplicationsOptions] = useState([])
   const [innerLoading, setInnerLoading] = useState(true)
-  const globalState = useICCStore()
-  const { setNavigation, setCurrentPage } = globalState
   const [selectedEntry, setSelectedEntry] = useState(null)
   const [showCachedEntryPanel, setShowCachedEntryPanel] = useState(false)
   const [compareWithAll, setCompareWithAll] = useState(false)
@@ -78,15 +74,6 @@ const Caching = React.forwardRef(({ _ }, ref) => {
         )
         setSelectedApplication(apps[0])
       }
-
-      setNavigation({
-        label: 'Caching',
-        handleClick: () => {
-          setCurrentPage(PAGE_CACHING)
-        },
-        key: PAGE_CACHING,
-        page: PAGE_CACHING
-      }, 0)
     }
 
     getApps()

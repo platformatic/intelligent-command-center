@@ -28,7 +28,8 @@ const activitiesQuerySchema = {
     userId: { type: 'string' },
     search: { type: 'string' },
     limit: { type: 'number' },
-    offset: { type: 'number' }
+    offset: { type: 'number' },
+    event: { type: 'string' }
   },
   additionalProperties: true,
   required: ['limit', 'offset']
