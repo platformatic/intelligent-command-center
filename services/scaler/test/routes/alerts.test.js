@@ -21,7 +21,9 @@ async function cleanRedisData () {
 // Helper function to create a valid alert
 function createAlert (applicationId, serviceId) {
   return {
+    id: randomUUID(),
     serviceId,
+    service: serviceId,
     applicationId,
     currentHealth: {
       elu: 0.5,
@@ -62,7 +64,10 @@ test('receive and save alert successfully', async (t) => {
       'content-type': 'application/json',
       'x-k8s': generateK8sHeader(podId)
     },
-    payload: JSON.stringify(alert)
+    payload: JSON.stringify({
+      alert,
+      healthHistory: [alert]
+    })
   })
 
   assert.strictEqual(response.statusCode, 200)
@@ -118,7 +123,10 @@ test('receive multiple alerts for the same pod', async (t) => {
       'content-type': 'application/json',
       'x-k8s': generateK8sHeader(podId)
     },
-    payload: JSON.stringify(alert1)
+    payload: JSON.stringify({
+      alert: alert1,
+      healthHistory: [alert1]
+    })
   })
 
   // Small delay to ensure different timestamps
@@ -137,7 +145,10 @@ test('receive multiple alerts for the same pod', async (t) => {
       'content-type': 'application/json',
       'x-k8s': generateK8sHeader(podId)
     },
-    payload: JSON.stringify(alert2)
+    payload: JSON.stringify({
+      alert: alert2,
+      healthHistory: [alert1, alert2]
+    })
   })
 
   // Verify alerts were saved correctly
@@ -180,7 +191,10 @@ test('fail when missing k8s context', async (t) => {
       'content-type': 'application/json'
       // No x-k8s header
     },
-    payload: JSON.stringify(alert)
+    payload: JSON.stringify({
+      alert,
+      healthHistory: [alert]
+    })
   })
 
   assert.strictEqual(response.statusCode, 500)

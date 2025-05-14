@@ -1,35 +1,37 @@
 'use strict'
 
 module.exports = async function (app) {
+  const healthSchema = {
+    type: 'object',
+    properties: {
+      id: { type: 'string' },
+      service: { type: 'string' },
+      currentHealth: {
+        type: 'object',
+        properties: {
+          elu: { type: 'number' },
+          heapUsed: { type: 'number' },
+          heapTotal: { type: 'number' }
+        }
+      },
+      unhealthy: { type: 'boolean' },
+      timestamp: { type: 'string' }
+    }
+  }
+
   app.post('/alerts', {
     schema: {
       body: {
         type: 'object',
         properties: {
-          id: { type: 'string' },
-          service: { type: 'string' },
-          currentHealth: {
-            type: 'object',
-            properties: {
-              elu: { type: 'number' },
-              heapUsed: { type: 'number' },
-              heapTotal: { type: 'number' }
-            }
-          },
-          unhealthy: { type: 'boolean' },
-          healthConfig: {
-            type: 'object',
-            properties: {
-              enabled: { type: 'boolean' },
-              interval: { type: 'number' },
-              gracePeriod: { type: 'number' },
-              maxUnhealthyChecks: { type: 'number' },
-              maxELU: { type: 'number' },
-              maxHeapUsed: { type: 'number' },
-              maxHeapTotal: { type: 'number' }
-            }
+          applicationId: { type: 'string' },
+          alert: healthSchema,
+          healthHistory: {
+            type: 'array',
+            items: healthSchema
           }
-        }
+        },
+        required: ['alert', 'healthHistory']
       }
     },
     handler: async (req) => {
@@ -39,9 +41,15 @@ module.exports = async function (app) {
       }
 
       const podId = k8sContext.pod?.name
-      const { serviceId, applicationId, currentHealth, unhealthy, healthConfig } = req.body
+      const { alert, healthHistory } = req.body
+      const { applicationId, currentHealth, unhealthy, healthConfig } = alert
+      const serviceId = alert.service || alert.id
       const { elu, heapUsed, heapTotal } = currentHealth
-      app.log.debug({ serviceId, applicationId, currentHealth, unhealthy, healthConfig, podId }, 'received alert')
+      app.log.debug({ serviceId, applicationId, currentHealth, unhealthy, healthConfig, podId, healthHistoryLength: healthHistory?.length }, 'received alert')
+
+      if (unhealthy) {
+        app.log.info({ podId, serviceId, applicationId, unhealthy }, 'Received unhealthy alert')
+      }
 
       await app.processAlert({
         applicationId,
@@ -49,7 +57,9 @@ module.exports = async function (app) {
         podId,
         elu,
         heapUsed,
-        heapTotal
+        heapTotal,
+        unhealthy,
+        healthHistory
       })
 
       return { success: true }
