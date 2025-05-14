@@ -1,9 +1,10 @@
 'use strict'
 
 const { beforeEach, afterEach } = require('node:test')
-const { join } = require('path')
+const { join } = require('node:path')
 const { setGlobalDispatcher, Agent } = require('undici')
 const { buildServer: buildDbServer } = require('@platformatic/db')
+const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const createConnectionPool = require('@databases/pg')
 
@@ -22,7 +23,15 @@ async function getConfig () {
     logger: { level: 'error' }
   }
   config.db = {
-    connectionString
+    connectionString,
+    openapi: {
+      ignoreRoutes: [
+        {
+          method: 'POST',
+          path: '/controllers'
+        }
+      ]
+    }
   }
 
   config.migrations = {
@@ -43,6 +52,7 @@ async function getConfig () {
 }
 
 const defaultEnv = {
+  PLT_MACHINIST_URL: 'http://localhost:3052',
   PLT_SCALER_DATABASE_URL: connectionString,
   PLT_ICC_VALKEY_CONNECTION_STRING: valkeyConnectionString,
   PLT_SCALER_PROMETHEUS_URL: 'http://localhost:9090',
@@ -59,6 +69,9 @@ async function buildServer (t, options = {}) {
   const { config } = await getConfig()
   const server = await buildDbServer(config)
   t.after(() => server.close())
+
+  await cleanDb(server)
+
   return server
 }
 
@@ -72,12 +85,20 @@ async function buildServerWithPlugins (t, options = {}, plugins = []) {
 
   const server = await buildDbServer(config)
 
+  await cleanDb(server)
+
   for (const plugin of plugins) {
     await server.register(plugin)
   }
 
   t.after(() => server.close())
   return server
+}
+
+async function cleanDb (app) {
+  const { db, sql } = app.platformatic
+  await db.query(sql`DELETE FROM "application_scale_configs"`)
+  await db.query(sql`DELETE FROM "controllers"`)
 }
 
 let pool = null
@@ -116,6 +137,30 @@ const createExecutor = (executor) => fp(async function (app) {
   dependencies: []
 })
 
+async function startMachinist (t, opts = {}) {
+  const machinist = fastify({ keepAliveTimeout: 1 })
+
+  machinist.get('/controllers/:namespace', async (req) => {
+    const podId = req.query.podId
+    const defaultController = {
+      name: 'test-controller',
+      namespace: 'platformatic',
+      kind: 'Controller',
+      apiVersion: 'v1',
+      replicas: 1
+    }
+    const controller = opts.getPodController?.(podId) ?? defaultController
+    return { controllers: [controller] }
+  })
+
+  t?.after(async () => {
+    await machinist.close()
+  })
+
+  await machinist.listen({ port: 3052 })
+  return machinist
+}
+
 module.exports = {
   setUpEnvironment,
   buildServer,
@@ -125,5 +170,6 @@ module.exports = {
   getConfig,
   createExecutor,
   valkeyConnectionString,
-  connectionString
+  connectionString,
+  startMachinist
 }

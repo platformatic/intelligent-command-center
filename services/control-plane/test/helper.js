@@ -22,6 +22,7 @@ const defaultEnv = {
   PLT_EXTERNAL_METRICS_URL: '',
 
   PLT_MACHINIST_URL: 'http://localhost:3052',
+  PLT_SCALER_URL: 'http://localhost:3053',
   PLT_ACTIVITIES_URL: 'http://localhost:3004',
   PLT_METRICS_URL: 'http://localhost:3009',
   PLT_MAIN_SERVICE_URL: 'http://localhost:3010',
@@ -84,6 +85,12 @@ async function startControlPlane (t, entities = {}, env = {}) {
         name: 'metrics',
         type: 'openapi',
         url: process.env.PLT_METRICS_URL
+      },
+      {
+        schema: join(clientsDir, 'scaler', 'scaler.openapi.json'),
+        name: 'scaler',
+        type: 'openapi',
+        url: process.env.PLT_SCALER_URL
       }
     ],
     watch: false
@@ -102,14 +109,14 @@ async function startControlPlane (t, entities = {}, env = {}) {
   }
 
   app.decorate('testApi', {
-    saveInstance: async (applicationName, imageId, podId, podNamespace) => {
-      podNamespace = podNamespace || 'platformatic'
+    saveInstance: async (applicationName, imageId, podId, namespace) => {
+      namespace = namespace || 'platformatic'
 
       return app.saveInstance(
         applicationName,
         imageId,
         podId,
-        podNamespace,
+        namespace,
         testCtx
       )
     }
@@ -304,6 +311,7 @@ function generateDeployment (
     applicationId,
     applicationStateId,
     imageId: imageId || randomUUID(),
+    namespace: 'platformatic',
     status: 'started'
   }
 }
@@ -319,7 +327,7 @@ function generateInstance (
     applicationId,
     deploymentId,
     podId: podId || randomUUID(),
-    podNamespace: 'platformatic',
+    namespace: 'platformatic',
     status: status || 'starting'
   }
 }
@@ -445,6 +453,22 @@ async function startMachinist (t, opts = {}) {
   return machinist
 }
 
+async function startScaler (t, opts = {}) {
+  const scaler = fastify({ keepAliveTimeout: 1 })
+
+  scaler.post('/controllers', async (req) => {
+    const instance = req.body
+    await opts.savePodController?.(instance)
+  })
+
+  t?.after(async () => {
+    await scaler.close()
+  })
+
+  await scaler.listen({ port: 3053 })
+  return scaler
+}
+
 async function startMainService (t, opts = {}) {
   const main = fastify({ keepAliveTimeout: 1 })
 
@@ -481,6 +505,7 @@ module.exports = {
   startActivities,
   startMetrics,
   startMachinist,
+  startScaler,
   startMainService,
   generateGeneration,
   generateApplication,
