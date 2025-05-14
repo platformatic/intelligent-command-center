@@ -1,0 +1,5 @@
+{
+  "name": "scaler",
+  "types": "./scaler.d.ts",
+  "main": "./scaler.cjs"
+}

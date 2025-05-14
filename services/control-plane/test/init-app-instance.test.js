@@ -9,6 +9,7 @@ const {
   startMetrics,
   startMachinist,
   startMainService,
+  startScaler,
   generateK8sHeader
 } = require('./helper')
 
@@ -24,6 +25,13 @@ test('should save an instance of a new application', async (t) => {
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
+
+  const controllers = []
+  await startScaler(t, {
+    savePodController: (controller) => {
+      controllers.push(controller)
+    }
+  })
 
   const iccUpdates = []
   await startMainService(t, {
@@ -107,6 +115,7 @@ test('should save an instance of a new application', async (t) => {
   const deployment = deployments[0]
   assert.strictEqual(deployment.applicationId, application.id)
   assert.strictEqual(deployment.applicationStateId, null)
+  assert.strictEqual(deployment.namespace, 'platformatic')
   assert.strictEqual(deployment.imageId, imageId)
   assert.strictEqual(deployment.status, 'starting')
 
@@ -160,6 +169,14 @@ test('should save an instance of a new application', async (t) => {
   assert.strictEqual(deployAppActivity.success, true)
   assert.deepStrictEqual(deployAppActivity.data, { applicationName, imageId })
 
+  assert.strictEqual(controllers.length, 1)
+
+  const controller = controllers[0]
+  assert.strictEqual(controller.applicationId, application.id)
+  assert.strictEqual(controller.deploymentId, deployment.id)
+  assert.strictEqual(controller.namespace, 'platformatic')
+  assert.strictEqual(controller.podId, podId)
+
   assert.strictEqual(iccUpdates.length, 1)
 
   const createdAppUpdate = iccUpdates[0]
@@ -183,6 +200,7 @@ test('should save a new app instance with the same image', async (t) => {
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
+  await startScaler(t)
   await startMachinist(t, {
     getPodDetails: (podId) => ({ image: imageId })
   })
@@ -339,6 +357,7 @@ test('should detect the same pod with the same image', async (t) => {
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
+  await startScaler(t)
   await startMachinist(t, {
     getPodDetails: (podId) => ({ image: imageId })
   })
@@ -398,6 +417,7 @@ test('should detect the same pod with the same image', async (t) => {
   const foundDeployment1 = deployments[0]
   assert.strictEqual(foundDeployment1.id, deployment1.id)
   assert.strictEqual(foundDeployment1.applicationId, application1.id)
+  assert.strictEqual(foundDeployment1.namespace, 'platformatic')
   assert.strictEqual(foundDeployment1.imageId, imageId)
   assert.strictEqual(foundDeployment1.status, 'starting')
 
@@ -444,8 +464,9 @@ test('should save an app instance with a different image', async (t) => {
     saveEvent: (activity) => activities.push(activity)
   })
   await startMetrics(t)
+  await startScaler(t)
   await startMachinist(t, {
-    getPodDetails: (podId) => ({ image: imageId })
+    getPodDetails: () => ({ image: imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -509,6 +530,7 @@ test('should save an app instance with a different image', async (t) => {
   )
   assert.strictEqual(deployment3.applicationId, application1.id)
   assert.strictEqual(deployment3.applicationStateId, null)
+  assert.strictEqual(deployment3.namespace, 'platformatic')
   assert.strictEqual(deployment3.imageId, imageId)
   assert.strictEqual(deployment3.status, 'starting')
 
@@ -520,6 +542,7 @@ test('should save an app instance with a different image', async (t) => {
   )
   assert.strictEqual(instance3.applicationId, application1.id)
   assert.strictEqual(instance3.deploymentId, deployment3.id)
+  assert.strictEqual(instance3.namespace, 'platformatic')
   assert.strictEqual(instance3.podId, podId)
   assert.strictEqual(instance3.status, 'starting')
 
@@ -571,6 +594,13 @@ test('should save a lot of simultaneous instances of different applications', as
   await startMetrics(t)
   await startMainService(t)
   await startCompliance(t)
+
+  const controllers = []
+  await startScaler(t, {
+    savePodController: (instance) => {
+      controllers.push(instance)
+    }
+  })
 
   const APPS_COUNT = 10
   const APP_PODS_COUNT = 10
@@ -662,6 +692,7 @@ test('should save a lot of simultaneous instances of different applications', as
   const configs = await entities.applicationsConfig.find()
   assert.strictEqual(configs.length, APPS_COUNT)
 
+  assert.strictEqual(controllers.length, APPS_COUNT)
   assert.strictEqual(activities.length, APPS_COUNT * 2)
   assert.strictEqual(cacheUsernames.size, APPS_COUNT)
   assert.strictEqual(cachePasswords.size, APPS_COUNT)
@@ -687,6 +718,7 @@ test('should save a lot of simultaneous instances of different applications', as
     assert.strictEqual(deployment.applicationId, application.id)
     assert.strictEqual(deployment.applicationStateId, null)
     assert.strictEqual(deployment.status, 'starting')
+    assert.strictEqual(deployment.namespace, 'platformatic')
     assert.strictEqual(deployment.imageId, imageId)
 
     const applicationPods = instances.filter(

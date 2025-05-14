@@ -11,7 +11,14 @@
   "db": {
     "connectionString": "{PLT_SCALER_DATABASE_URL}",
     "graphql": true,
-    "openapi": true
+    "openapi": {
+      "ignoreRoutes": [
+        {
+          "method": "POST",
+          "path": "/controllers"
+        }
+      ]
+    }
   },
   "migrations": {
     "dir": "migrations",
