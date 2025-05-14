@@ -29,6 +29,10 @@ class Machinist {
 
     if (statusCode !== 200) {
       const error = await body.text()
+      ctx.logger.error(
+        { error, podId, namespace },
+        'Failed to get pod details'
+      )
       throw new errors.FailedToGetPodDetails(error)
     }
 

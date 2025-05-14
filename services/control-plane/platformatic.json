@@ -43,6 +43,12 @@
       "name": "metrics",
       "type": "openapi",
       "serviceId": "metrics"
+    },
+    {
+      "schema": "../../clients/scaler/scaler.openapi.json",
+      "name": "scaler",
+      "type": "openapi",
+      "serviceId": "scaler"
     }
   ],
   "watch": "{DEV_K8S}"
