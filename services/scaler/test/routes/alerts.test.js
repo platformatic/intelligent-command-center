@@ -75,7 +75,7 @@ test('receive and save alert successfully', async (t) => {
   assert.deepStrictEqual(responseBody, { success: true })
 
   // Verify alert was saved by applicationId
-  const savedAlertsByApp = await server.store.getAlerts(applicationId)
+  const savedAlertsByApp = await server.store.getAlertsByApplicationId(applicationId)
   assert.strictEqual(savedAlertsByApp.length, 1)
   const savedAlertByApp = savedAlertsByApp[0]
   assert.strictEqual(savedAlertByApp.applicationId, applicationId)
@@ -86,7 +86,7 @@ test('receive and save alert successfully', async (t) => {
   assert.strictEqual(savedAlertByApp.heapTotal, alert.currentHealth.heapTotal)
 
   // Verify alert was saved by podId
-  const savedAlertsByPod = await server.store.getAlertByPodId(podId)
+  const savedAlertsByPod = await server.store.getAlertsByPodId(podId)
   assert.strictEqual(savedAlertsByPod.length, 1)
   const savedAlertByPod = savedAlertsByPod[0]
   assert.strictEqual(savedAlertByPod.applicationId, applicationId)
@@ -152,7 +152,7 @@ test('receive multiple alerts for the same pod', async (t) => {
   })
 
   // Verify alerts were saved correctly
-  const savedAlerts = await server.store.getAlertByPodId(podId)
+  const savedAlerts = await server.store.getAlertsByPodId(podId)
   assert.strictEqual(savedAlerts.length, 2, 'Both alerts should be saved')
 
   const firstAlert = savedAlerts[0]
@@ -168,7 +168,7 @@ test('receive multiple alerts for the same pod', async (t) => {
 
   assert.ok(firstAlert.timestamp, 'First alert should have a timestamp')
   assert.ok(secondAlert.timestamp, 'Second alert should have a timestamp')
-  assert.ok(firstAlert.timestamp < secondAlert.timestamp, 'First alert should have a older timestamp')
+  assert.ok(firstAlert.timestamp < secondAlert.timestamp, 'First alert should have an older timestamp')
 })
 
 test('fail when missing k8s context', async (t) => {
