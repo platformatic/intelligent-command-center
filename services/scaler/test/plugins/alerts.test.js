@@ -229,3 +229,120 @@ test('should store multiple alerts for the same pod/app/service', async (t) => {
   assert.strictEqual(podAlerts[1].elu, 75)
   assert.strictEqual(podAlerts[1].heapUsed, 150)
 })
+
+test('should trigger scaler when alert is unhealthy', async (t) => {
+  await cleanRedisData()
+
+  const notifications = []
+  const server = await buildServer(t)
+
+  const originalNotifyScaler = server.notifyScaler
+  server.notifyScaler = async function (podId) {
+    notifications.push(podId)
+    await originalNotifyScaler(podId)
+  }
+
+  t.after(async () => {
+    server.notifyScaler = originalNotifyScaler
+    await server.close()
+    await cleanRedisData()
+  })
+
+  const applicationId = 'test:' + randomUUID()
+  const serviceId = randomUUID()
+  const podId = randomUUID()
+
+  const unhealthyAlert = {
+    applicationId,
+    serviceId,
+    podId,
+    elu: 95,
+    heapUsed: 190,
+    heapTotal: 380,
+    unhealthy: true
+  }
+
+  await server.processAlert(unhealthyAlert)
+
+  assert.strictEqual(notifications.length, 1, 'The scaler should have been notified')
+  assert.strictEqual(notifications[0], podId, 'The scaler should have been notified with the correct podId')
+
+  notifications.length = 0 // Clear the array
+
+  const healthyAlert = {
+    applicationId,
+    serviceId,
+    podId,
+    elu: 50,
+    heapUsed: 100,
+    heapTotal: 200,
+    unhealthy: false
+  }
+
+  await server.processAlert(healthyAlert)
+
+  assert.strictEqual(notifications.length, 0, 'The scaler should not have been notified for a healthy alert')
+})
+
+test('should debounce multiple unhealthy alerts for the same pod', async (t) => {
+  await cleanRedisData()
+
+  const notifications = []
+  const server = await buildServer(t)
+
+  server.alertsManager.clearRecentTriggers()
+
+  // Set a shorter debounce window for testing
+  server.alertsManager.setDebounceWindow(5000) // 5 seconds
+
+  const originalNotifyScaler = server.notifyScaler
+  server.notifyScaler = async function (podId) {
+    notifications.push(podId)
+    await originalNotifyScaler(podId)
+  }
+
+  t.after(async () => {
+    server.notifyScaler = originalNotifyScaler
+    await server.close()
+    await cleanRedisData()
+  })
+
+  const applicationId = 'test:' + randomUUID()
+  const serviceId = randomUUID()
+  const podId = randomUUID()
+
+  const unhealthyAlert = {
+    applicationId,
+    serviceId,
+    podId,
+    elu: 95,
+    heapUsed: 190,
+    heapTotal: 380,
+    unhealthy: true
+  }
+
+  // First unhealthy alert should trigger the scaler
+  await server.processAlert(unhealthyAlert)
+  assert.strictEqual(notifications.length, 1, 'The scaler should have been notified for the first unhealthy alert')
+
+  // Second unhealthy alert for the same pod within the debounce window should not trigger
+  await server.processAlert({ ...unhealthyAlert, elu: 97 })
+  assert.strictEqual(notifications.length, 1, 'The scaler should not have been notified again within debounce window')
+
+  // Different pod should still trigger even within debounce window
+  const differentPodId = randomUUID()
+  await server.processAlert({ ...unhealthyAlert, podId: differentPodId })
+  assert.strictEqual(notifications.length, 2, 'The scaler should be notified for a different pod')
+  assert.strictEqual(notifications[1], differentPodId, 'The second notification should be for the different pod')
+
+  // Set an older timestamp for podId to simulate passage of time
+  const now = Date.now()
+  const oldTimestamp = now - server.alertsManager.debounceWindow - 1000 // 1 second past the window
+  await server.alertsManager.setLastTriggeredTime(podId, oldTimestamp)
+
+  notifications.length = 0
+
+  // Now the next alert should trigger again because it's outside the debounce window
+  await server.processAlert(unhealthyAlert)
+  assert.strictEqual(notifications.length, 1, 'The scaler should be notified after debounce window expires')
+})

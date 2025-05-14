@@ -23,13 +23,18 @@ class Store {
   }
 
   async saveAlert (alert) {
-    const { applicationId, serviceId, podId } = alert
-    if (!applicationId || !serviceId || !podId) {
+    const { applicationId, podId } = alert
+    if (!applicationId || !podId) {
       const missingFields = []
       if (!applicationId) missingFields.push('applicationId')
-      if (!serviceId) missingFields.push('serviceId')
       if (!podId) missingFields.push('podId')
       throw new errors.MISSING_REQUIRED_FIELDS(missingFields.join(', '))
+    }
+
+    // Ensure healthHistory is properly stored if present
+    if (alert.healthHistory && !Array.isArray(alert.healthHistory)) {
+      this.log.warn({ podId, applicationId }, 'healthHistory is not an array, converting to empty array')
+      alert.healthHistory = []
     }
 
     const timestamp = Date.now()

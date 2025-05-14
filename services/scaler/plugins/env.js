@@ -12,7 +12,8 @@ const schema = {
     PLT_ICC_VALKEY_CONNECTION_STRING: { type: 'string' },
     PLT_METRICS_POLLING_INTERVAL: { type: 'number', default: 5000 },
     PLT_METRICS_TIME_RANGE: { type: 'string', default: '1m' },
-    PLT_SCALER_PROMETHEUS_URL: { type: 'string' }
+    PLT_SCALER_PROMETHEUS_URL: { type: 'string' },
+    PLT_SCALER_DEBOUNCE: { type: 'number', default: 10000 }
   }
 }
 

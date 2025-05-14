@@ -298,3 +298,69 @@ test('saveAlert and getAlerts - multiple alerts for same pod/app/service combina
   const podAlerts = await store.getAlertByPodId(podId)
   assert.strictEqual(podAlerts.length, 2, 'Should store both alerts for the same pod')
 })
+
+test('saveAlert - saves alert with healthHistory array', async (t) => {
+  const store = await setup(t)
+
+  const applicationId = 'test:' + randomUUID()
+  const serviceId = randomUUID()
+  const podId = randomUUID()
+
+  // Create sample health history
+  const healthHistory = [
+    {
+      id: randomUUID(),
+      service: serviceId,
+      currentHealth: {
+        elu: 0.4,
+        heapUsed: 90,
+        heapTotal: 180
+      },
+      unhealthy: false,
+      healthConfig: {
+        enabled: true,
+        interval: 60,
+        maxELU: 0.8
+      }
+    },
+    {
+      id: randomUUID(),
+      service: serviceId,
+      currentHealth: {
+        elu: 0.6,
+        heapUsed: 110,
+        heapTotal: 190
+      },
+      unhealthy: true,
+      healthConfig: {
+        enabled: true,
+        interval: 60,
+        maxELU: 0.8
+      }
+    }
+  ]
+
+  const alert = {
+    applicationId,
+    serviceId,
+    podId,
+    elu: 75,
+    heapUsed: 120,
+    heapTotal: 200,
+    unhealthy: true,
+    healthHistory
+  }
+
+  await store.saveAlert(alert)
+
+  const alerts = await store.getAlertByPodId(podId)
+  assert.strictEqual(alerts.length, 1, 'Should have one alert')
+
+  const savedAlert = alerts[0]
+  assert.ok(Array.isArray(savedAlert.healthHistory), 'healthHistory should be an array')
+  assert.strictEqual(savedAlert.healthHistory.length, 2, 'healthHistory should have 2 items')
+  assert.strictEqual(savedAlert.healthHistory[0].id, healthHistory[0].id, 'healthHistory items should match')
+  assert.strictEqual(savedAlert.healthHistory[1].id, healthHistory[1].id, 'healthHistory items should match')
+  assert.strictEqual(savedAlert.healthHistory[0].currentHealth.elu, healthHistory[0].currentHealth.elu, 'healthHistory details should match')
+  assert.strictEqual(savedAlert.healthHistory[1].unhealthy, healthHistory[1].unhealthy, 'healthHistory unhealthy flag should match')
+})
