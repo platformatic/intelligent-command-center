@@ -50,13 +50,13 @@ test('saveAlert - saves an alert to Redis with timestamp', async (t) => {
   const appAlertKeys = await store.redis.keys(`${ALERTS_PREFIX}app:${alert.applicationId}:*`)
   assert.strictEqual(appAlertKeys.length, 1, 'Should have one app alert key')
 
-  const podAlertKeys = await store.redis.keys(`${ALERTS_PREFIX}pod:${alert.podId}:*`)
+  const podAlertKeys = await store.redis.keys(`${ALERTS_PREFIX}app:*:pod:${alert.podId}:*`)
   assert.strictEqual(podAlertKeys.length, 1, 'Should have one pod alert key')
 
-  const alertKeyRef = await store.redis.get(appAlertKeys[0])
-  assert.ok(alertKeyRef, 'Alert key reference should exist')
+  const alertKey = appAlertKeys[0]
+  assert.ok(alertKey, 'Alert key should exist')
 
-  const alertData = await store.redis.get(alertKeyRef)
+  const alertData = await store.redis.get(alertKey)
   assert.ok(alertData, 'Alert data should exist')
 
   const savedAlert = JSON.parse(alertData)
@@ -68,14 +68,11 @@ test('saveAlert - saves an alert to Redis with timestamp', async (t) => {
   assert.strictEqual(savedAlert.heapTotal, alert.heapTotal)
   assert.ok(savedAlert.timestamp, 'Alert should have a timestamp')
 
-  const refTtl = await store.redis.ttl(appAlertKeys[0])
-  assert.ok(refTtl > 0 && refTtl <= 120, 'Alert reference should have expiry set')
-
-  const alertTtl = await store.redis.ttl(alertKeyRef)
+  const alertTtl = await store.redis.ttl(alertKey)
   assert.ok(alertTtl > 0 && alertTtl <= 120, 'Alert data should have expiry set')
 })
 
-test('getAlerts - returns all alerts for an application in chronological order', async (t) => {
+test('getAlertsByApplicationId - returns all alerts for an application in chronological order', async (t) => {
   const store = await setup(t)
 
   const applicationId = 'test:' + randomUUID()
@@ -103,7 +100,7 @@ test('getAlerts - returns all alerts for an application in chronological order',
     await setTimeout(50) // Small delay to ensure different timestamps
   }
 
-  const retrievedAlerts = await store.getAlerts(applicationId)
+  const retrievedAlerts = await store.getAlertsByApplicationId(applicationId)
   assert.strictEqual(retrievedAlerts.length, 2)
 
   // Verify all alerts have timestamps
@@ -119,7 +116,7 @@ test('getAlerts - returns all alerts for an application in chronological order',
   assert.ok(alerts.every(a => podIds.includes(a.podId)), 'All original pod IDs should be present')
 })
 
-test('getAlerts - filters alerts by timeWindow', async (t) => {
+test('getAlertsByApplicationId - filters alerts by timeWindow', async (t) => {
   const store = await setup(t)
 
   const applicationId = 'test:' + randomUUID()
@@ -146,25 +143,25 @@ test('getAlerts - filters alerts by timeWindow', async (t) => {
   await setTimeout(500)
   await store.saveAlert(alerts[1])
 
-  const allAlerts = await store.getAlerts(applicationId)
+  const allAlerts = await store.getAlertsByApplicationId(applicationId)
   assert.strictEqual(allAlerts.length, 2, 'Should return all alerts without timeWindow')
 
-  const timeWindow = 0.5 // 500ms in seconds
-  const recentAlerts = await store.getAlerts(applicationId, timeWindow)
+  const timeWindow = 500 // 500ms
+  const recentAlerts = await store.getAlertsByApplicationId(applicationId, timeWindow)
 
   assert.strictEqual(recentAlerts.length, 1, 'Should return only the most recent alert within the time window')
   assert.strictEqual(recentAlerts[0].elu, 75, 'Should return the most recent alert')
 })
 
-test('getAlerts - returns empty array for non-existent application', async (t) => {
+test('getAlertsByApplicationId - returns empty array for non-existent application', async (t) => {
   const store = await setup(t)
 
   const nonExistentId = 'test:' + randomUUID()
-  const alerts = await store.getAlerts(nonExistentId)
+  const alerts = await store.getAlertsByApplicationId(nonExistentId)
   assert.deepStrictEqual(alerts, [])
 })
 
-test('getAlertByPodId - returns all alerts for a podId in chronological order', async (t) => {
+test('getAlertsByPodId - returns all alerts for a podId in chronological order', async (t) => {
   const store = await setup(t)
 
   const podId = randomUUID()
@@ -201,7 +198,7 @@ test('getAlertByPodId - returns all alerts for a podId in chronological order', 
     heapTotal: 200
   })
 
-  const retrievedAlerts = await store.getAlertByPodId(podId)
+  const retrievedAlerts = await store.getAlertsByPodId(podId)
   assert.strictEqual(retrievedAlerts.length, 2)
 
   for (const alert of retrievedAlerts) {
@@ -215,7 +212,7 @@ test('getAlertByPodId - returns all alerts for a podId in chronological order', 
   assert.ok(alerts.every(a => serviceIds.includes(a.serviceId)), 'All original service IDs should be present')
 })
 
-test('getAlertByPodId - filters alerts by timeWindow', async (t) => {
+test('getAlertsByPodId - filters alerts by timeWindow', async (t) => {
   const store = await setup(t)
 
   const podId = randomUUID()
@@ -243,24 +240,24 @@ test('getAlertByPodId - filters alerts by timeWindow', async (t) => {
   await store.saveAlert(alerts[1])
 
   // First, verify both alerts are returned without time window
-  const allAlerts = await store.getAlertByPodId(podId)
+  const allAlerts = await store.getAlertsByPodId(podId)
   assert.strictEqual(allAlerts.length, 2, 'Should return all alerts without timeWindow')
 
   // Now get only the most recent alert with a short time window
-  const timeWindow = 0.5 // 500ms in seconds
-  const recentAlerts = await store.getAlertByPodId(podId, timeWindow)
+  const timeWindow = 500 // 500ms
+  const recentAlerts = await store.getAlertsByPodId(podId, timeWindow)
 
   assert.strictEqual(recentAlerts.length, 1, 'Should return only the most recent alert within the time window')
   assert.strictEqual(recentAlerts[0].elu, 90, 'Should return the most recent alert')
 })
 
-test('getAlertByPodId - returns empty array for non-existent podId', async (t) => {
+test('getAlertsByPodId - returns empty array for non-existent podId', async (t) => {
   const store = await setup(t)
-  const alerts = await store.getAlertByPodId(randomUUID())
+  const alerts = await store.getAlertsByPodId(randomUUID())
   assert.deepStrictEqual(alerts, [])
 })
 
-test('saveAlert and getAlerts - multiple alerts for same pod/app/service combination', async (t) => {
+test('saveAlert and getAlertsByApplicationId - multiple alerts for same pod/app/service combination', async (t) => {
   const store = await setup(t)
 
   const applicationId = 'test:' + randomUUID()
@@ -292,10 +289,10 @@ test('saveAlert and getAlerts - multiple alerts for same pod/app/service combina
     await setTimeout(50) // Small delay to ensure different timestamps
   }
 
-  const appAlerts = await store.getAlerts(applicationId)
+  const appAlerts = await store.getAlertsByApplicationId(applicationId)
   assert.strictEqual(appAlerts.length, 2, 'Should store both alerts for the same application')
 
-  const podAlerts = await store.getAlertByPodId(podId)
+  const podAlerts = await store.getAlertsByPodId(podId)
   assert.strictEqual(podAlerts.length, 2, 'Should store both alerts for the same pod')
 })
 
@@ -353,7 +350,7 @@ test('saveAlert - saves alert with healthHistory array', async (t) => {
 
   await store.saveAlert(alert)
 
-  const alerts = await store.getAlertByPodId(podId)
+  const alerts = await store.getAlertsByPodId(podId)
   assert.strictEqual(alerts.length, 1, 'Should have one alert')
 
   const savedAlert = alerts[0]

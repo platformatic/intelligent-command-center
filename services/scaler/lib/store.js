@@ -22,6 +22,34 @@ class Store {
     }
   }
 
+  async #getAlertsByPattern (pattern, timeWindow = 0) {
+    const keys = await this.redis.keys(pattern)
+
+    if (keys.length === 0) {
+      return []
+    }
+
+    const now = Date.now()
+    const alerts = []
+
+    const values = await this.redis.mget(keys)
+    for (let i = 0; i < values.length; i++) {
+      if (!values[i]) continue
+
+      try {
+        const alert = JSON.parse(values[i])
+        if (timeWindow > 0 && (now - alert.timestamp) > timeWindow) {
+          continue
+        }
+        alerts.push(alert)
+      } catch (err) {
+        this.log.error({ err, key: keys[i] }, 'Failed to parse alert')
+      }
+    }
+
+    return alerts.sort((a, b) => a.timestamp - b.timestamp)
+  }
+
   async saveAlert (alert) {
     const { applicationId, podId } = alert
     if (!applicationId || !podId) {
@@ -31,7 +59,6 @@ class Store {
       throw new errors.MISSING_REQUIRED_FIELDS(missingFields.join(', '))
     }
 
-    // Ensure healthHistory is properly stored if present
     if (alert.healthHistory && !Array.isArray(alert.healthHistory)) {
       this.log.warn({ podId, applicationId }, 'healthHistory is not an array, converting to empty array')
       alert.healthHistory = []
@@ -44,92 +71,28 @@ class Store {
     }
 
     const timestampStr = timestamp.toString().padStart(13, '0') // to be "sortable"
-    const appAlertKey = `${ALERTS_PREFIX}app:${applicationId}:${timestampStr}`
-    const podAlertKey = `${ALERTS_PREFIX}pod:${podId}:${timestampStr}`
-
-    const alertKey = `${ALERTS_PREFIX}${timestampStr}`
+    const alertKey = `${ALERTS_PREFIX}app:${applicationId}:pod:${podId}:${timestampStr}`
 
     const alertStr = JSON.stringify(alertWithTimestamp)
     await this.redis.set(alertKey, alertStr, 'EX', this.alertRetention)
-    await this.redis.set(appAlertKey, alertKey, 'EX', this.alertRetention)
-    await this.redis.set(podAlertKey, alertKey, 'EX', this.alertRetention)
   }
 
-  async getAlertsByPattern (keyPattern, timeWindow = 0) {
-    if (!keyPattern) {
-      return []
-    }
-
-    const keys = await this.redis.keys(keyPattern)
-
-    if (!keys || keys.length === 0) {
-      return []
-    }
-
-    const alertKeys = await this.redis.mget(keys)
-
-    const validAlertKeys = []
-    for (let i = 0; i < alertKeys.length; i++) {
-      if (alertKeys[i] !== null) {
-        validAlertKeys.push(alertKeys[i])
-      }
-    }
-
-    if (validAlertKeys.length === 0) {
-      return []
-    }
-
-    const alertsData = await this.redis.mget(validAlertKeys)
-
-    const parsedAlerts = []
-    for (let i = 0; i < alertsData.length; i++) {
-      const data = alertsData[i]
-      if (data === null) continue
-
-      try {
-        const parsedAlert = JSON.parse(data)
-        if (parsedAlert) {
-          parsedAlerts.push(parsedAlert)
-        }
-      } catch (err) {
-        this.log.error({ err }, 'Failed to parse alert data')
-      }
-    }
-
-    if (timeWindow > 0) {
-      const timeWindowCutoff = Date.now() - (timeWindow * 1000)
-      const filteredAlerts = []
-      for (let i = 0; i < parsedAlerts.length; i++) {
-        const alert = parsedAlerts[i]
-        if (alert.timestamp >= timeWindowCutoff) {
-          filteredAlerts.push(alert)
-        }
-      }
-      parsedAlerts.length = 0
-      for (let i = 0; i < filteredAlerts.length; i++) {
-        parsedAlerts.push(filteredAlerts[i])
-      }
-    }
-
-    // Sort alerts by timestamp for consistent ordering (oldest first, chronological)
-    parsedAlerts.sort((a, b) => a.timestamp - b.timestamp)
-    return parsedAlerts
-  }
-
-  async getAlerts (applicationId, timeWindow = 0) {
+  async getAlertsByApplicationId (applicationId, timeWindow = 0) {
     if (!applicationId) {
       return []
     }
-    const keyPattern = `${ALERTS_PREFIX}app:${applicationId}:*`
-    return this.getAlertsByPattern(keyPattern, timeWindow)
+
+    const pattern = `${ALERTS_PREFIX}app:${applicationId}:pod:*`
+    return this.#getAlertsByPattern(pattern, timeWindow)
   }
 
-  async getAlertByPodId (podId, timeWindow = 0) {
+  async getAlertsByPodId (podId, timeWindow = 0) {
     if (!podId) {
       return []
     }
-    const keyPattern = `${ALERTS_PREFIX}pod:${podId}:*`
-    return this.getAlertsByPattern(keyPattern, timeWindow)
+
+    const pattern = `${ALERTS_PREFIX}app:*:pod:${podId}:*`
+    return this.#getAlertsByPattern(pattern, timeWindow)
   }
 }
 
