@@ -46,6 +46,7 @@ CREATE TABLE deployments (
   application_state_id uuid REFERENCES application_states(id),
   status deployment_status NOT NULL,
   image_id VARCHAR(255) NOT NULL,
+  namespace VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -54,7 +55,7 @@ CREATE TABLE instances (
   application_id uuid NOT NULL REFERENCES applications(id),
   deployment_id uuid REFERENCES deployments(id),
   pod_id VARCHAR(255) NOT NULL,
-  pod_namespace VARCHAR(255) NOT NULL,
+  namespace VARCHAR(255) NOT NULL,
   status instance_status NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 

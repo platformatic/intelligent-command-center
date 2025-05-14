@@ -11,7 +11,7 @@ module.exports = fp(async function (app) {
     const instances = await app.platformatic.entities.instance.find({
       where: {
         podId: { eq: podId },
-        podNamespace: { eq: namespace }
+        namespace: { eq: namespace }
       }
     })
     return instances.length === 1 ? instances[0] : null
@@ -28,7 +28,7 @@ module.exports = fp(async function (app) {
   app.decorate('initApplicationInstance', async (
     applicationName,
     podId,
-    podNamespace,
+    namespace,
     ctx
   ) => {
     let application = null
@@ -38,11 +38,11 @@ module.exports = fp(async function (app) {
 
     const { image: imageId } = await app.machinist.getPodDetails(
       podId,
-      podNamespace,
+      namespace,
       ctx
     )
 
-    const instance = await app.getInstanceByPodId(podId, podNamespace)
+    const instance = await app.getInstanceByPodId(podId, namespace)
     if (instance !== null) {
       ([application, deployment] = await Promise.all([
         app.getApplicationById(instance.applicationId),
@@ -63,7 +63,7 @@ module.exports = fp(async function (app) {
       ctx.logger.debug({ instance }, 'Got app instance with the same pod id')
     } else {
       const result = await app.saveInstance(
-        applicationName, imageId, podId, podNamespace, ctx
+        applicationName, imageId, podId, namespace, ctx
       )
 
       if (result.isNewApplication) {
@@ -93,6 +93,15 @@ module.exports = fp(async function (app) {
         })
       }
       if (result.isNewDeployment) {
+        await ctx.req.scaler.savePodController({
+          applicationId: result.application.id,
+          deploymentId: result.deployment.id,
+          namespace,
+          podId
+        }).catch((err) => {
+          ctx.logger.error({ err }, 'Failed to save pod controller')
+        })
+
         await app.sendSuccessfulApplicationDeployActivity(
           result.application.id,
           result.application.name,
@@ -122,7 +131,7 @@ module.exports = fp(async function (app) {
     applicationName,
     imageId,
     podId,
-    podNamespace,
+    namespace,
     ctx
   ) => {
     const { entities } = app.platformatic
@@ -163,6 +172,7 @@ module.exports = fp(async function (app) {
             input: {
               applicationId: application.id,
               applicationStateId: null,
+              namespace,
               imageId,
               status: 'starting'
             },
@@ -177,7 +187,7 @@ module.exports = fp(async function (app) {
           deploymentId: deployment.id,
           applicationId: application.id,
           podId,
-          podNamespace,
+          namespace,
           status: 'starting'
         },
         tx

@@ -23,6 +23,7 @@ module.exports = fp(async function (app) {
         d.id,
         d.application_id as "applicationId",
         d.application_state_id as "applicationStateId",
+        d.namespace,
         d.image_id as "imageId",
         d.status,
         d.created_at as "createdAt"
@@ -47,6 +48,7 @@ module.exports = fp(async function (app) {
         d.id,
         d.application_id as "applicationId",
         d.application_state_id as "applicationStateId",
+        d.namespace,
         d.image_id as "imageId",
         d.status,
         d.created_at as "createdAt"

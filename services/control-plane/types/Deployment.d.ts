@@ -8,6 +8,7 @@ declare interface Deployment {
     applicationStateId?: string | null;
     createdAt?: string | null;
     imageId: string;
+    namespace: string;
     status: "failed" | "started" | "starting";
 }
 export { Deployment };
