@@ -1,35 +1,14 @@
 'use strict'
 
 const fp = require('fastify-plugin')
+const AlertsManager = require('../lib/alerts-manager')
 
 module.exports = fp(async function (app) {
-  async function processAlert (alert) {
-    const { applicationId, serviceId, podId, elu, heapUsed, heapTotal } = alert
+  const alertsManager = new AlertsManager(app)
 
-    app.log.debug({
-      applicationId,
-      serviceId,
-      podId,
-      elu,
-      heapUsed,
-      heapTotal
-    }, 'Processing alert')
-
-    // Save the alert.
-    await app.store.saveAlert({
-      applicationId,
-      serviceId,
-      podId,
-      elu,
-      heapUsed,
-      heapTotal
-    })
-
-    // TODO:: The alsert should trigger the scaler.
-  }
-
-  app.decorate('processAlert', processAlert)
+  app.decorate('alertsManager', alertsManager)
+  app.decorate('processAlert', alert => alertsManager.processAlert(alert))
 }, {
   name: 'alerts',
-  dependencies: ['store']
+  dependencies: ['store', 'scaler']
 })

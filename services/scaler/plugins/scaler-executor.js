@@ -10,6 +10,11 @@ class ScalerExecutor {
   async execute (podId) {
     this.app.log.info({ podId }, 'Calculating scaling decision')
 
+    // We should have only one alert in the time window, but the store consider the most
+    // generale case, so this is a list
+    const alerts = await this.app.store.getAlertByPodId(podId)
+    this.app.log.debug({ podId, alertsCount: alerts.length, alerts }, 'Pod current alerts')
+
     this.app.log.info(`Processing scaling for pod: ${podId}`)
     // TODO: implement scaling logic
 
@@ -27,5 +32,5 @@ async function plugin (app) {
 
 module.exports = fp(plugin, {
   name: 'scaler-executor',
-  dependencies: []
+  dependencies: ['store']
 })
