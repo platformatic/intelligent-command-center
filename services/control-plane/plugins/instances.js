@@ -112,6 +112,19 @@ module.exports = fp(async function (app) {
         })
       }
 
+      await app.machinist.setPodLabels(
+        podId,
+        namespace,
+        {
+          'platformatic.dev/prometheus': 'true',
+          'platformatic.dev/application-id': result.application.id,
+          'platformatic.dev/deployment-id': result.deployment.id
+        },
+        ctx
+      ).catch((err) => {
+        ctx.logger.error({ err }, 'Failed to set pod labels')
+      })
+
       application = result.application
       deployment = result.deployment
     }

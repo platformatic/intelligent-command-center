@@ -42,8 +42,12 @@ test('should save an instance of a new application', async (t) => {
 
   await startCompliance(t)
 
+  const podsLabels = []
   await startMachinist(t, {
-    getPodDetails: () => ({ image: imageId })
+    getPodDetails: () => ({ image: imageId }),
+    setPodLabels: (podId, labels) => {
+      podsLabels.push({ podId, labels })
+    }
   })
 
   const controlPlane = await startControlPlane(t)
@@ -178,6 +182,16 @@ test('should save an instance of a new application', async (t) => {
   assert.strictEqual(controller.podId, podId)
 
   assert.strictEqual(iccUpdates.length, 1)
+
+  assert.strictEqual(podsLabels.length, 1)
+
+  const podsLabels1 = podsLabels[0]
+  assert.strictEqual(podsLabels1.podId, podId)
+  assert.deepStrictEqual(podsLabels1.labels, {
+    'platformatic.dev/prometheus': 'true',
+    'platformatic.dev/application-id': application.id,
+    'platformatic.dev/deployment-id': deployment.id
+  })
 
   const createdAppUpdate = iccUpdates[0]
   assert.deepStrictEqual(createdAppUpdate, {
