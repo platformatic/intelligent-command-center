@@ -39,6 +39,25 @@ class Machinist {
     const podDetails = await body.json()
     return podDetails
   }
+
+  async setPodLabels (podId, namespace, labels, ctx) {
+    ctx.logger.info('Setting pod labels')
+
+    const url = this.url + `/pods/${namespace}/${podId}/labels`
+    const { statusCode, body } = await request(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ labels }),
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      throw new errors.FailedToSetPodLabels(error)
+    }
+  }
 }
 
 /** @param {import('fastify').FastifyInstance} app */
