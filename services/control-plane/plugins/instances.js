@@ -116,7 +116,7 @@ module.exports = fp(async function (app) {
         podId,
         namespace,
         {
-          'platformatic.dev/prometheus': 'true',
+          'platformatic.dev/monitor': 'prometheus',
           'platformatic.dev/application-id': result.application.id,
           'platformatic.dev/deployment-id': result.deployment.id
         },
