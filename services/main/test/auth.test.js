@@ -76,7 +76,7 @@ test('report user-manager error if its response is not 200', async (t) => {
   })
 })
 
-test.only('handle user-manager missing credentials error', async (t) => {
+test('handle user-manager missing credentials error', async (t) => {
   const server = await getServer(t)
   await server.start()
   agent
