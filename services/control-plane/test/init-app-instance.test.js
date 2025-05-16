@@ -188,7 +188,7 @@ test('should save an instance of a new application', async (t) => {
   const podsLabels1 = podsLabels[0]
   assert.strictEqual(podsLabels1.podId, podId)
   assert.deepStrictEqual(podsLabels1.labels, {
-    'platformatic.dev/prometheus': 'true',
+    'platformatic.dev/monitor': 'prometheus',
     'platformatic.dev/application-id': application.id,
     'platformatic.dev/deployment-id': deployment.id
   })
