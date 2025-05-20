@@ -21,7 +21,7 @@ export default function Resources ({
   useEffect(() => {
     async function getApplicationSettings () {
       const json = await callApiGetApplicationsConfigs(applicationId)
-      setResources(json.resources)
+      setResources(json)
     }
 
     getApplicationSettings()
