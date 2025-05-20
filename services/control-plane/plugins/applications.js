@@ -61,4 +61,30 @@ module.exports = fp(async function (app) {
 
     return application
   })
+
+  app.decorate('getApplicationK8sState', async (application, ctx) => {
+    const deployment = await app.getLatestDeployment(application.id, ctx)
+    if (deployment === null) {
+      throw new errors.DeploymentNotFound(application.id)
+    }
+
+    const namespace = deployment.namespace
+    const labels = {
+      'platformatic.dev/application-id': application.id
+    }
+
+    const k8sState = await app.machinist.getK8sState(namespace, labels, ctx)
+
+    const pods = []
+    for (const pod of k8sState.pods) {
+      pods.push({
+        id: pod.id,
+        status: pod.status,
+        startTime: pod.startTime,
+        resources: pod.resources
+      })
+    }
+
+    return { pods }
+  })
 })

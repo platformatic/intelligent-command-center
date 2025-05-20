@@ -103,5 +103,9 @@ module.exports = {
   FailedToSetPodLabels: createError(
     `${ERROR_PREFIX}_FAILED_TO_SET_POD_LABELS`,
     'Failed to set pod labels: %s'
+  ),
+  FailedToGetK8sState: createError(
+    `${ERROR_PREFIX}_FAILED_TO_GET_K8S_STATE`,
+    'Failed to get k8s state: %s'
   )
 }

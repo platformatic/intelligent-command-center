@@ -445,6 +445,11 @@ async function startMachinist (t, opts = {}) {
     return opts.getPodDetails?.(podId)
   })
 
+  machinist.get('/state/:namespace', async (req) => {
+    const namespace = req.params.namespace
+    return opts.getK8sState?.(namespace)
+  })
+
   machinist.patch('/pods/:namespace/:podId/labels', async (req) => {
     const podId = req.params.podId
     const labels = req.body.labels

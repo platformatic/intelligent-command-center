@@ -1,5 +1,6 @@
 'use strict'
 
+const querystring = require('node:querystring')
 const { request, getGlobalDispatcher, interceptors } = require('undici')
 const fp = require('fastify-plugin')
 const errors = require('./errors')
@@ -19,8 +20,33 @@ class Machinist {
       }))
   }
 
+  async getK8sState (namespace, labels, ctx) {
+    ctx.logger.info('Getting a k8s state')
+
+    const serializedLabels = Object.entries(labels)
+      .map(([key, value]) => `${key}=${value}`)
+
+    const query = querystring.stringify({ podSelector: serializedLabels })
+    const url = this.url + `/state/${namespace}?${query}`
+    const { statusCode, body } = await request(url, {
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error(
+        { error, namespace, labels },
+        'Failed to get k8s state'
+      )
+      throw new errors.FailedToGetK8sState(error)
+    }
+
+    const state = await body.json()
+    return state
+  }
+
   async getPodDetails (podId, namespace, ctx) {
-    ctx.logger.info('Getting a list of machines')
+    ctx.logger.info('Getting a list of pods')
 
     const url = this.url + `/pods/${namespace}/${podId}`
     const { statusCode, body } = await request(url, {
