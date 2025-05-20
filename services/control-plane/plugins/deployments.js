@@ -15,6 +15,16 @@ module.exports = fp(async function (app) {
     return deployments.length === 1 ? deployments[0] : null
   })
 
+  app.decorate('getLatestDeployment', async (applicationId, ctx) => {
+    const deployments = await app.platformatic.entities.deployment.find({
+      where: { applicationId: { eq: applicationId } },
+      orderBy: { createdAt: 'desc' },
+      limit: 1,
+      tx: ctx?.tx
+    })
+    return deployments.length === 1 ? deployments[0] : null
+  })
+
   app.decorate('getGenerationDeployments', async (generationId, ctx) => {
     const { db, sql } = app.platformatic
 
