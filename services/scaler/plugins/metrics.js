@@ -4,8 +4,7 @@ const fp = require('fastify-plugin')
 const Metrics = require('../lib/metrics')
 
 module.exports = fp(async function (app) {
-  const prometheusUrl = app.env.PLT_SCALER_PROMETHEUS_URL
-  const pollingInterval = app.env.PLT_METRICS_POLLING_INTERVAL
+  const prometheusUrl = app.env.PLT_METRICS_PROMETHEUS_URL
   const timeRange = app.env.PLT_METRICS_TIME_RANGE
 
   if (!prometheusUrl) {
@@ -13,19 +12,7 @@ module.exports = fp(async function (app) {
     return
   }
 
-  const metrics = new Metrics(prometheusUrl, pollingInterval, timeRange, app.log)
-
-  app.addHook('onReady', async () => {
-    if (metrics) {
-      await metrics.start()
-    }
-  })
-
-  app.addHook('onClose', async () => {
-    if (metrics) {
-      metrics.stop()
-    }
-  })
+  const metrics = new Metrics(prometheusUrl, app.log, { timeRange })
 
   app.decorate('scalerMetrics', metrics)
 }, {

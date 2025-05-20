@@ -2,11 +2,9 @@
 
 const test = require('node:test')
 const assert = require('node:assert')
-const { setTimeout: wait } = require('node:timers/promises')
-const { MockAgent, setGlobalDispatcher } = require('undici')
+const Fastify = require('fastify')
 const Metrics = require('../../lib/metrics')
 
-// Setup mock logger
 function createMockLogger () {
   return {
     info: () => {},
@@ -16,186 +14,284 @@ function createMockLogger () {
   }
 }
 
-function setupMockAgent (host, responses = []) {
-  const mockAgent = new MockAgent()
-  mockAgent.disableNetConnect()
+async function setupMockPrometheusServer (responses = {}) {
+  const server = Fastify()
 
-  const mockPool = mockAgent.get(host)
+  server.get('/api/v1/query_range', async (request, reply) => {
+    const { query } = request.query
+    let responseData = null
 
-  // Add response mocks
-  responses.forEach(({ path, statusCode, data }) => {
-    mockPool.intercept({
-      path,
-      method: 'GET'
-    }).reply(statusCode, data)
+    if (query.includes('nodejs_heap_size_total_bytes') && query.includes('test-app')) {
+      responseData = responses.heapSize
+    } else if (query.includes('nodejs_eventloop_utilization') && query.includes('test-app')) {
+      responseData = responses.eventLoop
+    }
+
+    if (responseData) {
+      return responseData
+    }
+
+    return reply.status(404).send({ status: 'error', error: 'No data found for query' })
   })
 
-  setGlobalDispatcher(mockAgent)
-  return mockAgent
+  const address = await server.listen({ port: 0 })
+
+  return {
+    server,
+    address,
+    close: async () => {
+      await server.close()
+    }
+  }
 }
 
-test('start and stop polling', async (t) => {
-  const mockLogger = createMockLogger()
-  const logEvents = []
-
-  mockLogger.info = (obj, msg) => {
-    msg = msg || obj
-    logEvents.push({ type: 'info', msg, obj })
-  }
-
-  const metrics = new Metrics('http://prometheus:9090', '1000', '300', mockLogger)
-
-  await metrics.start()
-  assert.strictEqual(metrics.isPolling, true)
-  assert.ok(logEvents.some(event => event.msg === 'Starting metrics polling'))
-
-  metrics.stop()
-  assert.strictEqual(metrics.isPolling, false)
-  assert.ok(logEvents.some(event => event.msg === 'Stopped metrics polling'))
-})
-
-test('_collectMetrics - successful query and call processMetrics', async (t) => {
-  const mockPromResponse = {
+test('query heap size and event loop utilization metrics', async (t) => {
+  const mockHeapSizeResponse = {
     status: 'success',
     data: {
       resultType: 'matrix',
       result: [
         {
-          metric: { service: 'test-service' },
-          values: [[1620000000, '0.1'], [1620000060, '0.2']]
+          metric: { applicationId: 'test-app', podId: 'pod-1' },
+          values: [[1620000000, '100000000'], [1620000001, '110000000']]
+        },
+        {
+          metric: { applicationId: 'test-app', podId: 'pod-2' },
+          values: [[1620000000, '120000000'], [1620000001, '130000000']]
         }
       ]
     }
   }
 
-  const host = 'http://prometheus:9090'
-  const mockAgent = setupMockAgent(new URL(host).origin, [
-    {
-      path: '/api/v1/query_range?query=sum(rate(process_cpu_seconds_total%5B5m%5D))%20by%20(service)&start=1619999700&end=1620000000&step=60',
-      statusCode: 200,
-      data: mockPromResponse
-    },
-    {
-      path: '/api/v1/query_range?query=sum(process_resident_memory_bytes)%20by%20(service)&start=1619999700&end=1620000000&step=60',
-      statusCode: 200,
-      data: mockPromResponse
-    },
-    {
-      path: '/api/v1/query_range?query=sum(rate(http_request_duration_seconds_count%5B5m%5D))%20by%20(service)&start=1619999700&end=1620000000&step=60',
-      statusCode: 200,
-      data: mockPromResponse
+  const mockEventLoopResponse = {
+    status: 'success',
+    data: {
+      resultType: 'matrix',
+      result: [
+        {
+          metric: { applicationId: 'test-app', podId: 'pod-1' },
+          values: [[1620000000, '0.6'], [1620000001, '0.7']]
+        },
+        {
+          metric: { applicationId: 'test-app', podId: 'pod-2' },
+          values: [[1620000000, '0.8'], [1620000001, '0.9']]
+        }
+      ]
     }
-  ])
-
-  const originalDateNow = Date.now
-  Date.now = () => 1620000000 * 1000 // Match the timestamp in the mockPromResponse
-
-  const mockLogger = createMockLogger()
-
-  const metrics = new Metrics(host, '60000', '300', mockLogger)
-
-  let processedMetrics
-  metrics.processMetrics = (metrics) => {
-    processedMetrics = metrics
   }
 
-  await metrics._collectMetrics()
-
-  Date.now = originalDateNow
-  await mockAgent.close()
-
-  assert.strictEqual(Object.keys(processedMetrics).length, 3)
-  assert.ok(processedMetrics.cpu_usage)
-  assert.ok(processedMetrics.memory_usage)
-  assert.ok(processedMetrics.http_requests)
-})
-
-test('_collectMetrics - failed query', async (t) => {
-  const host = 'http://prometheus:9090'
-  const mockAgent = setupMockAgent(new URL(host).origin, [
-    {
-      path: '/api/v1/query_range?query=sum(rate(process_cpu_seconds_total%5B5m%5D))%20by%20(service)&start=1619999700&end=1620000000&step=60',
-      statusCode: 200,
-      data: {
-        status: 'success',
-        data: {
-          resultType: 'matrix',
-          result: [{ metric: { service: 'test-service' }, values: [[1620000000, '0.1']] }]
-        }
-      }
-    },
-    {
-      path: '/api/v1/query_range?query=sum(process_resident_memory_bytes)%20by%20(service)&start=1619999700&end=1620000000&step=60',
-      statusCode: 500,
-      data: 'Internal Server Error'
-    },
-    {
-      path: '/api/v1/query_range?query=sum(rate(http_request_duration_seconds_count%5B5m%5D))%20by%20(service)&start=1619999700&end=1620000000&step=60',
-      statusCode: 200,
-      data: { status: 'error', errorType: 'bad_data', error: 'invalid query' }
-    }
-  ])
-
+  const mockResponses = {
+    heapSize: mockHeapSizeResponse,
+    eventLoop: mockEventLoopResponse
+  }
   const originalDateNow = Date.now
   Date.now = () => 1620000000 * 1000
 
+  const mockServer = await setupMockPrometheusServer(mockResponses)
+  t.after(async () => {
+    await mockServer.close()
+    Date.now = originalDateNow
+  })
+  const prometheusUrl = mockServer.address
+
   const mockLogger = createMockLogger()
-  const loggedErrors = []
-  const loggedWarnings = []
+  const metrics = new Metrics(prometheusUrl, mockLogger)
 
-  mockLogger.error = (obj) => {
-    loggedErrors.push(obj)
-  }
-  mockLogger.warn = (obj) => {
-    loggedWarnings.push(obj)
-  }
+  const heapSizeResult = await metrics.queryNodeJsHeapSize('test-app')
+  const eventLoopResult = await metrics.queryEventLoopUtilization('test-app')
+  const applicationMetrics = await metrics.getApplicationMetrics('test-app')
 
-  const metrics = new Metrics(host, '60000', '300', mockLogger)
-  const results = await metrics._collectMetrics()
+  assert.ok(heapSizeResult['pod-1'])
+  assert.ok(heapSizeResult['pod-2'])
+  assert.strictEqual(heapSizeResult['pod-1'][0].metric.applicationId, 'test-app')
+  assert.strictEqual(heapSizeResult['pod-1'][0].metric.podId, 'pod-1')
+  assert.deepStrictEqual(heapSizeResult['pod-1'][0].values, [[1620000000, '100000000'], [1620000001, '110000000']])
 
-  Date.now = originalDateNow
-  await mockAgent.close()
+  assert.ok(eventLoopResult['pod-1'])
+  assert.ok(eventLoopResult['pod-2'])
+  assert.strictEqual(eventLoopResult['pod-1'][0].metric.applicationId, 'test-app')
+  assert.strictEqual(eventLoopResult['pod-1'][0].metric.podId, 'pod-1')
+  assert.deepStrictEqual(eventLoopResult['pod-1'][0].values, [[1620000000, '0.6'], [1620000001, '0.7']])
 
-  assert.strictEqual(Object.keys(results).length, 1)
-  assert.ok(results.cpu_usage)
-  assert.ok(!results.memory_usage)
-  assert.ok(!results.http_requests)
-
-  assert.strictEqual(loggedErrors.length, 2)
-  assert.strictEqual(loggedWarnings.length, 1)
+  assert.ok(applicationMetrics['pod-1'])
+  assert.ok(applicationMetrics['pod-2'])
+  assert.ok(applicationMetrics['pod-1'].heapSize)
+  assert.ok(applicationMetrics['pod-1'].eventLoopUtilization)
+  assert.strictEqual(applicationMetrics['pod-1'].heapSize[0].metric.podId, 'pod-1')
+  assert.strictEqual(applicationMetrics['pod-2'].heapSize[0].metric.podId, 'pod-2')
 })
 
-test('_poll - handles errors gracefully', async (t) => {
+test('handle error when Prometheus returns non-200 response', async (t) => {
+  const server = Fastify()
+  server.get('/api/v1/query_range', async (request, reply) => {
+    return reply.status(500).send({ status: 'error', error: 'Internal server error' })
+  })
+
+  const address = await server.listen({ port: 0 })
+  t.after(async () => {
+    await server.close()
+  })
+
+  const prometheusUrl = address
   const mockLogger = createMockLogger()
-  const loggedEvents = []
+  const metrics = new Metrics(prometheusUrl, mockLogger)
 
-  mockLogger.info = (obj, msg) => {
-    msg = msg || obj
-    loggedEvents.push({ type: 'info', msg, obj })
-  }
-
-  mockLogger.error = (obj, msg) => {
-    msg = msg || obj
-    loggedEvents.push({ type: 'error', msg, obj })
-  }
-
-  const metrics = new Metrics('http://prometheus:9090', '100', '300', mockLogger)
-  metrics._collectMetrics = async () => {
-    throw new Error('Test error in _collectMetrics')
-  }
-
-  await metrics.start()
-  await wait(100)
-  metrics.stop()
-
-  const errorEvent = loggedEvents.find(event =>
-    event.type === 'error' && event.msg === 'Error during metrics polling'
+  await assert.rejects(
+    async () => {
+      await metrics.queryNodeJsHeapSize('test-app')
+    },
+    (err) => {
+      assert.ok(err instanceof Error)
+      assert.ok(err.message.includes('Prometheus API error'))
+      return true
+    }
   )
-  assert.ok(errorEvent, 'Error should be logged')
-  assert.strictEqual(errorEvent.obj.err.message, 'Test error in _collectMetrics')
+})
 
-  const abortEvent = loggedEvents.find(event =>
-    event.type === 'info' && event.msg === 'Stopped metrics polling'
+test('handle invalid response format from Prometheus', async (t) => {
+  const invalidResponse = {
+    status: 'success',
+    data: {
+      resultType: 'matrix'
+    }
+  }
+
+  const mockServer = await setupMockPrometheusServer({
+    heapSize: invalidResponse
+  })
+  t.after(async () => {
+    await mockServer.close()
+  })
+
+  const prometheusUrl = mockServer.address
+  const mockLogger = createMockLogger()
+  const metrics = new Metrics(prometheusUrl, mockLogger)
+
+  await assert.rejects(
+    async () => {
+      await metrics.queryNodeJsHeapSize('test-app')
+    },
+    (err) => {
+      assert.ok(err instanceof Error)
+      assert.ok(err.message.includes('Invalid response for metric'))
+      return true
+    }
   )
-  assert.ok(abortEvent, 'Stop message should be logged')
+})
+
+test('handle empty results from Prometheus', async (t) => {
+  const emptyResponse = {
+    status: 'success',
+    data: {
+      resultType: 'matrix',
+      result: []
+    }
+  }
+
+  const mockServer = await setupMockPrometheusServer({
+    heapSize: emptyResponse,
+    eventLoop: emptyResponse
+  })
+  t.after(async () => {
+    await mockServer.close()
+  })
+
+  const prometheusUrl = mockServer.address
+  const mockLogger = createMockLogger()
+  const metrics = new Metrics(prometheusUrl, mockLogger)
+
+  const heapSizeResult = await metrics.queryNodeJsHeapSize('test-app')
+  assert.deepStrictEqual(heapSizeResult, {})
+
+  const applicationMetrics = await metrics.getApplicationMetrics('test-app')
+  assert.deepStrictEqual(applicationMetrics, {})
+})
+
+test('use custom time range for queries', async (t) => {
+  const mockHeapSizeResponse = {
+    status: 'success',
+    data: {
+      resultType: 'matrix',
+      result: [
+        {
+          metric: { applicationId: 'test-app', podId: 'pod-1' },
+          values: [[1620000000, '100000000'], [1620000060, '110000000']]
+        }
+      ]
+    }
+  }
+
+  const originalDateNow = Date.now
+  Date.now = () => 1620000120 * 1000
+  t.after(() => {
+    Date.now = originalDateNow
+  })
+
+  let capturedQuery = null
+  const server = Fastify()
+  server.get('/api/v1/query_range', async (request, reply) => {
+    capturedQuery = request.query
+    return mockHeapSizeResponse
+  })
+
+  const address = await server.listen({ port: 0 })
+  t.after(async () => {
+    await server.close()
+  })
+
+  const prometheusUrl = address
+  const mockLogger = createMockLogger()
+  const metrics = new Metrics(prometheusUrl, mockLogger)
+
+  await metrics.queryNodeJsHeapSize('test-app', 30)
+
+  assert.strictEqual(capturedQuery.start, (1620000120 - 30).toString())
+  assert.strictEqual(capturedQuery.end, '1620000120')
+})
+
+test('use timeRange from constructor', async (t) => {
+  const mockHeapSizeResponse = {
+    status: 'success',
+    data: {
+      resultType: 'matrix',
+      result: [
+        {
+          metric: { applicationId: 'test-app', podId: 'pod-1' },
+          values: [[1620000000, '100000000'], [1620000060, '110000000']]
+        }
+      ]
+    }
+  }
+
+  const originalDateNow = Date.now
+  Date.now = () => 1620000120 * 1000
+  t.after(() => {
+    Date.now = originalDateNow
+  })
+
+  const capturedQueries = []
+  const server = Fastify()
+  server.get('/api/v1/query_range', async (request, reply) => {
+    capturedQueries.push({ ...request.query })
+    return mockHeapSizeResponse
+  })
+
+  const address = await server.listen({ port: 0 })
+  t.after(async () => {
+    await server.close()
+  })
+
+  const prometheusUrl = address
+  const mockLogger = createMockLogger()
+
+  const metrics = new Metrics(prometheusUrl, mockLogger, { timeRange: 90 })
+
+  await metrics.queryNodeJsHeapSize('test-app')
+  await metrics.getApplicationMetrics('test-app')
+
+  assert.strictEqual(capturedQueries[0].start, (1620000120 - 90).toString())
+  assert.strictEqual(capturedQueries[0].end, '1620000120')
+
+  assert.strictEqual(capturedQueries[1].start, (1620000120 - 90).toString())
+  assert.strictEqual(capturedQueries[2].start, (1620000120 - 90).toString())
 })
