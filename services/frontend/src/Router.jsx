@@ -334,6 +334,10 @@ export function getRouter () {
         },
         {
           id: 'application/settings',
+          loader: async ({ params }) => {
+            const scaleConfig = await callApi('scaler', `applications/${params.applicationId}/scale-configs`, 'GET')
+            return { scaleConfig }
+          },
           path: 'settings',
           element: <ApplicationSettings />
         }
