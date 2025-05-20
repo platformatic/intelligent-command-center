@@ -1,25 +1,33 @@
 .header {
-  @apply min-h-[2.5rem];
+  @apply min-h-[2.5rem] flex gap-x-4 items-center;
 }
-.applicationSettingsContainer {
-  @apply grow relative;
+.container {
+  @apply flex gap-x-4 w-full;
 }
-.applicationSettingsContent {
+.leftPane {
   @apply p-4 flex flex-col gap-y-4;
 }
-.applicationSettingsBoxesContainer {
-  @apply flex flex-col gap-y-4 w-full overflow-y-auto max-h-[calc(100Vh-10rem)];
+.rightPane {
+  @apply grow rounded-lg;
 }
-.borderexBoxContainerApiKeys, 
-.borderexBoxContainerEnvironmentVariables {
-  @apply p-4 w-full rounded-[4px];
+
+.sections {
+  @apply flex flex-col gap-y-4;
 }
-.modalClassName {
-  @apply p-4 md:p-6 flex flex-col justify-center items-center gap-y-3 lg:gap-y-6 w-full max-w-[calc(100%-2rem)] md:max-w-[calc(100%-3.5rem)]
+.sections ul {
+  @apply flex flex-col gap-y-2;
 }
-.modalCloseClassName {
-  @apply absolute z-10 top-[1rem] md:top-[1.5rem] right-[1rem] md:right-[1.5rem];
+.sections ul li {
+  @apply flex gap-x-2 hover:cursor-pointer;
 }
-.rootV1 {
-  min-height: 94vH;
+.sections ul li div {
+  @apply flex gap-x-4 items-center text-white/70;
+}
+
+.sections ul li div.selected {
+  @apply text-white;
+}
+
+.container hr {
+  @apply border-white/20;
 }

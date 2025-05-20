@@ -4,6 +4,13 @@ export default async function callApi (service, url, method, body, headers) {
   if (!url.startsWith('/')) {
     url = `/${url}`
   }
+  if (body) {
+    headers = {
+      ...headers,
+      'content-type': 'application/json'
+    }
+    body = JSON.stringify(body)
+  }
   const response = await fetch(`${baseUrl}/${service}${url}`, {
     method,
     body,
