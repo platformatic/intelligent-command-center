@@ -153,6 +153,12 @@ async function startMachinist (t, opts = {}) {
     return { controllers: [controller] }
   })
 
+  machinist.post('/controllers/:namespace/:controllerId', async (req) => {
+    const { namespace, controllerId } = req.params
+    const { replicaCount: replicas } = req.body
+    opts.setPodController?.({ controllerId, namespace, replicas })
+  })
+
   t?.after(async () => {
     await machinist.close()
   })
