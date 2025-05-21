@@ -23,6 +23,8 @@ module.exports = async function (app) {
       const { applicationId, deploymentId, namespace, podId } = req.body
 
       const controller = await app.machinist.getPodController(podId, namespace)
+      await app.saveDefaultScaleConfig(applicationId)
+
       await app.platformatic.entities.controller.save({
         input: {
           applicationId,
