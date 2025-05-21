@@ -6,7 +6,6 @@ const k8sAllowedRoutes = [
   ['/risk-cold-storage/sync', ['GET']],
   ['/trafficante/requests', ['POST']],
   ['/cron/watt-jobs', ['PUT']],
-  ['/risk-service/v1/traces', '*'],
   ['/risk-service/dump', '*'],
   ['/risk-manager/db-schema', ['POST']],
   ['/compliance/metadata', ['POST']],
