@@ -56,4 +56,12 @@ test('should save a new controller', async (t) => {
   assert.strictEqual(controller.kind, kind)
   assert.strictEqual(controller.apiVersion, apiVersion)
   assert.strictEqual(controller.replicas, 1)
+
+  const scaleConfigs = await server.platformatic.entities.applicationScaleConfig.find()
+  assert.strictEqual(scaleConfigs.length, 1)
+
+  const scaleConfig = scaleConfigs[0]
+  assert.strictEqual(scaleConfig.applicationId, applicationId)
+  assert.strictEqual(scaleConfig.minPods, 1)
+  assert.strictEqual(scaleConfig.maxPods, 10)
 })

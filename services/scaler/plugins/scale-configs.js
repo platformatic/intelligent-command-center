@@ -4,6 +4,9 @@ const fp = require('fastify-plugin')
 const errors = require('../lib/errors')
 
 module.exports = fp(async function (app) {
+  const defaultMinPods = app.env.PLT_SCALER_MIN_PODS_DEFAULT
+  const defaultMaxPods = app.env.PLT_SCALER_MAX_PODS_DEFAULT
+
   app.decorate('getScaleConfig', async (applicationId) => {
     const scaleConfigs = await app.platformatic.entities.applicationScaleConfig.find({
       where: { applicationId: { eq: applicationId } },
@@ -41,4 +44,20 @@ module.exports = fp(async function (app) {
     })
     return scaleConfig
   })
-}, { name: 'scale-config' })
+
+  app.decorate('saveDefaultScaleConfig', async (applicationId) => {
+    const scaleConfig = await app.getScaleConfig(applicationId)
+    if (scaleConfig !== null) return
+
+    await app.platformatic.entities.applicationScaleConfig.save({
+      input: {
+        applicationId,
+        minPods: defaultMinPods,
+        maxPods: defaultMaxPods
+      }
+    })
+  })
+}, {
+  name: 'scale-config',
+  dependencies: ['env']
+})
