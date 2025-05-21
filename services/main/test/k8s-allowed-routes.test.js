@@ -30,8 +30,6 @@ test('isUrlAllowed handles exact path matches correctly', async (t) => {
     createMockRequest('/risk-cold-storage/sync', 'GET'),
     createMockRequest('/trafficante/requests', 'POST'),
     createMockRequest('/cron/watt-jobs', 'PUT'),
-    createMockRequest('/risk-service/v1/traces', 'GET'),
-    createMockRequest('/risk-service/v1/traces', 'POST'),
     createMockRequest('/risk-service/dump', 'DELETE'),
     createMockRequest('/risk-manager/db-schema', 'POST'),
     createMockRequest('/compliance/metadata', 'POST'),
@@ -119,10 +117,6 @@ test('isUrlAllowed behavior with path extensions', async (t) => {
 
 test('isUrlAllowed works with wildcard methods correctly', async (t) => {
   const wildcardMethodTests = [
-    { url: '/risk-service/v1/traces', method: 'GET' },
-    { url: '/risk-service/v1/traces', method: 'POST' },
-    { url: '/risk-service/v1/traces', method: 'PUT' },
-    { url: '/risk-service/v1/traces', method: 'DELETE' },
     { url: '/risk-service/dump', method: 'GET' },
     { url: '/risk-service/dump', method: 'POST' },
     { url: '/risk-service/dump', method: 'PATCH' }

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/service/2.64.0.json",
+  "server": {
+    "logger": {
+      "level": "{PLT_RISK_SERVICE_LOGGER_LEVEL}"
+    },
+    "pluginTimeout": 60000
+  },
+  "service": {
+    "openapi": true
+  },
+  "plugins": {
+    "paths": [
+      {
+        "path": "./plugins",
+        "encapsulate": false
+      },
+      {
+        "path": "./routes"
+      }
+    ]
+  },
+  "watch": "{DEV_K8S}"
+}
