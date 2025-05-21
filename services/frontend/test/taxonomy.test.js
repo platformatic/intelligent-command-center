@@ -2,15 +2,13 @@ import { describe, test } from 'node:test'
 import assert from 'node:assert'
 import {
   getChartForMermaidFromTaxonomy,
-  getLinksForTaxonomyGraph,
-  getServicesAddedEditedRemoved
+  getLinksForTaxonomyGraph
 } from '../src/utilities/taxonomy.js'
 
 describe('getChartForMermaidFromTaxonomy', () => {
   test('return empty string', async () => {
     assert.equal(getChartForMermaidFromTaxonomy({}), '')
     assert.equal(getChartForMermaidFromTaxonomy({
-      id: 'taxonomy-id-1',
       applications: [],
       links: []
     }), '')
@@ -24,8 +22,6 @@ describe('getChartForMermaidFromTaxonomy', () => {
       direction TB
       end`
     assert.deepEqual(actual, getChartForMermaidFromTaxonomy({
-      id: 'taxonomy-id-1',
-      name: 'Taxonomy-name',
       applications: [{
         id: 'app-1',
         name: 'Application 1',
@@ -46,8 +42,6 @@ describe('getChartForMermaidFromTaxonomy', () => {
         class app-1!autobot serviceClassActive
       end`
     assert.deepEqual(getChartForMermaidFromTaxonomy({
-      id: 'taxonomy-id-1',
-      name: 'Taxonomy-name',
       applications: [{
         id: 'app-1',
         name: 'Application 1',
@@ -74,8 +68,6 @@ describe('getChartForMermaidFromTaxonomy', () => {
         class app-1!autobot serviceClassActive
       end`
     assert.deepEqual(getChartForMermaidFromTaxonomy({
-      id: 'taxonomy-id-1',
-      name: 'Taxonomy-name',
       applications: [{
         id: 'app-1',
         name: 'Application 1',
@@ -103,8 +95,6 @@ describe('getChartForMermaidFromTaxonomy', () => {
         class app-1!autobot serviceClassActive
       end`
     assert.deepEqual(getChartForMermaidFromTaxonomy({
-      id: 'taxonomy-id-1',
-      name: 'Taxonomy-name',
       applications: [{
         id: 'app-1',
         name: 'Application 1',
@@ -138,8 +128,6 @@ describe('getChartForMermaidFromTaxonomy', () => {
         class app-1!megaman serviceClassActive
       end`
     assert.deepEqual(getChartForMermaidFromTaxonomy({
-      id: 'taxonomy-id-1',
-      name: 'Taxonomy-name',
       applications: [{
         id: 'app-1',
         name: 'Application 1',
@@ -190,7 +178,7 @@ describe('getChartForMermaidFromTaxonomy', () => {
         click app-1!green serviceCallback
         class app-1!green serviceClassActive
       end
-      ingress-controller-taxonomy-id-1 --> app-1!blue
+      ingress-controller --> app-1!blue
       app-1!blue --> app-1!black
       app-1!yellow --> app-1!red
       linkStyle 2 stroke:#FEB928,stroke-width:1px,stroke-dasharray:6 6
@@ -201,8 +189,6 @@ describe('getChartForMermaidFromTaxonomy', () => {
       app-1!black -.-> app-1!yellow
       linkStyle 5 stroke:#FA2121,stroke-width:1px,stroke-dasharray:12 12`
     assert.deepEqual(getChartForMermaidFromTaxonomy({
-      id: 'taxonomy-id-1',
-      name: 'Taxonomy-name',
       applications: [{
         id: 'app-1',
         name: 'Application Color',
@@ -240,7 +226,7 @@ describe('getChartForMermaidFromTaxonomy', () => {
         }]
       }],
       links: [{
-        applicationSourceId: 'ingress-controller-taxonomy-id-1',
+        applicationSourceId: 'ingress-controller',
         applicationTargetId: 'app-1',
         source: 'ingress-controller',
         target: 'blue',
@@ -303,8 +289,6 @@ describe('getChartForMermaidFromTaxonomy', () => {
         class app-2!megaman serviceClassActive
       end`
     assert.deepEqual(getChartForMermaidFromTaxonomy({
-      id: 'taxonomy-id-1',
-      name: 'Taxonomy-name',
       applications: [{
         id: 'app-1',
         name: 'Application 1',
@@ -331,9 +315,9 @@ describe('getChartForMermaidFromTaxonomy', () => {
   test('Double Application with one service each - with ingress controller', async () => {
     const actual = `
     flowchart LR
-      ingress-controller-taxonomy-id-1(<div>htmlStub</div>)
-      class ingress-controller-taxonomy-id-1 ingressClassActive
-      click ingress-controller-taxonomy-id-1 ingressControllerCallback
+      ingress-controller(<div>htmlStub</div>)
+      class ingress-controller ingressClassActive
+      click ingress-controller ingressControllerCallback
       subgraph app-1[Application 1]
       click app-1 applicationCallback
       direction TB
@@ -348,11 +332,9 @@ describe('getChartForMermaidFromTaxonomy', () => {
         click app-2!megaman serviceCallback
         class app-2!megaman serviceClassActive
       end
-      ingress-controller-taxonomy-id-1 --> app-1!autobot
-      ingress-controller-taxonomy-id-1 --> app-2!megaman`
+      ingress-controller --> app-1!autobot
+      ingress-controller --> app-2!megaman`
     assert.deepEqual(getChartForMermaidFromTaxonomy({
-      id: 'taxonomy-id-1',
-      name: 'Taxonomy-name',
       html: '<div>htmlStub</div>',
       applications: [{
         id: 'app-1',
@@ -374,14 +356,14 @@ describe('getChartForMermaidFromTaxonomy', () => {
         }]
       }],
       links: [{
-        applicationSourceId: 'ingress-controller-taxonomy-id-1',
+        applicationSourceId: 'ingress-controller',
         applicationTargetId: 'app-1',
         source: 'ingress-controller',
         target: 'autobot',
         responseTime: 'no_response',
         requestsAmount: 'no_response'
       }, {
-        applicationSourceId: 'ingress-controller-taxonomy-id-1',
+        applicationSourceId: 'ingress-controller',
         applicationTargetId: 'app-2',
         source: 'ingress-controller',
         target: 'megaman',
@@ -394,9 +376,9 @@ describe('getChartForMermaidFromTaxonomy', () => {
   test('Fourth Application with different service - with ingress controller', async () => {
     const actual = `
     flowchart LR
-      ingress-controller-taxonomy-id-99(<div>htmlStub2</div>)
-      class ingress-controller-taxonomy-id-99 ingressClassActive
-      click ingress-controller-taxonomy-id-99 ingressControllerCallback
+      ingress-controller(<div>htmlStub2</div>)
+      class ingress-controller ingressClassActive
+      click ingress-controller ingressControllerCallback
       subgraph app-1[Colors]
       click app-1 applicationCallback
       direction TB
@@ -437,19 +419,17 @@ describe('getChartForMermaidFromTaxonomy', () => {
         click app-4!mediterranean serviceCallback
         class app-4!mediterranean serviceClassActive
       end
-      ingress-controller-taxonomy-id-99 --> app-1!blue
+      ingress-controller --> app-1!blue
       app-1!blue ==> app-1!green
       linkStyle 1 stroke:#21FA90,stroke-width:1px,stroke-dasharray:2 2
       app-1!blue -.-> app-1!yellow
       linkStyle 2 stroke:#FEB928,stroke-width:1px,stroke-dasharray:12 12
-      ingress-controller-taxonomy-id-99 --> app-2!bear
-      ingress-controller-taxonomy-id-99 --> app-3!quartz
+      ingress-controller --> app-2!bear
+      ingress-controller --> app-3!quartz
       app-3!emerald ==> app-3!quartz
       linkStyle 5 stroke:#21FA90,stroke-width:1px,stroke-dasharray:2 2
-      ingress-controller-taxonomy-id-99 --> app-4!mediterranean`
+      ingress-controller --> app-4!mediterranean`
     assert.deepEqual(getChartForMermaidFromTaxonomy({
-      id: 'taxonomy-id-99',
-      name: 'Taxonomy-name',
       html: '<div>htmlStub2</div>',
       applications: [{
         id: 'app-1',
@@ -512,7 +492,7 @@ describe('getChartForMermaidFromTaxonomy', () => {
         }]
       }],
       links: [{
-        applicationSourceId: 'ingress-controller-taxonomy-id-99',
+        applicationSourceId: 'ingress-controller',
         applicationTargetId: 'app-1',
         source: 'ingress-controller',
         target: 'blue',
@@ -533,14 +513,14 @@ describe('getChartForMermaidFromTaxonomy', () => {
         responseTime: 'medium',
         requestsAmount: 'small'
       }, {
-        applicationSourceId: 'ingress-controller-taxonomy-id-99',
+        applicationSourceId: 'ingress-controller',
         applicationTargetId: 'app-2',
         source: 'ingress-controller',
         target: 'bear',
         responseTime: 'no_response',
         requestsAmount: 'no_response'
       }, {
-        applicationSourceId: 'ingress-controller-taxonomy-id-99',
+        applicationSourceId: 'ingress-controller',
         applicationTargetId: 'app-3',
         source: 'ingress-controller',
         target: 'quartz',
@@ -554,7 +534,7 @@ describe('getChartForMermaidFromTaxonomy', () => {
         responseTime: 'fast',
         requestsAmount: 'high'
       }, {
-        applicationSourceId: 'ingress-controller-taxonomy-id-99',
+        applicationSourceId: 'ingress-controller',
         applicationTargetId: 'app-4',
         source: 'ingress-controller',
         target: 'mediterranean',
@@ -762,10 +742,10 @@ describe('getLinksForTaxonomyGraph', () => {
       ]
     }]
 
-    assert.deepEqual(getLinksForTaxonomyGraph(links, applications, '0000000000'), [
+    assert.deepEqual(getLinksForTaxonomyGraph(links, applications), [
       {
         source: 'ingress-controller',
-        applicationSourceId: 'ingress-controller-0000000000',
+        applicationSourceId: 'ingress-controller',
         target: 'Service-1',
         applicationTargetId: '1ae6390c-c2d1-40a9-9fd2-c6ed38ba9193',
         responseTime: 'no_request',
@@ -779,116 +759,5 @@ describe('getLinksForTaxonomyGraph', () => {
         requestsAmount: 'no_request'
       }
     ])
-  })
-})
-
-describe('getServicesAddedEditedRemoved', () => {
-  test('return empty collections of added and removed', async () => {
-    const expected = { added: [], removed: [], edited: [] }
-    assert.deepEqual(getServicesAddedEditedRemoved(null), expected)
-    assert.deepEqual(getServicesAddedEditedRemoved('name'), expected)
-    assert.deepEqual(getServicesAddedEditedRemoved([]), expected)
-    assert.deepEqual(getServicesAddedEditedRemoved({}), expected)
-    assert.deepEqual(getServicesAddedEditedRemoved(), expected)
-  })
-
-  test('return diffent values', async () => {
-    const applications = [
-      {
-        id: '2d1a7984-a1a9-4e0b-a6d1-009cffcc147e',
-        name: 'test-app-0',
-        services: [
-          {
-            id: 'Service-1',
-            type: '@platformatic/composer',
-            status: 'unchanged'
-          },
-          {
-            id: 'Service-2',
-            type: '@platformatic/service',
-            status: 'removed'
-          },
-          {
-            id: 'Service-3',
-            type: '@platformatic/service'
-          }
-        ]
-      },
-      {
-        id: '7b19a8cc-eda4-406b-8c56-c4937a8ee808',
-        name: 'test-app-1',
-        services: [
-          {
-            id: 'Service-1',
-            type: '@platformatic/composer',
-            status: 'added'
-          }
-        ]
-      },
-      {
-        id: '62b34961-abe6-47f7-bc56-0ec15223f3d2',
-        name: 'test-app-2',
-        services: [
-          {
-            id: 'Service-1',
-            type: '@platformatic/composer',
-            status: 'edited'
-          },
-          {
-            id: 'Service-2',
-            type: '@platformatic/service',
-            status: 'edited'
-          },
-          {
-            id: 'Service-3',
-            type: '@platformatic/service',
-            status: 'added'
-          },
-          {
-            id: 'Service-4',
-            type: '@platformatic/service',
-            status: 'unchanged'
-
-          }
-        ]
-      }
-    ]
-    const expected = {
-      added: [{
-        id: 'Service-1',
-        type: '@platformatic/composer',
-        applicationId: '7b19a8cc-eda4-406b-8c56-c4937a8ee808',
-        applicationName: 'test-app-1',
-        status: 'added'
-      }, {
-        id: 'Service-3',
-        type: '@platformatic/service',
-        status: 'added',
-        applicationId: '62b34961-abe6-47f7-bc56-0ec15223f3d2',
-        applicationName: 'test-app-2'
-      }],
-      removed: [{
-        id: 'Service-2',
-        type: '@platformatic/service',
-        applicationId: '2d1a7984-a1a9-4e0b-a6d1-009cffcc147e',
-        applicationName: 'test-app-0',
-        status: 'removed'
-      }],
-      edited: [{
-        id: 'Service-1',
-        type: '@platformatic/composer',
-        status: 'edited',
-        applicationId: '62b34961-abe6-47f7-bc56-0ec15223f3d2',
-        applicationName: 'test-app-2'
-      },
-      {
-        id: 'Service-2',
-        type: '@platformatic/service',
-        status: 'edited',
-        applicationId: '62b34961-abe6-47f7-bc56-0ec15223f3d2',
-        applicationName: 'test-app-2'
-      }]
-    }
-    assert.deepEqual(getServicesAddedEditedRemoved(applications), expected)
   })
 })
