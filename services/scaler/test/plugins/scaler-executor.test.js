@@ -24,10 +24,15 @@ test('checkScalingOnAlert should return error when pod has no alerts', async (t)
     storePlugin,
     metricsPlugin,
     scaleConfigPlugin,
-    executorPlugin
+    executorPlugin,
+    controllerPlugin
   ]
 
   const server = await buildServerWithPlugins(t, {}, plugins)
+
+  server.updateControllerReplicas = async (appId, replicas) => {
+    return { success: true }
+  }
 
   server.store.getAlertByPodId = async () => []
 
@@ -47,10 +52,15 @@ test('checkScalingOnAlert should return error when application has no metrics', 
     storePlugin,
     metricsPlugin,
     scaleConfigPlugin,
-    executorPlugin
+    executorPlugin,
+    controllerPlugin
   ]
 
   const server = await buildServerWithPlugins(t, {}, plugins)
+
+  server.updateControllerReplicas = async (appId, replicas) => {
+    return { success: true }
+  }
 
   server.store.getAlertByPodId = async () => [{
     podId: 'test-pod-1',
@@ -139,6 +149,12 @@ test('checkScalingOnAlert should call scaling algorithm and return result', asyn
     }
   })
 
+  const updateControllerCalls = []
+  server.updateControllerReplicas = async (appId, replicas) => {
+    updateControllerCalls.push({ appId, replicas })
+    return { success: true }
+  }
+
   server.scalerMetrics = {
     getApplicationMetrics: async () => ({
       'test-pod-1': {
@@ -176,6 +192,10 @@ test('checkScalingOnAlert should call scaling algorithm and return result', asyn
   assert.strictEqual(result.success, true, 'checkScalingOnAlert should succeed')
   assert.strictEqual(result.applicationId, testAppId, 'applicationId should be from alert')
   assert.strictEqual(result.nfinal, 3, 'nfinal should match scaling decision')
+
+  assert.strictEqual(updateControllerCalls.length, 1, 'updateControllerReplicas should be called once')
+  assert.strictEqual(updateControllerCalls[0].appId, testAppId, 'should be called with correct applicationId')
+  assert.strictEqual(updateControllerCalls[0].replicas, 3, 'should be called with correct number of replicas')
 
   server.scalerExecutor.scalingAlgorithm.calculateScalingDecision = originalMethod
 
@@ -254,6 +274,12 @@ test('checkScalingOnAlert should merge metrics from alerts with pod metrics for 
     }
   })
 
+  const updateControllerCalls = []
+  server.updateControllerReplicas = async (appId, replicas) => {
+    updateControllerCalls.push({ appId, replicas })
+    return { success: true }
+  }
+
   const originalMethod = server.scalerExecutor.scalingAlgorithm.calculateScalingDecision
   server.scalerExecutor.scalingAlgorithm.calculateScalingDecision = async (applicationId, metrics, currentPodCount, minPods, maxPods, alerts) => {
     assert.strictEqual(alerts.length, 1, 'should have one alert')
@@ -281,6 +307,10 @@ test('checkScalingOnAlert should merge metrics from alerts with pod metrics for 
   assert.strictEqual(result.applicationId, testAppId, 'applicationId should be from alert')
   assert.strictEqual(result.nfinal, 2, 'should return new pod count (current + 1)')
 
+  assert.strictEqual(updateControllerCalls.length, 1, 'updateControllerReplicas should be called once')
+  assert.strictEqual(updateControllerCalls[0].appId, testAppId, 'should be called with correct applicationId')
+  assert.strictEqual(updateControllerCalls[0].replicas, 2, 'should be called with correct number of replicas')
+
   server.scalerExecutor.scalingAlgorithm.calculateScalingDecision = originalMethod
 })
 
@@ -290,10 +320,15 @@ test('checkScalingOnAlert should handle unexpected errors', async (t) => {
     storePlugin,
     metricsPlugin,
     scaleConfigPlugin,
-    executorPlugin
+    executorPlugin,
+    controllerPlugin
   ]
 
   const server = await buildServerWithPlugins(t, {}, plugins)
+
+  server.updateControllerReplicas = async (appId, replicas) => {
+    return { success: true }
+  }
 
   server.store.getAlertByPodId = async () => {
     throw new Error('Test error')
