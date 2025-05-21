@@ -62,6 +62,7 @@ async function envPlugin (app) {
     userManager: app.env.PLT_EXTERNAL_USER_MANAGER_URL,
     riskManager: app.env.PLT_EXTERNAL_RISK_MANAGER_URL,
     riskService: app.env.PLT_EXTERNAL_RISK_SERVICE_URL,
+    riskEngine: app.env.PLT_EXTERNAL_RISK_SERVICE_URL,
     compliance: app.env.PLT_EXTERNAL_COMPLIANCE_URL,
     activities: app.env.PLT_EXTERNAL_ACTIVITIES_URL,
     metrics: app.env.PLT_EXTERNAL_METRICS_URL

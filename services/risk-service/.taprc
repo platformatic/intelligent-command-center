@@ -1,0 +1,5 @@
+jobs: 1
+# this is copied from core (risk manager) so 
+# wont' copy ALL the tests rn, we might want to refacvto these code in a 
+# separate module or move all it here.
+nyc-arg: [--exclude=lib/compare/openapi]
