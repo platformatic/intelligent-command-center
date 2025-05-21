@@ -7,9 +7,10 @@ import {
   getApplicationById,
   getApplicationStatesForApplication,
   getApplicationResources,
-  getInstances
-
+  getInstances,
+  getGenerationGraph
 } from '../clients/control-plane/control-plane.mjs'
+
 import {
   setBaseUrl as setBaseUrlCompendium
 } from '../clients/compendium/compendium.mjs'
@@ -24,11 +25,7 @@ import {
 } from '../clients/compliance/compliance.mjs'
 
 import { DESC } from './ui-constants'
-import {
-  getLinksForTaxonomyGraph,
-  getLinksForPreviewGraph,
-  getServicesAddedEditedRemoved
-} from './utilities/taxonomy'
+import { getLinksForTaxonomyGraph } from './utilities/taxonomy'
 
 import extractScalingEvents from './utilities/extract-scaling-events'
 
@@ -45,15 +42,7 @@ setBaseURLCompliance(`${baseUrl}/compliance`)
 // TODO: remove these mocks
 // These are function that have been removed from the control-plane client
 
-async function getTaxonomies () {}
-async function getMainTaxonomyGraph () {}
-async function getGenerationsForTaxonomy () {}
-async function getPreviewTaxonomyGraph () {}
-async function getApplicationSecrets () {}
-async function saveApplicationSecrets () {}
-async function getTaxonomySecrets () {}
 async function getApplicationInstances () {}
-async function syncPreviewTaxonomy () {}
 async function getApplicationsIdScaler () {}
 
 const getHeaders = () => {
@@ -305,82 +294,19 @@ export const getGithubUserInfo = async (commitUserEmail) => {
 /* TAXONOMY */
 
 export const getApiMainTaxonomyGraph = async (generationId) => {
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-
-  const { body: graph } = await getMainTaxonomyGraph({
-    id: taxonomy[0].id,
-    generationId
-  })
+  const { body: graph } = await getGenerationGraph({ generationId })
 
   const { applications, links } = graph
 
   return {
-    id: taxonomy.id,
-    name: taxonomy.main,
     applications,
-    links: getLinksForTaxonomyGraph(links, applications, taxonomy.id)
+    links: getLinksForTaxonomyGraph(links, applications)
   }
 }
 
 export const getApiTaxonomyGenerations = async (options = {}) => {
-  const skipFirst = options.skipFirst ?? false
-  const includeFailed = options.includeFailed ?? false
-
-  let { body: generations } = await getGenerationsForTaxonomy()
-
-  if (skipFirst) {
-    generations = generations.filter(
-      generation => generation.id !== '00000000-0000-0000-0000-000000000000'
-    )
-  }
-
-  if (!includeFailed) {
-    generations = generations.filter(
-      generation => generation.status !== 'failed'
-    )
-  }
-
+  const { body: generations } = await getGenerations()
   return sortCollectionByDate(generations, 'createdAt', false)
-}
-
-export const callApiSynchronizePreviewTaxonomy = async (previewId) => {
-  return await syncPreviewTaxonomy({ id: previewId })
-}
-
-export const getApiPreviewTaxonomy = async (taxonomyId) => {
-  const { body: taxonomy } = await getTaxonomies({ 'where.id.eq': taxonomyId })
-  const { body: graphGeneration } = await getPreviewTaxonomyGraph({ id: taxonomyId })
-
-  const { applications = [], links = [] } = graphGeneration
-  const { edited, added, removed } = getServicesAddedEditedRemoved(graphGeneration.applications)
-
-  return {
-    taxonomy: {
-      id: taxonomy[0].id,
-      name: taxonomy[0].name,
-      applications,
-      links: getLinksForPreviewGraph(links, applications, taxonomyId)
-    },
-    added,
-    removed,
-    edited
-  }
-}
-
-/* ENVIRONMENT VARIABLES / SECRETS */
-export const getApiEnvironmentVariables = async (applicationId) => {
-  const { statusCode, body } = await getApplicationSecrets({ id: applicationId })
-  if (statusCode === 200) {
-    return body
-  }
-  throw new Error(`Cannot get Application Secrets. ${body.message}`)
-}
-export const saveApiEnvironmentVariables = async (applicationId, payload) => {
-  return await saveApplicationSecrets({ id: applicationId, secrets: { ...payload } })
-}
-export const getApiTaxonomySecrets = async (taxonomyId) => {
-  const { body } = await getTaxonomySecrets({ id: taxonomyId })
-  return body
 }
 
 /* PACKAGE VERSIONS */
@@ -677,50 +603,8 @@ export const getApiEnvironments = async () => {
   return { activities, totalCount: Number(totalCountImported) + Number(totalCountExported) }
 }
 
-export const callApiImportEnvironment = async (formData) => {
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-  const url = `${baseUrl}/control-plane/taxonomies/${taxonomy[0].id}/import`
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headersTimeout: 5 * 60 * 1000,
-    body: formData,
-    credentials: 'include'
-  })
-
-  const { status } = response
-  if (status !== 200) {
-    const error = await response.text()
-    console.error(`Failed to upload exportable: ${error}`)
-    throw new Error(`Failed to upload exportable: ${error}`)
-  }
-
-  return response
-}
-
-export const callApiExportEnvironment = async () => {
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-  const url = `${baseUrl}/control-plane/taxonomies/${taxonomy[0].id}/export`
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headersTimeout: 5 * 60 * 1000,
-    credentials: 'include'
-  })
-  const { status } = response
-
-  if (status !== 200) {
-    const error = await response.text()
-    console.error(`Failed to download exportable: ${error}`)
-    throw new Error(`Failed to download exportable: ${error}`)
-  }
-
-  return response
-}
-
 export const callApiGetApplicationHttpCache = async (appId, options) => {
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-  const url = `${baseUrl}/cache-manager/taxonomies/${taxonomy[0].id}/applications/${appId}/http-cache?`
+  const url = `${baseUrl}/cache-manager/applications/${appId}/http-cache?`
 
   const response = await fetch(url + new URLSearchParams(options).toString(), {
     method: 'GET',
@@ -743,8 +627,7 @@ export const callApiGetApplicationHttpCache = async (appId, options) => {
 }
 
 export const callApiGetApplicationHttpCacheDetail = async (appId, key, kind) => {
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-  const url = `${baseUrl}/cache-manager/taxonomies/${taxonomy[0].id}/applications/${appId}/http-cache/${key}?`
+  const url = `${baseUrl}/cache-manager/applications/${appId}/http-cache/${key}?`
   const query = { kind }
   const response = await fetch(url + new URLSearchParams(query).toString(), {
     method: 'GET',
@@ -760,8 +643,7 @@ export const callApiGetApplicationHttpCacheDetail = async (appId, key, kind) => 
 }
 
 export const callApiInvalidateApplicationHttpCache = async (appId, entries) => {
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-  const url = `${baseUrl}/cache-manager/taxonomies/${taxonomy[0].id}/applications/${appId}/http-cache/invalidate`
+  const url = `${baseUrl}/cache-manager/applications/${appId}/http-cache/invalidate`
   const httpCacheIds = []
   const nextCacheIds = []
   entries.forEach((entry) => {
@@ -846,8 +728,7 @@ export const callApiDeployApplication = async (appId) => {
 
 /* CACHE METRICS */
 export const getCacheStatsForApplication = async (applicationId) => {
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-  const res = await fetch(`${baseUrl}/metrics/cache/taxonomies/${taxonomy[0].id}/apps/${applicationId}`, {
+  const res = await fetch(`${baseUrl}/metrics/cache/apps/${applicationId}`, {
     method: 'GET',
     headers: getHeaders()
   })
@@ -855,8 +736,7 @@ export const getCacheStatsForApplication = async (applicationId) => {
 }
 
 export const getCacheStats = async () => {
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-  const res = await fetch(`${baseUrl}/metrics/cache/taxonomies/${taxonomy[0].id}`, {
+  const res = await fetch(`${baseUrl}/metrics/cache`, {
     method: 'GET',
     headers: getHeaders()
   })
@@ -864,8 +744,7 @@ export const getCacheStats = async () => {
 }
 
 export const callApiGetCacheDependents = async (appId, cacheEntryId) => {
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-  const url = `${baseUrl}/cache-manager/taxonomies/${taxonomy[0].id}/applications/${appId}/http-cache/${cacheEntryId}/dependents`
+  const url = `${baseUrl}/cache-manager/applications/${appId}/http-cache/${cacheEntryId}/dependents`
 
   const response = await fetch(url, {
     method: 'GET',
@@ -888,12 +767,8 @@ export const callApiGetCacheDependents = async (appId, cacheEntryId) => {
 }
 
 export const callApiGetCacheTraces = async (cacheEntryId) => {
-  const { body: taxonomy } = await getTaxonomies({ 'where.main.eq': true })
-  const taxonomyId = taxonomy[0].id
-
-  const query = { taxonomyId }
   const url = `${baseUrl}/risk-service/http-cache/${cacheEntryId}/traces`
-  const response = await fetch(`${url}?${new URLSearchParams(query).toString()}`, {
+  const response = await fetch(url, {
     method: 'GET',
     credentials: 'include'
   })
