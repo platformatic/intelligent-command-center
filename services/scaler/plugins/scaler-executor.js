@@ -137,6 +137,16 @@ class ScalerExecutor {
 
   async checkScalingOnMetrics () {
     this.app.log.info('Checking scaling based on metrics for all applications')
+    if (!this.app.scalerMetrics) {
+      // This shouln't happen, except in unit tests
+      this.app.log.error('Scaler metrics plugin is not available')
+      return {
+        success: false,
+        periodic: true,
+        timestamp: Date.now(),
+        error: 'Scaler metrics plugin is not available'
+      }
+    }
 
     try {
       const allApplicationsMetrics = await this.app.scalerMetrics.getAllApplicationsMetrics()

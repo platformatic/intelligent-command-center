@@ -10,7 +10,8 @@ function createLeaderElector (options) {
     poll = 10000,
     channel = 'trigger_scaler',
     log,
-    onNotification
+    onNotification,
+    onLeadershipChange = null
   } = options
 
   log.info('Locking scaler to advisory lock %d', lock)
@@ -35,6 +36,16 @@ function createLeaderElector (options) {
   const abortController = new AbortController()
   let leaderLoop
 
+  // Helper function to update leadership status and trigger callback if needed
+  function updateLeadershipStatus (newStatus) {
+    if (elected !== newStatus) {
+      elected = newStatus
+      if (typeof onLeadershipChange === 'function') {
+        onLeadershipChange(elected)
+      }
+    }
+  }
+
   async function amITheLeader () {
     const sql = db.sql
     await db.task(async (t) => {
@@ -44,7 +55,7 @@ function createLeaderElector (options) {
         `)
         if (leader && !elected) {
           log.info('This instance is the leader')
-          elected = true
+          updateLeadershipStatus(true)
           ;(async () => {
             await t.query(sql.__dangerous__rawValue(`LISTEN "${channel}";`))
             for await (const notification of on(t._driver.client, 'notification', { signal: abortController.signal })) {
@@ -69,7 +80,7 @@ function createLeaderElector (options) {
           log.debug('This instance is still the leader')
         } else if (!leader && elected) {
           log.warn('This instance was the leader but is not anymore')
-          elected = false
+          updateLeadershipStatus(false)
         } else {
           log.debug('This instance is not the leader')
         }
