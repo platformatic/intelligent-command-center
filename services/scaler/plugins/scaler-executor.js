@@ -127,11 +127,23 @@ class ScalerExecutor {
 
   async executeScaling (applicationId, podsNumber) {
     this.app.log.info({ applicationId, podsNumber }, 'Executing scaling operation')
-    return {
-      success: true,
-      applicationId,
-      podsNumber,
-      timestamp: Date.now()
+    try {
+      await this.app.updateControllerReplicas(applicationId, podsNumber)
+      return {
+        success: true,
+        applicationId,
+        podsNumber,
+        timestamp: Date.now()
+      }
+    } catch (err) {
+      this.app.log.error({ err, applicationId, podsNumber }, 'Error executing scaling operation')
+      return {
+        success: false,
+        applicationId,
+        podsNumber,
+        timestamp: Date.now(),
+        error: err.message
+      }
     }
   }
 
