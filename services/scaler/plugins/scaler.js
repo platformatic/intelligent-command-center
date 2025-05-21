@@ -15,7 +15,7 @@ async function plugin (app) {
     poll,
     channel: 'trigger_scaler',
     log: app.log,
-    onNotification: app.scalerExecutor.execute
+    onNotification: app.scalerExecutor.checkScalingOnAlert
   })
 
   app.addHook('onClose', async () => {

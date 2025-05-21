@@ -20,7 +20,7 @@ test('should pass podId through PostgreSQL notification', async (t) => {
   let receivedPayload = null
 
   const executor1 = {
-    execute: async (payload) => {
+    checkScalingOnAlert: async (payload) => {
       server1ExecutionCount++
       receivedPayload = payload
     }
@@ -53,7 +53,7 @@ test('only one instance processes notifications with real scaler', async (t) => 
   let server2ExecutionCount = 0
 
   const executor1 = {
-    execute: async () => {
+    checkScalingOnAlert: async () => {
       server1ExecutionCount++
     }
   }
@@ -65,7 +65,7 @@ test('only one instance processes notifications with real scaler', async (t) => 
   ]
 
   const executor2 = {
-    execute: async () => {
+    checkScalingOnAlert: async () => {
       server2ExecutionCount++
     }
   }
