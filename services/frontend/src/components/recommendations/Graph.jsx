@@ -81,8 +81,8 @@ export default function Graph ({
 
     chartString += `
         linkStyle default stroke:white,stroke-width:2px;
-        ingress-controller-1(${ic})
-        class ingress-controller-1 ingress\n`
+        ingress-controller(${ic})
+        class ingress-controller ingress\n`
 
     for (const app of applications) {
       let subGraphId = app.name
@@ -117,7 +117,7 @@ export default function Graph ({
 
     Object.values(subgraphMappings).forEach((app, idx) => {
       ingressLinks.push(idx)
-      chartString += `ingress-controller-1 --> ${app}\n`
+      chartString += `ingress-controller --> ${app}\n`
     })
 
     getLinksBetweenApps(links, subgraphMappings).forEach((l, idx) => {

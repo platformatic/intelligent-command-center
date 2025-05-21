@@ -5,7 +5,6 @@ import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import Users from './users/Users'
-import Environments from './environments/Environments'
 import Exports from './sync/Exports'
 import Imports from './sync/Imports'
 import SystemJobs from './system-jobs/SystemJobs'
@@ -54,18 +53,6 @@ const Settings = React.forwardRef(({ _ }, ref) => {
           onClick={() => setComponent(<Users key='users' />)}
           bordered={false}
           platformaticIcon={{ iconName: 'TeamsIcon', color: WHITE, size: SMALL }}
-        />
-        <Button
-          label='Environment'
-          type='button'
-          color={WHITE}
-          backgroundColor={TRANSPARENT}
-          hoverEffect={component.key === 'environments' ? '' : ACTIVE_AND_INACTIVE_STATUS}
-          paddingClass={commonStyles.smallButtonPaddingNoVerticalPadding}
-          textClass={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite}`}
-          onClick={() => setComponent(<Environments key='environments' />)}
-          bordered={false}
-          platformaticIcon={{ iconName: 'ComputerIcon', color: WHITE, size: SMALL }}
         />
 
         {syncEnabled && (
