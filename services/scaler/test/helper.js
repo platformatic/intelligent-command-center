@@ -63,12 +63,26 @@ function setUpEnvironment (env = {}) {
   Object.assign(process.env, defaultEnv, env)
 }
 
-async function buildServer (t, options = {}) {
-  const env = options.env || {}
+async function buildServer (envOrTest, options = {}) {
+  // If first param is a test object
+  let env = {}
+  let t = null
+
+  if (typeof envOrTest === 'object' && envOrTest !== null && typeof envOrTest.after === 'function') {
+    t = envOrTest
+    env = options.env || {}
+  } else {
+    // First param is environment variables
+    env = envOrTest || {}
+  }
+
   setUpEnvironment(env)
   const { config } = await getConfig()
   const server = await buildDbServer(config)
-  t.after(() => server.close())
+
+  if (t) {
+    t.after(() => server.close())
+  }
 
   await cleanDb(server)
 
@@ -167,6 +181,41 @@ async function startMachinist (t, opts = {}) {
   return machinist
 }
 
+async function setupMockPrometheusServer (responses = {}) {
+  const server = fastify({ keepAliveTimeout: 1 })
+
+  server.get('/api/v1/query_range', async (request, reply) => {
+    const { query } = request.query
+    let responseData = null
+
+    if (query.includes('nodejs_heap_size_total_bytes') && query.includes('test-app')) {
+      responseData = responses.heapSize
+    } else if (query.includes('nodejs_eventloop_utilization') && query.includes('test-app')) {
+      responseData = responses.eventLoop
+    } else if (query === 'nodejs_heap_size_total_bytes') {
+      responseData = responses.allHeapSize
+    } else if (query === 'nodejs_eventloop_utilization') {
+      responseData = responses.allEventLoop
+    }
+
+    if (responseData) {
+      return responseData
+    }
+
+    return reply.status(404).send({ status: 'error', error: 'No data found for query' })
+  })
+
+  const address = await server.listen({ port: 0 })
+
+  return {
+    server,
+    address,
+    close: async () => {
+      await server.close()
+    }
+  }
+}
+
 module.exports = {
   setUpEnvironment,
   buildServer,
@@ -177,5 +226,6 @@ module.exports = {
   createExecutor,
   valkeyConnectionString,
   connectionString,
-  startMachinist
+  startMachinist,
+  setupMockPrometheusServer
 }
