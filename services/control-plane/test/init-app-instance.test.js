@@ -89,6 +89,7 @@ test('should save an instance of a new application', async (t) => {
     'compliance',
     'cron',
     'metrics',
+    'riskEngine',
     'riskManager',
     'riskService',
     'trafficante',

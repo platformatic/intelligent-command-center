@@ -69,6 +69,12 @@
         "proxy": {
           "prefix": "scaler"
         }
+      },
+      {
+        "id": "risk-service",
+        "proxy": {
+          "prefix": "risk-service"
+        }
       }
     ]
   },
