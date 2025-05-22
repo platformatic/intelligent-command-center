@@ -20,6 +20,7 @@ const defaultEnv = {
   PLT_EXTERNAL_RISK_MANAGER_URL: '',
   PLT_EXTERNAL_RISK_SERVICE_URL: '',
   PLT_EXTERNAL_METRICS_URL: '',
+  PLT_EXTERNAL_SCALER_URL: '',
 
   PLT_MACHINIST_URL: 'http://localhost:3052',
   PLT_SCALER_URL: 'http://localhost:3053',

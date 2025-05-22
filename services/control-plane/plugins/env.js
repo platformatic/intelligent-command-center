@@ -19,6 +19,7 @@ const schema = {
     'PLT_EXTERNAL_RISK_SERVICE_URL',
     'PLT_EXTERNAL_ACTIVITIES_URL',
     'PLT_EXTERNAL_METRICS_URL',
+    'PLT_EXTERNAL_SCALER_URL',
     'PLT_CONTROL_PLANE_SECRET_KEYS',
     'PLT_ICC_SESSION_SECRET'
   ],
@@ -37,6 +38,7 @@ const schema = {
     PLT_EXTERNAL_COMPLIANCE_URL: { type: 'string' },
     PLT_EXTERNAL_ACTIVITIES_URL: { type: 'string' },
     PLT_EXTERNAL_METRICS_URL: { type: 'string' },
+    PLT_EXTERNAL_SCALER_URL: { type: 'string' },
     PLT_CONTROL_PLANE_CACHE_PROVIDER: { type: 'string', default: 'valkey-oss' },
     PLT_CONTROL_PLANE_ELASTICACHE_REGION: { type: 'string' },
     PLT_CONTROL_PLANE_ELASTICACHE_ACCESS_KEY: { type: 'string' },
@@ -65,7 +67,8 @@ async function envPlugin (app) {
     riskEngine: app.env.PLT_EXTERNAL_RISK_SERVICE_URL,
     compliance: app.env.PLT_EXTERNAL_COMPLIANCE_URL,
     activities: app.env.PLT_EXTERNAL_ACTIVITIES_URL,
-    metrics: app.env.PLT_EXTERNAL_METRICS_URL
+    metrics: app.env.PLT_EXTERNAL_METRICS_URL,
+    scaler: app.env.PLT_EXTERNAL_SCALER_URL
   })
 }
 
