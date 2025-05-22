@@ -42,7 +42,6 @@ function KubernetesResources ({
     try {
       const data = await getKubernetesResources(application.id)
       const values = await data.json()
-
       setValues(values)
     } catch (error) {
       console.error(`Error on getKubernetesResources ${error}`)
@@ -128,19 +127,19 @@ function KubernetesResources ({
           <KubernetesResourceNumeric
             key='pods_instances'
             title='Pods'
-            podsUsed={values?.pods?.pods ?? '-'}
-            podsAll={values?.pods?.podsAll ?? '-'}
+            podsUsed={values?.pods?.current ?? '-'}
+            podsAll={values?.pods?.max ?? '-'}
             valuesLoading={initialLoading}
             values={[{
               key_value: 'pods_used',
               label: 'Pods used:',
               className: 'boxPodsUsed',
-              value: values?.pods?.pods ?? '-'
+              value: values?.pods?.current ?? '-'
             }, {
               key_value: 'pods_available',
               label: 'Pods available:',
               className: 'boxPodsAvailable',
-              value: (values?.pods?.podsAll ?? 0) - (values?.pods?.pods ?? 0)
+              value: (values?.pods?.max ?? 0) - (values?.pods?.current ?? 0)
             }]}
             backgroundColor={RICH_BLACK}
           />

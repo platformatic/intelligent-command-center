@@ -7,7 +7,7 @@ import ReplicaSetOverview from './overview/ReplicaSetOverview'
 import ErrorComponent from '~/components/errors/ErrorComponent'
 
 const AutoscalerOverview = React.forwardRef(({
-  applicationId,
+  application,
   onViewFullHistory = () => {},
   onViewPodsDetails = () => {}
 }, ref) => {
@@ -29,21 +29,20 @@ const AutoscalerOverview = React.forwardRef(({
           <div className={styles.boxRequestsAndSetOverview}>
             <Requests
               gridClassName={styles.boxRequests}
-              applicationId={applicationId}
+              application={application}
             />
             <ReplicaSetOverview
               gridClassName={styles.boxReplicaSetOverview}
-              applicationId={applicationId}
+              application={application}
               onViewPodsDetails={onViewPodsDetails}
             />
           </div>
           <ReplicaSetScaling
             gridClassName={styles.boxReplicaSetScaling}
             onErrorOccurred={onInternalError}
-            applicationId={applicationId}
+            applicationId={application.id}
           />
           <ScalingHistory
-            onErrorOccurred={onInternalError}
             onViewFullHistory={onViewFullHistory}
           />
         </div>

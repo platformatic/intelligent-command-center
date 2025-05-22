@@ -46,7 +46,6 @@ export default function JobForm ({ onSubmit, onCancel, model }) {
   }
 
   const handleChange = (e) => {
-    console.log('handleChange', e)
     const { name, value } = e.target
     switch (name) {
       case 'schedule':

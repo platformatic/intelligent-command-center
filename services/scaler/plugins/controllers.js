@@ -10,7 +10,7 @@ module.exports = fp(async function (app) {
   app.decorate('getApplicationController', async (applicationId) => {
     const controllers = await app.platformatic.entities.controller.find({
       where: { applicationId: { eq: applicationId } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ field: 'createdAt', direction: 'desc' }],
       limit: 1
     })
     return controllers.length === 1 ? controllers[0] : null

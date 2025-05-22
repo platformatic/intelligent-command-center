@@ -1,6 +1,6 @@
 'use strict'
 
-const getAppFilter = (appId) => appId ? `applicationId="${appId}",` : ''
+const getAppFilter = (appId) => appId ? `applicationId="${appId}"` : ''
 
 // Averate resident memory usage across all pods
 // TEMPORARY: we should sum up the RSS of all the services by `instanceId` but currently every service return the same global RSS value.
@@ -52,11 +52,26 @@ const createEventLoopPodQuery = ({ podId }) =>
 
 // NOTE: the >0 check ensures that only routes in the timeWindow are included in the average,
 // otherwise this will return NaN because all requests in the data are included, even if not hit
-const createRequestLatencyQuery = ({ podId, timeWindow }) =>
-  `avg((rate(http_request_duration_seconds_sum{service="${podId}"}[${timeWindow}]) / rate(http_request_duration_seconds_count{service="${podId}"}[${timeWindow}])) > 0)`
 
-const createRequestPerSecondQuery = ({ podId, timeWindow }) =>
-  `avg(rate(http_request_summary_seconds_count{service="${podId}"}[${timeWindow}]) > 0)`
+const createRequestLatencyQuery = ({ applicationId, timeWindow }) =>
+  `avg(
+    (
+      rate(http_request_duration_seconds_sum[${timeWindow}])
+      * on(pod) group_left(label_platformatic_dev_application_id)
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+    ) / (
+      rate(http_request_duration_seconds_count[${timeWindow}])
+      * on(pod) group_left(label_platformatic_dev_application_id)
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+    ) > 0
+  )`
+
+const createRequestPerSecondQuery = ({ applicationId, timeWindow }) =>
+  `avg(
+    rate(http_request_summary_seconds_count[${timeWindow}])
+    * on(pod) group_left(label_platformatic_dev_application_id)
+    kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"} > 0
+  )`
 
 module.exports = {
   createRSSMemoryQuery,

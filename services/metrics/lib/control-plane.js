@@ -8,6 +8,7 @@ async function getDeployment (controlPlane, appId, logger) {
   })
   const deployment = deployments[0]
   logger.info({ appId, deployment }, 'Deployment found')
+
   return deployment
 }
 

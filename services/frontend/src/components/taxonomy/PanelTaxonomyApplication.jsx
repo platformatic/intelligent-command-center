@@ -11,7 +11,7 @@ import KubernetesResourceNumeric from '~/components/application/detail/kubernete
 import tooltipStyles from '~/styles/TooltipStyles.module.css'
 import {
   getKubernetesResources,
-  getApiApplicationInstances,
+  getApiApplicationScaleConfig,
   getApiCompliancy
 } from '~/api'
 
@@ -28,7 +28,9 @@ function PanelTaxonomyApplication ({ id, name, services, mainTaxonomyId, islates
           setValuesLoading(true)
           const data = await getKubernetesResources(mainTaxonomyId, id)
           const values = await data.json()
-          const { maximumInstanceCount = 0 } = await getApiApplicationInstances(id, mainTaxonomyId)
+
+          const scaleConfig = await getApiApplicationScaleConfig(id)
+          const maximumInstanceCount = scaleConfig.maxPods
 
           const report = await getApiCompliancy(mainTaxonomyId, id)
           let services = {}

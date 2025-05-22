@@ -1,6 +1,5 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import styles from './Performance.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import { LoadingSpinnerV2 } from '@platformatic/ui-components'
@@ -13,8 +12,7 @@ function Performance ({
   subtitle = '',
   initialLoading = true,
   showNoResult = false,
-  displayedValue = {},
-  markerValue = {}
+  displayedValue = {}
 }) {
   function displayValue (value = '-', unit) {
     if (value === '-' || value === null) {
@@ -23,35 +21,13 @@ function Performance ({
     return `${value.toFixed(0)} ${unit}`
   }
 
-  function renderText (currentValue, marker) {
+  function renderText (currentValue) {
     return (
       <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyBetween} ${commonStyles.itemsCenter}`}>
         <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`} key={`${currentValue.valueKey}-0`}>
           <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>{currentValue.label}</span>
           <span className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite}`}>{displayValue(currentValue?.value ?? '-', currentValue.unit)}</span>
         </div>
-
-        <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`} key={`${currentValue.valueKey}-1`}>
-          <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>{marker.label}</span>
-          <span className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite}`}>{displayValue(marker?.value ?? '-', marker.unit)}</span>
-        </div>
-      </div>
-    )
-  }
-
-  function renderPercentBar (currentValue, marker) {
-    const currentValuePerc = ((currentValue.value || 0) / marker.value) * 100
-    const markerValuePerc = currentValuePerc >= 100 ? 0 : 100 - currentValuePerc
-
-    let currentValueClass = styles.boxPerformanceContentGreen
-    if (currentValuePerc > 80) currentValueClass = styles.boxPerformanceContentRed
-    else if (currentValuePerc > 50) currentValueClass = styles.boxPerformanceContentYellow
-
-    return (
-      <div className={`${commonStyles.miniFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
-        <div className={`${styles.boxPerformanceContent} ${currentValueClass}`} style={{ width: `${currentValuePerc}%` }} key={`${currentValue.valueKey}_perc`}>&nbsp;</div>
-
-        <div className={styles.boxFree} style={{ width: `${markerValuePerc}%` }} key={`${currentValue.valueKey}_perc`}>&nbsp;</div>
       </div>
     )
   }
@@ -75,9 +51,7 @@ function Performance ({
 
     return (
       <div className={`${commonStyles.flexBlockNoGap} ${commonStyles.fullWidth}`}>
-        {renderText(displayedValue, markerValue)}
-
-        {renderPercentBar(displayedValue, markerValue)}
+        {renderText(displayedValue)}
       </div>
     )
   }

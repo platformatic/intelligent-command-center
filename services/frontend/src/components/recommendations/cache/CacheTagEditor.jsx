@@ -89,7 +89,6 @@ export default function CacheTagEditor ({ route, onTagUpdate }) {
     setCacheTags(newCacheTags)
   }
   function handleRemoveParameter (parameter) {
-    console.log(parameter, 'parameter')
     // remove all occurrences of the parameter from the textarea
     const newCacheTags = cacheTags.replaceAll(parameter, '')
     setCacheTags(newCacheTags)
