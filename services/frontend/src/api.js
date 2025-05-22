@@ -32,6 +32,7 @@ import extractScalingEvents from './utilities/extract-scaling-events'
 import { sortCollection, sortCollectionByDate } from './utilitySorting'
 
 import callApi from './api/common'
+import { getScalingHistorySummary } from './api/autoscaler'
 const baseUrl = `${import.meta.env.VITE_API_BASE_URL}`
 const baseApiUrl = `${baseUrl}/api`
 setBaseUrlControlPlane(`${baseUrl}/control-plane`)
@@ -42,7 +43,6 @@ setBaseURLCompliance(`${baseUrl}/compliance`)
 // TODO: remove these mocks
 // These are function that have been removed from the control-plane client
 
-async function getApplicationInstances () {}
 async function getApplicationsIdScaler () {}
 
 const getHeaders = () => {
@@ -102,8 +102,10 @@ export const getApplicationsWithMetadata = async () => {
     const { body: applicationState } = await getApplicationStatesForApplication({
       id: currentApplication.id
     })
-    applicationsWithMetadata[i].state = applicationState[0].state
-    applicationsWithMetadata[i].pltVersion = applicationState[0].pltVersion
+    if (applicationState.length > 0) {
+      applicationsWithMetadata[i].state = applicationState[0].state
+      applicationsWithMetadata[i].pltVersion = applicationState[0].pltVersion
+    }
   }
   return applicationsWithMetadata
 }
@@ -112,7 +114,7 @@ export const getApiApplication = async (id) => {
   let lastUpdated = null
   let lastStarted = null
   let pltVersion = null
-  const latestDeployment = {}
+  let latestDeployment = {}
   let state = {}
   const { body: application } = await getApplicationById({ id })
   const { body: arrayState } = await getApplicationStates({
@@ -133,6 +135,7 @@ export const getApiApplication = async (id) => {
 
   if (deployments.length > 0) {
     lastStarted = deployments[0].createdAt
+    latestDeployment = deployments[0]
   }
 
   const { body: deploymentsOnMainTaxonomy } = await getDeployments({
@@ -182,8 +185,8 @@ export const getApiMetricsForApplication = async (applicationId, radix) => {
   })
 }
 
-export const getApiMetricsPod = async (taxonomyId, applicationId, podId, radix) => {
-  let url = `${baseUrl}/metrics/taxonomies/${taxonomyId}/apps/${applicationId}/pods/${podId}`
+export const getApiMetricsPod = async (applicationId, podId, radix) => {
+  let url = `${baseUrl}/metrics/apps/${applicationId}/pods/${podId}`
   if (radix) {
     url += `/${radix}`
   }
@@ -194,8 +197,8 @@ export const getApiMetricsPod = async (taxonomyId, applicationId, podId, radix) 
   })
 }
 
-export const getApiMetricsPodPerService = async (taxonomyId, applicationId, podId, serviceId, radix) => {
-  let url = `${baseUrl}/metrics/taxonomies/${taxonomyId}/apps/${applicationId}/pods/${podId}/services/${serviceId}`
+export const getApiMetricsPodPerService = async (applicationId, podId, serviceId, radix) => {
+  let url = `${baseUrl}/metrics/apps/${applicationId}/pods/${podId}/services/${serviceId}`
   if (radix) {
     url += `/${radix}`
   }
@@ -320,30 +323,32 @@ export const getPackageVersions = async () => {
 }
 
 /* INSTANCES */
-export const getApiApplicationInstances = async (applicationId) => {
-  const res = await callApi('control-plane', `/instances?where.applicationId.eq=${applicationId}`, 'GET')
-  return res.body
+export const getApiApplicationK8sState = async (applicationId) => {
+  return callApi('control-plane', `/applications/${applicationId}/k8s/state`, 'GET')
+}
+
+export const getApiApplicationScaleConfig = async (applicationId) => {
+  return callApi('scaler', `/applications/${applicationId}/scale-configs`, 'GET')
 }
 
 /* PODS */
 export const getApiPods = async (applicationId) => {
   const { body: appInstances } = await getInstances({ 'where.applicationId.eq': applicationId })
   const pods = appInstances.map(({ podId }) => podId) ?? []
-
-  for (const pod of pods) {
-    const { id } = pod
-
+  const output = await Promise.all(pods.map(async (pod) => {
     const [dataMem, dataCpu] = await Promise.all([
-      getApiMetricsPod(applicationId, id, 'mem'),
-      getApiMetricsPod(applicationId, id, 'cpu')
+      getApiMetricsPod(applicationId, pod, 'mem'),
+      getApiMetricsPod(applicationId, pod, 'cpu')
     ])
 
     const dataValuesMem = await dataMem.json()
     const dataValuesCpu = await dataCpu.json()
-    pod.dataValues = { ...dataValuesMem, ...dataValuesCpu }
-  }
-
-  return pods
+    return {
+      id: pod,
+      dataValues: { ...dataValuesMem, ...dataValuesCpu }
+    }
+  }))
+  return output
 }
 
 export const getApiPod = async (applicationId, podId) => {
@@ -455,19 +460,18 @@ export const getApiCompliancy = async (applicationId) => {
 
 /* AUTOSCALER */
 export const getApiMetricsReplicaSetOverview = async (applicationId) => {
-  const { body: pods } = await getApplicationInstances({ id: applicationId })
-  const { events } = await getScalingEventHistory(applicationId)
-  const eventCounts = events.reduce((counts, ev) => {
-    if (ev.scaleType === 'UP') counts.up += 1
-    else counts.down += 1
-    return counts
-  }, { up: 0, down: 0 })
+  const { pods } = await getApiApplicationK8sState(applicationId)
+  const scaleConfig = await getApiApplicationScaleConfig(applicationId)
+  const scalingSummary = await getScalingHistorySummary(applicationId)
+
   return {
-    pods: (pods?.instances ?? []).length,
-    minPods: pods?.minimumInstanceCount ?? 1,
-    maxPods: pods?.maximumInstanceCount ?? 10,
-    countScaleUp: eventCounts.up,
-    countScaleDown: eventCounts.down
+    pods: pods.length,
+    minPods: scaleConfig.minPods,
+    maxPods: scaleConfig.maxPods,
+    countScaleUp: scalingSummary.up,
+    countScaleDown: scalingSummary.down,
+    latestScaleUp: scalingSummary.latestUp,
+    latestScaleDown: scalingSummary.latestDown
   }
 }
 

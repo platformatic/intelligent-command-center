@@ -11,6 +11,9 @@ export default async function callApi (service, url, method, body, headers) {
     }
     body = JSON.stringify(body)
   }
+  if (!method) {
+    method = 'GET'
+  }
   const response = await fetch(`${baseUrl}/${service}${url}`, {
     method,
     body,

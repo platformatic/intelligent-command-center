@@ -6,7 +6,7 @@ import commonStyles from '~/styles/CommonStyles.module.css'
 import { BorderedBox, Button, VerticalSeparator } from '@platformatic/ui-components'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import Performance from './Performance'
-import { getKubernetesResources, getScalingMarkers } from '~/api'
+import { getKubernetesResources } from '~/api'
 import { REFRESH_INTERVAL_METRICS, K8S_KEY_ELU, K8S_KEY_MEMORY, K8S_KEY_REQUESTS } from '~/ui-constants'
 import gridStyles from '~/styles/GridStyles.module.css'
 
@@ -32,37 +32,11 @@ function ReplicaSetScaling ({
     value: '-',
     valuePerc: '0',
     internalKey: K8S_KEY_MEMORY,
-    valueKey: 'memoryAppMax',
+    valueKey: 'avgMemoryAppUsage',
     unit: 'MB',
     label: 'Using:'
   }])
 
-  const [scalingMarkers, setScalingMarkers] = useState({
-    [K8S_KEY_ELU]: {
-      label: 'Scale at:',
-      unit: '%',
-      value: 100,
-      className: 'boxFree',
-      valuePerc: '100',
-      maxValuePerc: '100'
-    },
-    [K8S_KEY_REQUESTS]: {
-      label: 'Scale at:',
-      value: 1500,
-      unit: 'ms',
-      className: 'boxFree',
-      valuePerc: '100',
-      maxValuePerc: '100'
-    },
-    [K8S_KEY_MEMORY]: {
-      label: 'Scale at:',
-      unit: 'MB',
-      value: 512,
-      className: 'boxFree',
-      valuePerc: '100',
-      maxValuePerc: '100'
-    }
-  })
   const [startPolling, setStartPolling] = useState(false)
   const [showNoResult, setShowNoResult] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
@@ -88,25 +62,25 @@ function ReplicaSetScaling ({
     }
   }, [applicationId, displayedValues, initialLoading])
 
-  useEffect(() => {
-    if (!applicationId) return
+  // useEffect(() => {
+  //   if (!applicationId) return
 
-    async function loadScalingMarkers () {
-      const markers = await getScalingMarkers(applicationId)
-      const updatedMarkers = Object.entries(markers).reduce((updates, [id, marker]) => {
-        let value = marker.targetValue
-        if (marker.targetType === 'bytes') value = value / 1024 / 1024
+  //   async function loadScalingMarkers () {
+  //     const markers = await getScalingMarkers(applicationId)
+  //     const updatedMarkers = Object.entries(markers).reduce((updates, [id, marker]) => {
+  //       let value = marker.targetValue
+  //       if (marker.targetType === 'bytes') value = value / 1024 / 1024
 
-        updates[id] = {
-          ...updates[id],
-          value
-        }
-        return updates
-      }, { ...scalingMarkers })
-      setScalingMarkers({ ...updatedMarkers })
-    }
-    loadScalingMarkers()
-  }, [applicationId])
+  //       updates[id] = {
+  //         ...updates[id],
+  //         value
+  //       }
+  //       return updates
+  //     }, { ...scalingMarkers })
+  //     setScalingMarkers({ ...updatedMarkers })
+  //   }
+  //   loadScalingMarkers()
+  // }, [applicationId])
 
   async function loadMetricsReplicaSetScaling () {
     try {
@@ -186,7 +160,6 @@ function ReplicaSetScaling ({
                 title='Request Latency'
                 subtitle='(Pod)'
                 displayedValue={displayedValues.find(v => v.internalKey === K8S_KEY_REQUESTS)}
-                markerValue={scalingMarkers[K8S_KEY_REQUESTS]}
                 initialLoading={initialLoading}
                 showNoResult={showNoResult}
               />
@@ -196,7 +169,6 @@ function ReplicaSetScaling ({
                 key='memory_usage'
                 title='Memory'
                 displayedValue={displayedValues.find(v => v.internalKey === K8S_KEY_MEMORY)}
-                markerValue={scalingMarkers[K8S_KEY_MEMORY]}
                 initialLoading={initialLoading}
                 showNoResult={showNoResult}
               />
@@ -208,7 +180,6 @@ function ReplicaSetScaling ({
               key='event_loop_utilization'
               title='Event loop Utilization'
               displayedValue={displayedValues.find(v => v.internalKey === K8S_KEY_ELU)}
-              markerValue={scalingMarkers[K8S_KEY_ELU]}
               initialLoading={initialLoading}
               showNoResult={showNoResult}
             />

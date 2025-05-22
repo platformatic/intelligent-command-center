@@ -18,7 +18,7 @@ module.exports = fp(async function (app) {
   app.decorate('getLatestDeployment', async (applicationId, ctx) => {
     const deployments = await app.platformatic.entities.deployment.find({
       where: { applicationId: { eq: applicationId } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ field: 'createdAt', direction: 'desc' }],
       limit: 1,
       tx: ctx?.tx
     })

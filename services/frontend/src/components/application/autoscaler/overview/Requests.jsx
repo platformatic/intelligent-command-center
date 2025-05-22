@@ -12,7 +12,7 @@ import Icons from '@platformatic/ui-components/src/components/icons'
 
 function Requests ({
   gridClassName = '',
-  applicationId
+  application
 }) {
   const UP = 'up'
   const DOWN = 'down'
@@ -34,7 +34,7 @@ function Requests ({
   }, [startPolling])
 
   useEffect(() => {
-    if (applicationId && Object.keys(displayedValue).length > 0 && initialLoading) {
+    if (application && Object.keys(displayedValue).length > 0 && initialLoading) {
       async function loadRequests () {
         await loadRequestsCount()
         setStartPolling(true)
@@ -43,19 +43,19 @@ function Requests ({
       }
       loadRequests()
     }
-  }, [applicationId, Object.keys(displayedValue), initialLoading])
+  }, [application, Object.keys(displayedValue), initialLoading])
 
   async function loadRequestsCount () {
     try {
       setBorderexBoxClassName(`${styles.borderexBoxContainer} ${styles.borderedBoxHeigthLoading} ${gridClassName}`)
-      const data = await getRequestsPerSecond(applicationId)
+      const data = await getRequestsPerSecond(application.id)
       if (data.ok) {
         const { rps = '-' } = await data.json()
         setDisplayedValue({
           value: rps || '-',
           direction: displayedValue.value !== '-' ? (displayedValue.value > rps ? UP : DOWN) : STALE
         })
-        setShowNoResult(true)
+        setShowNoResult(false)
       } else {
         setShowNoResult(true)
         console.error('Error on ', data)

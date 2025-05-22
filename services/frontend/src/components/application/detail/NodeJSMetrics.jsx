@@ -82,10 +82,6 @@ function NodeJSMetrics ({
     }
   }
 
-  /* async function onClickRefresh () {
-    setTimer(REFRESH_INTERVAL_METRICS / 1000)
-  } */
-
   return (
     <BorderedBox classes={`${styles.borderexBoxContainer} ${gridClassName}`} backgroundColor={BLACK_RUSSIAN} color={TRANSPARENT}>
       <div className={`${commonStyles.smallFlexBlock} ${commonStyles.fullWidth}`}>
