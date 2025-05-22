@@ -8,6 +8,7 @@ class ScalerExecutor {
     this.app = app
 
     const options = {
+      metrics: app.scalerMetrics,
       maxHistoryEvents: Number(process.env.PLT_SCALER_MAX_HISTORY) || 10,
       maxClusters: Number(process.env.PLT_SCALER_MAX_CLUSTERS) || 5,
       eluThreshold: Number(process.env.PLT_SCALER_ELU_THRESHOLD) || 0.9,
@@ -22,13 +23,12 @@ class ScalerExecutor {
   }
 
   async #getCurrentPodCount (applicationId) {
-    try {
-      const controller = await this.app.getApplicationController(applicationId)
-      return controller ? controller.replicas : 1
-    } catch (err) {
-      this.app.log.error({ err, applicationId }, 'Error retrieving controller information')
-      return 1
+    const controller = await this.app.getApplicationController(applicationId)
+    if (!controller) {
+      this.app.log.error({ applicationId }, 'No controller found for application')
+      throw new Error('No controller found for application: ' + applicationId)
     }
+    return controller.replicas
   }
 
   async #getScaleConfig (applicationId) {
@@ -59,12 +59,24 @@ class ScalerExecutor {
       alerts
     )
 
+    // Log scaling decision with clear action and reason
+    const scalingAction = result.nfinal > currentPodCount
+      ? 'SCALE UP'
+      : result.nfinal < currentPodCount ? 'SCALE DOWN' : 'NO CHANGE'
+
+    const logMessage = result.nfinal !== currentPodCount
+      ? `Scaling decision: ${scalingAction} from ${currentPodCount} to ${result.nfinal} pods`
+      : `Scaling decision: ${scalingAction} - ${result.reason || 'Algorithm determined no scaling needed'}`
+
     this.app.log.info({
       ...logContext,
       applicationId,
       nfinal: result.nfinal,
-      currentPodCount
-    }, `Scaling decision calculated${alerts.length > 0 ? ' from alerts' : ' from metrics'}`)
+      currentPodCount,
+      action: scalingAction,
+      reason: result.reason,
+      source: alerts.length > 0 ? 'alerts' : 'metrics'
+    }, logMessage)
 
     if (result.nfinal !== currentPodCount) {
       await this.executeScaling(applicationId, result.nfinal)
