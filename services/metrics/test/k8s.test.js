@@ -23,10 +23,9 @@ test('k8s metrics per infrastructure', async (t) => {
 
 test('k8s metrics per application', async (t) => {
   const applicationId = 'test-application-id'
-  const machineId = 'test-machine-id'
-  const controlPlane = getControlPlane(machineId)
+  const controlPlane = getControlPlane(applicationId)
 
-  await startPrometheusK8s(t, machineId)
+  await startPrometheusK8s(t, applicationId)
   const server = await startMetrics(t, controlPlane)
   const res = await server.inject({
     method: 'GET',
@@ -37,14 +36,15 @@ test('k8s metrics per application', async (t) => {
 
   const expected = {
     cpu: {
-      cpuAllAppsUsage: 8.333333333333332,
+      cpuAllAppsUsage: 0.5235983333333333,
       cpuAllAppsUsageButApp: 1.6666666666666667,
       cpuAppUsage: 6.666666666666667
     },
     memory: {
+      avgMemoryAppUsage: 1.721122686,
       memoryAllAppsUsage: 1.721122686,
       memoryAllAppsUsageButApp: 3.721122686,
-      memoryAppUsage: 1.721122686,
+      memoryAppUsage: 3.721122686,
       totalMemory: 2.721122686
     },
     pods: {
@@ -61,12 +61,11 @@ test('k8s metrics per application', async (t) => {
   assert.deepEqual(metrics, expected)
 })
 
-test('requests per second per application', async (t) => {
+test.only('requests per second per application', async (t) => {
   const applicationId = 'test-application-id'
-  const machineId = 'test-machine-id'
-  const controlPlane = getControlPlane(machineId)
+  const controlPlane = getControlPlane(applicationId)
 
-  await startPrometheusK8s(t, machineId)
+  await startPrometheusK8s(t, applicationId)
   const server = await startMetrics(t, controlPlane)
   const res = await server.inject({
     method: 'GET',

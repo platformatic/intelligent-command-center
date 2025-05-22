@@ -76,15 +76,14 @@ const getCpuEventMetrics = async ({ appId, timeWindow }) => {
 const getLatencyMetrics = async ({ appId, entrypoint, timeWindow }) => {
   const end = new Date().getTime() / 1000
   const start = end - timeWindow * 60
-  const latencyQuery90 = createLatencyQuery({ appId, entrypoint, timeWindow, quantile: '0.9' })
-  const latencyQuery95 = createLatencyQuery({ appId, entrypoint, timeWindow, quantile: '0.95' })
-  const latencyQuery99 = createLatencyQuery({ appId, entrypoint, timeWindow, quantile: '0.99' })
+  const latencyQuery90 = createLatencyQuery({ appId, entrypoint, quantile: '0.9' })
+  const latencyQuery95 = createLatencyQuery({ appId, entrypoint, quantile: '0.95' })
+  const latencyQuery99 = createLatencyQuery({ appId, entrypoint, quantile: '0.99' })
   const [latencyRes90, latencyRes95, latencyRes99] = await Promise.all([
     queryRangePrometheus(latencyQuery90, start, end, step),
     queryRangePrometheus(latencyQuery95, start, end, step),
     queryRangePrometheus(latencyQuery99, start, end, step)
   ])
-
   const numberOfPoints = latencyRes90?.data?.result[0]?.values.length
   const data = []
   for (let i = 0; i < numberOfPoints; i++) {
