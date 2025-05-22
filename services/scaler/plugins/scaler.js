@@ -19,7 +19,7 @@ async function plugin (app) {
     poll,
     channel: 'trigger_scaler',
     log: app.log,
-    onNotification: app.scalerExecutor.checkScalingOnAlert,
+    onNotification: app.scalerExecutor.checkScalingOnAlert.bind(app.scalerExecutor),
     onLeadershipChange: (newIsLeader) => {
       if (newIsLeader !== isLeader) {
         isLeader = newIsLeader

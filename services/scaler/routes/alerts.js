@@ -41,8 +41,8 @@ module.exports = async function (app) {
       }
 
       const podId = k8sContext.pod?.name
-      const { alert, healthHistory } = req.body
-      const { applicationId, currentHealth, unhealthy, healthConfig } = alert
+      const { alert, healthHistory, applicationId } = req.body
+      const { currentHealth, unhealthy, healthConfig } = alert
       const serviceId = alert.service || alert.id
       const { elu, heapUsed, heapTotal } = currentHealth
       app.log.debug({ serviceId, applicationId, currentHealth, unhealthy, healthConfig, podId, healthHistoryLength: healthHistory?.length }, 'received alert')

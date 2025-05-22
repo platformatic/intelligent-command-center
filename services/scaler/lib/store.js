@@ -1,7 +1,6 @@
 'use strict'
 
 const Redis = require('iovalkey')
-const errors = require('./errors')
 
 const PREFIX = 'scaler:'
 const ALERTS_PREFIX = `${PREFIX}alerts:`
@@ -56,7 +55,7 @@ class Store {
       const missingFields = []
       if (!applicationId) missingFields.push('applicationId')
       if (!podId) missingFields.push('podId')
-      throw new errors.MISSING_REQUIRED_FIELDS(missingFields.join(', '))
+      throw new Error('Missing required fields: ' + missingFields.join(', '))
     }
 
     if (alert.healthHistory && !Array.isArray(alert.healthHistory)) {
