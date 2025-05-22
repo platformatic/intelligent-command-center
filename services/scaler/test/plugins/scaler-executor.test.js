@@ -66,8 +66,11 @@ test('checkScalingOnAlert should return error when application has no metrics', 
     podId: 'test-pod-1',
     applicationId: 'test-app-1',
     timestamp: Date.now(),
-    type: 'cpu',
-    value: 90
+    elu: 0.90,
+    heapUsed: 6000000000,
+    heapTotal: 8000000000,
+    unhealthy: true,
+    healthHistory: []
   }]
 
   server.scalerMetrics = {
@@ -133,8 +136,11 @@ test('checkScalingOnAlert should call scaling algorithm and return result', asyn
     podId: 'test-pod-1',
     applicationId: testAppId,
     timestamp: Date.now(),
-    type: 'cpu',
-    value: 90
+    elu: 0.90,
+    heapUsed: 6000000000,
+    heapTotal: 8000000000,
+    unhealthy: true,
+    healthHistory: []
   }]
 
   await server.platformatic.entities.controller.save({
@@ -239,8 +245,11 @@ test('checkScalingOnAlert should merge metrics from alerts with pod metrics for 
     podId: 'test-pod-1',
     applicationId: testAppId,
     timestamp: alertTimestamp,
-    type: 'elu',
-    value: 95
+    elu: 0.95,
+    heapUsed: 7000000000,
+    heapTotal: 8000000000,
+    unhealthy: true,
+    healthHistory: []
   }]
 
   server.scalerMetrics = {
@@ -283,8 +292,8 @@ test('checkScalingOnAlert should merge metrics from alerts with pod metrics for 
   const originalMethod = server.scalerExecutor.scalingAlgorithm.calculateScalingDecision
   server.scalerExecutor.scalingAlgorithm.calculateScalingDecision = async (applicationId, metrics, currentPodCount, minPods, maxPods, alerts) => {
     assert.strictEqual(alerts.length, 1, 'should have one alert')
-    assert.strictEqual(alerts[0].type, 'elu', 'should be an ELU alert')
-    assert.strictEqual(alerts[0].value, 95, 'alert should have the right value')
+    assert.strictEqual(alerts[0].elu, 0.95, 'should be an ELU alert with correct value')
+    assert.strictEqual(alerts[0].unhealthy, true, 'alert should indicate unhealthy pod')
 
     const metricsCopy = JSON.parse(JSON.stringify(metrics))
 
