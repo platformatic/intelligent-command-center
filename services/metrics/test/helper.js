@@ -31,27 +31,92 @@ async function startMetrics (t, controlPlane) {
   return server
 }
 
-async function startPrometheusK8s (t, machineId) {
+async function startPrometheusK8s (t, applicationId) {
   const coresQuery = 'kube_node_status_allocatable{resource="cpu",unit="core"}'
-  const cpuAllQuery = 'sum((sum(rate(container_cpu_usage_seconds_total{container!="POD"}[1m])) by (pod)) * on(pod) group_left(label_app_kubernetes_io_name){label_app_kubernetes_io_name="zio-paperone"}) * 100'
-  const memAllQuery = 'sum(sum(container_memory_working_set_bytes{container_name!="POD"}) by (pod) * on(pod) group_left(label_app_kubernetes_io_name){label_app_kubernetes_io_name="zio-paperone"})'
+  const cpuAllQuery = sanitizePromQuery(`
+    sum(
+      delta(container_cpu_usage_seconds_total{container!=""}[1m])
+      * on(pod) group_left()
+      kube_pod_labels{label_platformatic_dev_monitor="prometheus"}
+    )`)
+  const memAllQuery = sanitizePromQuery(`
+    sum(
+      container_memory_working_set_bytes{container!=""}
+      * on(pod) group_left()
+      kube_pod_labels{label_platformatic_dev_monitor="prometheus"}
+    )`)
+
   const totalMemQuery = 'kube_node_status_allocatable{resource="memory",unit="byte"}'
-  const cpuAppQuery = `sum(delta(container_cpu_usage_seconds_total{container="${machineId}"}[1m]))`
-  const cpuAllAppsQuery = 'sum(delta(container_cpu_usage_seconds_total{container=~"plt.*"}[1m]))'
-  const cpuAllAppsButAppQuery = `sum(delta(container_cpu_usage_seconds_total{container!="${machineId}", container=~"plt.*"}[1m]))`
-  const memAppQuery = `sum(container_memory_working_set_bytes{container="${machineId}"})`
-  const memAllButAppQuery = `sum(sum(container_memory_working_set_bytes{container!="${machineId}"}) by (pod) * on(pod) group_left(label_app_kubernetes_io_name){label_app_kubernetes_io_name="zio-paperone"})`
-  const podsAppQuery = `count(kube_pod_labels{label_app_kubernetes_io_instance="${machineId}"})`
-  const podsAllQuery = 'count(kube_pod_labels{label_app_kubernetes_io_name="zio-paperone"})'
-  const requestLatencyQuery = `avg((rate(http_request_duration_seconds_sum{service="${machineId}"}[1m]) / rate(http_request_duration_seconds_count{service="${machineId}"}[1m])) > 0)`
-  const requestPerSecondQuery = `avg(rate(http_request_summary_seconds_count{service="${machineId}"}[5m]) > 0)`
+  const cpuAppQuery = sanitizePromQuery(`
+    sum(
+      delta(container_cpu_usage_seconds_total{container!=""}[1m])
+      * on(pod) group_left()
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+    )`)
+  const cpuAllAppsButAppQuery = sanitizePromQuery(`
+    sum(
+      delta(container_cpu_usage_seconds_total{container!=""}[1m])
+      * on(pod) group_left()
+      kube_pod_labels{
+        label_platformatic_dev_application_id!="${applicationId}",
+        label_platformatic_dev_monitor="prometheus"
+      }
+    )`)
+
+  const sumMemAppQuery = sanitizePromQuery(`
+    sum(
+      container_memory_working_set_bytes{container!=""}
+      * on(pod) group_left()
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+    )`)
+
+  const avgMemAppQuery = sanitizePromQuery(`
+    avg(
+      container_memory_working_set_bytes{container!=""}
+      * on(pod) group_left()
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+    )`)
+
+  const memAllButAppQuery = sanitizePromQuery(`
+    sum(
+      container_memory_working_set_bytes{container!=""}
+      * on(pod) group_left()
+      kube_pod_labels{
+        label_platformatic_dev_application_id!="${applicationId}",
+        label_platformatic_dev_monitor="prometheus"
+      }
+    )`)
+
+  const cpuAllAppsQuery = cpuAllQuery
+  const podsAppQuery = `count(kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"})`
+  const podsAllQuery = 'count(kube_pod_labels{label_platformatic_dev_monitor="prometheus"})'
+
+  const requestLatencyQuery = sanitizePromQuery(`
+    avg(
+    (
+      rate(http_request_duration_seconds_sum[1m])
+      * on(pod) group_left(label_platformatic_dev_application_id)
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+    ) / (
+      rate(http_request_duration_seconds_count[1m])
+      * on(pod) group_left(label_platformatic_dev_application_id)
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+    ) > 0
+  )`)
+
+  const requestPerSecondQuery = sanitizePromQuery(`avg(
+    rate(http_request_summary_seconds_count[5m])
+    * on(pod) group_left(label_platformatic_dev_application_id)
+    kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"} > 0
+  )`)
 
   const prometheus = fastify({ keepAliveTimeout: 1 })
   prometheus.register(formBody)
   t.after(() => prometheus.close())
 
   prometheus.post('/api/v1/query', async (req, reply) => {
-    const { query } = req.body
+    let { query } = req.body
+    query = sanitizePromQuery(query)
 
     let value = 0
     if (query.includes(coresQuery)) {
@@ -68,8 +133,10 @@ async function startPrometheusK8s (t, machineId) {
       value = 50
     } else if (query === cpuAllAppsButAppQuery) {
       value = 10
-    } else if (query === memAppQuery) {
+    } else if (query === avgMemAppQuery) {
       value = 1721122686
+    } else if (query === sumMemAppQuery) {
+      value = 3721122686
     } else if (query === memAllButAppQuery) {
       value = 3721122686
     } else if (query === podsAppQuery) {
@@ -453,6 +520,11 @@ async function startPrometheusJob (t, jobId) {
 
   await prometheus.listen({ port: 4005 })
   return prometheus
+}
+
+// Removes all spaces and new lines
+function sanitizePromQuery (query) {
+  return query.replace(/\s/g, '').replace(/\n/g, '')
 }
 
 module.exports = {

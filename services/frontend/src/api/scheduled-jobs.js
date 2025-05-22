@@ -133,7 +133,7 @@ export const callApiUpdateScheduledJob = async (id, data) => {
 }
 
 export const callApiGetScheduledJobMessages = async (id) => {
-  const query = { 'orderby.createdAt': 'desc' }
+  const query = { 'orderby.createdAt': 'desc', limit: 100, offset: 0 }
   const url = `${baseUrl}/cron/jobs/${id}/messages?${new URLSearchParams(query).toString()}`
   const response = await fetch(url, {
     method: 'GET',
@@ -158,7 +158,6 @@ export const callApiGetScheduledJobMessages = async (id) => {
       responseHeaders = JSON.parse(responseHeaders)
     } catch (e) {}
 
-    console.log()
     return {
       ...message,
       responseBody,

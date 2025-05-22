@@ -1,0 +1,10 @@
+.container {
+  @apply py-4 w-full;
+}
+
+thead > tr {
+  @apply border-0 border-none;
+}
+tr {
+  @apply border-b border-white/10 border-solid;
+}

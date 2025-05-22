@@ -21,17 +21,20 @@ const HistoricalScalerTrendChart = ({
   // We assume the data is an array of objects with a time and a value
   // The setter is missing on purpose. We don't want to trigger a rerender when the mouse position changes
   const [mousePosition] = useState({ x: 0, y: 0 })
-
   useEffect(() => {
     if (svgRef.current && tooltipRef.current && data.length > 0) {
       // Add a last point to the data to make the chart more clear
       // and see the last point of the chart with the tooltip
-      const augmentedData = Array.from(data)
+      const augmentedData = data.map(d => ({
+        time: dayjs(d.time).add(30, 'seconds').toDate(), // TODO: remove this after seed data is removed
+        values: d.values
+      }))
       const lastPoint = data[data.length - 1]
       augmentedData.push({
         time: dayjs(lastPoint.time).add(30, 'seconds').toDate(),
         values: lastPoint.values
       })
+
       const h = svgRef.current.clientHeight
       const w = svgRef.current.clientWidth
       const Y_AXIS_BANDS = 4

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import { WHITE, OPACITY_30, SMALL, MEDIUM, ACTIVE_AND_INACTIVE_STATUS, TRANSPARENT, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
 import styles from './ReplicaSetOverview.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -10,10 +9,11 @@ import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
 import { REFRESH_INTERVAL } from '~/ui-constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
+import { getFormattedTimeAndDate } from '../../../../utilities/dates'
 
 function ReplicaSetOverview ({
   gridClassName = '',
-  applicationId,
+  application,
   onViewPodsDetails = () => {}
 }) {
   const [initialLoading, setInitialLoading] = useState(true)
@@ -39,7 +39,7 @@ function ReplicaSetOverview ({
   }, [startPolling])
 
   useEffect(() => {
-    if (applicationId && Object.keys(displayedValues).length > 0 && initialLoading) {
+    if (application && Object.keys(displayedValues).length > 0 && initialLoading) {
       async function loadMetrics () {
         await loadMetricsReplicaSetOverview()
         setStartPolling(true)
@@ -48,13 +48,12 @@ function ReplicaSetOverview ({
       }
       loadMetrics()
     }
-  }, [applicationId, Object.keys(displayedValues), initialLoading])
+  }, [application, Object.keys(displayedValues), initialLoading])
 
   async function loadMetricsReplicaSetOverview () {
     try {
       setBorderexBoxClassName(`${styles.borderexBoxContainer} ${styles.borderedBoxHeigthLoading} ${gridClassName}`)
-      const dataValues = await getApiMetricsReplicaSetOverview(applicationId)
-
+      const dataValues = await getApiMetricsReplicaSetOverview(application.id)
       if (Object.keys(dataValues).length > 0) {
         setDisplayedValues({ ...dataValues })
         setShowNoResult(false)
@@ -108,7 +107,7 @@ function ReplicaSetOverview ({
         <div className={`${commonStyles.flexBlockNoGap} ${commonStyles.itemsCenter} ${commonStyles.flexGrow}`}>
           <h4 className={`${typographyStyles.desktopHeadline4} ${typographyStyles.textWhite}`}>{displayValue(displayedValues.countScaleUp)}</h4>
           <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}># of time the app scaled up</span>
-          <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}><span className={typographyStyles.opacity70}>Last scaled up: </span>-</span>
+          <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}><span className={typographyStyles.opacity70}>Last scaled up: </span>{getFormattedTimeAndDate(displayedValues.latestScaleUp)}</span>
         </div>
 
         <VerticalSeparator color={WHITE} backgroundColorOpacity={OPACITY_30} classes={styles.verticalSeparator} />
@@ -116,7 +115,7 @@ function ReplicaSetOverview ({
         <div className={`${commonStyles.flexBlockNoGap} ${commonStyles.itemsCenter} ${commonStyles.flexGrow}`}>
           <h4 className={`${typographyStyles.desktopHeadline4} ${typographyStyles.textWhite}`}>{displayValue(displayedValues.countScaleDown)}</h4>
           <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}># of time the app scaled down</span>
-          <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}><span className={typographyStyles.opacity70}>Last scaled down: </span>-</span>
+          <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}><span className={typographyStyles.opacity70}>Last scaled down: </span>{getFormattedTimeAndDate(displayedValues.latestScaleDown)}</span>
         </div>
       </>
     )
@@ -156,25 +155,6 @@ function ReplicaSetOverview ({
       </div>
     </BorderedBox>
   )
-}
-
-ReplicaSetOverview.propTypes = {
-  /**
-   * gridClassName
-    */
-  gridClassName: PropTypes.string,
-  /**
-   * applicationId
-    */
-  applicationId: PropTypes.string,
-  /**
-   * taxonomyId
-    */
-  taxonomyId: PropTypes.string,
-  /**
-   * onViewPodsDetails
-    */
-  onViewPodsDetails: PropTypes.func
 }
 
 export default ReplicaSetOverview

@@ -24,7 +24,10 @@ function NodeJSMetric ({
   backgroundColor = BLACK_RUSSIAN,
   chartTooltipPosition = POSITION_ABSOLUTE
 }) {
-  const [showNoResult, setShowNoResult] = useState(true)
+  // NOTE (2025-05-21): This component is re-rendering, if you switch the
+  // default state to `true` for `showNoResult`, you can see it happening very
+  // clearly. `false` is still visible but far less distracting
+  const [showNoResult, setShowNoResult] = useState(false)
   const [seriesValues, setSeriesValues] = useState([])
   const [borderexBoxClassName, setBorderexBoxClassName] = useState(`${styles.borderexBoxContainer} ${styles.borderedBoxHeigthLoading}`)
   const [lowerMaxY, setLowerMaxY] = useState(10)

@@ -16,7 +16,6 @@ export const getCurrentSync = async () => {
     const data = await response.json()
     const { name, schedule, when, paused } = data
     if (paused) {
-      console.log('current paused')
       return { value: 'OFF' }
     }
     const value = calculateValueFromCron(schedule)

@@ -5,21 +5,45 @@ const { queryPrometheus } = require('./prom')
 const { createRequestPerSecondQuery, createRequestLatencyQuery } = require('./queries')
 const { toGB } = require('./utils')
 
-const cpuAllQuery = 'sum((sum(rate(container_cpu_usage_seconds_total{container!="POD"}[1m])) by (pod)) * on(pod) group_left(label_app_kubernetes_io_name){label_app_kubernetes_io_name="zio-paperone"}) * 100'
-const memAllQuery = 'sum(sum(container_memory_working_set_bytes{container_name!="POD"}) by (pod) * on(pod) group_left(label_app_kubernetes_io_name){label_app_kubernetes_io_name="zio-paperone"})'
-const totalMemQuery = 'kube_node_status_allocatable{resource="memory",unit="byte"}'
-const podsAllQuery = 'count(kube_pod_labels{label_app_kubernetes_io_name="zio-paperone"})'
+const memAllQuery = `
+  sum(
+    container_memory_working_set_bytes{container!=""}
+    * on(pod) group_left()
+    kube_pod_labels{label_platformatic_dev_monitor="prometheus"}
+  )`
 
-const getAppCPUMetrics = async (machineId) => {
+const cpuAllQuery = `
+  sum(
+    delta(container_cpu_usage_seconds_total{container!=""}[1m])
+    * on(pod) group_left()
+    kube_pod_labels{label_platformatic_dev_monitor="prometheus"}
+  )`
+
+const totalMemQuery = 'kube_node_status_allocatable{resource="memory",unit="byte"}'
+// const podsAllQuery = 'count(kube_pod_labels{label_app_kubernetes_io_name="wattpro"})'
+
+const getAppCPUMetrics = async (applicationId) => {
   const coresQuery = 'kube_node_status_allocatable{resource="cpu",unit="core"}'
-  const cpuAppQuery = `sum(delta(container_cpu_usage_seconds_total{container="${machineId}"}[1m]))`
-  const cpuAllAppsQuery = 'sum(delta(container_cpu_usage_seconds_total{container=~"plt.*"}[1m]))'
-  const cpuAllAppsButAppQuery = `sum(delta(container_cpu_usage_seconds_total{container!="${machineId}", container=~"plt.*"}[1m]))`
+  const cpuAppQuery = `
+    sum(
+      delta(container_cpu_usage_seconds_total{container!=""}[1m])
+      * on(pod) group_left()
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+    )`
+  const cpuAllAppsButAppQuery = `
+    sum(
+      delta(container_cpu_usage_seconds_total{container!=""}[1m])
+      * on(pod) group_left()
+      kube_pod_labels{
+        label_platformatic_dev_application_id!="${applicationId}",
+        label_platformatic_dev_monitor="prometheus"
+      }
+    )`
 
   const [coresRes, cpuAppRes, cpuAllAppsRes, cpuButAppSecondsRes] = await Promise.all([
     queryPrometheus(coresQuery),
     queryPrometheus(cpuAppQuery),
-    queryPrometheus(cpuAllAppsQuery),
+    queryPrometheus(cpuAllQuery),
     queryPrometheus(cpuAllAppsButAppQuery)
   ])
 
@@ -42,46 +66,80 @@ const getAppCPUMetrics = async (machineId) => {
   }
 }
 
-const getAppMemMetrics = async (machineId) => {
-  const memAppQuery = `sum(container_memory_working_set_bytes{container="${machineId}"})`
-  const memAllButAppQuery = `sum(sum(container_memory_working_set_bytes{container!="${machineId}"}) by (pod) * on(pod) group_left(label_app_kubernetes_io_name){label_app_kubernetes_io_name="zio-paperone"})`
+const getAppMemMetrics = async (applicationId) => {
+  const sumMemAppQuery = `
+    sum(
+      container_memory_working_set_bytes{container!=""}
+      * on(pod) group_left()
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+    )`
 
-  const [memAppRes, memAllRes, memAllAppsButAppRes, totalRes] = await Promise.all([
-    queryPrometheus(memAppQuery),
+  const avgMemAppQuery = `
+    avg(
+      container_memory_working_set_bytes{container!=""}
+      * on(pod) group_left()
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+    )`
+
+  const memAllButAppQuery = `
+    sum(
+      container_memory_working_set_bytes{container!=""}
+      * on(pod) group_left()
+      kube_pod_labels{
+        label_platformatic_dev_application_id!="${applicationId}",
+        label_platformatic_dev_monitor="prometheus"
+      }
+    )`
+
+  const [
+    avgMemAppRes,
+    sumMemAppRes,
+    memAllRes,
+    memAllAppsButAppRes,
+    totalRes
+  ] = await Promise.all([
+    queryPrometheus(avgMemAppQuery),
+    queryPrometheus(sumMemAppQuery),
     queryPrometheus(memAllQuery),
     queryPrometheus(memAllButAppQuery),
     queryPrometheus(totalMemQuery)
   ])
 
-  const memApp = toGB(parseFloat(memAppRes?.data?.result[0]?.value[1]))
-  const memAll = toGB(parseFloat(memAllRes?.data?.result[0]?.value[1]))
-  const memAllAppsButApp = toGB(parseFloat(memAllAppsButAppRes?.data?.result[0]?.value[1]))
-  const totalMemory = toGB(parseFloat(totalRes?.data?.result[0]?.value[1]))
+  const avgMemApp = toGB(parseFloat(avgMemAppRes?.data?.result[0]?.value[1] ?? 0))
+  const sumMemApp = toGB(parseFloat(sumMemAppRes?.data?.result[0]?.value[1] ?? 0))
+  const memAll = toGB(parseFloat(memAllRes?.data?.result[0]?.value[1] ?? 0))
+  const memAllAppsButApp = toGB(parseFloat(memAllAppsButAppRes?.data?.result[0]?.value[1] ?? 0))
+  const totalMemory = toGB(parseFloat(totalRes?.data?.result[0]?.value[1] ?? 0))
 
   return {
-    memoryAppUsage: memApp,
+    avgMemoryAppUsage: avgMemApp,
+    memoryAppUsage: sumMemApp,
     memoryAllAppsUsage: memAll,
     memoryAllAppsUsageButApp: memAllAppsButApp,
     totalMemory
   }
 }
 
-const getAppPodsMetrics = async (machineId) => {
-  const podsAppQuery = `count(kube_pod_labels{label_app_kubernetes_io_instance="${machineId}"})`
+const getAppPodsMetrics = async (applicationId) => {
+  const podsAppQuery = `count(kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"})`
+  const podsAllQuery = 'count(kube_pod_labels{label_platformatic_dev_monitor="prometheus"})'
+
   const [podsAppRes, podsAllRes] = await Promise.all([
     queryPrometheus(podsAppQuery),
     queryPrometheus(podsAllQuery)
   ])
-  const pods = parseInt(podsAppRes?.data?.result[0]?.value[1])
-  const podsAll = parseInt(podsAllRes?.data?.result[0]?.value[1])
+
+  const appsPods = parseInt(podsAppRes?.data?.result[0]?.value[1])
+  const allPods = parseInt(podsAllRes?.data?.result[0]?.value[1])
+
   return {
-    pods,
-    podsAll
+    pods: appsPods,
+    podsAll: allPods
   }
 }
 
-const getAppRequestMetrics = async (machineId) => {
-  const query = createRequestLatencyQuery({ podId: machineId, timeWindow: '1m' })
+const getAppRequestMetrics = async (applicationId) => {
+  const query = createRequestLatencyQuery({ applicationId, timeWindow: '1m' })
   const requestLatencyRes = await queryPrometheus(query)
   const latency = (parseFloat(requestLatencyRes?.data?.result[0]?.value[1]) || 0) * 1000
   return { latency }
@@ -96,11 +154,11 @@ const getAppEventLoopUtilization = async (applicationId) => {
   }
 }
 
-const getAppK8SMetrics = async (machineId, applicationId) => {
-  const cpu = await getAppCPUMetrics(machineId)
-  const memory = await getAppMemMetrics(machineId)
-  const pods = await getAppPodsMetrics(machineId)
-  const requests = await getAppRequestMetrics(machineId)
+const getAppK8SMetrics = async (applicationId) => {
+  const cpu = await getAppCPUMetrics(applicationId)
+  const memory = await getAppMemMetrics(applicationId)
+  const pods = await getAppPodsMetrics(applicationId)
+  const requests = await getAppRequestMetrics(applicationId)
   const elu = await getAppEventLoopUtilization(applicationId)
 
   return {
@@ -110,11 +168,6 @@ const getAppK8SMetrics = async (machineId, applicationId) => {
     requests,
     elu
   }
-}
-
-const getAppK8sRPS = async (machineId) => {
-  const rps = await getAppRPSMetrics(machineId)
-  return { rps }
 }
 
 const getInfraK8SMetrics = async () => {
@@ -135,8 +188,8 @@ const getInfraK8SMetrics = async () => {
   }
 }
 
-const getAppRPSMetrics = async (machineId) => {
-  const query = createRequestPerSecondQuery({ podId: machineId, timeWindow: '5m' })
+const getAppRPSMetrics = async (applicationId) => {
+  const query = createRequestPerSecondQuery({ applicationId, timeWindow: '5m' })
   const rpsRes = await queryPrometheus(query)
   const rps = parseFloat(rpsRes?.data?.result[0]?.value[1])
   return rps
@@ -145,5 +198,5 @@ const getAppRPSMetrics = async (machineId) => {
 module.exports = {
   getAppK8SMetrics,
   getInfraK8SMetrics,
-  getAppK8sRPS
+  getAppRPSMetrics
 }

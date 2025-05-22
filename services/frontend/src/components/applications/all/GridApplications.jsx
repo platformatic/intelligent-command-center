@@ -19,7 +19,6 @@ function GridApplications () {
   const { readyState, lastMessage } = useSubscribeToUpdates('applications')
 
   useEffect(() => {
-    console.log('lastMessage', lastMessage)
     if (lastMessage !== null) {
       const message = JSON.parse(lastMessage.data)
       if (message.type === 'application-created') {

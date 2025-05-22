@@ -5,6 +5,86 @@ import { type FormData } from 'undici'
 declare namespace controlPlane {
   export type ControlPlane = {
     /**
+     * Get deployments.
+     *
+     * Fetch deployments from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getDeployments(req: GetDeploymentsRequest): Promise<GetDeploymentsResponses>;
+    /**
+     * Create deployment.
+     *
+     * Add new deployment to the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    createDeployment(req: CreateDeploymentRequest): Promise<CreateDeploymentResponses>;
+    /**
+     * Update deployments.
+     *
+     * Update one or more deployments in the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    updateDeployments(req: UpdateDeploymentsRequest): Promise<UpdateDeploymentsResponses>;
+    /**
+     * Get Deployment by id.
+     *
+     * Fetch Deployment using its id from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getDeploymentById(req: GetDeploymentByIdRequest): Promise<GetDeploymentByIdResponses>;
+    /**
+     * Update deployment.
+     *
+     * Update deployment in the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    updateDeployment(req: UpdateDeploymentRequest): Promise<UpdateDeploymentResponses>;
+    /**
+     * Delete deployments.
+     *
+     * Delete one or more deployments from the Database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    deleteDeployments(req: DeleteDeploymentsRequest): Promise<DeleteDeploymentsResponses>;
+    /**
+     * Get instances for deployment.
+     *
+     * Fetch all the instances for deployment from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getInstancesForDeployment(req: GetInstancesForDeploymentRequest): Promise<GetInstancesForDeploymentResponses>;
+    /**
+     * Get generationsDeployments for deployment.
+     *
+     * Fetch all the generationsDeployments for deployment from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getGenerationsDeploymentsForDeployment(req: GetGenerationsDeploymentsForDeploymentRequest): Promise<GetGenerationsDeploymentsForDeploymentResponses>;
+    /**
+     * Get application for deployment.
+     *
+     * Fetch the application for deployment from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getApplicationForDeployment(req: GetApplicationForDeploymentRequest): Promise<GetApplicationForDeploymentResponses>;
+    /**
+     * Get applicationState for deployment.
+     *
+     * Fetch the applicationState for deployment from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getApplicationStateForDeployment(req: GetApplicationStateForDeploymentRequest): Promise<GetApplicationStateForDeploymentResponses>;
+    /**
      * Get generations.
      *
      * Fetch generations from the database.
@@ -181,6 +261,14 @@ declare namespace controlPlane {
      */
     deleteApplications(req: DeleteApplicationsRequest): Promise<DeleteApplicationsResponses>;
     /**
+     * Get deployments for application.
+     *
+     * Fetch all the deployments for application from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getDeploymentsForApplication(req: GetDeploymentsForApplicationRequest): Promise<GetDeploymentsForApplicationResponses>;
+    /**
      * Get applicationsConfigs for application.
      *
      * Fetch all the applicationsConfigs for application from the database.
@@ -197,21 +285,21 @@ declare namespace controlPlane {
      */
     getApplicationStatesForApplication(req: GetApplicationStatesForApplicationRequest): Promise<GetApplicationStatesForApplicationResponses>;
     /**
-     * Get deployments for application.
+     * Get instances for application.
      *
-     * Fetch all the deployments for application from the database.
+     * Fetch all the instances for application from the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    getDeploymentsForApplication(req: GetDeploymentsForApplicationRequest): Promise<GetDeploymentsForApplicationResponses>;
+    getInstancesForApplication(req: GetInstancesForApplicationRequest): Promise<GetInstancesForApplicationResponses>;
     /**
-     * Get detectedPods for application.
+     * Get valkeyUsers for application.
      *
-     * Fetch all the detectedPods for application from the database.
+     * Fetch all the valkeyUsers for application from the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    getDetectedPodsForApplication(req: GetDetectedPodsForApplicationRequest): Promise<GetDetectedPodsForApplicationResponses>;
+    getValkeyUsersForApplication(req: GetValkeyUsersForApplicationRequest): Promise<GetValkeyUsersForApplicationResponses>;
     /**
      * Get applicationsConfigs.
      *
@@ -341,149 +429,125 @@ declare namespace controlPlane {
      */
     getApplicationForApplicationState(req: GetApplicationForApplicationStateRequest): Promise<GetApplicationForApplicationStateResponses>;
     /**
-     * Get deployments.
+     * Get instances.
      *
-     * Fetch deployments from the database.
+     * Fetch instances from the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    getDeployments(req: GetDeploymentsRequest): Promise<GetDeploymentsResponses>;
+    getInstances(req: GetInstancesRequest): Promise<GetInstancesResponses>;
     /**
-     * Create deployment.
+     * Create instance.
      *
-     * Add new deployment to the database.
+     * Add new instance to the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    createDeployment(req: CreateDeploymentRequest): Promise<CreateDeploymentResponses>;
+    createInstance(req: CreateInstanceRequest): Promise<CreateInstanceResponses>;
     /**
-     * Update deployments.
+     * Update instances.
      *
-     * Update one or more deployments in the database.
+     * Update one or more instances in the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    updateDeployments(req: UpdateDeploymentsRequest): Promise<UpdateDeploymentsResponses>;
+    updateInstances(req: UpdateInstancesRequest): Promise<UpdateInstancesResponses>;
     /**
-     * Get Deployment by id.
+     * Get Instance by id.
      *
-     * Fetch Deployment using its id from the database.
+     * Fetch Instance using its id from the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    getDeploymentById(req: GetDeploymentByIdRequest): Promise<GetDeploymentByIdResponses>;
+    getInstanceById(req: GetInstanceByIdRequest): Promise<GetInstanceByIdResponses>;
     /**
-     * Update deployment.
+     * Update instance.
      *
-     * Update deployment in the database.
+     * Update instance in the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    updateDeployment(req: UpdateDeploymentRequest): Promise<UpdateDeploymentResponses>;
+    updateInstance(req: UpdateInstanceRequest): Promise<UpdateInstanceResponses>;
     /**
-     * Delete deployments.
+     * Delete instances.
      *
-     * Delete one or more deployments from the Database.
+     * Delete one or more instances from the Database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    deleteDeployments(req: DeleteDeploymentsRequest): Promise<DeleteDeploymentsResponses>;
+    deleteInstances(req: DeleteInstancesRequest): Promise<DeleteInstancesResponses>;
     /**
-     * Get detectedPods for deployment.
+     * Get application for instance.
      *
-     * Fetch all the detectedPods for deployment from the database.
+     * Fetch the application for instance from the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    getDetectedPodsForDeployment(req: GetDetectedPodsForDeploymentRequest): Promise<GetDetectedPodsForDeploymentResponses>;
+    getApplicationForInstance(req: GetApplicationForInstanceRequest): Promise<GetApplicationForInstanceResponses>;
     /**
-     * Get generationsDeployments for deployment.
+     * Get deployment for instance.
      *
-     * Fetch all the generationsDeployments for deployment from the database.
+     * Fetch the deployment for instance from the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    getGenerationsDeploymentsForDeployment(req: GetGenerationsDeploymentsForDeploymentRequest): Promise<GetGenerationsDeploymentsForDeploymentResponses>;
+    getDeploymentForInstance(req: GetDeploymentForInstanceRequest): Promise<GetDeploymentForInstanceResponses>;
     /**
-     * Get application for deployment.
+     * Get valkeyUsers.
      *
-     * Fetch the application for deployment from the database.
+     * Fetch valkeyUsers from the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    getApplicationForDeployment(req: GetApplicationForDeploymentRequest): Promise<GetApplicationForDeploymentResponses>;
+    getValkeyUsers(req: GetValkeyUsersRequest): Promise<GetValkeyUsersResponses>;
     /**
-     * Get applicationState for deployment.
+     * Create valkeyUser.
      *
-     * Fetch the applicationState for deployment from the database.
+     * Add new valkeyUser to the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    getApplicationStateForDeployment(req: GetApplicationStateForDeploymentRequest): Promise<GetApplicationStateForDeploymentResponses>;
+    createValkeyUser(req: CreateValkeyUserRequest): Promise<CreateValkeyUserResponses>;
     /**
-     * Get detectedPods.
+     * Update valkeyUsers.
      *
-     * Fetch detectedPods from the database.
+     * Update one or more valkeyUsers in the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    getDetectedPods(req: GetDetectedPodsRequest): Promise<GetDetectedPodsResponses>;
+    updateValkeyUsers(req: UpdateValkeyUsersRequest): Promise<UpdateValkeyUsersResponses>;
     /**
-     * Create detectedPod.
+     * Get ValkeyUser by id.
      *
-     * Add new detectedPod to the database.
+     * Fetch ValkeyUser using its id from the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    createDetectedPod(req: CreateDetectedPodRequest): Promise<CreateDetectedPodResponses>;
+    getValkeyUserById(req: GetValkeyUserByIdRequest): Promise<GetValkeyUserByIdResponses>;
     /**
-     * Update detectedPods.
+     * Update valkeyUser.
      *
-     * Update one or more detectedPods in the database.
+     * Update valkeyUser in the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    updateDetectedPods(req: UpdateDetectedPodsRequest): Promise<UpdateDetectedPodsResponses>;
+    updateValkeyUser(req: UpdateValkeyUserRequest): Promise<UpdateValkeyUserResponses>;
     /**
-     * Get DetectedPod by id.
+     * Delete valkeyUsers.
      *
-     * Fetch DetectedPod using its id from the database.
+     * Delete one or more valkeyUsers from the Database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    getDetectedPodById(req: GetDetectedPodByIdRequest): Promise<GetDetectedPodByIdResponses>;
+    deleteValkeyUsers(req: DeleteValkeyUsersRequest): Promise<DeleteValkeyUsersResponses>;
     /**
-     * Update detectedPod.
+     * Get application for valkeyUser.
      *
-     * Update detectedPod in the database.
+     * Fetch the application for valkeyUser from the database.
      * @param req - request parameters object
      * @returns the API response body
      */
-    updateDetectedPod(req: UpdateDetectedPodRequest): Promise<UpdateDetectedPodResponses>;
-    /**
-     * Delete detectedPods.
-     *
-     * Delete one or more detectedPods from the Database.
-     * @param req - request parameters object
-     * @returns the API response body
-     */
-    deleteDetectedPods(req: DeleteDetectedPodsRequest): Promise<DeleteDetectedPodsResponses>;
-    /**
-     * Get application for detectedPod.
-     *
-     * Fetch the application for detectedPod from the database.
-     * @param req - request parameters object
-     * @returns the API response body
-     */
-    getApplicationForDetectedPod(req: GetApplicationForDetectedPodRequest): Promise<GetApplicationForDetectedPodResponses>;
-    /**
-     * Get deployment for detectedPod.
-     *
-     * Fetch the deployment for detectedPod from the database.
-     * @param req - request parameters object
-     * @returns the API response body
-     */
-    getDeploymentForDetectedPod(req: GetDeploymentForDetectedPodRequest): Promise<GetDeploymentForDetectedPodResponses>;
+    getApplicationForValkeyUser(req: GetApplicationForValkeyUserRequest): Promise<GetApplicationForValkeyUserResponses>;
     /**
      * Get generationsDeployments.
      *
@@ -620,6 +684,16 @@ declare namespace controlPlane {
      * @param req - request parameters object
      * @returns the API response body
      */
+    getApplicationK8SState(req: GetApplicationK8SStateRequest): Promise<GetApplicationK8SStateResponses>;
+    /**
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getApplicationResources(req: GetApplicationResourcesRequest): Promise<GetApplicationResourcesResponses>;
+    /**
+     * @param req - request parameters object
+     * @returns the API response body
+     */
     setApplicationResources(req: SetApplicationResourcesRequest): Promise<SetApplicationResourcesResponses>;
   }
   export interface ControlPlaneOptions {
@@ -633,6 +707,351 @@ declare namespace controlPlane {
     'body': T;
   }
 
+  export type GetDeploymentsRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
+    'totalCount'?: boolean;
+    /**
+     * Include cursor headers in response. Cursor keys built from orderBy clause
+     */
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
+    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
+    'where.applicationId.eq'?: string;
+    'where.applicationId.neq'?: string;
+    'where.applicationId.gt'?: string;
+    'where.applicationId.gte'?: string;
+    'where.applicationId.lt'?: string;
+    'where.applicationId.lte'?: string;
+    'where.applicationId.like'?: string;
+    'where.applicationId.ilike'?: string;
+    'where.applicationId.in'?: string;
+    'where.applicationId.nin'?: string;
+    'where.applicationId.contains'?: string;
+    'where.applicationId.contained'?: string;
+    'where.applicationId.overlaps'?: string;
+    'where.applicationStateId.eq'?: string;
+    'where.applicationStateId.neq'?: string;
+    'where.applicationStateId.gt'?: string;
+    'where.applicationStateId.gte'?: string;
+    'where.applicationStateId.lt'?: string;
+    'where.applicationStateId.lte'?: string;
+    'where.applicationStateId.like'?: string;
+    'where.applicationStateId.ilike'?: string;
+    'where.applicationStateId.in'?: string;
+    'where.applicationStateId.nin'?: string;
+    'where.applicationStateId.contains'?: string;
+    'where.applicationStateId.contained'?: string;
+    'where.applicationStateId.overlaps'?: string;
+    'where.createdAt.eq'?: string;
+    'where.createdAt.neq'?: string;
+    'where.createdAt.gt'?: string;
+    'where.createdAt.gte'?: string;
+    'where.createdAt.lt'?: string;
+    'where.createdAt.lte'?: string;
+    'where.createdAt.like'?: string;
+    'where.createdAt.ilike'?: string;
+    'where.createdAt.in'?: string;
+    'where.createdAt.nin'?: string;
+    'where.createdAt.contains'?: string;
+    'where.createdAt.contained'?: string;
+    'where.createdAt.overlaps'?: string;
+    'where.id.eq'?: string;
+    'where.id.neq'?: string;
+    'where.id.gt'?: string;
+    'where.id.gte'?: string;
+    'where.id.lt'?: string;
+    'where.id.lte'?: string;
+    'where.id.like'?: string;
+    'where.id.ilike'?: string;
+    'where.id.in'?: string;
+    'where.id.nin'?: string;
+    'where.id.contains'?: string;
+    'where.id.contained'?: string;
+    'where.id.overlaps'?: string;
+    'where.imageId.eq'?: string;
+    'where.imageId.neq'?: string;
+    'where.imageId.gt'?: string;
+    'where.imageId.gte'?: string;
+    'where.imageId.lt'?: string;
+    'where.imageId.lte'?: string;
+    'where.imageId.like'?: string;
+    'where.imageId.ilike'?: string;
+    'where.imageId.in'?: string;
+    'where.imageId.nin'?: string;
+    'where.imageId.contains'?: string;
+    'where.imageId.contained'?: string;
+    'where.imageId.overlaps'?: string;
+    'where.namespace.eq'?: string;
+    'where.namespace.neq'?: string;
+    'where.namespace.gt'?: string;
+    'where.namespace.gte'?: string;
+    'where.namespace.lt'?: string;
+    'where.namespace.lte'?: string;
+    'where.namespace.like'?: string;
+    'where.namespace.ilike'?: string;
+    'where.namespace.in'?: string;
+    'where.namespace.nin'?: string;
+    'where.namespace.contains'?: string;
+    'where.namespace.contained'?: string;
+    'where.namespace.overlaps'?: string;
+    'where.status.eq'?: 'failed' | 'started' | 'starting';
+    'where.status.neq'?: 'failed' | 'started' | 'starting';
+    'where.status.gt'?: 'failed' | 'started' | 'starting';
+    'where.status.gte'?: 'failed' | 'started' | 'starting';
+    'where.status.lt'?: 'failed' | 'started' | 'starting';
+    'where.status.lte'?: 'failed' | 'started' | 'starting';
+    'where.status.like'?: 'failed' | 'started' | 'starting';
+    'where.status.ilike'?: 'failed' | 'started' | 'starting';
+    'where.status.in'?: string;
+    'where.status.nin'?: string;
+    'where.status.contains'?: string;
+    'where.status.contained'?: string;
+    'where.status.overlaps'?: string;
+    'where.or'?: Array<string>;
+    'orderby.applicationId'?: 'asc' | 'desc';
+    'orderby.applicationStateId'?: 'asc' | 'desc';
+    'orderby.createdAt'?: 'asc' | 'desc';
+    'orderby.id'?: 'asc' | 'desc';
+    'orderby.imageId'?: 'asc' | 'desc';
+    'orderby.namespace'?: 'asc' | 'desc';
+    'orderby.status'?: 'asc' | 'desc';
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetDeploymentsResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
+  export type GetDeploymentsResponses =
+    GetDeploymentsResponseOK
+
+  export type CreateDeploymentRequest = {
+    'id'?: string;
+    'applicationId': string;
+    'applicationStateId'?: string | null;
+    'status': 'failed' | 'started' | 'starting';
+    'imageId': string;
+    'namespace': string;
+    'createdAt'?: string | null;
+  }
+
+  /**
+   * A Deployment
+   */
+  export type CreateDeploymentResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
+  export type CreateDeploymentResponses =
+    CreateDeploymentResponseOK
+
+  export type UpdateDeploymentsRequest = {
+    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
+    'where.applicationId.eq'?: string;
+    'where.applicationId.neq'?: string;
+    'where.applicationId.gt'?: string;
+    'where.applicationId.gte'?: string;
+    'where.applicationId.lt'?: string;
+    'where.applicationId.lte'?: string;
+    'where.applicationId.like'?: string;
+    'where.applicationId.ilike'?: string;
+    'where.applicationId.in'?: string;
+    'where.applicationId.nin'?: string;
+    'where.applicationId.contains'?: string;
+    'where.applicationId.contained'?: string;
+    'where.applicationId.overlaps'?: string;
+    'where.applicationStateId.eq'?: string;
+    'where.applicationStateId.neq'?: string;
+    'where.applicationStateId.gt'?: string;
+    'where.applicationStateId.gte'?: string;
+    'where.applicationStateId.lt'?: string;
+    'where.applicationStateId.lte'?: string;
+    'where.applicationStateId.like'?: string;
+    'where.applicationStateId.ilike'?: string;
+    'where.applicationStateId.in'?: string;
+    'where.applicationStateId.nin'?: string;
+    'where.applicationStateId.contains'?: string;
+    'where.applicationStateId.contained'?: string;
+    'where.applicationStateId.overlaps'?: string;
+    'where.createdAt.eq'?: string;
+    'where.createdAt.neq'?: string;
+    'where.createdAt.gt'?: string;
+    'where.createdAt.gte'?: string;
+    'where.createdAt.lt'?: string;
+    'where.createdAt.lte'?: string;
+    'where.createdAt.like'?: string;
+    'where.createdAt.ilike'?: string;
+    'where.createdAt.in'?: string;
+    'where.createdAt.nin'?: string;
+    'where.createdAt.contains'?: string;
+    'where.createdAt.contained'?: string;
+    'where.createdAt.overlaps'?: string;
+    'where.id.eq'?: string;
+    'where.id.neq'?: string;
+    'where.id.gt'?: string;
+    'where.id.gte'?: string;
+    'where.id.lt'?: string;
+    'where.id.lte'?: string;
+    'where.id.like'?: string;
+    'where.id.ilike'?: string;
+    'where.id.in'?: string;
+    'where.id.nin'?: string;
+    'where.id.contains'?: string;
+    'where.id.contained'?: string;
+    'where.id.overlaps'?: string;
+    'where.imageId.eq'?: string;
+    'where.imageId.neq'?: string;
+    'where.imageId.gt'?: string;
+    'where.imageId.gte'?: string;
+    'where.imageId.lt'?: string;
+    'where.imageId.lte'?: string;
+    'where.imageId.like'?: string;
+    'where.imageId.ilike'?: string;
+    'where.imageId.in'?: string;
+    'where.imageId.nin'?: string;
+    'where.imageId.contains'?: string;
+    'where.imageId.contained'?: string;
+    'where.imageId.overlaps'?: string;
+    'where.namespace.eq'?: string;
+    'where.namespace.neq'?: string;
+    'where.namespace.gt'?: string;
+    'where.namespace.gte'?: string;
+    'where.namespace.lt'?: string;
+    'where.namespace.lte'?: string;
+    'where.namespace.like'?: string;
+    'where.namespace.ilike'?: string;
+    'where.namespace.in'?: string;
+    'where.namespace.nin'?: string;
+    'where.namespace.contains'?: string;
+    'where.namespace.contained'?: string;
+    'where.namespace.overlaps'?: string;
+    'where.status.eq'?: 'failed' | 'started' | 'starting';
+    'where.status.neq'?: 'failed' | 'started' | 'starting';
+    'where.status.gt'?: 'failed' | 'started' | 'starting';
+    'where.status.gte'?: 'failed' | 'started' | 'starting';
+    'where.status.lt'?: 'failed' | 'started' | 'starting';
+    'where.status.lte'?: 'failed' | 'started' | 'starting';
+    'where.status.like'?: 'failed' | 'started' | 'starting';
+    'where.status.ilike'?: 'failed' | 'started' | 'starting';
+    'where.status.in'?: string;
+    'where.status.nin'?: string;
+    'where.status.contains'?: string;
+    'where.status.contained'?: string;
+    'where.status.overlaps'?: string;
+    'where.or'?: Array<string>;
+    'id'?: string;
+    'applicationId': string;
+    'applicationStateId'?: string | null;
+    'status': 'failed' | 'started' | 'starting';
+    'imageId': string;
+    'namespace': string;
+    'createdAt'?: string | null;
+  }
+
+  /**
+   * Default Response
+   */
+  export type UpdateDeploymentsResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
+  export type UpdateDeploymentsResponses =
+    UpdateDeploymentsResponseOK
+
+  export type GetDeploymentByIdRequest = {
+    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
+    'id': string;
+  }
+
+  /**
+   * A Deployment
+   */
+  export type GetDeploymentByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
+  export type GetDeploymentByIdResponses =
+    GetDeploymentByIdResponseOK
+
+  export type UpdateDeploymentRequest = {
+    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
+    'id': string;
+    'applicationId': string;
+    'applicationStateId'?: string | null;
+    'status': 'failed' | 'started' | 'starting';
+    'imageId': string;
+    'namespace': string;
+    'createdAt'?: string | null;
+  }
+
+  /**
+   * A Deployment
+   */
+  export type UpdateDeploymentResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
+  export type UpdateDeploymentResponses =
+    UpdateDeploymentResponseOK
+
+  export type DeleteDeploymentsRequest = {
+    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
+    'id': string;
+  }
+
+  /**
+   * A Deployment
+   */
+  export type DeleteDeploymentsResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
+  export type DeleteDeploymentsResponses =
+    DeleteDeploymentsResponseOK
+
+  export type GetInstancesForDeploymentRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
+    'id': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetInstancesForDeploymentResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+  export type GetInstancesForDeploymentResponses =
+    GetInstancesForDeploymentResponseOK
+
+  export type GetGenerationsDeploymentsForDeploymentRequest = {
+    'fields'?: Array<'deploymentId' | 'generationId'>;
+    'id': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetGenerationsDeploymentsForDeploymentResponseOK = Array<{ 'generationId'?: string | null; 'deploymentId'?: string | null }>
+  export type GetGenerationsDeploymentsForDeploymentResponses =
+    GetGenerationsDeploymentsForDeploymentResponseOK
+
+  export type GetApplicationForDeploymentRequest = {
+    'fields'?: Array<'createdAt' | 'id' | 'name'>;
+    'id': string;
+  }
+
+  /**
+   * A Application
+   */
+  export type GetApplicationForDeploymentResponseOK = { 'id'?: string | null; 'name'?: string | null; 'createdAt'?: string | null }
+  export type GetApplicationForDeploymentResponses =
+    GetApplicationForDeploymentResponseOK
+
+  export type GetApplicationStateForDeploymentRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'id' | 'pltVersion' | 'state'>;
+    'id': string;
+  }
+
+  /**
+   * A ApplicationState
+   */
+  export type GetApplicationStateForDeploymentResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'pltVersion'?: string | null; 'state'?: object | null; 'createdAt'?: string | null }
+  export type GetApplicationStateForDeploymentResponses =
+    GetApplicationStateForDeploymentResponseOK
+
   export type GetGenerationsRequest = {
     /**
      * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
@@ -640,6 +1059,18 @@ declare namespace controlPlane {
     'limit'?: number;
     'offset'?: number;
     'totalCount'?: boolean;
+    /**
+     * Include cursor headers in response. Cursor keys built from orderBy clause
+     */
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
     'fields'?: Array<'createdAt' | 'id' | 'version'>;
     'where.createdAt.eq'?: string;
     'where.createdAt.neq'?: string;
@@ -841,6 +1272,18 @@ declare namespace controlPlane {
     'limit'?: number;
     'offset'?: number;
     'totalCount'?: boolean;
+    /**
+     * Include cursor headers in response. Cursor keys built from orderBy clause
+     */
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
     'fields'?: Array<'createdAt' | 'generationId' | 'graph' | 'id'>;
     'where.createdAt.eq'?: string;
     'where.createdAt.neq'?: string;
@@ -1048,6 +1491,18 @@ declare namespace controlPlane {
     'limit'?: number;
     'offset'?: number;
     'totalCount'?: boolean;
+    /**
+     * Include cursor headers in response. Cursor keys built from orderBy clause
+     */
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
     'fields'?: Array<'createdAt' | 'id' | 'name'>;
     'where.createdAt.eq'?: string;
     'where.createdAt.neq'?: string;
@@ -1206,6 +1661,18 @@ declare namespace controlPlane {
   export type DeleteApplicationsResponses =
     DeleteApplicationsResponseOK
 
+  export type GetDeploymentsForApplicationRequest = {
+    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
+    'id': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetDeploymentsForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
+  export type GetDeploymentsForApplicationResponses =
+    GetDeploymentsForApplicationResponseOK
+
   export type GetApplicationsConfigsForApplicationRequest = {
     'fields'?: Array<'applicationId' | 'createdAt' | 'id' | 'resources' | 'version'>;
     'id': string;
@@ -1230,29 +1697,29 @@ declare namespace controlPlane {
   export type GetApplicationStatesForApplicationResponses =
     GetApplicationStatesForApplicationResponseOK
 
-  export type GetDeploymentsForApplicationRequest = {
-    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'status'>;
+  export type GetInstancesForApplicationRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
     'id': string;
   }
 
   /**
    * Default Response
    */
-  export type GetDeploymentsForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'createdAt'?: string | null }>
-  export type GetDeploymentsForApplicationResponses =
-    GetDeploymentsForApplicationResponseOK
+  export type GetInstancesForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+  export type GetInstancesForApplicationResponses =
+    GetInstancesForApplicationResponseOK
 
-  export type GetDetectedPodsForApplicationRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  export type GetValkeyUsersForApplicationRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
     'id': string;
   }
 
   /**
    * Default Response
    */
-  export type GetDetectedPodsForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'createdAt'?: string | null }>
-  export type GetDetectedPodsForApplicationResponses =
-    GetDetectedPodsForApplicationResponseOK
+  export type GetValkeyUsersForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }>
+  export type GetValkeyUsersForApplicationResponses =
+    GetValkeyUsersForApplicationResponseOK
 
   export type GetApplicationsConfigsRequest = {
     /**
@@ -1261,6 +1728,18 @@ declare namespace controlPlane {
     'limit'?: number;
     'offset'?: number;
     'totalCount'?: boolean;
+    /**
+     * Include cursor headers in response. Cursor keys built from orderBy clause
+     */
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
     'fields'?: Array<'applicationId' | 'createdAt' | 'id' | 'resources' | 'version'>;
     'where.applicationId.eq'?: string;
     'where.applicationId.neq'?: string;
@@ -1510,6 +1989,18 @@ declare namespace controlPlane {
     'limit'?: number;
     'offset'?: number;
     'totalCount'?: boolean;
+    /**
+     * Include cursor headers in response. Cursor keys built from orderBy clause
+     */
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
     'fields'?: Array<'applicationId' | 'createdAt' | 'id' | 'pltVersion' | 'state'>;
     'where.applicationId.eq'?: string;
     'where.applicationId.neq'?: string;
@@ -1729,14 +2220,14 @@ declare namespace controlPlane {
     DeleteApplicationStatesResponseOK
 
   export type GetDeploymentsForApplicationStateRequest = {
-    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'status'>;
+    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
     'id': string;
   }
 
   /**
    * Default Response
    */
-  export type GetDeploymentsForApplicationStateResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'createdAt'?: string | null }>
+  export type GetDeploymentsForApplicationStateResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
   export type GetDeploymentsForApplicationStateResponses =
     GetDeploymentsForApplicationStateResponseOK
 
@@ -1752,317 +2243,26 @@ declare namespace controlPlane {
   export type GetApplicationForApplicationStateResponses =
     GetApplicationForApplicationStateResponseOK
 
-  export type GetDeploymentsRequest = {
+  export type GetInstancesRequest = {
     /**
      * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
      */
     'limit'?: number;
     'offset'?: number;
     'totalCount'?: boolean;
-    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'status'>;
-    'where.applicationId.eq'?: string;
-    'where.applicationId.neq'?: string;
-    'where.applicationId.gt'?: string;
-    'where.applicationId.gte'?: string;
-    'where.applicationId.lt'?: string;
-    'where.applicationId.lte'?: string;
-    'where.applicationId.like'?: string;
-    'where.applicationId.ilike'?: string;
-    'where.applicationId.in'?: string;
-    'where.applicationId.nin'?: string;
-    'where.applicationId.contains'?: string;
-    'where.applicationId.contained'?: string;
-    'where.applicationId.overlaps'?: string;
-    'where.applicationStateId.eq'?: string;
-    'where.applicationStateId.neq'?: string;
-    'where.applicationStateId.gt'?: string;
-    'where.applicationStateId.gte'?: string;
-    'where.applicationStateId.lt'?: string;
-    'where.applicationStateId.lte'?: string;
-    'where.applicationStateId.like'?: string;
-    'where.applicationStateId.ilike'?: string;
-    'where.applicationStateId.in'?: string;
-    'where.applicationStateId.nin'?: string;
-    'where.applicationStateId.contains'?: string;
-    'where.applicationStateId.contained'?: string;
-    'where.applicationStateId.overlaps'?: string;
-    'where.createdAt.eq'?: string;
-    'where.createdAt.neq'?: string;
-    'where.createdAt.gt'?: string;
-    'where.createdAt.gte'?: string;
-    'where.createdAt.lt'?: string;
-    'where.createdAt.lte'?: string;
-    'where.createdAt.like'?: string;
-    'where.createdAt.ilike'?: string;
-    'where.createdAt.in'?: string;
-    'where.createdAt.nin'?: string;
-    'where.createdAt.contains'?: string;
-    'where.createdAt.contained'?: string;
-    'where.createdAt.overlaps'?: string;
-    'where.id.eq'?: string;
-    'where.id.neq'?: string;
-    'where.id.gt'?: string;
-    'where.id.gte'?: string;
-    'where.id.lt'?: string;
-    'where.id.lte'?: string;
-    'where.id.like'?: string;
-    'where.id.ilike'?: string;
-    'where.id.in'?: string;
-    'where.id.nin'?: string;
-    'where.id.contains'?: string;
-    'where.id.contained'?: string;
-    'where.id.overlaps'?: string;
-    'where.imageId.eq'?: string;
-    'where.imageId.neq'?: string;
-    'where.imageId.gt'?: string;
-    'where.imageId.gte'?: string;
-    'where.imageId.lt'?: string;
-    'where.imageId.lte'?: string;
-    'where.imageId.like'?: string;
-    'where.imageId.ilike'?: string;
-    'where.imageId.in'?: string;
-    'where.imageId.nin'?: string;
-    'where.imageId.contains'?: string;
-    'where.imageId.contained'?: string;
-    'where.imageId.overlaps'?: string;
-    'where.status.eq'?: 'failed' | 'started' | 'starting';
-    'where.status.neq'?: 'failed' | 'started' | 'starting';
-    'where.status.gt'?: 'failed' | 'started' | 'starting';
-    'where.status.gte'?: 'failed' | 'started' | 'starting';
-    'where.status.lt'?: 'failed' | 'started' | 'starting';
-    'where.status.lte'?: 'failed' | 'started' | 'starting';
-    'where.status.like'?: 'failed' | 'started' | 'starting';
-    'where.status.ilike'?: 'failed' | 'started' | 'starting';
-    'where.status.in'?: string;
-    'where.status.nin'?: string;
-    'where.status.contains'?: string;
-    'where.status.contained'?: string;
-    'where.status.overlaps'?: string;
-    'where.or'?: Array<string>;
-    'orderby.applicationId'?: 'asc' | 'desc';
-    'orderby.applicationStateId'?: 'asc' | 'desc';
-    'orderby.createdAt'?: 'asc' | 'desc';
-    'orderby.id'?: 'asc' | 'desc';
-    'orderby.imageId'?: 'asc' | 'desc';
-    'orderby.status'?: 'asc' | 'desc';
-  }
-
-  /**
-   * Default Response
-   */
-  export type GetDeploymentsResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'createdAt'?: string | null }>
-  export type GetDeploymentsResponses =
-    GetDeploymentsResponseOK
-
-  export type CreateDeploymentRequest = {
-    'id'?: string;
-    'applicationId': string;
-    'applicationStateId'?: string | null;
-    'status': 'failed' | 'started' | 'starting';
-    'imageId': string;
-    'createdAt'?: string | null;
-  }
-
-  /**
-   * A Deployment
-   */
-  export type CreateDeploymentResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'createdAt'?: string | null }
-  export type CreateDeploymentResponses =
-    CreateDeploymentResponseOK
-
-  export type UpdateDeploymentsRequest = {
-    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'status'>;
-    'where.applicationId.eq'?: string;
-    'where.applicationId.neq'?: string;
-    'where.applicationId.gt'?: string;
-    'where.applicationId.gte'?: string;
-    'where.applicationId.lt'?: string;
-    'where.applicationId.lte'?: string;
-    'where.applicationId.like'?: string;
-    'where.applicationId.ilike'?: string;
-    'where.applicationId.in'?: string;
-    'where.applicationId.nin'?: string;
-    'where.applicationId.contains'?: string;
-    'where.applicationId.contained'?: string;
-    'where.applicationId.overlaps'?: string;
-    'where.applicationStateId.eq'?: string;
-    'where.applicationStateId.neq'?: string;
-    'where.applicationStateId.gt'?: string;
-    'where.applicationStateId.gte'?: string;
-    'where.applicationStateId.lt'?: string;
-    'where.applicationStateId.lte'?: string;
-    'where.applicationStateId.like'?: string;
-    'where.applicationStateId.ilike'?: string;
-    'where.applicationStateId.in'?: string;
-    'where.applicationStateId.nin'?: string;
-    'where.applicationStateId.contains'?: string;
-    'where.applicationStateId.contained'?: string;
-    'where.applicationStateId.overlaps'?: string;
-    'where.createdAt.eq'?: string;
-    'where.createdAt.neq'?: string;
-    'where.createdAt.gt'?: string;
-    'where.createdAt.gte'?: string;
-    'where.createdAt.lt'?: string;
-    'where.createdAt.lte'?: string;
-    'where.createdAt.like'?: string;
-    'where.createdAt.ilike'?: string;
-    'where.createdAt.in'?: string;
-    'where.createdAt.nin'?: string;
-    'where.createdAt.contains'?: string;
-    'where.createdAt.contained'?: string;
-    'where.createdAt.overlaps'?: string;
-    'where.id.eq'?: string;
-    'where.id.neq'?: string;
-    'where.id.gt'?: string;
-    'where.id.gte'?: string;
-    'where.id.lt'?: string;
-    'where.id.lte'?: string;
-    'where.id.like'?: string;
-    'where.id.ilike'?: string;
-    'where.id.in'?: string;
-    'where.id.nin'?: string;
-    'where.id.contains'?: string;
-    'where.id.contained'?: string;
-    'where.id.overlaps'?: string;
-    'where.imageId.eq'?: string;
-    'where.imageId.neq'?: string;
-    'where.imageId.gt'?: string;
-    'where.imageId.gte'?: string;
-    'where.imageId.lt'?: string;
-    'where.imageId.lte'?: string;
-    'where.imageId.like'?: string;
-    'where.imageId.ilike'?: string;
-    'where.imageId.in'?: string;
-    'where.imageId.nin'?: string;
-    'where.imageId.contains'?: string;
-    'where.imageId.contained'?: string;
-    'where.imageId.overlaps'?: string;
-    'where.status.eq'?: 'failed' | 'started' | 'starting';
-    'where.status.neq'?: 'failed' | 'started' | 'starting';
-    'where.status.gt'?: 'failed' | 'started' | 'starting';
-    'where.status.gte'?: 'failed' | 'started' | 'starting';
-    'where.status.lt'?: 'failed' | 'started' | 'starting';
-    'where.status.lte'?: 'failed' | 'started' | 'starting';
-    'where.status.like'?: 'failed' | 'started' | 'starting';
-    'where.status.ilike'?: 'failed' | 'started' | 'starting';
-    'where.status.in'?: string;
-    'where.status.nin'?: string;
-    'where.status.contains'?: string;
-    'where.status.contained'?: string;
-    'where.status.overlaps'?: string;
-    'where.or'?: Array<string>;
-    'id'?: string;
-    'applicationId': string;
-    'applicationStateId'?: string | null;
-    'status': 'failed' | 'started' | 'starting';
-    'imageId': string;
-    'createdAt'?: string | null;
-  }
-
-  /**
-   * Default Response
-   */
-  export type UpdateDeploymentsResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'createdAt'?: string | null }>
-  export type UpdateDeploymentsResponses =
-    UpdateDeploymentsResponseOK
-
-  export type GetDeploymentByIdRequest = {
-    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'status'>;
-    'id': string;
-  }
-
-  /**
-   * A Deployment
-   */
-  export type GetDeploymentByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'createdAt'?: string | null }
-  export type GetDeploymentByIdResponses =
-    GetDeploymentByIdResponseOK
-
-  export type UpdateDeploymentRequest = {
-    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'status'>;
-    'id': string;
-    'applicationId': string;
-    'applicationStateId'?: string | null;
-    'status': 'failed' | 'started' | 'starting';
-    'imageId': string;
-    'createdAt'?: string | null;
-  }
-
-  /**
-   * A Deployment
-   */
-  export type UpdateDeploymentResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'createdAt'?: string | null }
-  export type UpdateDeploymentResponses =
-    UpdateDeploymentResponseOK
-
-  export type DeleteDeploymentsRequest = {
-    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'status'>;
-    'id': string;
-  }
-
-  /**
-   * A Deployment
-   */
-  export type DeleteDeploymentsResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'createdAt'?: string | null }
-  export type DeleteDeploymentsResponses =
-    DeleteDeploymentsResponseOK
-
-  export type GetDetectedPodsForDeploymentRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
-    'id': string;
-  }
-
-  /**
-   * Default Response
-   */
-  export type GetDetectedPodsForDeploymentResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'createdAt'?: string | null }>
-  export type GetDetectedPodsForDeploymentResponses =
-    GetDetectedPodsForDeploymentResponseOK
-
-  export type GetGenerationsDeploymentsForDeploymentRequest = {
-    'fields'?: Array<'deploymentId' | 'generationId'>;
-    'id': string;
-  }
-
-  /**
-   * Default Response
-   */
-  export type GetGenerationsDeploymentsForDeploymentResponseOK = Array<{ 'generationId'?: string | null; 'deploymentId'?: string | null }>
-  export type GetGenerationsDeploymentsForDeploymentResponses =
-    GetGenerationsDeploymentsForDeploymentResponseOK
-
-  export type GetApplicationForDeploymentRequest = {
-    'fields'?: Array<'createdAt' | 'id' | 'name'>;
-    'id': string;
-  }
-
-  /**
-   * A Application
-   */
-  export type GetApplicationForDeploymentResponseOK = { 'id'?: string | null; 'name'?: string | null; 'createdAt'?: string | null }
-  export type GetApplicationForDeploymentResponses =
-    GetApplicationForDeploymentResponseOK
-
-  export type GetApplicationStateForDeploymentRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'id' | 'pltVersion' | 'state'>;
-    'id': string;
-  }
-
-  /**
-   * A ApplicationState
-   */
-  export type GetApplicationStateForDeploymentResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'pltVersion'?: string | null; 'state'?: object | null; 'createdAt'?: string | null }
-  export type GetApplicationStateForDeploymentResponses =
-    GetApplicationStateForDeploymentResponseOK
-
-  export type GetDetectedPodsRequest = {
     /**
-     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     * Include cursor headers in response. Cursor keys built from orderBy clause
      */
-    'limit'?: number;
-    'offset'?: number;
-    'totalCount'?: boolean;
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
     'where.applicationId.eq'?: string;
     'where.applicationId.neq'?: string;
     'where.applicationId.gt'?: string;
@@ -2115,6 +2315,19 @@ declare namespace controlPlane {
     'where.id.contains'?: string;
     'where.id.contained'?: string;
     'where.id.overlaps'?: string;
+    'where.namespace.eq'?: string;
+    'where.namespace.neq'?: string;
+    'where.namespace.gt'?: string;
+    'where.namespace.gte'?: string;
+    'where.namespace.lt'?: string;
+    'where.namespace.lte'?: string;
+    'where.namespace.like'?: string;
+    'where.namespace.ilike'?: string;
+    'where.namespace.in'?: string;
+    'where.namespace.nin'?: string;
+    'where.namespace.contains'?: string;
+    'where.namespace.contained'?: string;
+    'where.namespace.overlaps'?: string;
     'where.podId.eq'?: string;
     'where.podId.neq'?: string;
     'where.podId.gt'?: string;
@@ -2128,14 +2341,14 @@ declare namespace controlPlane {
     'where.podId.contains'?: string;
     'where.podId.contained'?: string;
     'where.podId.overlaps'?: string;
-    'where.status.eq'?: 'failed' | 'started' | 'starting';
-    'where.status.neq'?: 'failed' | 'started' | 'starting';
-    'where.status.gt'?: 'failed' | 'started' | 'starting';
-    'where.status.gte'?: 'failed' | 'started' | 'starting';
-    'where.status.lt'?: 'failed' | 'started' | 'starting';
-    'where.status.lte'?: 'failed' | 'started' | 'starting';
-    'where.status.like'?: 'failed' | 'started' | 'starting';
-    'where.status.ilike'?: 'failed' | 'started' | 'starting';
+    'where.status.eq'?: 'running' | 'starting' | 'stopped';
+    'where.status.neq'?: 'running' | 'starting' | 'stopped';
+    'where.status.gt'?: 'running' | 'starting' | 'stopped';
+    'where.status.gte'?: 'running' | 'starting' | 'stopped';
+    'where.status.lt'?: 'running' | 'starting' | 'stopped';
+    'where.status.lte'?: 'running' | 'starting' | 'stopped';
+    'where.status.like'?: 'running' | 'starting' | 'stopped';
+    'where.status.ilike'?: 'running' | 'starting' | 'stopped';
     'where.status.in'?: string;
     'where.status.nin'?: string;
     'where.status.contains'?: string;
@@ -2146,6 +2359,7 @@ declare namespace controlPlane {
     'orderby.createdAt'?: 'asc' | 'desc';
     'orderby.deploymentId'?: 'asc' | 'desc';
     'orderby.id'?: 'asc' | 'desc';
+    'orderby.namespace'?: 'asc' | 'desc';
     'orderby.podId'?: 'asc' | 'desc';
     'orderby.status'?: 'asc' | 'desc';
   }
@@ -2153,28 +2367,29 @@ declare namespace controlPlane {
   /**
    * Default Response
    */
-  export type GetDetectedPodsResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'createdAt'?: string | null }>
-  export type GetDetectedPodsResponses =
-    GetDetectedPodsResponseOK
+  export type GetInstancesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+  export type GetInstancesResponses =
+    GetInstancesResponseOK
 
-  export type CreateDetectedPodRequest = {
+  export type CreateInstanceRequest = {
     'id'?: string;
     'applicationId': string;
     'deploymentId'?: string | null;
     'podId': string;
-    'status': 'failed' | 'started' | 'starting';
+    'namespace': string;
+    'status': 'running' | 'starting' | 'stopped';
     'createdAt'?: string | null;
   }
 
   /**
-   * A DetectedPod
+   * A Instance
    */
-  export type CreateDetectedPodResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'createdAt'?: string | null }
-  export type CreateDetectedPodResponses =
-    CreateDetectedPodResponseOK
+  export type CreateInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+  export type CreateInstanceResponses =
+    CreateInstanceResponseOK
 
-  export type UpdateDetectedPodsRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  export type UpdateInstancesRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
     'where.applicationId.eq'?: string;
     'where.applicationId.neq'?: string;
     'where.applicationId.gt'?: string;
@@ -2227,6 +2442,19 @@ declare namespace controlPlane {
     'where.id.contains'?: string;
     'where.id.contained'?: string;
     'where.id.overlaps'?: string;
+    'where.namespace.eq'?: string;
+    'where.namespace.neq'?: string;
+    'where.namespace.gt'?: string;
+    'where.namespace.gte'?: string;
+    'where.namespace.lt'?: string;
+    'where.namespace.lte'?: string;
+    'where.namespace.like'?: string;
+    'where.namespace.ilike'?: string;
+    'where.namespace.in'?: string;
+    'where.namespace.nin'?: string;
+    'where.namespace.contains'?: string;
+    'where.namespace.contained'?: string;
+    'where.namespace.overlaps'?: string;
     'where.podId.eq'?: string;
     'where.podId.neq'?: string;
     'where.podId.gt'?: string;
@@ -2240,14 +2468,14 @@ declare namespace controlPlane {
     'where.podId.contains'?: string;
     'where.podId.contained'?: string;
     'where.podId.overlaps'?: string;
-    'where.status.eq'?: 'failed' | 'started' | 'starting';
-    'where.status.neq'?: 'failed' | 'started' | 'starting';
-    'where.status.gt'?: 'failed' | 'started' | 'starting';
-    'where.status.gte'?: 'failed' | 'started' | 'starting';
-    'where.status.lt'?: 'failed' | 'started' | 'starting';
-    'where.status.lte'?: 'failed' | 'started' | 'starting';
-    'where.status.like'?: 'failed' | 'started' | 'starting';
-    'where.status.ilike'?: 'failed' | 'started' | 'starting';
+    'where.status.eq'?: 'running' | 'starting' | 'stopped';
+    'where.status.neq'?: 'running' | 'starting' | 'stopped';
+    'where.status.gt'?: 'running' | 'starting' | 'stopped';
+    'where.status.gte'?: 'running' | 'starting' | 'stopped';
+    'where.status.lt'?: 'running' | 'starting' | 'stopped';
+    'where.status.lte'?: 'running' | 'starting' | 'stopped';
+    'where.status.like'?: 'running' | 'starting' | 'stopped';
+    'where.status.ilike'?: 'running' | 'starting' | 'stopped';
     'where.status.in'?: string;
     'where.status.nin'?: string;
     'where.status.contains'?: string;
@@ -2258,59 +2486,61 @@ declare namespace controlPlane {
     'applicationId': string;
     'deploymentId'?: string | null;
     'podId': string;
-    'status': 'failed' | 'started' | 'starting';
+    'namespace': string;
+    'status': 'running' | 'starting' | 'stopped';
     'createdAt'?: string | null;
   }
 
   /**
    * Default Response
    */
-  export type UpdateDetectedPodsResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'createdAt'?: string | null }>
-  export type UpdateDetectedPodsResponses =
-    UpdateDetectedPodsResponseOK
+  export type UpdateInstancesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+  export type UpdateInstancesResponses =
+    UpdateInstancesResponseOK
 
-  export type GetDetectedPodByIdRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  export type GetInstanceByIdRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
     'id': string;
   }
 
   /**
-   * A DetectedPod
+   * A Instance
    */
-  export type GetDetectedPodByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'createdAt'?: string | null }
-  export type GetDetectedPodByIdResponses =
-    GetDetectedPodByIdResponseOK
+  export type GetInstanceByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+  export type GetInstanceByIdResponses =
+    GetInstanceByIdResponseOK
 
-  export type UpdateDetectedPodRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  export type UpdateInstanceRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
     'id': string;
     'applicationId': string;
     'deploymentId'?: string | null;
     'podId': string;
-    'status': 'failed' | 'started' | 'starting';
+    'namespace': string;
+    'status': 'running' | 'starting' | 'stopped';
     'createdAt'?: string | null;
   }
 
   /**
-   * A DetectedPod
+   * A Instance
    */
-  export type UpdateDetectedPodResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'createdAt'?: string | null }
-  export type UpdateDetectedPodResponses =
-    UpdateDetectedPodResponseOK
+  export type UpdateInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+  export type UpdateInstanceResponses =
+    UpdateInstanceResponseOK
 
-  export type DeleteDetectedPodsRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  export type DeleteInstancesRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
     'id': string;
   }
 
   /**
-   * A DetectedPod
+   * A Instance
    */
-  export type DeleteDetectedPodsResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'createdAt'?: string | null }
-  export type DeleteDetectedPodsResponses =
-    DeleteDetectedPodsResponseOK
+  export type DeleteInstancesResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+  export type DeleteInstancesResponses =
+    DeleteInstancesResponseOK
 
-  export type GetApplicationForDetectedPodRequest = {
+  export type GetApplicationForInstanceRequest = {
     'fields'?: Array<'createdAt' | 'id' | 'name'>;
     'id': string;
   }
@@ -2318,21 +2548,300 @@ declare namespace controlPlane {
   /**
    * A Application
    */
-  export type GetApplicationForDetectedPodResponseOK = { 'id'?: string | null; 'name'?: string | null; 'createdAt'?: string | null }
-  export type GetApplicationForDetectedPodResponses =
-    GetApplicationForDetectedPodResponseOK
+  export type GetApplicationForInstanceResponseOK = { 'id'?: string | null; 'name'?: string | null; 'createdAt'?: string | null }
+  export type GetApplicationForInstanceResponses =
+    GetApplicationForInstanceResponseOK
 
-  export type GetDeploymentForDetectedPodRequest = {
-    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'status'>;
+  export type GetDeploymentForInstanceRequest = {
+    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
     'id': string;
   }
 
   /**
    * A Deployment
    */
-  export type GetDeploymentForDetectedPodResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'createdAt'?: string | null }
-  export type GetDeploymentForDetectedPodResponses =
-    GetDeploymentForDetectedPodResponseOK
+  export type GetDeploymentForInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
+  export type GetDeploymentForInstanceResponses =
+    GetDeploymentForInstanceResponseOK
+
+  export type GetValkeyUsersRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
+    'totalCount'?: boolean;
+    /**
+     * Include cursor headers in response. Cursor keys built from orderBy clause
+     */
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
+    'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+    'where.applicationId.eq'?: string;
+    'where.applicationId.neq'?: string;
+    'where.applicationId.gt'?: string;
+    'where.applicationId.gte'?: string;
+    'where.applicationId.lt'?: string;
+    'where.applicationId.lte'?: string;
+    'where.applicationId.like'?: string;
+    'where.applicationId.ilike'?: string;
+    'where.applicationId.in'?: string;
+    'where.applicationId.nin'?: string;
+    'where.applicationId.contains'?: string;
+    'where.applicationId.contained'?: string;
+    'where.applicationId.overlaps'?: string;
+    'where.createdAt.eq'?: string;
+    'where.createdAt.neq'?: string;
+    'where.createdAt.gt'?: string;
+    'where.createdAt.gte'?: string;
+    'where.createdAt.lt'?: string;
+    'where.createdAt.lte'?: string;
+    'where.createdAt.like'?: string;
+    'where.createdAt.ilike'?: string;
+    'where.createdAt.in'?: string;
+    'where.createdAt.nin'?: string;
+    'where.createdAt.contains'?: string;
+    'where.createdAt.contained'?: string;
+    'where.createdAt.overlaps'?: string;
+    'where.encryptedPassword.eq'?: string;
+    'where.encryptedPassword.neq'?: string;
+    'where.encryptedPassword.gt'?: string;
+    'where.encryptedPassword.gte'?: string;
+    'where.encryptedPassword.lt'?: string;
+    'where.encryptedPassword.lte'?: string;
+    'where.encryptedPassword.like'?: string;
+    'where.encryptedPassword.ilike'?: string;
+    'where.encryptedPassword.in'?: string;
+    'where.encryptedPassword.nin'?: string;
+    'where.encryptedPassword.contains'?: string;
+    'where.encryptedPassword.contained'?: string;
+    'where.encryptedPassword.overlaps'?: string;
+    'where.id.eq'?: string;
+    'where.id.neq'?: string;
+    'where.id.gt'?: string;
+    'where.id.gte'?: string;
+    'where.id.lt'?: string;
+    'where.id.lte'?: string;
+    'where.id.like'?: string;
+    'where.id.ilike'?: string;
+    'where.id.in'?: string;
+    'where.id.nin'?: string;
+    'where.id.contains'?: string;
+    'where.id.contained'?: string;
+    'where.id.overlaps'?: string;
+    'where.keyPrefix.eq'?: string;
+    'where.keyPrefix.neq'?: string;
+    'where.keyPrefix.gt'?: string;
+    'where.keyPrefix.gte'?: string;
+    'where.keyPrefix.lt'?: string;
+    'where.keyPrefix.lte'?: string;
+    'where.keyPrefix.like'?: string;
+    'where.keyPrefix.ilike'?: string;
+    'where.keyPrefix.in'?: string;
+    'where.keyPrefix.nin'?: string;
+    'where.keyPrefix.contains'?: string;
+    'where.keyPrefix.contained'?: string;
+    'where.keyPrefix.overlaps'?: string;
+    'where.username.eq'?: string;
+    'where.username.neq'?: string;
+    'where.username.gt'?: string;
+    'where.username.gte'?: string;
+    'where.username.lt'?: string;
+    'where.username.lte'?: string;
+    'where.username.like'?: string;
+    'where.username.ilike'?: string;
+    'where.username.in'?: string;
+    'where.username.nin'?: string;
+    'where.username.contains'?: string;
+    'where.username.contained'?: string;
+    'where.username.overlaps'?: string;
+    'where.or'?: Array<string>;
+    'orderby.applicationId'?: 'asc' | 'desc';
+    'orderby.createdAt'?: 'asc' | 'desc';
+    'orderby.encryptedPassword'?: 'asc' | 'desc';
+    'orderby.id'?: 'asc' | 'desc';
+    'orderby.keyPrefix'?: 'asc' | 'desc';
+    'orderby.username'?: 'asc' | 'desc';
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetValkeyUsersResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }>
+  export type GetValkeyUsersResponses =
+    GetValkeyUsersResponseOK
+
+  export type CreateValkeyUserRequest = {
+    'id'?: string;
+    'applicationId': string;
+    'username': string;
+    'encryptedPassword': string;
+    'keyPrefix': string;
+    'createdAt'?: string | null;
+  }
+
+  /**
+   * A ValkeyUser
+   */
+  export type CreateValkeyUserResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }
+  export type CreateValkeyUserResponses =
+    CreateValkeyUserResponseOK
+
+  export type UpdateValkeyUsersRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+    'where.applicationId.eq'?: string;
+    'where.applicationId.neq'?: string;
+    'where.applicationId.gt'?: string;
+    'where.applicationId.gte'?: string;
+    'where.applicationId.lt'?: string;
+    'where.applicationId.lte'?: string;
+    'where.applicationId.like'?: string;
+    'where.applicationId.ilike'?: string;
+    'where.applicationId.in'?: string;
+    'where.applicationId.nin'?: string;
+    'where.applicationId.contains'?: string;
+    'where.applicationId.contained'?: string;
+    'where.applicationId.overlaps'?: string;
+    'where.createdAt.eq'?: string;
+    'where.createdAt.neq'?: string;
+    'where.createdAt.gt'?: string;
+    'where.createdAt.gte'?: string;
+    'where.createdAt.lt'?: string;
+    'where.createdAt.lte'?: string;
+    'where.createdAt.like'?: string;
+    'where.createdAt.ilike'?: string;
+    'where.createdAt.in'?: string;
+    'where.createdAt.nin'?: string;
+    'where.createdAt.contains'?: string;
+    'where.createdAt.contained'?: string;
+    'where.createdAt.overlaps'?: string;
+    'where.encryptedPassword.eq'?: string;
+    'where.encryptedPassword.neq'?: string;
+    'where.encryptedPassword.gt'?: string;
+    'where.encryptedPassword.gte'?: string;
+    'where.encryptedPassword.lt'?: string;
+    'where.encryptedPassword.lte'?: string;
+    'where.encryptedPassword.like'?: string;
+    'where.encryptedPassword.ilike'?: string;
+    'where.encryptedPassword.in'?: string;
+    'where.encryptedPassword.nin'?: string;
+    'where.encryptedPassword.contains'?: string;
+    'where.encryptedPassword.contained'?: string;
+    'where.encryptedPassword.overlaps'?: string;
+    'where.id.eq'?: string;
+    'where.id.neq'?: string;
+    'where.id.gt'?: string;
+    'where.id.gte'?: string;
+    'where.id.lt'?: string;
+    'where.id.lte'?: string;
+    'where.id.like'?: string;
+    'where.id.ilike'?: string;
+    'where.id.in'?: string;
+    'where.id.nin'?: string;
+    'where.id.contains'?: string;
+    'where.id.contained'?: string;
+    'where.id.overlaps'?: string;
+    'where.keyPrefix.eq'?: string;
+    'where.keyPrefix.neq'?: string;
+    'where.keyPrefix.gt'?: string;
+    'where.keyPrefix.gte'?: string;
+    'where.keyPrefix.lt'?: string;
+    'where.keyPrefix.lte'?: string;
+    'where.keyPrefix.like'?: string;
+    'where.keyPrefix.ilike'?: string;
+    'where.keyPrefix.in'?: string;
+    'where.keyPrefix.nin'?: string;
+    'where.keyPrefix.contains'?: string;
+    'where.keyPrefix.contained'?: string;
+    'where.keyPrefix.overlaps'?: string;
+    'where.username.eq'?: string;
+    'where.username.neq'?: string;
+    'where.username.gt'?: string;
+    'where.username.gte'?: string;
+    'where.username.lt'?: string;
+    'where.username.lte'?: string;
+    'where.username.like'?: string;
+    'where.username.ilike'?: string;
+    'where.username.in'?: string;
+    'where.username.nin'?: string;
+    'where.username.contains'?: string;
+    'where.username.contained'?: string;
+    'where.username.overlaps'?: string;
+    'where.or'?: Array<string>;
+    'id'?: string;
+    'applicationId': string;
+    'username': string;
+    'encryptedPassword': string;
+    'keyPrefix': string;
+    'createdAt'?: string | null;
+  }
+
+  /**
+   * Default Response
+   */
+  export type UpdateValkeyUsersResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }>
+  export type UpdateValkeyUsersResponses =
+    UpdateValkeyUsersResponseOK
+
+  export type GetValkeyUserByIdRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+    'id': string;
+  }
+
+  /**
+   * A ValkeyUser
+   */
+  export type GetValkeyUserByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }
+  export type GetValkeyUserByIdResponses =
+    GetValkeyUserByIdResponseOK
+
+  export type UpdateValkeyUserRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+    'id': string;
+    'applicationId': string;
+    'username': string;
+    'encryptedPassword': string;
+    'keyPrefix': string;
+    'createdAt'?: string | null;
+  }
+
+  /**
+   * A ValkeyUser
+   */
+  export type UpdateValkeyUserResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }
+  export type UpdateValkeyUserResponses =
+    UpdateValkeyUserResponseOK
+
+  export type DeleteValkeyUsersRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+    'id': string;
+  }
+
+  /**
+   * A ValkeyUser
+   */
+  export type DeleteValkeyUsersResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }
+  export type DeleteValkeyUsersResponses =
+    DeleteValkeyUsersResponseOK
+
+  export type GetApplicationForValkeyUserRequest = {
+    'fields'?: Array<'createdAt' | 'id' | 'name'>;
+    'id': string;
+  }
+
+  /**
+   * A Application
+   */
+  export type GetApplicationForValkeyUserResponseOK = { 'id'?: string | null; 'name'?: string | null; 'createdAt'?: string | null }
+  export type GetApplicationForValkeyUserResponses =
+    GetApplicationForValkeyUserResponseOK
 
   export type GetGenerationsDeploymentsRequest = {
     /**
@@ -2341,6 +2850,18 @@ declare namespace controlPlane {
     'limit'?: number;
     'offset'?: number;
     'totalCount'?: boolean;
+    /**
+     * Include cursor headers in response. Cursor keys built from orderBy clause
+     */
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
     'fields'?: Array<'deploymentId' | 'generationId'>;
     'where.deploymentId.eq'?: string;
     'where.deploymentId.neq'?: string;
@@ -2491,6 +3012,18 @@ declare namespace controlPlane {
     'limit'?: number;
     'offset'?: number;
     'totalCount'?: boolean;
+    /**
+     * Include cursor headers in response. Cursor keys built from orderBy clause
+     */
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
     'fields'?: Array<'configId' | 'generationId'>;
     'where.configId.eq'?: string;
     'where.configId.neq'?: string;
@@ -2678,6 +3211,28 @@ declare namespace controlPlane {
   export type SaveApplicationInstanceStateResponseOK = object
   export type SaveApplicationInstanceStateResponses =
     SaveApplicationInstanceStateResponseOK
+
+  export type GetApplicationK8SStateRequest = {
+    'id': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetApplicationK8SStateResponseOK = { 'pods'?: Array<{ 'id'?: string; 'status'?: string; 'startTime'?: string; 'resources'?: { 'limits'?: { 'cpu'?: string; 'memory'?: string }; 'requests'?: { 'cpu'?: string; 'memory'?: string } } }> }
+  export type GetApplicationK8SStateResponses =
+    GetApplicationK8SStateResponseOK
+
+  export type GetApplicationResourcesRequest = {
+    'id': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetApplicationResourcesResponseOK = { 'threads': number; 'heap': number; 'services': Array<{ 'name'?: string; 'heap'?: number; 'threads'?: number }> }
+  export type GetApplicationResourcesResponses =
+    GetApplicationResourcesResponseOK
 
   export type SetApplicationResourcesRequest = {
     'id': string;

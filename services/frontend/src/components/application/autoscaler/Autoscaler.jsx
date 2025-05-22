@@ -7,7 +7,7 @@ import { MEDIUM, WHITE } from '@platformatic/ui-components/src/components/consta
 import Pods from '~/components/pods/Pods'
 import { TabbedWindow } from '@platformatic/ui-components'
 import AutoscalerOverview from './AutoscalerOverview'
-import AutoscalerScalingHistory from './AutoscalerScalingHistory'
+import AutoscalerEventsTable from './AutoscalerEventsTable'
 import { useRouteLoaderData } from 'react-router-dom'
 
 const Autoscaler = React.forwardRef(({ _ }, ref) => {
@@ -32,7 +32,7 @@ const Autoscaler = React.forwardRef(({ _ }, ref) => {
               key: 'overview',
               component: () => (
                 <AutoscalerOverview
-                  applicationId={application?.id}
+                  application={application}
                   onViewFullHistory={() => setKeyTabSelected('scaling_history')}
                   onViewPodsDetails={() => setKeyTabSelected('pods')}
                 />
@@ -45,7 +45,10 @@ const Autoscaler = React.forwardRef(({ _ }, ref) => {
               label: 'Scaling History',
               key: 'scaling_history',
               component: () =>
-                <AutoscalerScalingHistory applicationId={application?.id} />
+                <AutoscalerEventsTable
+                  applicationId={application?.id}
+                  deploymentId={application?.latestDeployment.id}
+                />
             }
           ]}
           keySelected={keyTabSelected}
