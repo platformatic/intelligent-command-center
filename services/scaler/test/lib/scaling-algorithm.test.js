@@ -167,7 +167,7 @@ test('processPodMetrics computes pod metrics correctly', async (t) => {
   const podMetrics = createMockMetrics()
   const clusters = []
 
-  const result = algorithm.processPodMetrics(podMetrics, 'app-1', clusters)
+  const result = algorithm.processPodMetrics(podMetrics, clusters)
 
   assert.ok(Math.abs(result.eluMean - 0.825) < 0.001)
 
@@ -519,7 +519,7 @@ test('calculateScalingDecision scales up with alerts', async (t) => {
 
   // Mock implementation of processPodMetrics
   const originalProcessPodMetrics = algorithm.processPodMetrics
-  algorithm.processPodMetrics = function (metrics, applicationId, clusters) {
+  algorithm.processPodMetrics = function (metrics, clusters) {
     // Check if metrics came from an alert
     const isAlert = metrics.eventLoopUtilization.some(data =>
       data.values.length === 1 && data.values[0][1] > 0.9
@@ -540,16 +540,19 @@ test('calculateScalingDecision scales up with alerts', async (t) => {
       }
     }
 
-    return originalProcessPodMetrics.call(this, metrics, applicationId, clusters)
+    return originalProcessPodMetrics.call(this, metrics, clusters)
   }
 
   // Create test alerts
   const alerts = [
     {
       podId: 'pod-alert',
-      type: 'elu',
-      value: 95, // 95% ELU (will be converted to 0.95)
-      timestamp: Date.now()
+      elu: 0.95, // 95% ELU
+      heapUsed: 6000000000,
+      heapTotal: 8000000000,
+      unhealthy: true,
+      timestamp: Date.now(),
+      healthHistory: []
     }
   ]
 

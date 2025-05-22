@@ -1,0 +1,674 @@
+[
+  {
+    "applicationId": "9a55aa42-d919-4251-abd2-1bf440df25ae",
+    "serviceId": "military-nostril",
+    "podId": "platformatic-platformatic-596c7c99c8-42rtv",
+    "elu": 0.9967392838645287,
+    "heapUsed": 66379184,
+    "heapTotal": 117997568,
+    "unhealthy": true,
+    "healthHistory": [
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6589497053180785,
+          "heapUsed": 92678488,
+          "heapTotal": 112230400
+        },
+        "unhealthy": false,
+        "timestamp": "1747926853276"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6684765207404803,
+          "heapUsed": 88669592,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926854276"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6838348776572408,
+          "heapUsed": 80407696,
+          "heapTotal": 109871104
+        },
+        "unhealthy": false,
+        "timestamp": "1747926855277"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.7448288380286894,
+          "heapUsed": 76904544,
+          "heapTotal": 110919680
+        },
+        "unhealthy": false,
+        "timestamp": "1747926856279"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6297588573387167,
+          "heapUsed": 67812624,
+          "heapTotal": 111706112
+        },
+        "unhealthy": false,
+        "timestamp": "1747926857280"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6822325548588999,
+          "heapUsed": 60719928,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926858279"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6594796305025187,
+          "heapUsed": 88237832,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926859280"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.7156578280056076,
+          "heapUsed": 83262336,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926860280"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6771383335581195,
+          "heapUsed": 77324608,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926861280"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.7268427867107727,
+          "heapUsed": 68866144,
+          "heapTotal": 110395392
+        },
+        "unhealthy": false,
+        "timestamp": "1747926862282"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6446666751136485,
+          "heapUsed": 64434072,
+          "heapTotal": 113278976
+        },
+        "unhealthy": false,
+        "timestamp": "1747926863281"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6645772646277095,
+          "heapUsed": 91105792,
+          "heapTotal": 113278976
+        },
+        "unhealthy": false,
+        "timestamp": "1747926864282"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6492586558755764,
+          "heapUsed": 88101384,
+          "heapTotal": 106463232
+        },
+        "unhealthy": false,
+        "timestamp": "1747926865282"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6468615174278434,
+          "heapUsed": 78451152,
+          "heapTotal": 111181824
+        },
+        "unhealthy": false,
+        "timestamp": "1747926866282"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6483114725433555,
+          "heapUsed": 70657440,
+          "heapTotal": 112492544
+        },
+        "unhealthy": false,
+        "timestamp": "1747926867283"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.7399257012646231,
+          "heapUsed": 67385616,
+          "heapTotal": 111181824
+        },
+        "unhealthy": false,
+        "timestamp": "1747926868289"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6389708115454135,
+          "heapUsed": 63952632,
+          "heapTotal": 111181824
+        },
+        "unhealthy": false,
+        "timestamp": "1747926869289"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6593976599234272,
+          "heapUsed": 91073832,
+          "heapTotal": 111181824
+        },
+        "unhealthy": false,
+        "timestamp": "1747926870289"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6586836002288459,
+          "heapUsed": 81156792,
+          "heapTotal": 106201088
+        },
+        "unhealthy": false,
+        "timestamp": "1747926871290"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6966240044175391,
+          "heapUsed": 75003352,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926872291"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.65768338517612,
+          "heapUsed": 67160000,
+          "heapTotal": 111968256
+        },
+        "unhealthy": false,
+        "timestamp": "1747926873291"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6458257535899682,
+          "heapUsed": 59787584,
+          "heapTotal": 111706112
+        },
+        "unhealthy": false,
+        "timestamp": "1747926874291"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6896131685785455,
+          "heapUsed": 89157648,
+          "heapTotal": 111706112
+        },
+        "unhealthy": false,
+        "timestamp": "1747926875292"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6770874761394227,
+          "heapUsed": 82347120,
+          "heapTotal": 110919680
+        },
+        "unhealthy": false,
+        "timestamp": "1747926876293"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.7274722695608363,
+          "heapUsed": 79559368,
+          "heapTotal": 111181824
+        },
+        "unhealthy": false,
+        "timestamp": "1747926877293"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6576478929497959,
+          "heapUsed": 70437704,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926878294"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6754949144621157,
+          "heapUsed": 66555840,
+          "heapTotal": 112492544
+        },
+        "unhealthy": false,
+        "timestamp": "1747926879295"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.645368918165708,
+          "heapUsed": 92491808,
+          "heapTotal": 112492544
+        },
+        "unhealthy": false,
+        "timestamp": "1747926880295"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6424149025179884,
+          "heapUsed": 85002072,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926881295"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6890604175035179,
+          "heapUsed": 78029760,
+          "heapTotal": 111181824
+        },
+        "unhealthy": false,
+        "timestamp": "1747926882295"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.7436227379537522,
+          "heapUsed": 74496344,
+          "heapTotal": 104366080
+        },
+        "unhealthy": false,
+        "timestamp": "1747926883297"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6306631173359643,
+          "heapUsed": 65768408,
+          "heapTotal": 110133248
+        },
+        "unhealthy": false,
+        "timestamp": "1747926884298"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6664843834304017,
+          "heapUsed": 66303344,
+          "heapTotal": 110133248
+        },
+        "unhealthy": false,
+        "timestamp": "1747926885299"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6304032748402398,
+          "heapUsed": 91577208,
+          "heapTotal": 110133248
+        },
+        "unhealthy": false,
+        "timestamp": "1747926886299"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6563919293283514,
+          "heapUsed": 86273528,
+          "heapTotal": 111968256
+        },
+        "unhealthy": false,
+        "timestamp": "1747926887299"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6825989051080916,
+          "heapUsed": 77355992,
+          "heapTotal": 111968256
+        },
+        "unhealthy": false,
+        "timestamp": "1747926888299"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.667692841097406,
+          "heapUsed": 71189008,
+          "heapTotal": 111706112
+        },
+        "unhealthy": false,
+        "timestamp": "1747926889299"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6892250150138364,
+          "heapUsed": 68836336,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926890301"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.7220865088079801,
+          "heapUsed": 61119632,
+          "heapTotal": 111968256
+        },
+        "unhealthy": false,
+        "timestamp": "1747926891306"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6993353892576872,
+          "heapUsed": 89471040,
+          "heapTotal": 111968256
+        },
+        "unhealthy": false,
+        "timestamp": "1747926892306"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6527117429649845,
+          "heapUsed": 80653456,
+          "heapTotal": 111181824
+        },
+        "unhealthy": false,
+        "timestamp": "1747926893306"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6641698117009047,
+          "heapUsed": 77228032,
+          "heapTotal": 110919680
+        },
+        "unhealthy": false,
+        "timestamp": "1747926894306"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6476046470357979,
+          "heapUsed": 65825544,
+          "heapTotal": 111968256
+        },
+        "unhealthy": false,
+        "timestamp": "1747926895307"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6666801707369069,
+          "heapUsed": 66244424,
+          "heapTotal": 110919680
+        },
+        "unhealthy": false,
+        "timestamp": "1747926896309"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6936882869980392,
+          "heapUsed": 94106832,
+          "heapTotal": 110919680
+        },
+        "unhealthy": false,
+        "timestamp": "1747926897310"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6500007149378422,
+          "heapUsed": 85303480,
+          "heapTotal": 106987520
+        },
+        "unhealthy": false,
+        "timestamp": "1747926898310"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.7043030746501284,
+          "heapUsed": 79165088,
+          "heapTotal": 110133248
+        },
+        "unhealthy": false,
+        "timestamp": "1747926899311"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6561693548952791,
+          "heapUsed": 73308208,
+          "heapTotal": 111968256
+        },
+        "unhealthy": false,
+        "timestamp": "1747926900311"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.6863182373201194,
+          "heapUsed": 65229592,
+          "heapTotal": 111181824
+        },
+        "unhealthy": false,
+        "timestamp": "1747926901312"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.7246692733543826,
+          "heapUsed": 97036544,
+          "heapTotal": 111181824
+        },
+        "unhealthy": false,
+        "timestamp": "1747926902312"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.7165856066288276,
+          "heapUsed": 87919696,
+          "heapTotal": 111968256
+        },
+        "unhealthy": false,
+        "timestamp": "1747926903313"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.728148024253225,
+          "heapUsed": 80700856,
+          "heapTotal": 111968256
+        },
+        "unhealthy": false,
+        "timestamp": "1747926904313"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.7222261726753242,
+          "heapUsed": 73695728,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926905314"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.01974272898134949,
+          "heapUsed": 77194192,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926906315"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.006018993790951122,
+          "heapUsed": 71923064,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926907316"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.006053314336532682,
+          "heapUsed": 73096840,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926908316"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.014616527692367976,
+          "heapUsed": 76094608,
+          "heapTotal": 111443968
+        },
+        "unhealthy": false,
+        "timestamp": "1747926909316"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.9765339286214308,
+          "heapUsed": 56754968,
+          "heapTotal": 115900416
+        },
+        "unhealthy": false,
+        "timestamp": "1747926910331"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.9876241505126847,
+          "heapUsed": 83031224,
+          "heapTotal": 112492544
+        },
+        "unhealthy": false,
+        "timestamp": "1747926911335"
+      },
+      {
+        "id": "military-nostril",
+        "service": "military-nostril",
+        "currentHealth": {
+          "elu": 0.9967392838645287,
+          "heapUsed": 66379184,
+          "heapTotal": 117997568
+        },
+        "unhealthy": true,
+        "timestamp": "1747926912340"
+      }
+    ],
+    "timestamp": 1747926912365
+  }
+]
