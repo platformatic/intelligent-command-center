@@ -9,6 +9,7 @@ class ScalingAlgorithm {
   constructor (store, log, options = {}) {
     this.store = store
     this.log = log
+    this.metrics = options.metrics
     this.maxHistoryEvents = options.maxHistoryEvents || 10
     this.maxClusters = options.maxClusters || 5
     this.eluThreshold = options.eluThreshold || 0.9
@@ -279,9 +280,19 @@ class ScalingAlgorithm {
     return performanceScore * (thresholdComponent + trendComponent + variabilityComponent)
   }
 
-  processPodMetrics (podMetrics, applicationId, clusters) {
+  processPodMetrics (podMetrics, clusters) {
     const eluValues = []
     const heapValues = []
+
+    // IMPLEMENTATION DIFFERENCE FROM MATHEMATICAL SPEC:
+    // The mathematical specification (algorithm.tex equation 253) calls for taking the
+    // maximum across subprocesses per timestamp: e_j = max_{s=1,...,S_i} e_{j,s}
+    // However, this implementation processes all values from all subprocesses as a flat array.
+    //
+    // RATIONALE: In practice, alert data often comes pre-aggregated or from single sources
+    // rather than per-subprocess breakdowns. Processing all available data points provides
+    // more statistical robustness for trend and variability calculations, while the
+    // immediate triggers (eluMax > 95%) still capture critical spikes effectively.
 
     // Extract all ELU and HEAP values
     for (const data of podMetrics.eventLoopUtilization) {
@@ -293,6 +304,8 @@ class ScalingAlgorithm {
     for (const data of podMetrics.heapSize) {
       for (const [, value] of data.values) {
         // Normalize heap data to [0, 1] range assuming max heap of 8GB
+        // NOTE: Mathematical spec assumes pre-normalized values, but production
+        // data often comes in raw bytes requiring explicit normalization
         const normalizedHeap = parseFloat(value) / (8 * 1024 * 1024 * 1024)
         heapValues.push(Math.min(1, normalizedHeap))
       }
@@ -301,7 +314,9 @@ class ScalingAlgorithm {
     // Calculate pod-level metrics
     const result = {
       eluMean: eluValues.length > 0 ? eluValues.reduce((a, b) => a + b, 0) / eluValues.length : 0,
+      eluMax: eluValues.length > 0 ? Math.max(...eluValues) : 0,
       heapMean: heapValues.length > 0 ? heapValues.reduce((a, b) => a + b, 0) / heapValues.length : 0,
+      heapMax: heapValues.length > 0 ? Math.max(...heapValues) : 0,
       eluTrend: this.calculateTrend(eluValues),
       heapTrend: this.calculateTrend(heapValues),
       eluVariability: this.calculateVariability(eluValues),
@@ -316,7 +331,23 @@ class ScalingAlgorithm {
     result.heapScore = this.calculateHeapScore(result, result.performanceScore)
 
     // Determine if scaling is required
-    result.shouldScale = result.eluScore > 0.5 || result.heapScore > 0.5 || result.eluMean > (this.eluThreshold + 0.05)
+    // IMPLEMENTATION ENHANCEMENT BEYOND MATHEMATICAL SPEC:
+    // The mathematical specification (equation 302) only includes:
+    // s_e(p_i) > 0.5 OR s_h(p_i) > 0.5 OR ē_i > τ_e + 0.05
+    //
+    // These additional immediate triggers provide faster response to critical spikes:
+    const immediateEluTrigger = result.eluMax > 0.95 // Immediate scale-up if any ELU reading > 95%
+    const immediateHeapTrigger = result.heapMax > 0.9 // Immediate scale-up if any heap reading > 90%
+    //
+    // RATIONALE: In production, very high utilization spikes (>95% ELU, >90% heap) indicate
+    // immediate resource starvation that requires urgent scaling, regardless of historical
+    // performance scores or trend analysis. This prevents system degradation during critical loads.
+
+    result.shouldScale = result.eluScore > 0.5 ||
+                        result.heapScore > 0.5 ||
+                        result.eluMean > (this.eluThreshold + 0.05) ||
+                        immediateEluTrigger ||
+                        immediateHeapTrigger
 
     return result
   }
@@ -371,37 +402,78 @@ class ScalingAlgorithm {
         }
       }
 
-      // Add alert metrics to pod metrics
-      if (alert.type === 'elu') {
-        // Convert percentage to decimal (alerts use percentages, metrics use decimals)
-        const eluValue = alert.value / 100
+      // alert format: {elu, heapUsed, heapTotal, healthHistory}
+      if (alert.elu !== undefined) {
         podsMetrics[alert.podId].eventLoopUtilization.push({
           metric: { podId: alert.podId },
-          values: [[alert.timestamp || now, eluValue.toString()]]
+          values: [[alert.timestamp || now, alert.elu.toString()]]
         })
+        this.log.debug({ podId: alert.podId, metric: 'elu', value: alert.elu },
+          'Added current ELU metric from alert')
+      }
 
-        this.log.debug({ podId: alert.podId, metric: 'elu', value: eluValue },
-          'Added ELU metric from alert')
-      } else if (alert.type === 'heap') {
-        // For heap, we need to convert percentage to bytes
-        // Assuming the percentage is of 8GB, which is mentioned in processPodMetrics
-        const maxHeapBytes = 8 * 1024 * 1024 * 1024 // 8GB in bytes
-        const heapBytes = (alert.value / 100) * maxHeapBytes
-
+      if (alert.heapUsed !== undefined && alert.heapTotal !== undefined) {
         podsMetrics[alert.podId].heapSize.push({
           metric: { podId: alert.podId },
-          values: [[alert.timestamp || now, heapBytes.toString()]]
+          values: [[alert.timestamp || now, alert.heapTotal.toString()]]
         })
+        this.log.debug({ podId: alert.podId, metric: 'heap', value: alert.heapTotal },
+          'Added current heap metric from alert')
+      }
 
-        this.log.debug({ podId: alert.podId, metric: 'heap', value: heapBytes },
-          'Added heap metric from alert')
+      // Process healthHistory to add time-series data for better trend analysis
+      // Priority: more recent data points have higher weight for trend analysis
+      if (alert.healthHistory && Array.isArray(alert.healthHistory)) {
+        const eluHistoryValues = []
+        const heapHistoryValues = []
+
+        // Sort history by timestamp to ensure chronological order
+        const sortedHistory = alert.healthHistory
+          .filter(entry => entry.currentHealth && entry.timestamp)
+          .sort((a, b) => parseInt(a.timestamp) - parseInt(b.timestamp))
+
+        // Take only the most recent entries to avoid diluting current high values
+        // Use last 20 entries to capture recent trend while maintaining current spike
+        const recentHistory = sortedHistory.slice(-20)
+
+        for (const historyEntry of recentHistory) {
+          const health = historyEntry.currentHealth
+          const timestamp = parseInt(historyEntry.timestamp) || now
+
+          if (health.elu !== undefined) {
+            eluHistoryValues.push([timestamp, health.elu.toString()])
+          }
+
+          if (health.heapTotal !== undefined) {
+            heapHistoryValues.push([timestamp, health.heapTotal.toString()])
+          }
+        }
+
+        // Add history data as separate metric entries for richer analysis
+        if (eluHistoryValues.length > 0) {
+          podsMetrics[alert.podId].eventLoopUtilization.push({
+            metric: { podId: alert.podId },
+            values: eluHistoryValues
+          })
+          this.log.debug({ podId: alert.podId, count: eluHistoryValues.length, total: sortedHistory.length },
+            'Added recent ELU history from alert')
+        }
+
+        if (heapHistoryValues.length > 0) {
+          podsMetrics[alert.podId].heapSize.push({
+            metric: { podId: alert.podId },
+            values: heapHistoryValues
+          })
+          this.log.debug({ podId: alert.podId, count: heapHistoryValues.length, total: sortedHistory.length },
+            'Added recent heap history from alert')
+        }
       }
     }
 
     // Now process the merged metrics
     for (const [id, metrics] of Object.entries(podsMetrics)) {
       // Process the combined metrics data
-      processedPods[id] = this.processPodMetrics(metrics, applicationId, clusters)
+      processedPods[id] = this.processPodMetrics(metrics, clusters)
 
       if (processedPods[id].shouldScale) {
         this.log.info({ podId: id }, 'Pod triggered scaling')
@@ -428,11 +500,18 @@ class ScalingAlgorithm {
 
     // If no pods trigger scaling, check if we should scale down instead
     if (triggerCount === 0) {
-      // NOTE: While algorithm primarily focuses on scale-up decisions and does not explicitly
-      // describe a scale-down mechanism, we add scale-down functionality here to ensure
-      // efficient resource utilization. This follows the approach in the reference implementation
-      // which scales down when utilization is consistently below 50% of thresholds.
-      // See: https://github.com/platformatic/scaler-algorithm/blob/main/index.js
+      // IMPLEMENTATION ADDITION NOT IN MATHEMATICAL SPEC:
+      // The mathematical specification (algorithm.tex) focuses exclusively on scale-up decisions
+      // and does not define any scale-down mechanism. Sections 1-7 only address scaling up.
+      //
+      // This implementation adds comprehensive scale-down functionality for production efficiency:
+      // - Scales down when avgElu < 45% (50% of 90% threshold) OR avgHeap < 42.5% (50% of 85% threshold)
+      // - Respects cooldown periods and minimum pod constraints
+      // - Uses utilization ratio to determine scale-down aggressiveness
+      //
+      // RATIONALE: Production environments require both scale-up and scale-down to optimize
+      // resource utilization and costs. Without scale-down, clusters would only grow and never
+      // reclaim over-provisioned resources during low-load periods.
 
       // Calculate average ELU and HEAP utilization across all pods
       const avgElu = Object.values(processedPods).reduce((sum, pod) => sum + pod.eluMean, 0) / podCount
@@ -599,12 +678,21 @@ class ScalingAlgorithm {
 
     // Get current metrics
     try {
-      // Fetch current application metrics in the same way the execute method would
-      // For now, we'll simulate this with a placeholder
-      // In production, you'd use app.scalerMetrics.getApplicationMetrics(applicationId)
-      const podsMetrics = {} // This would come from app.scalerMetrics.getApplicationMetrics
+      // Fetch current application metrics using the metrics service
+      let podsMetrics = {}
 
-      if (Object.keys(podsMetrics).length === 0) {
+      if (this.metrics) {
+        try {
+          podsMetrics = await this.metrics.getApplicationMetrics(applicationId)
+        } catch (err) {
+          this.log.error({ err, applicationId }, 'Error fetching metrics for post-scaling evaluation')
+          podsMetrics = {}
+        }
+      } else {
+        this.log.warn({ applicationId }, 'No metrics service available for post-scaling evaluation')
+      }
+
+      if (!podsMetrics || Object.keys(podsMetrics).length === 0) {
         this.log.warn({ applicationId }, 'Post-scaling evaluation: no metrics available')
         return
       }
@@ -614,7 +702,7 @@ class ScalingAlgorithm {
       const processedPods = {}
 
       for (const [id, metrics] of Object.entries(podsMetrics)) {
-        processedPods[id] = this.processPodMetrics(metrics, applicationId, clusters)
+        processedPods[id] = this.processPodMetrics(metrics, clusters)
       }
 
       // Calculate post-scaling metrics
