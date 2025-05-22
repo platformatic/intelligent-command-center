@@ -34,7 +34,7 @@ test('checkScalingOnAlert should return error when pod has no alerts', async (t)
     return { success: true }
   }
 
-  server.store.getAlertByPodId = async () => []
+  server.store.getAlertsByPodId = async () => []
 
   const result = await server.scalerExecutor.checkScalingOnAlert('test-pod-1')
 
@@ -62,7 +62,7 @@ test('checkScalingOnAlert should return error when application has no metrics', 
     return { success: true }
   }
 
-  server.store.getAlertByPodId = async () => [{
+  server.store.getAlertsByPodId = async () => [{
     podId: 'test-pod-1',
     applicationId: 'test-app-1',
     timestamp: Date.now(),
@@ -129,7 +129,7 @@ test('checkScalingOnAlert should call scaling algorithm and return result', asyn
 
   const server = await buildServerWithPlugins(t, {}, plugins)
 
-  server.store.getAlertByPodId = async () => [{
+  server.store.getAlertsByPodId = async () => [{
     podId: 'test-pod-1',
     applicationId: testAppId,
     timestamp: Date.now(),
@@ -235,7 +235,7 @@ test('checkScalingOnAlert should merge metrics from alerts with pod metrics for 
   const server = await buildServerWithPlugins(t, {}, plugins)
 
   const alertTimestamp = Date.now()
-  server.store.getAlertByPodId = async () => [{
+  server.store.getAlertsByPodId = async () => [{
     podId: 'test-pod-1',
     applicationId: testAppId,
     timestamp: alertTimestamp,
@@ -330,7 +330,7 @@ test('checkScalingOnAlert should handle unexpected errors', async (t) => {
     return { success: true }
   }
 
-  server.store.getAlertByPodId = async () => {
+  server.store.getAlertsByPodId = async () => {
     throw new Error('Test error')
   }
 

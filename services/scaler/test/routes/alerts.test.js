@@ -65,6 +65,7 @@ test('receive and save alert successfully', async (t) => {
       'x-k8s': generateK8sHeader(podId)
     },
     payload: JSON.stringify({
+      applicationId,
       alert,
       healthHistory: [alert]
     })
@@ -124,6 +125,7 @@ test('receive multiple alerts for the same pod', async (t) => {
       'x-k8s': generateK8sHeader(podId)
     },
     payload: JSON.stringify({
+      applicationId,
       alert: alert1,
       healthHistory: [alert1]
     })
@@ -146,6 +148,7 @@ test('receive multiple alerts for the same pod', async (t) => {
       'x-k8s': generateK8sHeader(podId)
     },
     payload: JSON.stringify({
+      applicationId,
       alert: alert2,
       healthHistory: [alert1, alert2]
     })

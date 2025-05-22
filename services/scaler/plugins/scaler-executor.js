@@ -86,7 +86,7 @@ class ScalerExecutor {
     }
 
     try {
-      const alerts = await this.app.store.getAlertByPodId(podId)
+      const alerts = await this.app.store.getAlertsByPodId(podId)
       if (!alerts || alerts.length === 0) {
         this.app.log.info({ podId }, 'No alerts found for pod')
         return { success: true, podId, timestamp: Date.now(), nfinal: 0, reason: 'No alerts found' }
