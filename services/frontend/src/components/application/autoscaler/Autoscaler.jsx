@@ -48,6 +48,7 @@ const Autoscaler = React.forwardRef(({ _ }, ref) => {
                 <AutoscalerEventsTable
                   applicationId={application?.id}
                   deploymentId={application?.latestDeployment.id}
+                  limit={100}
                 />
             }
           ]}

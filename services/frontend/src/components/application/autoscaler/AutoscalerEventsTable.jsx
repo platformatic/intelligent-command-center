@@ -6,19 +6,19 @@ import { getFormattedTimeAndDate } from '../../../utilities/dates'
 import StatusPill from '../../common/StatusPill'
 import Paginator from '../../ui/Paginator'
 
-const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10 }) {
+const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10, limit = 10 }) {
   const [events, setEvents] = useState([])
   const [totalCount, setTotalCount] = useState(null)
   const [page, setPage] = useState(0)
 
   useEffect(() => {
     async function loadActivities () {
-      const response = await getScalingHistory(applicationId)
+      const response = await getScalingHistory(applicationId, limit)
       if (response.length > 0) {
         let previousReplicas = 0
         for (const event of response) {
           const replicas = event.values[0]
-          if (replicas > previousReplicas) {
+          if (replicas < previousReplicas) {
             event.direction = 'up'
           } else {
             event.direction = 'down'
@@ -26,13 +26,12 @@ const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10
           previousReplicas = replicas
         }
 
-        response.sort((a, b) => new Date(b.time) - new Date(a.time))
         setEvents(response.slice(page * rows, (page + 1) * rows))
         setTotalCount(response.length)
       }
     }
     loadActivities()
-  }, [])
+  }, [page])
 
   function renderCell (row, column) {
     let content
