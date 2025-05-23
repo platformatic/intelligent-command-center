@@ -61,7 +61,7 @@ test('k8s metrics per application', async (t) => {
   assert.deepEqual(metrics, expected)
 })
 
-test.only('requests per second per application', async (t) => {
+test('requests per second per application', async (t) => {
   const applicationId = 'test-application-id'
   const controlPlane = getControlPlane(applicationId)
 
