@@ -7,7 +7,6 @@ import {
   getApplicationById,
   getApplicationStatesForApplication,
   getApplicationResources,
-  getInstances,
   getGenerationGraph
 } from '../clients/control-plane/control-plane.mjs'
 
@@ -349,19 +348,19 @@ export const getApiApplicationScaleConfig = async (applicationId) => {
 
 /* PODS */
 export const getApiPods = async (applicationId) => {
-  const { body: appInstances } = await getInstances({ 'where.applicationId.eq': applicationId })
-  const pods = appInstances.map(({ podId }) => podId) ?? []
+  const { pods } = await callApi('control-plane', `/applications/${applicationId}/k8s/state`, 'GET')
   const output = await Promise.all(pods.map(async (pod) => {
     const [dataMem, dataCpu] = await Promise.all([
-      getApiMetricsPod(applicationId, pod, 'mem'),
-      getApiMetricsPod(applicationId, pod, 'cpu')
+      getApiMetricsPod(applicationId, pod.id, 'mem'),
+      getApiMetricsPod(applicationId, pod.id, 'cpu')
     ])
 
     const dataValuesMem = await dataMem.json()
     const dataValuesCpu = await dataCpu.json()
     return {
-      id: pod,
-      dataValues: { ...dataValuesMem, ...dataValuesCpu }
+      id: pod.id,
+      dataValues: { ...dataValuesMem, ...dataValuesCpu },
+      status: pod.status.toLowerCase()
     }
   }))
   return output
