@@ -40,11 +40,10 @@ function KubernetesResources ({
 
   async function loadKubernetesResources () {
     try {
-      const data = await getKubernetesResources(application.id)
-      const values = await data.json()
+      const values = await getKubernetesResources(application.id)
       setValues(values)
     } catch (error) {
-      console.error(`Error on getKubernetesResources ${error}`)
+      console.error({ getKubernetesResources: error })
     }
   }
 
