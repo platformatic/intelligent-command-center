@@ -5,33 +5,48 @@ import { getScalingHistory } from '../../../api/autoscaler'
 import { getFormattedTimeAndDate } from '../../../utilities/dates'
 import StatusPill from '../../common/StatusPill'
 import Paginator from '../../ui/Paginator'
+import { REFRESH_INTERVAL_METRICS } from '~/ui-constants'
 
 const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10, limit = 10 }) {
   const [events, setEvents] = useState([])
   const [totalCount, setTotalCount] = useState(null)
   const [page, setPage] = useState(0)
+  const [startPolling, setStartPolling] = useState(false)
+
+  async function loadActivities () {
+    const response = await getScalingHistory(applicationId, limit)
+    if (response.length > 0) {
+      let previousReplicas = 0
+      for (const event of response.toReversed()) {
+        const replicas = event.values[0]
+        if (replicas > previousReplicas) {
+          event.direction = 'up'
+        } else {
+          event.direction = 'down'
+        }
+        previousReplicas = replicas
+      }
+
+      setEvents(response.slice(page * rows, (page + 1) * rows))
+      setTotalCount(response.length)
+    }
+  }
 
   useEffect(() => {
-    async function loadActivities () {
-      const response = await getScalingHistory(applicationId, limit)
-      if (response.length > 0) {
-        let previousReplicas = 0
-        for (const event of response.toReversed()) {
-          const replicas = event.values[0]
-          if (replicas > previousReplicas) {
-            event.direction = 'up'
-          } else {
-            event.direction = 'down'
-          }
-          previousReplicas = replicas
-        }
-
-        setEvents(response.slice(page * rows, (page + 1) * rows))
-        setTotalCount(response.length)
-      }
-    }
-    loadActivities()
+    loadActivities().then(() => {
+      setStartPolling(true)
+    })
   }, [page])
+
+  useEffect(() => {
+    let intervalId
+    if (startPolling) {
+      intervalId = setInterval(async () => await loadActivities(), REFRESH_INTERVAL_METRICS)
+    }
+    return () => {
+      return clearInterval(intervalId)
+    }
+  }, [startPolling])
 
   function renderCell (row, column) {
     let content
