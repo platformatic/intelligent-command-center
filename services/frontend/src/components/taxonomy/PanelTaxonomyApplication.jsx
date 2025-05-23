@@ -26,8 +26,7 @@ function PanelTaxonomyApplication ({ id, name, services, mainTaxonomyId, islates
       async function getResources () {
         try {
           setValuesLoading(true)
-          const data = await getKubernetesResources(mainTaxonomyId, id)
-          const values = await data.json()
+          const values = await getKubernetesResources(id)
 
           const scaleConfig = await getApiApplicationScaleConfig(id)
           const maximumInstanceCount = scaleConfig.maxPods

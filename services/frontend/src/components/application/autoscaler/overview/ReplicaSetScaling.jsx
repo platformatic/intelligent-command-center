@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { RICH_BLACK, WHITE, OPACITY_30, MEDIUM, SMALL, TRANSPARENT, ACTIVE_AND_INACTIVE_STATUS, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
+import { RICH_BLACK, WHITE, OPACITY_30, MEDIUM, TRANSPARENT, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
 import styles from './ReplicaSetScaling.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
-import { BorderedBox, Button, VerticalSeparator } from '@platformatic/ui-components'
+import { BorderedBox, VerticalSeparator } from '@platformatic/ui-components'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import Performance from './Performance'
 import { getKubernetesResources } from '~/api'
@@ -84,14 +84,13 @@ function ReplicaSetScaling ({
 
   async function loadMetricsReplicaSetScaling () {
     try {
-      const data = await getKubernetesResources(applicationId)
-      const kubernetesResourceValues = await data.json()
+      const k8sResources = await getKubernetesResources(applicationId)
       const newValues = []
 
       let found
-      if (Object.keys(kubernetesResourceValues).length > 0) {
+      if (Object.keys(k8sResources).length > 0) {
         displayedValues.forEach(displayedValue => {
-          found = kubernetesResourceValues[displayedValue.internalKey]
+          found = k8sResources[displayedValue.internalKey]
 
           if (found) {
             const { unit, internalKey, label } = displayedValue
@@ -135,19 +134,6 @@ function ReplicaSetScaling ({
                 <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Replica Set Scaling Metrics</p>
               </div>
             </div>
-
-            <Button
-              label='Based on Scaling Rules'
-              type='button'
-              color={WHITE}
-              backgroundColor={TRANSPARENT}
-              hoverEffect={ACTIVE_AND_INACTIVE_STATUS}
-              paddingClass={commonStyles.smallButtonPadding}
-              textClass={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite}`}
-              onClick={() => {}}
-              bordered={false}
-              platformaticIconAfter={{ iconName: 'ExpandIcon', color: WHITE, size: SMALL }}
-            />
           </div>
         </div>
 
