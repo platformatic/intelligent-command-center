@@ -4,10 +4,11 @@ export function getPods (applicationId) {
 
 }
 
-export async function getScalingHistory (applicationId) {
+export async function getScalingHistory (applicationId, limit = 10) {
   const query = new URLSearchParams()
   query.set('where.applicationId.eq', applicationId)
-  query.set('orderby.createdAt', 'asc')
+  query.set('orderby.createdAt', 'desc')
+  query.set('limit', limit)
 
   const res = await callApi('scaler', `/controllers?${query.toString()}`)
   if (res.length === 0) {
@@ -37,7 +38,7 @@ export async function getScalingHistorySummary (applicationId) {
   let previous = events[0]
   for (let i = 1; i < events.length; i++) {
     const current = events[i]
-    if (current.values[0] > previous.values[0]) {
+    if (previous.values[0] > current.values[0]) {
       output.up++
       output.latestUp = current.time
     } else {

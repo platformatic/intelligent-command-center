@@ -8,13 +8,15 @@ import { xMargin, yMargin } from '~/components/metrics/chart_constants.js'
 import { POSITION_ABSOLUTE, POSITION_FIXED } from '~/ui-constants'
 
 const AutoscalerHistoryChart = ({
+  // We assume the data is an array of objects with a time and a value
+  // { time: new Date(), values: [actual, projected] }
   data,
   maxNumberOfPods = 10,
   tooltipPosition = POSITION_ABSOLUTE
 }) => {
   const svgRef = useRef()
   const tooltipRef = useRef()
-  // We assume the data is an array of objects with a time and a value
+
   // The setter is missing on purpose. We don't want to trigger a rerender when the mouse position changes
   const [mousePosition] = useState({ x: 0, y: 0 })
 
