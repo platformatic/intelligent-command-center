@@ -212,11 +212,27 @@ export const getApiMetricsPodPerService = async (applicationId, podId, serviceId
 /* KUBERNETES RESOURCES */
 
 export const getKubernetesResources = async (applicationId) => {
+  const { pods } = await getApiApplicationK8sState(applicationId)
+  const scaleConfig = await getApiApplicationScaleConfig(applicationId)
+
   const url = `${baseUrl}/metrics/kubernetes/apps/${applicationId}`
-  return fetch(url, {
+  const response = await fetch(url, {
     method: 'GET',
     headers: getHeaders()
   })
+
+  if (!response.ok) {
+    throw new Error('Unable to get kubernetes metrics')
+  }
+
+  const k8sMetrics = await response.json()
+  return {
+    ...k8sMetrics,
+    pods: {
+      current: pods.length,
+      max: scaleConfig.maxPods
+    }
+  }
 }
 
 // Autoscaler
