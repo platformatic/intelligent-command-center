@@ -7,7 +7,7 @@ const createLeaderElector = require('../lib/leader')
 async function plugin (app) {
   const lock = Number(process.env.PLT_SCALER_LOCK) || 4242
   const poll = Number(process.env.PLT_SCALER_LEADER_POLL) || 10000
-  const periodicTriggerInterval = Number(process.env.PLT_SCALER_PERIODIC_TRIGGER) || 60000 // The default is only for tests
+  const periodicTriggerInterval = (Number(process.env.PLT_SCALER_PERIODIC_TRIGGER) || 60) * 1000 // Convert seconds to milliseconds
   const { db } = app.platformatic
   let periodicTriggerController = null
   let isLeader = false
