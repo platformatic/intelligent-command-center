@@ -34,6 +34,8 @@ function KubernetesResourceNumeric ({
 
   function displayPods () {
     if (podsUsed !== '-') {
+      podsAll = Math.max(podsUsed, podsAll)
+
       const used = Array.from(Array(podsUsed).keys()).map((_) => ({ used: true }))
       const podsAvailable = podsAll - podsUsed
       const available = Array.from(Array(podsAvailable).keys()).map((_) => ({ used: false }))
