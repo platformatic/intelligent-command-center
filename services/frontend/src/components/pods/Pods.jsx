@@ -8,12 +8,12 @@ import ErrorComponent from '~/components/errors/ErrorComponent'
 import {
   getApiPods,
   getApplicationsRaw,
-  getApiMetricsForApplication,
-  getScalingEventHistory
+  getApiMetricsForApplication
 } from '~/api'
+import { getScalingHistory } from '~/api/autoscaler'
 import useICCStore from '~/useICCStore'
 import { getPodPerformances } from './performances'
-import { REFRESH_INTERVAL } from '~/ui-constants'
+import { REFRESH_INTERVAL, UNKNOWN_PERFORMANCE } from '~/ui-constants'
 import AutoscalerHistory from '~/components/application/autoscaler/AutoscalerHistory'
 
 const Pods = React.forwardRef(({
@@ -99,22 +99,6 @@ const Pods = React.forwardRef(({
     }, 1000))
   }
 
-  /* function getTestPodPerformances (index) {
-    if (index % 4 === 0) {
-      return UNKNOWN_PERFORMANCE
-    }
-
-    if (index % 4 === 1) {
-      return GREAT_PERFORMANCE
-    }
-
-    if (index % 4 === 2) {
-      return GOOD_PERFORMANCE
-    }
-
-    return LOW_PERFORMANCE
-  } */
-
   async function loadPodsInstances () {
     try {
       const pods = await getApiPods(applicationId)
@@ -122,11 +106,11 @@ const Pods = React.forwardRef(({
         const { score, reasons = [] } = getPodPerformances(pod.dataValues)
         return {
           ...pod,
-          performance: score,
-          reasons
+          performance: pod.status !== 'running' ? UNKNOWN_PERFORMANCE : score,
+          reasons: pod.status !== 'running' ? [`Pod is ${pod.status}`] : reasons
         }
       })
-      // const performancesPod = pods.map((pod, index) => ({ ...pod, performance: getTestPodPerformances(index) }))
+
       const allData = {}
       const [mem, cpu] = await Promise.all([
         getApiMetricsForApplication(applicationId, 'mem'),
@@ -141,16 +125,14 @@ const Pods = React.forwardRef(({
       setAllData(allData)
       setPods(performancesPod)
 
-      const response = await getScalingEventHistory(applicationId)
-      const { chartEvents } = response
-      if (chartEvents.length > 0) {
-        setChartEvents(chartEvents.map(event => ({
-          time: new Date(event.datetime),
-          values: [event.actual, event.projected]
-        })).toReversed())
+      const history = await getScalingHistory(applicationId)
+      if (history.length > 0) {
+        setChartEvents(history.map(event => ({
+          time: new Date(event.time),
+          values: [event.values[0], event.values[0]]
+        })))
       }
     } catch (error) {
-      console.error(`Error on getDetailPRS ${error}`)
       setError(error)
       setShowErrorComponent(true)
     }
