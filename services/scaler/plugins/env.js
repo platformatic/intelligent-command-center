@@ -22,7 +22,7 @@ const schema = {
     PLT_SCALER_COOLDOWN: { type: 'number', default: 300 },
     PLT_SCALER_MIN_PODS_DEFAULT: { type: 'number', default: 1 },
     PLT_SCALER_MAX_PODS_DEFAULT: { type: 'number', default: 10 },
-    PLT_SCALER_PERIODIC_TRIGGER: { type: 'number', default: 60000 }, // in milliseconds
+    PLT_SCALER_PERIODIC_TRIGGER: { type: 'number', default: 60 }, // in seconds
     PLT_MACHINIST_URL: { type: 'string' }
   }
 }

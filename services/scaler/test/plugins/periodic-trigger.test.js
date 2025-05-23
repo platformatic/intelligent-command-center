@@ -6,7 +6,7 @@ const { setTimeout: sleep } = require('node:timers/promises')
 const { buildServer } = require('../helper')
 
 test('should periodically trigger scaling check on leader instance', async (t) => {
-  const periodicTriggerInterval = 100
+  const periodicTriggerInterval = 0.1 // 100ms in seconds
   process.env.PLT_SCALER_PERIODIC_TRIGGER = periodicTriggerInterval
 
   const executeCalls = []
@@ -31,7 +31,7 @@ test('should periodically trigger scaling check on leader instance', async (t) =
     return originalCheckScalingOnMetrics.call(this)
   }
 
-  await sleep(periodicTriggerInterval * 3)
+  await sleep(periodicTriggerInterval * 3 * 1000) // Convert seconds to milliseconds for sleep
 
   assert.strictEqual(server.isScalerLeader(), true, 'Server should be the leader')
   assert.ok(executeCalls.length > 0, 'execute should be called at least once')
@@ -49,7 +49,7 @@ test('should not trigger on non-leader instance', async (t) => {
     env: {
       PLT_SCALER_LOCK: lockId,
       PLT_SCALER_LEADER_POLL: '50',
-      PLT_SCALER_PERIODIC_TRIGGER: '100'
+      PLT_SCALER_PERIODIC_TRIGGER: '0.1'
     }
   })
 
@@ -66,7 +66,7 @@ test('should not trigger on non-leader instance', async (t) => {
     env: {
       PLT_SCALER_LOCK: lockId,
       PLT_SCALER_LEADER_POLL: '50',
-      PLT_SCALER_PERIODIC_TRIGGER: '100'
+      PLT_SCALER_PERIODIC_TRIGGER: '0.1'
     }
   })
 
@@ -96,7 +96,7 @@ test('leadership transfer should start/stop periodic triggers', async (t) => {
     env: {
       PLT_SCALER_LOCK: lockId,
       PLT_SCALER_LEADER_POLL: '50',
-      PLT_SCALER_PERIODIC_TRIGGER: '100'
+      PLT_SCALER_PERIODIC_TRIGGER: '0.1'
     }
   })
 
@@ -111,7 +111,7 @@ test('leadership transfer should start/stop periodic triggers', async (t) => {
     env: {
       PLT_SCALER_LOCK: lockId,
       PLT_SCALER_LEADER_POLL: '50',
-      PLT_SCALER_PERIODIC_TRIGGER: '100'
+      PLT_SCALER_PERIODIC_TRIGGER: '0.1'
     }
   })
 
