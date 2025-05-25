@@ -469,8 +469,8 @@ importers:
         version: 7.5.2
     devDependencies:
       borp:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^0.20.0
+        version: 0.20.0
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -2791,10 +2791,6 @@ packages:
 
   boring-name-generator@1.0.3:
     resolution: {integrity: sha512-1wEo1pNahY9js7Vkp1RQa/VWdWrXYJnVAmsHV3Pw/0YzspjABLw7dcekjukOMTIYWr8ir/aG0GX1eoEkYhpnUg==}
-    hasBin: true
-
-  borp@0.19.0:
-    resolution: {integrity: sha512-rPO/r9XEXSbihEAZEhsO30SrncSciEB61xrOi8RhbaAKrp7qFuOGn1cUXYW8EwrPXlCvPhSN3+tllrSbIpowyg==}
     hasBin: true
 
   borp@0.20.0:
@@ -9371,17 +9367,6 @@ snapshots:
     dependencies:
       commander: 6.2.1
       lodash: 4.17.21
-
-  borp@0.19.0:
-    dependencies:
-      '@reporters/github': 1.7.2
-      c8: 10.1.3
-      execa: 9.5.3
-      find-up: 7.0.0
-      glob: 10.4.5
-      yaml: 2.8.0
-    transitivePeerDependencies:
-      - monocart-coverage-reports
 
   borp@0.20.0:
     dependencies:
