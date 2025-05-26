@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import React, { useEffect, useState } from 'react'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './AutoscalerHistory.module.css'
@@ -63,21 +62,6 @@ const AutoscalerHistory = ({
       </div>
     </BorderedBox>
   )
-}
-
-AutoscalerHistory.propTypes = {
-  /**
-   * data
-   */
-  data: PropTypes.array,
-  /**
-   * maxNumberOfPods
-  */
-  maxNumberOfPods: PropTypes.number,
-  /**
-   * initialLoading
-  */
-  initialLoading: PropTypes.bool
 }
 
 export default AutoscalerHistory
