@@ -12,6 +12,7 @@ import HistoricalScalerTrendChart from './HistoricalScalerTrendChart'
 import { REFRESH_INTERVAL_METRICS } from '~/ui-constants'
 import { useRouteLoaderData } from 'react-router-dom'
 import AutoscalerEventsTable from '../AutoscalerEventsTable'
+
 function ScalingHistory ({ onViewFullHistory = () => {} }) {
   const MAX_ACTIVITIES = 5
   const { application } = useRouteLoaderData('appRoot')
