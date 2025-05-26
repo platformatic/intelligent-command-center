@@ -75,7 +75,7 @@ module.exports = {
   ),
   CannotCreateComplianceRule: createError(
     `${ERROR_PREFIX}_CANNOT_CREATE_COMPLIANCE_RULE`,
-    'Failed to create compliance rule: (%s) %s'
+    'Failed to create compliance rule: %s'
   ),
   MissingK8sAuthContext: createError(
     `${ERROR_PREFIX}_MISSING_K8S_AUTH_CONTEXT`,
