@@ -1,11 +1,10 @@
 import * as d3 from 'd3'
-import PropTypes from 'prop-types'
 import React, { useEffect, useRef, useState } from 'react'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './AutoscalerHistoryChart.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import { xMargin, yMargin } from '~/components/metrics/chart_constants.js'
-import { POSITION_ABSOLUTE, POSITION_FIXED } from '~/ui-constants'
+import { POSITION_ABSOLUTE } from '~/ui-constants'
 
 const AutoscalerHistoryChart = ({
   // We assume the data is an array of objects with a time and a value
@@ -41,7 +40,7 @@ const AutoscalerHistoryChart = ({
       // Round up to next even integer
       const nextEvenMax = Math.ceil(maxValue / 2) * 2
       // Create evenly distributed tick values with equal intervals
-      const interval = nextEvenMax / 3 // Divide the range into 3 equal parts
+      const interval = Math.ceil(nextEvenMax / 3) // Get 3 intervals, use math.ceil to have lables aligned with the correct value.
       const yAxisTickValues = nextEvenMax > 0
         ? [0, interval, interval * 2, nextEvenMax]
         : [0, 1, 2, 3] // fallback values if maxValue is 0 or invalid
@@ -126,9 +125,11 @@ const AutoscalerHistoryChart = ({
 
       // Create a line and a fill SVG paths
       // to fill the area right of the
+      const xMarginMultiplier = 0.90 // This is to make the fill go beyond the chart
       const lastEvent = data[data.length - 1]
-      const finishPath = `M${x(lastEvent.time) + xMargin + 19},${yMargin} h ${xMargin}`
-      const finishFill = finishPath + `V ${height - yMargin} h -${xMargin} Z`
+      const finishPath = `M${x(lastEvent.time) + xMargin + 19},${y(lastEvent.values[1]) + yMargin} h ${xMargin * xMarginMultiplier}`
+      const finishFill = finishPath + `V ${height - yMargin} h -${xMargin * xMarginMultiplier} Z`
+
       // Append the top line
       svg.append('path')
         .attr('class', styles.line)
@@ -168,7 +169,7 @@ const AutoscalerHistoryChart = ({
         }
 
         // Get the time value at the current x position
-        const x0 = x.invert(xPos - xMargin)
+        const x0 = x.invert(xPos - 1.5 * xMargin)
         const i = d3.bisect(data.map(d => d.time), x0)
         const d0 = data[i - 1] || data[0]
 
@@ -236,21 +237,6 @@ const AutoscalerHistoryChart = ({
       <div ref={tooltipRef} className={`${tooltipPosition === POSITION_ABSOLUTE ? styles.tooltipAbsolute : styles.tooltipFixed} ${styles.tooltip}`} />
     </div>
   )
-}
-
-AutoscalerHistoryChart.propTypes = {
-  /**
-   * data
-   */
-  data: PropTypes.array,
-  /**
-   * maxNumberOfPods
-  */
-  maxNumberOfPods: PropTypes.number,
-  /**
-   * tooltipPosition
-  */
-  tooltipPosition: PropTypes.oneOf([POSITION_ABSOLUTE, POSITION_FIXED])
 }
 
 export default AutoscalerHistoryChart

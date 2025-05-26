@@ -127,10 +127,13 @@ const Pods = React.forwardRef(({
 
       const history = await getScalingHistory(applicationId)
       if (history.length > 0) {
-        setChartEvents(history.map(event => ({
-          time: new Date(event.time),
-          values: [event.values[0], event.values[0]]
-        })))
+        setChartEvents(history.map((event, idx) => {
+          const lastEntry = history[Math.min(idx + 1, history.length - 1)]
+          return {
+            time: new Date(event.time),
+            values: [lastEntry.values[0], event.values[0]]
+          }
+        }).toReversed())
       }
     } catch (error) {
       setError(error)
