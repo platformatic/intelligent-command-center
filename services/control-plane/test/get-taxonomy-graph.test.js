@@ -8,11 +8,10 @@ const {
   startActivities,
   startMachinist,
   startMainService,
+  startCompliance,
   generateApplicationState,
   generateK8sHeader
 } = require('./helper')
-
-const { startCompliance } = require('../../compliance/test/helper')
 
 test('should get a generation graph', async (t) => {
   await startMetrics(t, {

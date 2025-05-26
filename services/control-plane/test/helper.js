@@ -27,6 +27,7 @@ const defaultEnv = {
   PLT_ACTIVITIES_URL: 'http://localhost:3004',
   PLT_METRICS_URL: 'http://localhost:3009',
   PLT_MAIN_SERVICE_URL: 'http://localhost:3010',
+  PLT_COMPLIANCE_URL: 'http://localhost:3022',
 
   PLT_CONTROL_PLANE_CACHE_PROVIDER: 'valkey-oss',
   PLT_CONTROL_PLANE_SECRET_KEYS: 'secret',
@@ -503,6 +504,22 @@ async function startMainService (t, opts = {}) {
   return main
 }
 
+async function startCompliance (t, opts = {}) {
+  const compliance = fastify({ keepAliveTimeout: 1 })
+
+  compliance.post('/rules/:ruleName', async (req) => {
+    const ruleName = req.params.ruleName
+    return opts.saveRule?.(ruleName, req.body)
+  })
+
+  t.after(async () => {
+    await compliance.close()
+  })
+
+  await compliance.listen({ port: 3022 })
+  return compliance
+}
+
 function generateK8sAuthContext (podId, namespace) {
   return { namespace, pod: { name: podId } }
 }
@@ -517,6 +534,7 @@ module.exports = {
   startActivities,
   startMetrics,
   startMachinist,
+  startCompliance,
   startScaler,
   startMainService,
   generateGeneration,
