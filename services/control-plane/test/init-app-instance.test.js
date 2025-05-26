@@ -9,11 +9,10 @@ const {
   startMetrics,
   startMachinist,
   startMainService,
+  startCompliance,
   startScaler,
   generateK8sHeader
 } = require('./helper')
-
-const { startCompliance } = require('../../compliance/test/helper')
 
 test('should save an instance of a new application', async (t) => {
   const applicationName = 'test-app'
@@ -24,6 +23,14 @@ test('should save an instance of a new application', async (t) => {
   await startActivities(t, {
     saveEvent: (activity) => activities.push(activity)
   })
+
+  const complianceRules = []
+  await startCompliance(t, {
+    saveRule: (ruleName, rule) => {
+      complianceRules.push({ ruleName, rule })
+    }
+  })
+
   await startMetrics(t)
 
   const controllers = []
@@ -39,8 +46,6 @@ test('should save an instance of a new application', async (t) => {
       iccUpdates.push(update)
     }
   })
-
-  await startCompliance(t)
 
   const podsLabels = []
   await startMachinist(t, {
@@ -203,6 +208,18 @@ test('should save an instance of a new application', async (t) => {
       applicationId,
       applicationName: application.name
     }
+  })
+
+  assert.strictEqual(complianceRules.length, 1)
+
+  const complianceRule = complianceRules[0]
+  assert.strictEqual(complianceRule.ruleName, 'outdated-npm-deps')
+  assert.deepStrictEqual(complianceRule.rule, {
+    name: 'outdated-npm-deps',
+    description: 'Outdated NPM Dependencies',
+    label: 'Outdated NPM Dependencies',
+    applicationId,
+    config: {}
   })
 })
 

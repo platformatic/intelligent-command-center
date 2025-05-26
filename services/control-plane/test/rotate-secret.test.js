@@ -8,11 +8,10 @@ const {
   startMetrics,
   startMachinist,
   startActivities,
+  startCompliance,
   startMainService,
   generateK8sHeader
 } = require('./helper')
-
-const { startCompliance } = require('../../compliance/test/helper')
 
 test('should reencrypt a valkey user password', async (t) => {
   const applicationName = 'test-app'
