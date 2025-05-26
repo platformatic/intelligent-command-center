@@ -8,6 +8,7 @@ import { findY } from '~/components/metrics/chart_utils.js'
 import { getTicks } from '~/components/metrics/utils.js'
 import { findNextNumberDivisibleBy } from '../../../metrics/utils'
 import dayjs from 'dayjs'
+
 const HistoricalScalerTrendChart = ({
   data,
   labels,
