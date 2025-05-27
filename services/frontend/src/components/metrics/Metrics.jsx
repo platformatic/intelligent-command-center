@@ -13,10 +13,10 @@ import NoDataFound from '~/components/ui/NoDataFound'
 
 const REFRESH_INTERVAL = 5000
 
-const Metrics = React.forwardRef(({
+export default function Metrics ({
   podId,
   applicationId
-}, ref) => {
+}) {
   const [initialLoading, setInitialLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
   const [showErrorComponent, setShowErrorComponent] = useState(false)
@@ -65,26 +65,22 @@ const Metrics = React.forwardRef(({
     }
   }
 
-  if (podId && applicationId) {
-    useInterval(async () => {
-      try {
-        const res = await getApiMetricsPod(applicationId, podId)
-        setShowNoResult(false)
-        if (res.status === 200) {
-          const data = await res.json()
-          handleMetrics(data)
-        } else {
-          console.error('error on status', res.status)
-        }
-      } catch (e) {
-        console.error(e)
-        setError(e)
-        setShowErrorComponent(true)
+  useInterval(async () => {
+    try {
+      const res = await getApiMetricsPod(applicationId, podId)
+      setShowNoResult(false)
+      if (res.status === 200) {
+        const data = await res.json()
+        handleMetrics(data)
+      } else {
+        console.error('error on status', res.status)
       }
-    }, REFRESH_INTERVAL)
-  } else {
-    setShowNoResult(true)
-  }
+    } catch (e) {
+      console.error(e)
+      setError(e)
+      setShowErrorComponent(true)
+    }
+  }, REFRESH_INTERVAL)
 
   function getKey (metric) {
     let defaultKey = `${metric}-`
@@ -130,7 +126,6 @@ const Metrics = React.forwardRef(({
         />
       )
     }
-
     if (showNoResult) { return <NoDataFound title='No Metrics yet' subTitle={<span>There’s no metrics collected by your apps.</span>} /> }
 
     if (showErrorComponent) {
@@ -142,7 +137,6 @@ const Metrics = React.forwardRef(({
         />
       )
     }
-
     return (
       <div className={`${commonStyles.smallFlexBlock} ${commonStyles.fullWidth} ${styles.flexGrow}`}>
         <div className={`${commonStyles.smallFlexBlock} ${commonStyles.fullWidth}`}>
@@ -188,12 +182,10 @@ const Metrics = React.forwardRef(({
   }
 
   return (
-    <div className={styles.container} ref={ref}>
+    <div className={styles.container}>
       <div className={styles.content}>
         {renderContent()}
       </div>
     </div>
   )
-})
-
-export default Metrics
+}

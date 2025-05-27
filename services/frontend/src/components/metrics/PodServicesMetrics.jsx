@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import { TRANSPARENT, RICH_BLACK, OPACITY_30, WHITE } from '@platformatic/ui-components/src/components/constants'
 import styles from './PodServicesMetrics.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -17,13 +16,12 @@ import colorSetMem from './memory.module.css'
 import colorSetCpu from './cpu.module.css'
 import colorSetLatency from './latency.module.css'
 
-const PodServicesMetrics = React.forwardRef(({
+export default function PodServicesMetrics ({
   podId,
   applicationId,
-  taxonomyId,
   serviceId,
   showAggregatedMetrics
-}, ref) => {
+}) {
   const [initialLoading, setInitialLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
   const [showErrorComponent, setShowErrorComponent] = useState(false)
@@ -93,31 +91,27 @@ const PodServicesMetrics = React.forwardRef(({
     }
   }
 
-  if (podId && applicationId && taxonomyId) {
-    useInterval(async () => {
-      try {
-        const [responseDataServices, responseDataAggregated] = await Promise.all([
-          getApiMetricsPodPerService(taxonomyId, applicationId, podId, serviceId),
-          getApiMetricsPod(taxonomyId, applicationId, podId)
-        ])
-        setShowNoResult(false)
-        if (responseDataServices.status === 200) {
-          const dataService = await responseDataServices.json()
-          const dataAggregated = await responseDataAggregated.json()
-          handleMetrics(dataService, true)
-          handleMetrics(dataAggregated)
-        } else {
-          console.error('error on status', responseDataServices.status)
-        }
-      } catch (e) {
-        console.error(e)
-        setError(e)
-        setShowErrorComponent(true)
+  useInterval(async () => {
+    try {
+      const [responseDataServices, responseDataAggregated] = await Promise.all([
+        getApiMetricsPodPerService(applicationId, podId, serviceId),
+        getApiMetricsPod(applicationId, podId)
+      ])
+      setShowNoResult(false)
+      if (responseDataServices.status === 200) {
+        const dataService = await responseDataServices.json()
+        const dataAggregated = await responseDataAggregated.json()
+        handleMetrics(dataService, true)
+        handleMetrics(dataAggregated)
+      } else {
+        console.error('error on status', responseDataServices.status)
       }
-    }, REFRESH_INTERVAL_METRICS)
-  } else {
-    setShowNoResult(true)
-  }
+    } catch (e) {
+      console.error(e)
+      setError(e)
+      setShowErrorComponent(true)
+    }
+  }, REFRESH_INTERVAL_METRICS)
 
   function generateLegend (labels, colorStyles) {
     return (
@@ -350,35 +344,10 @@ const PodServicesMetrics = React.forwardRef(({
   }
 
   return (
-    <div className={styles.container} ref={ref}>
+    <div className={styles.container}>
       <div className={styles.content}>
         {renderContent()}
       </div>
     </div>
   )
-})
-
-PodServicesMetrics.propTypes = {
-  /**
-   * podId
-   */
-  podId: PropTypes.string,
-  /**
-   * applicationId
-   */
-  applicationId: PropTypes.string,
-  /**
-   * taxonomyId
-   */
-  taxonomyId: PropTypes.string,
-  /**
-   * serviceId
-   */
-  serviceId: PropTypes.string,
-  /**
-   * showAggregatedMetrics
-   */
-  showAggregatedMetrics: PropTypes.bool
 }
-
-export default PodServicesMetrics
