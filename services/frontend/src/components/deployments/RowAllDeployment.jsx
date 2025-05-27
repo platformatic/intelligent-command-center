@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import { ACTIVE_AND_INACTIVE_STATUS, BLACK_RUSSIAN, SMALL, TRANSPARENT, WHITE } from '@platformatic/ui-components/src/components/constants'
@@ -118,45 +117,6 @@ function RowAllDeployment ({
       </div>
     </div>
   )
-}
-
-RowAllDeployment.propTypes = {
-  /**
-   * main
-    */
-  main: PropTypes.bool,
-  /**
-   * mainIteration
-    */
-  mainIteration: PropTypes.number,
-  /**
-   * taxonomyName
-    */
-  taxonomyName: PropTypes.string,
-  /**
-   * index
-    */
-  index: PropTypes.number,
-  /**
-   * deployedOn
-    */
-  deployedOn: PropTypes.string,
-  /**
-   * applicationName
-    */
-  applicationName: PropTypes.string,
-  /**
-   * commitUserEmail
-    */
-  commitUserEmail: PropTypes.string,
-  /**
-   * taxonomyId
-    */
-  taxonomyId: PropTypes.string,
-  /**
-   * onClickTaxonomy
-    */
-  onClickTaxonomy: PropTypes.func
 }
 
 export default RowAllDeployment

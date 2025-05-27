@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react'
-import PropTypes from 'prop-types'
 import { renderToStaticMarkup } from 'react-dom/server'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -344,41 +343,6 @@ function TaxonomyView ({
       {renderComponent()}
     </div>
   )
-}
-
-TaxonomyView.propTypes = {
-  /**
-   * version
-    */
-  version: PropTypes.object,
-  /**
-   * onClickService
-    */
-  onClickService: PropTypes.func,
-  /**
-   * onClickApplication
-    */
-  onClickApplication: PropTypes.func,
-  /**
-   * onClickIngressController
-    */
-  onClickIngressController: PropTypes.func,
-  /**
-   * onClickRefresh
-    */
-  onClickRefresh: PropTypes.func,
-  /**
-   * restore
-    */
-  restore: PropTypes.bool,
-  /**
-   * islatestGeneration
-  */
-  islatestGeneration: PropTypes.bool,
-  /**
-   * onError
-    */
-  onError: PropTypes.func
 }
 
 export default TaxonomyView

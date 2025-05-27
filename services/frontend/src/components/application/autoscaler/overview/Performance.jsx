@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import { LoadingSpinnerV2 } from '@platformatic/ui-components'
@@ -69,44 +68,6 @@ function Performance ({
       </div>
     </div>
   )
-}
-
-Performance.propTypes = {
-  /**
-   * icon
-    */
-  icon: PropTypes.node,
-  /**
-   * title
-    */
-  title: PropTypes.string,
-  /**
-   * subtitle
-    */
-  subtitle: PropTypes.string,
-  /**
-   * initialLoading
-    */
-  initialLoading: PropTypes.bool,
-  /**
-   * showNoResult
-    */
-  showNoResult: PropTypes.bool,
-  /**
-   * displayedValue
-    */
-  displayedValue: PropTypes.shape({
-    internalKey: PropTypes.string,
-    value: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.number
-    ]),
-    valuePerc: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.number
-    ]),
-    unit: PropTypes.string
-  })
 }
 
 export default Performance

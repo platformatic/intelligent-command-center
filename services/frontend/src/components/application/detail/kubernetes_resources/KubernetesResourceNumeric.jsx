@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
-import { BLACK_RUSSIAN, RICH_BLACK, TRANSPARENT } from '@platformatic/ui-components/src/components/constants'
+import { BLACK_RUSSIAN, TRANSPARENT } from '@platformatic/ui-components/src/components/constants'
 import styles from './KubernetesResourceNumeric.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -97,39 +96,6 @@ function KubernetesResourceNumeric ({
       </div>
     </BorderedBox>
   )
-}
-
-KubernetesResourceNumeric.propTypes = {
-  /**
-   * title
-    */
-  title: PropTypes.string,
-  /**
-   * podsUsed
-    */
-  podsUsed: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number
-  ]),
-  /**
-   * podsAll
-    */
-  podsAll: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number
-  ]),
-  /**
-   * values
-    */
-  values: PropTypes.array,
-  /**
-   * valuesLoading
-    */
-  valuesLoading: PropTypes.bool,
-  /**
-   * backgroundColor
-    */
-  backgroundColor: PropTypes.oneOf([BLACK_RUSSIAN, RICH_BLACK])
 }
 
 export default KubernetesResourceNumeric

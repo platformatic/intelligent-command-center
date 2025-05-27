@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './SideBar.module.css'
@@ -73,21 +72,6 @@ function SideBar ({
       </div>
     </div>
   )
-}
-
-SideBar.propTypes = {
-  /**
-   * selected
-   */
-  selected: PropTypes.string,
-  /**
-   * topItems
-   */
-  topItems: PropTypes.array,
-  /**
-   * bottomItems
-   */
-  bottomItems: PropTypes.array
 }
 
 export default SideBar

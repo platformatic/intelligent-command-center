@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './NeverSynched.module.css'
@@ -29,29 +28,6 @@ function NeverSynched ({
       </div>
     </BorderedBox>
   )
-}
-
-NeverSynched.propTypes = {
-  /**
-   * title
-  */
-  title: PropTypes.string,
-  /**
-   * titleClassName
-  */
-  titleClassName: PropTypes.string,
-  /**
-   * subTitle
-  */
-  subTitle: PropTypes.object,
-  /**
-   * subTitleClassName
-  */
-  subTitleClassName: PropTypes.string,
-  /**
-   * children
-   */
-  children: PropTypes.node
 }
 
 export default NeverSynched

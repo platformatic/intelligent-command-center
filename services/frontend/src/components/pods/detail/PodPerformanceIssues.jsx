@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import styles from './PodPerformanceIssues.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -127,13 +126,6 @@ function PodPerformanceIssues ({
       </div>
     </BorderedBox>
   )
-}
-
-PodPerformanceIssues.propTypes = {
-  /**
-   * reasons
-    */
-  reasons: PropTypes.array
 }
 
 export default PodPerformanceIssues
