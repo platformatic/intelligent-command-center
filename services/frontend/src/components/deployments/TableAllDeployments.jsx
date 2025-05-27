@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './TableAllDeployments.module.css'
@@ -102,18 +101,6 @@ function TableAllDeployments ({
       {renderComponent()}
     </div>
   )
-}
-
-TableAllDeployments.propTypes = {
-  /**
-   * deploymentsLoaded
-    */
-  deploymentsLoaded: PropTypes.bool,
-  /**
-   * deployments
-    */
-  deployments: PropTypes.array
-
 }
 
 export default TableAllDeployments

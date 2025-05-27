@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import PropTypes from 'prop-types'
 import { ERROR_RED, MARGIN_0, OPACITY_30, TRANSPARENT, WHITE, DULLS_BACKGROUND_COLOR } from '@platformatic/ui-components/src/components/constants'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -58,25 +57,6 @@ function RemoveUser ({
       </form>
     </div>
   )
-}
-
-RemoveUser.propTypes = {
-  /**
-   * email
-    */
-  email: PropTypes.string,
-  /**
-   * username
-    */
-  username: PropTypes.string,
-  /**
-   * onClickEdit
-   */
-  onClickCancel: PropTypes.func,
-  /**
-   * onClickConfirm
-   */
-  onClickConfirm: PropTypes.func
 }
 
 export default RemoveUser

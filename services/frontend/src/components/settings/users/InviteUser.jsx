@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import PropTypes from 'prop-types'
 import { MARGIN_0, OPACITY_30, TRANSPARENT, WHITE, DULLS_BACKGROUND_COLOR, RICH_BLACK, SMALL } from '@platformatic/ui-components/src/components/constants'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -116,17 +115,6 @@ function InviteUser ({
       </form>
     </div>
   )
-}
-
-InviteUser.propTypes = {
-/**
-   * onClickEdit
-   */
-  onClickCancel: PropTypes.func,
-  /**
-   * onClickConfirm
-   */
-  onClickConfirm: PropTypes.func
 }
 
 export default InviteUser

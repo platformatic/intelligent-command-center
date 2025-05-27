@@ -6,10 +6,6 @@ const initialState = {
   accessToken: null,
   isAuthenticated: false,
   breadCrumbs: [],
-  currentPage: '',
-  taxonomySelected: null,
-  applicationSelected: null,
-  podSelected: null,
   taxonomyStatus: '',
   currentWindowWidth: 0,
   packageVersions: {
@@ -115,43 +111,11 @@ const useICCStore = create((set, get) => ({
       }
     })
   },
-  setCurrentPage: (page) => {
-    set((state) => {
-      return {
-        ...state,
-        currentPage: page
-      }
-    })
-  },
   setCurrentWindowWidth: (width) => {
     set((state) => {
       return {
         ...state,
         currentWindowWidth: width
-      }
-    })
-  },
-  setApplicationSelected: (applicationSelected) => {
-    set((state) => {
-      return {
-        ...state,
-        applicationSelected
-      }
-    })
-  },
-  setPodSelected: (podSelected) => {
-    set((state) => {
-      return {
-        ...state,
-        podSelected
-      }
-    })
-  },
-  setTaxonomySelected: (taxonomySelected) => {
-    set((state) => {
-      return {
-        ...state,
-        taxonomySelected
       }
     })
   },

@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import { ERROR_RED, MEDIUM, RICH_BLACK, SMALL, WARNING_YELLOW } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import React from 'react'
@@ -66,29 +65,6 @@ function MermaidNodeService ({
       </div>
     </div>
   )
-}
-
-MermaidNodeService.propTypes = {
-  /**
-   * id
-   */
-  id: PropTypes.string,
-  /**
-   * type
-   */
-  type: PropTypes.string,
-  /**
-   * outdated
-   */
-  outdated: PropTypes.bool,
-  /**
-   * compliant
-   */
-  compliant: PropTypes.bool,
-  /**
-   * entrypoint
-   */
-  entrypoint: PropTypes.bool
 }
 
 export default MermaidNodeService

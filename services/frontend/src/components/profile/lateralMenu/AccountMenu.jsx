@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import { Icons } from '@platformatic/ui-components'
@@ -22,13 +21,6 @@ function AccountMenu ({ onClickAccount = () => {} }) {
       <span className={typographyStyles.desktopBodySmall}>Profile overview</span>
     </div>
   )
-}
-
-AccountMenu.propTypes = {
-  /**
-   * onClickAccount
-    */
-  onClickAccount: PropTypes.func
 }
 
 export default AccountMenu

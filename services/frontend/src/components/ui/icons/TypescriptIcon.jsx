@@ -1,6 +1,5 @@
 import * as React from 'react'
-import PropTypes from 'prop-types'
-import { SIZES, SMALL } from '@platformatic/ui-components/src/components/constants'
+import { SMALL } from '@platformatic/ui-components/src/components/constants'
 
 const TypescriptIcon = ({ size = SMALL }) => {
   let icon = <></>
@@ -24,13 +23,6 @@ const TypescriptIcon = ({ size = SMALL }) => {
       break
   }
   return icon
-}
-
-TypescriptIcon.propTypes = {
-  /**
-   * Size
-   */
-  size: PropTypes.oneOf(SIZES)
 }
 
 export default TypescriptIcon

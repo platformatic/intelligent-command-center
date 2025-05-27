@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './SuccessComponent.module.css'
@@ -25,17 +24,6 @@ function SuccessComponent ({
       </div>
     </div>
   )
-}
-
-SuccessComponent.propTypes = {
-  /**
-   * title
-   */
-  title: PropTypes.string,
-  /**
-   * subtitle
-   */
-  subtitle: PropTypes.string
 }
 
 export default SuccessComponent

@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './PanelTaxonomyService.module.css'
@@ -130,21 +129,6 @@ function PanelTaxonomyService ({ name = '', type = '', dependencies = [] }) {
       </div>
     </div>
   )
-}
-
-PanelTaxonomyService.propTypes = {
-  /**
-   * name
-    */
-  name: PropTypes.string,
-  /**
-   * template
-    */
-  template: PropTypes.string,
-  /**
-   * dependencies
-    */
-  dependencies: PropTypes.array
 }
 
 export default PanelTaxonomyService

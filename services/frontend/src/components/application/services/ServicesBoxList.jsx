@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import React from 'react'
 import styles from './ServicesBoxList.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -46,26 +45,6 @@ function ServicesBoxList ({
       </div>
     </BorderedBox>
   )
-}
-
-ServicesBoxList.propTypes = {
-  /**
-     * hightlightedServices
-      */
-  hightlightedServices: PropTypes.number,
-  /**
-    /**
-     * services
-      */
-  services: PropTypes.number,
-  /**
-     * sentence
-      */
-  sentence: PropTypes.string,
-  /**
-     * outdated
-      */
-  outdated: PropTypes.bool
 }
 
 export default ServicesBoxList

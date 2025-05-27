@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import styles from './ButtonSidebar.module.css'
 import { PlatformaticIcon } from '@platformatic/ui-components'
-import { SIZES, COLORS_BUTTON, BOX_SHADOW, UNDERLINE, HOVER_EFFECTS_BUTTONS, MAIN_DARK_BLUE, LARGE, MEDIUM, TRANSPARENT } from '@platformatic/ui-components/src/components/constants'
+import { BOX_SHADOW, UNDERLINE, MAIN_DARK_BLUE, LARGE, MEDIUM, TRANSPARENT } from '@platformatic/ui-components/src/components/constants'
 
 function ButtonSidebar ({
   textClass = '',
@@ -92,61 +91,6 @@ function ButtonSidebar ({
       )}
     </button>
   )
-}
-
-ButtonSidebar.propTypes = {
-  /**
-   * textClass
-   */
-  textClass: PropTypes.string,
-  /**
-   * paddingClass
-   */
-  paddingClass: PropTypes.string,
-  /**
-   * altLabel
-   */
-  altLabel: PropTypes.string,
-  /**
-   * color of text, icon and borders
-   */
-  color: PropTypes.oneOf(COLORS_BUTTON),
-  /**
-   * background color of the button
-   */
-  backgroundColor: PropTypes.oneOf(COLORS_BUTTON),
-  /**
-   * Size
-   */
-  size: PropTypes.oneOf(SIZES),
-  /**
-   * Disabled
-   */
-  disabled: PropTypes.bool,
-  /**
-   * Effect on hover
-   */
-  hoverEffect: PropTypes.oneOf(HOVER_EFFECTS_BUTTONS),
-  /**
-   * Apply border: default true
-   */
-  bordered: PropTypes.bool,
-  /**
-   * Full Width: default false
-   */
-  fullWidth: PropTypes.bool,
-  /**
-   * platformaticIcon: should be removed
-   */
-  platformaticIcon: PropTypes.shape({
-    iconName: PropTypes.string,
-    color: PropTypes.string,
-    size: PropTypes.string
-  }),
-  /**
-   * Selected: default false
-   */
-  selected: PropTypes.bool
 }
 
 export default ButtonSidebar

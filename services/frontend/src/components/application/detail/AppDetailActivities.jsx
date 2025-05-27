@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import styles from './AppDetailActivities.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import { getApiActivities } from '~/api'
@@ -138,13 +137,6 @@ function AppDetailActivities ({ gridClassName = '', application }) {
       </div>
     </BorderedBox>
   )
-}
-
-AppDetailActivities.propTypes = {
-  /**
-   * gridClassName
-    */
-  gridClassName: PropTypes.string
 }
 
 export default AppDetailActivities

@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './ServicesSelector.module.css'
@@ -53,26 +52,6 @@ function ServicesSelectorForPodDetailLog ({ services, handleChangeService = () =
       </div>
     </div>
   )
-}
-
-ServicesSelectorForPodDetailLog.propTypes = {
-  /**
-   * services
-    */
-  services: PropTypes.array,
-  /**
-   * handleChangeService
-    */
-  handleChangeService: PropTypes.func,
-  /**
-   * selectAllServices
-   */
-  selectAllServices: PropTypes.bool,
-  /**
-     * handleChangeAllServices
-      */
-  handleChangeAllServices: PropTypes.func
-
 }
 
 export default ServicesSelectorForPodDetailLog

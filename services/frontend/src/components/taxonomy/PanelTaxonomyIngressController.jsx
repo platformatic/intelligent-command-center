@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './PanelTaxonomyIngressController.module.css'
@@ -71,17 +70,6 @@ function PanelTaxonomyIngressController ({ name = '', entrypoints = [] }) {
       </BorderedBox>
     </div>
   )
-}
-
-PanelTaxonomyIngressController.propTypes = {
-  /**
-   * name
-    */
-  name: PropTypes.string,
-  /**
-   * entrypoints
-    */
-  entrypoints: PropTypes.array
 }
 
 export default PanelTaxonomyIngressController

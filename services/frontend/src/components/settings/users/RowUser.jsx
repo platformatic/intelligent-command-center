@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import styles from './RowUser.module.css'
@@ -156,37 +155,6 @@ function RowUser ({
       </div>
     </div>
   )
-}
-
-RowUser.propTypes = {
-  /**
-   * addYou
-    */
-  addYou: PropTypes.bool,
-  /**
-   * username
-    */
-  username: PropTypes.string,
-  /**
-   * email
-    */
-  email: PropTypes.string,
-  /**
-   * role
-    */
-  role: PropTypes.string,
-  /**
-   * joined
-    */
-  joined: PropTypes.bool,
-  /**
-   * onClickChangeRole
-    */
-  onClickChangeRole: PropTypes.func,
-  /**
-   * onClickRemove
-    */
-  onClickRemove: PropTypes.func
 }
 
 export default RowUser
