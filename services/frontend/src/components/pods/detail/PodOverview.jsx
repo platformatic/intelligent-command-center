@@ -5,8 +5,7 @@ import styles from './PodOverview.module.css'
 import { BLACK_RUSSIAN, ERROR_RED, MAIN_GREEN, MEDIUM, TRANSPARENT, WARNING_YELLOW, WHITE } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import Metrics from '~/components/metrics/Metrics'
-import { useParams } from 'react-router-dom'
-import useICCStore from '~/useICCStore'
+import { useParams, useRouteLoaderData } from 'react-router-dom'
 import { BorderedBox } from '@platformatic/ui-components'
 import ResourceAllocation from './ResourceAllocation.jsx'
 import { REFRESH_INTERVAL, K8S_KEY_CPU, K8S_KEY_MEMORY, UNKNOWN_PERFORMANCE, GREAT_PERFORMANCE, GOOD_PERFORMANCE } from '~/ui-constants'
@@ -14,15 +13,10 @@ import { getApiPod } from '~/api'
 import { getPodPerformances } from '~/components/pods/performances'
 import PodPerformanceIssues from './PodPerformanceIssues.jsx'
 
-const PodOverview = React.forwardRef(({ _ }, ref) => {
-  const globalState = useICCStore()
-  const {
-    applicationSelected,
-    podSelected
-  } = globalState
-  const { taxonomyId, appId, podId } = useParams()
+const PodOverview = function () {
+  const { podId } = useParams()
+  const { pod } = useRouteLoaderData('autoscalerPodDetail/overview')
   const [startPolling, setStartPolling] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
   const [colorPod, setColorPod] = useState(WHITE)
   const [reasons, setReasons] = useState([])
@@ -63,34 +57,26 @@ const PodOverview = React.forwardRef(({ _ }, ref) => {
       maxValuePerc: '100'
     }
   }])
-
+  const { application } = useRouteLoaderData('autoscalerPodDetailRoot')
   useEffect(() => {
-    if ((podSelected?.id ?? null) === podId) {
-      const { score, reasons = [] } = getPodPerformances(podSelected.dataValues)
-      let color = WHITE
-      switch (score) {
-        case UNKNOWN_PERFORMANCE:
-          break
-        case GREAT_PERFORMANCE:
-          color = MAIN_GREEN
-          break
-        case GOOD_PERFORMANCE:
-          color = WARNING_YELLOW
-          break
-        default:
-          color = ERROR_RED
-          break
-      }
-      setColorPod(color)
-      setReasons(reasons)
+    const { score, reasons = [] } = getPodPerformances(pod.dataValues)
+    let color = WHITE
+    switch (score) {
+      case UNKNOWN_PERFORMANCE:
+        break
+      case GREAT_PERFORMANCE:
+        color = MAIN_GREEN
+        break
+      case GOOD_PERFORMANCE:
+        color = WARNING_YELLOW
+        break
+      default:
+        color = ERROR_RED
+        break
     }
-  }, [podSelected])
-
-  useEffect(() => {
-    if ((applicationSelected !== null)) {
-      console.log(applicationSelected)
-    }
-  }, [applicationSelected])
+    setColorPod(color)
+    setReasons(reasons)
+  }, [displayedValues])
 
   useEffect(() => {
     let intervalId
@@ -103,21 +89,17 @@ const PodOverview = React.forwardRef(({ _ }, ref) => {
   }, [startPolling])
 
   useEffect(() => {
-    if (appId && taxonomyId && podId && displayedValues.length > 0 && initialLoading) {
-      async function loadMetrics () {
-        await loadResourceAllocation()
-        setStartPolling(true)
-        setInitialLoading(false)
-      }
-      loadMetrics()
+    async function loadMetrics () {
+      await loadResourceAllocation()
+      setStartPolling(true)
     }
-  }, [appId, taxonomyId, podId, displayedValues, initialLoading])
+    loadMetrics()
+  }, [])
 
   async function loadResourceAllocation () {
     try {
-      const data = await getApiPod(taxonomyId, appId, podId)
+      const data = await getApiPod(application.id, podId)
       const newValues = []
-
       let found
       if (Object.keys(data).length > 0) {
         displayedValues.forEach(displayedValue => {
@@ -155,8 +137,11 @@ const PodOverview = React.forwardRef(({ _ }, ref) => {
     }
   }
 
+  function renderServicesString () {
+    return `${application.state?.services?.length ?? 0} service${(application?.state?.services?.length ?? 0) > 0 ? 's' : ''}`
+  }
   return (
-    <div className={styles.podOverviewContainer} ref={ref}>
+    <div className={styles.podOverviewContainer}>
       <div className={styles.podOverviewContent}>
         <div className={`${commonStyles.miniFlexBlock} ${commonStyles.fullWidth}`}>
           <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth}`}>
@@ -175,19 +160,15 @@ const PodOverview = React.forwardRef(({ _ }, ref) => {
             <div className={`${commonStyles.smallFlexBlock} ${commonStyles.flexGrow}`}>
               <BorderedBox classes={`${styles.borderexBoxPerfomanceContainer}`} backgroundColor={BLACK_RUSSIAN} color={TRANSPARENT}>
                 <ResourceAllocation
-                  key='pom_memory_allocation_usage'
                   title='Pod Memory Allocation & Usage'
                   displayedValue={displayedValues.find(v => v.internalKey === K8S_KEY_MEMORY)}
-                  initialLoading={initialLoading}
                   showNoResult={showNoResult}
                 />
               </BorderedBox>
               <BorderedBox classes={`${styles.borderexBoxPerfomanceContainer}`} backgroundColor={BLACK_RUSSIAN} color={TRANSPARENT}>
                 <ResourceAllocation
-                  key='pom_cpu_allocation_usage'
                   title='Pod CPU Allocation & Usage'
                   displayedValue={displayedValues.find(v => v.internalKey === K8S_KEY_CPU)}
-                  initialLoading={initialLoading}
                   showNoResult={showNoResult}
                 />
               </BorderedBox>
@@ -204,18 +185,18 @@ const PodOverview = React.forwardRef(({ _ }, ref) => {
                       size={MEDIUM}
                     />
                     <span className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Node Metrics in Pod</span>
-                    <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>({applicationSelected?.state?.services?.length ?? 0} service{(applicationSelected?.state?.services?.length ?? 0) > 0 ? 's' : ''})</span>
+                    <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>({renderServicesString()})</span>
                   </div>
 
                 </div>
               </div>
-              <Metrics taxonomyId={taxonomyId} applicationId={appId} podId={podId} />
+              <Metrics applicationId={application.id} podId={podId} />
             </div>
           </BorderedBox>
         </div>
       </div>
     </div>
   )
-})
+}
 
 export default PodOverview
