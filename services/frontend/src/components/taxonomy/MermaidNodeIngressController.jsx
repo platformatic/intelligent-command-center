@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import { MEDIUM, SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import React from 'react'
@@ -31,13 +30,6 @@ function MermaidNodeIngressController ({
       </div>
     </div>
   )
-}
-
-MermaidNodeIngressController.propTypes = {
-  /**
-   * name
-   */
-  name: PropTypes.string
 }
 
 export default MermaidNodeIngressController

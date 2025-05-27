@@ -11,15 +11,13 @@ import {
   GOOD_PERFORMANCE,
   STALE,
   UNKNOWN_PERFORMANCE
-  // AUTOSCALER_POD_DETAIL_OVERVIEW_PATH,
-  // PREVIEW_POD_DETAIL_OVERVIEW_PATH
+
 } from '~/ui-constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import useICCStore from '~/useICCStore'
 import { generatePath, useNavigate } from 'react-router-dom'
 import { AUTOSCALER_POD_DETAIL_PATH } from '../../paths'
 
-// import { useNavigate, useParams } from 'react-router-dom'
 const DISPLAY_WIDE = 'DISPLAY_WIDE'
 const DISPLAY_SMALL = 'DISPLAY_SMALL'
 const DISPLAY_HIDDEN = 'HIDDEN'
@@ -29,22 +27,17 @@ function Pod ({
   fillingType = false,
   dataValues = {},
   performance = UNKNOWN_PERFORMANCE,
-  applicationId,
-  taxonomyId,
-  fromPreview = false
+  applicationId
 }) {
   const navigate = useNavigate()
   const globalState = useICCStore()
-  const { currentWindowWidth /* setCurrentPage */ } = globalState
+  const { currentWindowWidth } = globalState
   const [valueDisplayed, setValueDisplayed] = useState({})
   const [indexValueSelected, setValueIndexSelected] = useState(null)
   const [aspect, setAspect] = useState(DISPLAY_WIDE)
   const [elements, setElements] = useState([])
   const [dataValuesLoaded, setDataValuesLoaded] = useState(false)
   const podRef = useRef(null)
-  // const taxonomyIdUsed = useParams().taxonomyId || taxonomyId
-  // const applicationIdUsed = useParams().appId || applicationId
-  // const navigate = useNavigate()
 
   useEffect(() => {
     setValueDisplayed(elements[indexValueSelected])
@@ -169,16 +162,7 @@ function Pod ({
   }
 
   function handleClickSvg (event) {
-    // event.stopPropagation()
     navigate(generatePath(AUTOSCALER_POD_DETAIL_PATH, { applicationId, podId: id }))
-    // THIS IS NOT WORKING: TODO: FIX IT
-    // if (fromPreview) {
-    //   navigate(PREVIEW_POD_DETAIL_OVERVIEW_PATH.replace(':taxonomyId', taxonomyIdUsed).replace(':appId', applicationIdUsed).replace(':podId', id))
-    //   setCurrentPage(PREVIEW_POD_DETAIL_OVERVIEW_PATH)
-    // } else {
-    //   navigate(AUTOSCALER_POD_DETAIL_OVERVIEW_PATH.replace(':taxonomyId', taxonomyIdUsed).replace(':appId', applicationIdUsed).replace(':podId', id))
-    //   setCurrentPage(AUTOSCALER_POD_DETAIL_OVERVIEW_PATH)
-    // }
   }
 
   function getSvgStyle () {

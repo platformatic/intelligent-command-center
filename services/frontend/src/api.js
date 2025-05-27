@@ -23,7 +23,6 @@ import {
   setBaseUrl as setBaseURLCompliance
 } from '../clients/compliance/compliance.mjs'
 
-import { DESC } from './ui-constants'
 import { getLinksForTaxonomyGraph } from './utilities/taxonomy'
 
 import extractScalingEvents from './utilities/extract-scaling-events'
@@ -50,6 +49,8 @@ const getHeaders = () => {
   }
   return headers
 }
+
+const DESC = 'desc'
 
 export const logoutUser = async () => {
   return await fetch(`${baseApiUrl}/logout`, {

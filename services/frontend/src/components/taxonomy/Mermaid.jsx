@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import React, { useEffect } from 'react'
 import styles from './Mermaid.module.css'
 import mermaid from 'mermaid'
@@ -217,29 +216,6 @@ function Mermaid ({
   }
 
   return <div id='mermaid' className={className}>{chart}</div>
-}
-
-Mermaid.propTypes = {
-  /**
-   * chart
-    */
-  chart: PropTypes.string.isRequired,
-  /**
-   * onClickService
-    */
-  onClickService: PropTypes.func,
-  /**
-   * onClickApplication
-    */
-  onClickApplication: PropTypes.func,
-  /**
-   * ingressControllerCallback
-    */
-  ingressControllerCallback: PropTypes.func,
-  /**
-   * onLoadSendMermaidSvgDimension
-    */
-  onLoadSendMermaidSvgDimension: PropTypes.func
 }
 
 export default Mermaid

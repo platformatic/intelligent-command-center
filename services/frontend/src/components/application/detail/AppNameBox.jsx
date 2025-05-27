@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import { WHITE, OPACITY_30, TRANSPARENT, WARNING_YELLOW, SMALL, BLACK_RUSSIAN, MEDIUM } from '@platformatic/ui-components/src/components/constants'
 import styles from './AppNameBox.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -101,21 +100,6 @@ function AppNameBox ({
       </div>
     </BorderedBox>
   )
-}
-
-AppNameBox.propTypes = {
-  /**
-   * onErrorOccurred
-    */
-  onErrorOccurred: PropTypes.func,
-  /**
-   * gridClassName
-    */
-  gridClassName: PropTypes.string,
-  /**
-   * applicationPublicUrl
-    */
-  applicationPublicUrl: PropTypes.string
 }
 
 export default AppNameBox

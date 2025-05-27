@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import { WHITE, OPACITY_30, OPACITY_15, MEDIUM, WARNING_YELLOW, OPACITY_100, BLACK_RUSSIAN, TRANSPARENT } from '@platformatic/ui-components/src/components/constants'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -64,33 +63,6 @@ function ServiceElement ({
       </div>
     </BorderedBox>
   )
-}
-
-ServiceElement.propTypes = {
-  /**
-   * id
-    */
-  id: PropTypes.string,
-  /**
-   * services
-    */
-  service: PropTypes.object,
-  /**
-   * applicationEntrypoint
-    */
-  applicationEntrypoint: PropTypes.bool,
-  /**
-   * status
-    */
-  status: PropTypes.string,
-  /**
-   * onClickService
-    */
-  onClickService: PropTypes.func,
-  /**
-   * dependencies
-    */
-  dependencies: PropTypes.object
 }
 
 export default ServiceElement

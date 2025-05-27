@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './ModalTaxonomyGenerations.module.css'
@@ -114,26 +113,6 @@ function ModalTaxonomyGenerations ({
       </div>
     </div>
   )
-}
-
-ModalTaxonomyGenerations.propTypes = {
-  /**
-   * latestGeneration
-    */
-  latestGeneration: PropTypes.string,
-  /**
-   * taxonomyGenerations
-    */
-  taxonomyGenerations: PropTypes.array,
-  /**
-   * onClickSelectedVersion
-    */
-  onClickSelectedVersion: PropTypes.func,
-  /**
-   * version
-    */
-  version: PropTypes.object
-
 }
 
 export default ModalTaxonomyGenerations

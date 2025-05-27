@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import { WHITE, MEDIUM, BLACK_RUSSIAN, TRANSPARENT, RICH_BLACK } from '@platformatic/ui-components/src/components/constants'
 import styles from './KubernetesResources.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -146,13 +145,6 @@ function KubernetesResources ({
       </div>
     </BorderedBox>
   )
-}
-
-KubernetesResources.propTypes = {
-  /**
-   * gridClassName
-    */
-  gridClassName: PropTypes.string
 }
 
 export default KubernetesResources

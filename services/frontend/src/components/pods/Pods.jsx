@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import PropTypes from 'prop-types'
 import styles from './Pods.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import PodsHealth from './PodsHealth'
@@ -181,24 +180,5 @@ const Pods = React.forwardRef(({
     </div>
   )
 })
-
-Pods.propTypes = {
-  /**
-   * applicationId
-   */
-  applicationId: PropTypes.string,
-  /**
-   * taxonomyId
-   */
-  taxonomyId: PropTypes.string,
-  /**
-   * enableApplicationFilter
-    */
-  enableApplicationFilter: PropTypes.bool,
-  /**
-   * fromPreview
-    */
-  fromPreview: PropTypes.bool
-}
 
 export default Pods

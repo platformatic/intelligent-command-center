@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import { WHITE, MEDIUM, BLACK_RUSSIAN, TRANSPARENT, RICH_BLACK } from '@platformatic/ui-components/src/components/constants'
 import styles from './NodeJSMetrics.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -166,13 +165,6 @@ function NodeJSMetrics ({
       </div>
     </BorderedBox>
   )
-}
-
-NodeJSMetrics.propTypes = {
-  /**
-   * gridClassName
-    */
-  gridClassName: PropTypes.string
 }
 
 export default NodeJSMetrics

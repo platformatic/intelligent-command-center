@@ -1,5 +1,4 @@
-import { ERROR_RED, WHITE, MAIN_GREEN } from '@platformatic/ui-components/src/components/constants'
-import PropTypes from 'prop-types'
+import { ERROR_RED, WHITE } from '@platformatic/ui-components/src/components/constants'
 import { useEffect, useState } from 'react'
 import styles from './VerticalLineIcon.module.css'
 
@@ -161,41 +160,6 @@ const VerticalLineIcon = ({
   }
 
   return height ? renderSvg() : <></>
-}
-
-VerticalLineIcon.propTypes = {
-  /**
-   * id
-   */
-  id: PropTypes.string.isRequired,
-  /**
-   * className
-   */
-  className: PropTypes.string,
-  /**
-   * color
-   */
-  color: PropTypes.oneOf([MAIN_GREEN, ERROR_RED]),
-  /**
-   * fromRef
-   */
-  fromRef: PropTypes.object,
-  /**
-   * toRef
-   */
-  toRef: PropTypes.object,
-  /**
-   * smallStroke
-   */
-  smallStroke: PropTypes.bool,
-  /**
-   * animationDelay
-   */
-  animationDelay: PropTypes.number,
-  /**
-   * cancelAnimation
-   */
-  cancelAnimation: PropTypes.bool
 }
 
 export default VerticalLineIcon

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './PanelTaxonomyApplication.module.css'
@@ -221,29 +220,6 @@ function PanelTaxonomyApplication ({ id, name, services, mainTaxonomyId, islates
       </div>
     </div>
   )
-}
-
-PanelTaxonomyApplication.propTypes = {
-  /**
-   * id
-    */
-  id: PropTypes.string,
-  /**
-   * mainTaxonomyId
-    */
-  mainTaxonomyId: PropTypes.string,
-  /**
-   * name
-    */
-  name: PropTypes.string,
-  /**
-   * services
-    */
-  services: PropTypes.array,
-  /**
-   * services
-    */
-  islatestGeneration: PropTypes.bool
 }
 
 export default PanelTaxonomyApplication

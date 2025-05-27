@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './PanelCompliancyService.module.css'
@@ -124,17 +123,6 @@ function PanelCompliancyService ({ id = '', reportServices = {} }) {
       </BorderedBox>
     </div>
   )
-}
-
-PanelCompliancyService.propTypes = {
-  /**
-   * id
-    */
-  id: PropTypes.string,
-  /**
-   * reportServices
-    */
-  reportServices: PropTypes.object
 }
 
 export default PanelCompliancyService

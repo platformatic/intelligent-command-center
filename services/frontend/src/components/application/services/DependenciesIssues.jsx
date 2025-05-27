@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import styles from './DependenciesIssues.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -62,27 +61,6 @@ function DependenciesIssues ({
   }
 
   return renderComponent()
-}
-
-DependenciesIssues.propTypes = {
-  /**
-   * outdatedDependencies
-    */
-  outdatedDependencies: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number
-  ]),
-  /**
-   * dependencies
-    */
-  dependencies: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number
-  ]),
-  /**
-   * values
-    */
-  values: PropTypes.array
 }
 
 export default DependenciesIssues

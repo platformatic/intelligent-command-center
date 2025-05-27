@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { PlatformaticIcon } from '@platformatic/ui-components'
 import { MEDIUM, WHITE } from '@platformatic/ui-components/src/components/constants'
-import PropTypes from 'prop-types'
 import styles from './RightPanel.module.css'
 
 const RightPanel = ({
@@ -38,17 +37,6 @@ const RightPanel = ({
       </div>
     </div>
   )
-}
-
-RightPanel.propTypes = {
-  /**
-   * onClosePanel
-   */
-  onClosePanel: PropTypes.func,
-  /**
-   * children
-   */
-  children: PropTypes.node
 }
 
 export default RightPanel

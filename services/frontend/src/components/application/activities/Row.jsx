@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import { OPACITY_30 } from '@platformatic/ui-components/src/components/constants'
 import { Tag } from '@platformatic/ui-components'
@@ -54,45 +53,6 @@ function Row ({
       </div>
     </div>
   )
-}
-
-Row.propTypes = {
-  /**
-   * id
-    */
-  id: PropTypes.string.isRequired,
-  /**
-   * createdAt
-    */
-  createdAt: PropTypes.string,
-  /**
-   * username
-    */
-  username: PropTypes.string,
-  /**
-   * description
-    */
-  description: PropTypes.string,
-  /**
-  /**
-   * event
-    */
-  event: PropTypes.string,
-  /**
-  /**
-   * userId
-    */
-  userId: PropTypes.string,
-  /**
-  /**
-   * objectId
-    */
-  objectId: PropTypes.string,
-  /**
-  /**
-   * documentId
-    */
-  documentId: PropTypes.string
 }
 
 export default Row

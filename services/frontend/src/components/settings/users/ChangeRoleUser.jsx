@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import PropTypes from 'prop-types'
 import { MARGIN_0, OPACITY_30, TRANSPARENT, WHITE, DULLS_BACKGROUND_COLOR, RICH_BLACK } from '@platformatic/ui-components/src/components/constants'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -91,21 +90,6 @@ function ChangeRoleUser ({
     </div>
 
   )
-}
-
-ChangeRoleUser.propTypes = {
-  /**
-   * username
-   */
-  username: PropTypes.string,
-  /**
-   * onClickCancel
-   */
-  onClickCancel: PropTypes.func,
-  /**
-   * onClickConfirm
-   */
-  onClickConfirm: PropTypes.func
 }
 
 export default ChangeRoleUser

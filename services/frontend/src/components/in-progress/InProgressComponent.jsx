@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './InProgressComponent.module.css'
@@ -66,21 +65,6 @@ function InProgressComponent ({
       </div>
     </div>
   )
-}
-
-InProgressComponent.propTypes = {
-  /**
-   * title
-   */
-  title: PropTypes.string,
-  /**
-   * subtitle
-   */
-  subtitle: PropTypes.string,
-  /**
-   * icon
-   */
-  icon: PropTypes.node
 }
 
 export default InProgressComponent
