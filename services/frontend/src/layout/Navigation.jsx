@@ -81,6 +81,10 @@ function getApplicationPageBreadcrumbs (routeId, application, otherParams) {
       output.push({ label: 'Services', link: generatePath('/applications/:applicationId/services', { applicationId: application.id }) })
       output.push({ label: otherParams.serviceId })
       break
+    case 'autoscalerPodDetail/overview':
+      output.push({ label: 'Autoscaler', link: generatePath('/applications/:applicationId/autoscaler', { applicationId: application.id }) })
+      output.push({ label: otherParams.pod.id })
+      break
   }
   return output
 }
@@ -96,13 +100,18 @@ export default function Navigation () {
   const [breadCrumbs, setBreadCrumbs] = useState([])
 
   const appRootLoaderData = useRouteLoaderData('appRoot')
+  const autoscalerPodDetailRootLoaderData = useRouteLoaderData('autoscalerPodDetailRoot')
   const location = useLocation()
   const routes = useMatches()
   const navigation = useNavigation()
   const routeId = routes[routes.length - 1].id
   const params = useRouteLoaderData(routeId)
   useEffect(() => {
-    if (!appRootLoaderData) {
+    if (autoscalerPodDetailRootLoaderData) {
+      const { application } = autoscalerPodDetailRootLoaderData
+      const breadCrumbs = getApplicationPageBreadcrumbs(routeId, application, params)
+      setBreadCrumbs(breadCrumbs)
+    } else if (!appRootLoaderData) {
       // we are not in an application specific route
       const breadCrumbs = getRootPageBreadcrumbs(routeId)
       setBreadCrumbs(breadCrumbs)

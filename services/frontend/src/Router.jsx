@@ -7,17 +7,16 @@ import AllApplications from './components/applications/all/AllApplications'
 import RecommendationsHistory from './components/recommendations/RecommendationHistory'
 import Settings from './components/settings/Settings'
 import Profile from './components/profile/Profile'
-import { getApiActivities, getApiActivitiesUsers, getApiDeploymentsHistory, getApiApplication, getApiActivitiesTypes, getApplicationsRaw } from './api'
-import Activities from '~/components/application/activities/Activities'
+import { getApiDeploymentsHistory, getApiApplication, getApplicationsRaw, getApiPod } from './api'
 import DeploymentHistory from '~/components/application/deployment_history/DeploymentHistory'
 import AppDetails from '~/components/application/detail/AppDetails'
 import ApplicationContainer from '~/layout/ApplicationContainer'
+import AutoscalerPodDetailContainer from '~/layout/AutoscalerPodDetailContainer'
 
 // Import Root Pages
 import Taxonomy from './components/taxonomy/Taxonomy'
 import Caching from './components/caching/Caching'
 import AllDeployments from './components/deployments/AllDeployments'
-import AllActivities from './components/activities/Activities'
 import Services from './components/application/services/Services'
 import ErrorPage from './pages/ErrorPage'
 
@@ -29,6 +28,10 @@ import ApplicationSettings from './components/application/settings/Settings'
 import NotFound from './pages/NotFound'
 import ServiceDetails from './components/application/services/ServiceDetails'
 import callApi from './api/common'
+
+// Import Autoscaler Pod Detail Pages
+import PodOverview from './components/pods/detail/PodOverview'
+import PodServicesCharts from './components/pods/detail/PodServicesCharts'
 
 export function getRouter () {
   // TODO: check if this is needed
@@ -60,60 +63,6 @@ export function getRouter () {
   //     />
   //     {/* Application Container Routes */}
   //     {/* Autoscaler Pod Detail Container Routes */}
-  //     <Route
-  //       path={AUTOSCALER_POD_DETAIL_OVERVIEW_PATH}
-  //       element={
-  //         <PrivateRouteContainer>
-  //           <AutoscalerPodDetailContainer>
-  //             <PodOverview
-  //               ref={autoscalerPodDetailOverviewRef}
-  //               key={AUTOSCALER_POD_DETAIL_OVERVIEW_PATH}
-  //             />
-  //           </AutoscalerPodDetailContainer>
-  //         </PrivateRouteContainer>
-  //           }
-  //     />
-  //     <Route
-  //       path={AUTOSCALER_POD_DETAIL_SERVICES_PATH}
-  //       element={
-  //         <PrivateRouteContainer>
-  //           <AutoscalerPodDetailContainer>
-  //             <PodServicesCharts
-  //               ref={autoscalerPodDetailServicesRef}
-  //               key={AUTOSCALER_POD_DETAIL_SERVICES_PATH}
-  //             />
-  //           </AutoscalerPodDetailContainer>
-  //         </PrivateRouteContainer>
-  //           }
-  //     />
-
-  //     {/* Preview Pod Detail Container Routes */}
-  //     <Route
-  //       path={PREVIEW_POD_DETAIL_OVERVIEW_PATH}
-  //       element={
-  //         <PrivateRouteContainer>
-  //           <PreviewPodDetailContainer>
-  //             <PodOverview
-  //               ref={previewPodDetailOverviewRef}
-  //               key={PREVIEW_POD_DETAIL_OVERVIEW_PATH}
-  //             />
-  //           </PreviewPodDetailContainer>
-  //         </PrivateRouteContainer>
-  //           }
-  //     />
-  //     <Route
-  //       path={PREVIEW_POD_DETAIL_SERVICES_PATH}
-  //       element={
-  //         <PrivateRouteContainer>
-  //           <PreviewPodDetailContainer>
-  //             <PodServicesCharts
-  //               ref={previewPodDetailServicesRef}
-  //               key={PREVIEW_POD_DETAIL_SERVICES_PATH}
-  //             />
-  //           </PreviewPodDetailContainer>
-  //         </PrivateRouteContainer>
-  //           }
-  //     />
 
   //     {/* Error and Not Found Routes */}
   //     <Route
@@ -228,15 +177,6 @@ export function getRouter () {
             return { totalCount, deployments: d, applications }
           },
           element: <AllDeployments />
-        },
-        {
-          loader: async () => {
-            const applications = await getApplicationsRaw()
-            return { applications }
-          },
-          id: 'activities',
-          path: '/activities',
-          element: <AllActivities />
         }
       ]
     },
@@ -262,25 +202,6 @@ export function getRouter () {
           path: '',
           id: 'application/details',
           element: <AppDetails />
-        },
-        {
-          path: 'activities',
-          id: 'application/activities',
-          loader: async (loaderObject) => {
-            const { applicationId } = loaderObject.params
-            const [activities, users, types] = await Promise.all([
-              getApiActivities(applicationId),
-              getApiActivitiesUsers(),
-              getApiActivitiesTypes()
-            ])
-            return {
-              applicationId,
-              activities,
-              users,
-              types
-            }
-          },
-          element: <Activities />
         },
         {
           path: 'deployment-history',
@@ -340,6 +261,50 @@ export function getRouter () {
           },
           path: 'settings',
           element: <ApplicationSettings />
+        }
+      ]
+    },
+    {
+      path: '/applications/:applicationId/autoscaler/:podId',
+      id: 'autoscalerPodDetailRoot',
+      loader: async ({ params }) => {
+        const application = await getApiApplication(params.applicationId)
+        return { application }
+      },
+      errorElement: <CustomError />,
+      element: (
+        <PrivateRouteContainer>
+          <AutoscalerPodDetailContainer />
+        </PrivateRouteContainer>
+      ),
+      children: [
+        {
+          path: '',
+          loader: async ({ params }) => {
+            const podMetrics = await getApiPod(params.applicationId, params.podId)
+            return {
+              pod: {
+                id: params.podId,
+                dataValues: podMetrics
+              }
+            }
+          },
+          id: 'autoscalerPodDetail/overview',
+          element: <PodOverview />
+        },
+        {
+          path: 'services',
+          loader: async ({ params }) => {
+            const podMetrics = await getApiPod(params.applicationId, params.podId)
+            return {
+              pod: {
+                id: params.podId,
+                dataValues: podMetrics
+              }
+            }
+          },
+          id: 'autoscalerPodDetail/services',
+          element: <PodServicesCharts />
         }
       ]
     }

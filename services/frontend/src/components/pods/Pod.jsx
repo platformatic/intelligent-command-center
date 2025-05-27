@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react'
-import PropTypes from 'prop-types'
 import styles from './Pod.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -17,6 +16,9 @@ import {
 } from '~/ui-constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import useICCStore from '~/useICCStore'
+import { generatePath, useNavigate } from 'react-router-dom'
+import { AUTOSCALER_POD_DETAIL_PATH } from '../../paths'
+
 // import { useNavigate, useParams } from 'react-router-dom'
 const DISPLAY_WIDE = 'DISPLAY_WIDE'
 const DISPLAY_SMALL = 'DISPLAY_SMALL'
@@ -31,6 +33,7 @@ function Pod ({
   taxonomyId,
   fromPreview = false
 }) {
+  const navigate = useNavigate()
   const globalState = useICCStore()
   const { currentWindowWidth /* setCurrentPage */ } = globalState
   const [valueDisplayed, setValueDisplayed] = useState({})
@@ -166,7 +169,8 @@ function Pod ({
   }
 
   function handleClickSvg (event) {
-    event.stopPropagation()
+    // event.stopPropagation()
+    navigate(generatePath(AUTOSCALER_POD_DETAIL_PATH, { applicationId, podId: id }))
     // THIS IS NOT WORKING: TODO: FIX IT
     // if (fromPreview) {
     //   navigate(PREVIEW_POD_DETAIL_OVERVIEW_PATH.replace(':taxonomyId', taxonomyIdUsed).replace(':appId', applicationIdUsed).replace(':podId', id))
@@ -286,38 +290,6 @@ function Pod ({
       </div>
     </div>
   )
-}
-
-Pod.propTypes = {
-  /**
-   * id
-    */
-  id: PropTypes.string,
-  /**
-   * fillingType
-    */
-  fillingType: PropTypes.bool,
-  /**
-   * dataValues
-   */
-  dataValues: PropTypes.object,
-  /**
-   * performance
-   */
-  performance: PropTypes.string,
-  /**
-   * applicationId
-   */
-  applicationId: PropTypes.string,
-  /**
-   * taxonomyId
-   */
-  taxonomyId: PropTypes.string,
-  /**
-   * fromPreview
-    */
-  fromPreview: PropTypes.bool
-
 }
 
 export default Pod

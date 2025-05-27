@@ -1,15 +1,11 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import styles from './ResourceAllocation.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
-import { LoadingSpinnerV2 } from '@platformatic/ui-components'
-import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
 
-function ResourceAllocation ({
+export default function ResourceAllocation ({
   title = '',
-  initialLoading = true,
   showNoResult = false,
   displayedValue = {}
 }) {
@@ -21,21 +17,6 @@ function ResourceAllocation ({
   }
 
   function renderComponent () {
-    if (initialLoading) {
-      return (
-        <LoadingSpinnerV2
-          loading
-          applySentences={{
-            containerClassName: `${commonStyles.mediumFlexBlock} ${commonStyles.itemsCenter}`,
-            sentences: []
-          }}
-          containerClassName={loadingSpinnerStyles.loadingSpinner}
-          spinnerProps={{ size: 40, thickness: 3 }}
-
-        />
-      )
-    }
-
     if (showNoResult) { return <NoDataAvailable iconName='PodPerformanceIcon' /> }
 
     return (
@@ -84,24 +65,3 @@ function ResourceAllocation ({
     </div>
   )
 }
-
-ResourceAllocation.propTypes = {
-  /**
-   * title
-    */
-  title: PropTypes.string,
-  /**
-   * initialLoading
-    */
-  initialLoading: PropTypes.bool,
-  /**
-   * showNoResult
-    */
-  showNoResult: PropTypes.bool,
-  /**
-   * displayedValue
-    */
-  displayedValue: PropTypes.object
-}
-
-export default ResourceAllocation
