@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import { WHITE, OPACITY_30, SMALL, TRANSPARENT, BLACK_RUSSIAN, DULLS_BACKGROUND_COLOR, MEDIUM } from '@platformatic/ui-components/src/components/constants'
 import styles from './PodsHealth.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -178,21 +177,6 @@ function PodsHealth ({
       </div>
     </BorderedBox>
   )
-}
-
-PodsHealth.propTypes = {
-  /**
-   * title
-    */
-  title: PropTypes.string,
-  /**
-   * podsLoaded
-    */
-  podsLoaded: PropTypes.bool,
-  /**
-   * pods
-    */
-  pods: PropTypes.array
 }
 
 export default PodsHealth

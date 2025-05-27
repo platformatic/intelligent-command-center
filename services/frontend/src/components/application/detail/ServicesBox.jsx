@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import { WHITE, TRANSPARENT, MEDIUM, SMALL, WARNING_YELLOW, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
 import styles from './ServicesBox.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
@@ -178,13 +177,6 @@ function ServicesBox ({
       </div>
     </BorderedBox>
   )
-}
-
-ServicesBox.propTypes = {
-  /**
-   * gridClassName
-    */
-  gridClassName: PropTypes.string
 }
 
 export default ServicesBox

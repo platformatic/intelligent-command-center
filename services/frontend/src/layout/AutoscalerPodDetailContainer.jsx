@@ -1,7 +1,4 @@
 import React from 'react'
-import {
-  PAGE_APPLICATION_DETAIL_SETTINGS
-} from '~/ui-constants'
 import { AUTOSCALER_POD_DETAIL_PATH, AUTOSCALER_POD_DETAIL_SERVICES_PATH } from '~/paths'
 import styles from './HomeContainer.module.css'
 import SideBar from '~/components/ui/SideBar'
@@ -25,7 +22,7 @@ function AutoscalerPodDetailContainer () {
           disabled: false
         }]}
         bottomItems={[{
-          link: PAGE_APPLICATION_DETAIL_SETTINGS,
+          link: generatePath('settings', { applicationId: params.applicationId }),
           label: 'Settings',
           iconName: 'AppSettingsIcon',
           disabled: false

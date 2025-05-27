@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import { Button, PlatformaticIcon } from '@platformatic/ui-components'
 import { TRANSPARENT, WHITE } from '@platformatic/ui-components/src/components/constants'
@@ -58,21 +57,6 @@ function Paginator ({
       />
     </div>
   )
-}
-
-Paginator.propTypes = {
-  /**
-   * pagesNumber
-  */
-  pagesNumber: PropTypes.number,
-  /**
-   * titleClassName
-  */
-  titleClassName: PropTypes.string,
-  /**
-   * iconName
-  */
-  iconName: PropTypes.string
 }
 
 export default Paginator

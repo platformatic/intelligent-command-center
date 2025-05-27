@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './TableActivities.module.css'
@@ -85,21 +84,6 @@ function TableActivities ({
       {renderComponent()}
     </div>
   )
-}
-
-TableActivities.propTypes = {
-  /**
-   * activitiesLoaded
-    */
-  activitiesLoaded: PropTypes.bool,
-  /**
-   * activities
-    */
-  activities: PropTypes.array,
-  /**
-   * onErrorOccurred
-    */
-  onErrorOccurred: PropTypes.func
 }
 
 export default TableActivities

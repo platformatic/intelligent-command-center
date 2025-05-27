@@ -1,8 +1,5 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import styles from './LineTaxonomy.module.css'
-
-import { SMALL_REQUEST_AMOUNT, MEDIUM_REQUEST_AMOUNT, HIGH_REQUEST_AMOUNT } from '../../ui-constants'
 
 function LineTaxonomy ({
   type = ''
@@ -13,13 +10,6 @@ function LineTaxonomy ({
       <line x1={0.75} y1={1.52499} x2={23.25} y2={1.52499} stroke='white' strokeWidth={1.5} strokeLinecap='round' />
     </svg>
   )
-}
-
-LineTaxonomy.propTypes = {
-  /**
-   * type
-  */
-  type: PropTypes.oneOf(['', SMALL_REQUEST_AMOUNT, MEDIUM_REQUEST_AMOUNT, HIGH_REQUEST_AMOUNT])
 }
 
 export default LineTaxonomy

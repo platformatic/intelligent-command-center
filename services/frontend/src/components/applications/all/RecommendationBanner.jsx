@@ -10,23 +10,18 @@ import { getLatestNewRecommendation } from '../../../api/recommendations'
 import { getLatestNewCacheRecommendation } from '../../../api/cache-recommendations'
 import { useNavigate } from 'react-router-dom'
 import { PAGE_RECOMMENDATION_HISTORY } from '../../../ui-constants'
-import useICCStore from '../../../useICCStore'
+
 export default function RecommendationBanner ({ cache }) {
   const [showRecommendationModal, setShowRecommendationModal] = useState(false)
   const [latestNewRecommendation, setLatestNewRecommendation] = useState(null)
   const [expanded, setExpanded] = useState(true)
   const [detailView, setDetailView] = useState(null)
   const navigate = useNavigate()
-  const globalState = useICCStore()
-  const {
-    setCurrentPage
-  } = globalState
 
   async function handleButtonClick () {
     // get recommendation detail
     if (cache) {
       navigate(PAGE_RECOMMENDATION_HISTORY)
-      setCurrentPage(PAGE_RECOMMENDATION_HISTORY)
     } else {
       setDetailView(latestNewRecommendation)
     }

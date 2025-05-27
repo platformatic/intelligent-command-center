@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import styles from './MethodSelector.module.css'
 const MethodSelector = ({ selectedValue, onChange }) => {
   const [selectedMethod, setSelectedMethod] = useState(selectedValue)
@@ -27,11 +26,6 @@ const MethodSelector = ({ selectedValue, onChange }) => {
       ))}
     </div>
   )
-}
-
-MethodSelector.propTypes = {
-  selectedValue: PropTypes.any,
-  onChange: PropTypes.func.isRequired
 }
 
 export default MethodSelector

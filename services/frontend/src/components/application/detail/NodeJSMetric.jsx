@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
-import { WHITE, BLACK_RUSSIAN, TRANSPARENT, RICH_BLACK, OPACITY_30 } from '@platformatic/ui-components/src/components/constants'
+import { WHITE, BLACK_RUSSIAN, TRANSPARENT, OPACITY_30 } from '@platformatic/ui-components/src/components/constants'
 import styles from './NodeJSMetric.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -9,7 +8,7 @@ import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
 import NodeJSMetricChart from '~/components//metrics/NodeJSMetricChart'
 import LatencyChart from '~/components//metrics/LatencyChart'
-import { POSITION_ABSOLUTE, POSITION_FIXED } from '~/ui-constants'
+import { POSITION_ABSOLUTE } from '~/ui-constants'
 import colorSetMem from '~/components/metrics/memory.module.css'
 import colorSetCpu from '~/components/metrics/cpu.module.css'
 import colorSetLatency from '~/components/metrics/latency.module.css'
@@ -142,45 +141,6 @@ function NodeJSMetric ({
       </div>
     </BorderedBox>
   )
-}
-
-NodeJSMetric.propTypes = {
-  /**
-   * title
-    */
-  title: PropTypes.string,
-  /**
-   * metricURL
-    */
-  metricURL: PropTypes.string,
-  /**
-   * unit
-    */
-  unit: PropTypes.string,
-  /**
-   * data
-    */
-  data: PropTypes.object,
-  /**
-   * initialLoading
-    */
-  initialLoading: PropTypes.bool,
-  /**
-   * options
-    */
-  options: PropTypes.arrayOf(PropTypes.shape({
-    label: PropTypes.string,
-    key: PropTypes.string,
-    unit: PropTypes.string
-  })),
-  /**
-   * backgroundColor
-    */
-  backgroundColor: PropTypes.oneOf([BLACK_RUSSIAN, RICH_BLACK]),
-  /**
-   * chartTooltipPositionPropTypes
-  */
-  chartTooltipPosition: PropTypes.oneOf([POSITION_ABSOLUTE, POSITION_FIXED])
 }
 
 export default NodeJSMetric

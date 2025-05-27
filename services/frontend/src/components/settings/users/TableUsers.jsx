@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './TableUsers.module.css'
@@ -121,29 +120,6 @@ function TableUsers ({
       {renderComponent()}
     </div>
   )
-}
-
-TableUsers.propTypes = {
-  /**
-   * usersLoaded
-    */
-  usersLoaded: PropTypes.bool,
-  /**
-   * users
-    */
-  users: PropTypes.array,
-  /**
-   * onClickAddUser
-    */
-  onClickAddUser: PropTypes.func,
-  /**
-   * onClickChangeRole
-    */
-  onClickChangeRole: PropTypes.func,
-  /**
-   * onClickRemove
-    */
-  onClickRemove: PropTypes.func
 }
 
 export default TableUsers

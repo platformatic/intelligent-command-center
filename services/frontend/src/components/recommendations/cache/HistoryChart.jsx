@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as d3 from 'd3'
-import PropTypes from 'prop-types'
 import { getFormattedTimeAndDate } from '../../../utilities/dates'
 import styles from './HistoryChart.module.css'
 
@@ -303,17 +302,4 @@ export default function HistoryChart ({
       </div>
     </div>
   )
-}
-
-HistoryChart.propTypes = {
-  data: PropTypes.arrayOf(PropTypes.number),
-  yValues: PropTypes.arrayOf(PropTypes.shape({
-    value: PropTypes.number.isRequired,
-    label: PropTypes.string.isRequired,
-    dashed: PropTypes.bool
-  })),
-  mouseX: PropTypes.number,
-  lineColor: PropTypes.string,
-  onMouseMove: PropTypes.func,
-  onMouseLeave: PropTypes.func
 }

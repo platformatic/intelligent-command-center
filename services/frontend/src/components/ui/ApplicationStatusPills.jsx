@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import typographyStyles from '~/styles/Typography.module.css'
 import { MAIN_GREEN, SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
 import { Icons } from '@platformatic/ui-components'
@@ -23,13 +22,6 @@ function ApplicationStatusPills ({ status = STATUS_STOPPED }) {
       <span className={`${typographyStyles.desktopOtherOverlineSmallest} ${typographyStyles.textMainGreen}`}>{status === STATUS_STARTED ? STATUS_RUNNING : status}</span>
     </div>
   )
-}
-
-ApplicationStatusPills.propTypes = {
-  /**
-       * status
-       */
-  status: PropTypes.oneOf([STATUS_STARTED, STATUS_STOPPED])
 }
 
 export default ApplicationStatusPills
