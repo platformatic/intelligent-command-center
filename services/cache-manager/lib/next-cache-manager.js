@@ -88,7 +88,9 @@ class NextCacheManager extends EventEmitter {
       )
     } catch (err) {
       this.subscribed = false
-      await this.#redisSubscribe.quit()
+      if (this.#redisSubscribe) {
+        await this.#redisSubscribe.quit()
+      }
 
       throw err
     }
