@@ -85,6 +85,11 @@ function getApplicationPageBreadcrumbs (routeId, application, otherParams) {
       output.push({ label: 'Autoscaler', link: generatePath('/applications/:applicationId/autoscaler', { applicationId: application.id }) })
       output.push({ label: otherParams.pod.id })
       break
+    case 'autoscalerPodDetail/services':
+      output.push({ label: 'Autoscaler', link: generatePath('/applications/:applicationId/autoscaler', { applicationId: application.id }) })
+      output.push({ label: otherParams.pod.id })
+      output.push({ label: 'Services' })
+      break
   }
   return output
 }

@@ -110,7 +110,6 @@ const getPodChartsMetrics = async ({ podId, entrypoint, serviceId = null }) => {
     const newSpaceSize = newSpaceSizeRes?.data?.result[0]?.values[i][1]
     const cpu = cpuRes?.data?.result[0]?.values[i][1]
     const elu = eventLoopRes?.data?.result[0]?.values[i][1]
-
     let latency50 = 0
     if (latencyRes50?.data?.result[0]?.values[i]) {
       latency50 = parseFloat(latencyRes50?.data?.result[0]?.values[i][1]) * 1000
@@ -124,7 +123,7 @@ const getPodChartsMetrics = async ({ podId, entrypoint, serviceId = null }) => {
       latency95 = parseFloat(latencyRes95?.data?.result[0]?.values[i][1]) * 1000
     }
     let latency99 = 0
-    if (latencyRes95?.data?.result[0]?.values[i]) {
+    if (latencyRes99?.data?.result[0]?.values[i]) {
       latency99 = parseFloat(latencyRes99?.data?.result[0]?.values[i][1]) * 1000
     }
 
