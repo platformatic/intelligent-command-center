@@ -35,6 +35,17 @@ module.exports = async function (app) {
           replicas: controller.replicas
         }
       })
+
+      // Create initial scale event
+      await app.platformatic.entities.scaleEvent.save({
+        input: {
+          applicationId,
+          direction: 'up',
+          replicas: controller.replicas,
+          replicasDiff: controller.replicas,
+          reason: 'Initial controller creation'
+        }
+      })
     }
   })
 }
