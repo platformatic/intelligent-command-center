@@ -148,7 +148,7 @@ test('checkScalingOnAlert should call scaling algorithm and return result', asyn
       applicationId: testAppId,
       deploymentId: '00000000-0000-0000-0000-000000000001',
       namespace: 'default',
-      controllerId: 'test-controller-1',
+      k8SControllerId: 'test-controller-1',
       kind: 'Deployment',
       apiVersion: 'apps/v1',
       replicas: 2
@@ -276,7 +276,7 @@ test('checkScalingOnAlert should merge metrics from alerts with pod metrics for 
       applicationId: testAppId,
       deploymentId: '00000000-0000-0000-0000-000000000002',
       namespace: 'default',
-      controllerId: 'test-controller-2',
+      k8SControllerId: 'test-controller-2',
       kind: 'Deployment',
       apiVersion: 'apps/v1',
       replicas: 1

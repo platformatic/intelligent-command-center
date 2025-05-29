@@ -16,17 +16,6 @@ const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10
   async function loadActivities () {
     const response = await getScalingHistory(applicationId, limit)
     if (response.length > 0) {
-      let previousReplicas = 0
-      for (const event of response.toReversed()) {
-        const replicas = event.values[0]
-        if (replicas > previousReplicas) {
-          event.direction = 'up'
-        } else {
-          event.direction = 'down'
-        }
-        previousReplicas = replicas
-      }
-
       setEvents(response.slice(page * rows, (page + 1) * rows))
       setTotalCount(response.length)
     }

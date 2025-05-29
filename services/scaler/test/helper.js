@@ -111,8 +111,15 @@ async function buildServerWithPlugins (t, options = {}, plugins = []) {
 
 async function cleanDb (app) {
   const { db, sql } = app.platformatic
-  await db.query(sql`DELETE FROM "application_scale_configs"`)
-  await db.query(sql`DELETE FROM "controllers"`)
+  try {
+    await db.query(sql`DELETE FROM "scale_events"`)
+  } catch (err) {}
+  try {
+    await db.query(sql`DELETE FROM "controllers"`)
+  } catch (err) {}
+  try {
+    await db.query(sql`DELETE FROM "application_scale_configs"`)
+  } catch (err) {}
 }
 
 let pool = null
