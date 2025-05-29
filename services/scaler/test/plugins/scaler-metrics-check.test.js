@@ -96,7 +96,7 @@ test('checkScalingOnMetrics should process all applications with metrics', async
       applicationId: app1Id,
       deploymentId: '00000000-0000-0000-0000-000000000003',
       namespace: 'default',
-      controllerId: 'test-controller-3',
+      k8SControllerId: 'test-controller-3',
       kind: 'Deployment',
       apiVersion: 'apps/v1',
       replicas: 1
@@ -108,7 +108,7 @@ test('checkScalingOnMetrics should process all applications with metrics', async
       applicationId: app2Id,
       deploymentId: '00000000-0000-0000-0000-000000000004',
       namespace: 'default',
-      controllerId: 'test-controller-4',
+      k8SControllerId: 'test-controller-4',
       kind: 'Deployment',
       apiVersion: 'apps/v1',
       replicas: 2
@@ -280,7 +280,7 @@ test('checkScalingOnMetrics should skip the unknown application ID', async (t) =
       applicationId: appId,
       deploymentId: '00000000-0000-0000-0000-000000000005',
       namespace: 'default',
-      controllerId: 'test-controller-5',
+      k8SControllerId: 'test-controller-5',
       kind: 'Deployment',
       apiVersion: 'apps/v1',
       replicas: 1

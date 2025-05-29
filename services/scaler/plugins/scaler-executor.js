@@ -79,7 +79,7 @@ class ScalerExecutor {
     }, logMessage)
 
     if (result.nfinal !== currentPodCount) {
-      await this.executeScaling(applicationId, result.nfinal)
+      await this.executeScaling(applicationId, result.nfinal, result.reason)
     }
 
     return {
@@ -137,10 +137,10 @@ class ScalerExecutor {
     }
   }
 
-  async executeScaling (applicationId, podsNumber) {
-    this.app.log.info({ applicationId, podsNumber }, 'Executing scaling operation')
+  async executeScaling (applicationId, podsNumber, reason = null) {
+    this.app.log.info({ applicationId, podsNumber, reason }, 'Executing scaling operation')
     try {
-      await this.app.updateControllerReplicas(applicationId, podsNumber)
+      await this.app.updateControllerReplicas(applicationId, podsNumber, reason)
       return {
         success: true,
         applicationId,
