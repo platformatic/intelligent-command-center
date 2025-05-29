@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import Slider from './Slider'
 import { useLoaderData } from 'react-router-dom'
 import { TRANSPARENT, BLACK_RUSSIAN, WHITE, MEDIUM } from '@platformatic/ui-components/src/components/constants'
 import { BorderedBox } from '@platformatic/ui-components'
@@ -12,6 +11,7 @@ import callApi from '../../../api/common'
 import useICCStore from '../../../useICCStore'
 
 import styles from './AutoscalerConfiguration.module.css'
+import DoubleRangeSlider from './DoubleRangeSlider'
 export default function AutoscalerConfigration ({ applicationId }) {
   const { scaleConfig } = useLoaderData()
   const { showSplashScreen } = useICCStore()
@@ -76,18 +76,20 @@ export default function AutoscalerConfigration ({ applicationId }) {
             </div>
             <SaveButtons enabled={enableSaveButton} onSaveButtonClicked={updateScaleConfig} />
           </div>
-          <div className={styles.sliders}>
-            <Slider
-              label='Min number of pods'
+          <div className={styles.doubleRangeSlider}>
+            <DoubleRangeSlider
+              label='Number of usable pods'
+              min={0}
               max={20}
-              onValueUpdated={(value) => { handleInputChange('minPods', value) }}
-              value={config.minPods}
-            />
-            <Slider
-              label='Max number of pods'
-              max={20}
-              onValueUpdated={(value) => { handleInputChange('maxPods', value) }}
-              value={config.maxPods}
+              value={{ min: config.minPods, max: config.maxPods }}
+              onChange={(key, value) => {
+                if (key === 'min') {
+                  handleInputChange('minPods', value)
+                }
+                if (key === 'max') {
+                  handleInputChange('maxPods', value)
+                }
+              }}
             />
           </div>
         </div>

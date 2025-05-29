@@ -1,0 +1,99 @@
+.doubleRangeSlider {
+  @apply flex flex-col gap-8 w-full py-4;
+}
+.sliderContainer {
+  position: relative;
+  width: 100%;
+  height: 11px;
+}
+.rangeContainer {
+  @apply flex items-center gap-4 w-full;
+}
+
+.sliderInput {
+  position: absolute;
+  width: 100%;
+  height: 5px;
+  background: none;
+  pointer-events: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.sliderInput::-webkit-slider-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  margin-top: -8px;
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.sliderInput::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  pointer-events: auto;
+  border: none;
+}
+
+.sliderTrack {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: #1a1a1a;
+  border-radius: 3px;
+  top: 2px;
+  transform: translateY(-50%);
+}
+
+.sliderRange {
+  position: absolute;
+  height: 100%;
+  background: white;
+  border-radius: 3px;
+}
+
+.sliderInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sliderInput:disabled::-webkit-slider-thumb {
+  background: #999;
+  cursor: not-allowed;
+}
+
+.sliderInput:disabled::-moz-range-thumb {
+  background: #999;
+  cursor: not-allowed;
+}
+
+.sliderValues { 
+  @apply flex items-center gap-x-2 text-white/70 border border-solid border-white/70 p-2 text-center rounded-md;
+}
+
+.sliderValues .label {
+  @apply text-white/70;
+}
+
+.sliderValues .value {
+  @apply text-white;
+}
+.sliderInput::-webkit-slider-thumb {
+  @apply bg-rich-black;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  background-color: black;
+  border: solid white 2px;
+  border-radius: 50%;
+  margin-top: -6px;
+  z-index: 10;
+}
