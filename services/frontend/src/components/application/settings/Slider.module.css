@@ -39,7 +39,7 @@ input[type='range']::-webkit-slider-runnable-track {
 
 }
 
-input[type="range"]::-webkit-slider-thumb {
+.slider::-webkit-slider-thumb {
   @apply bg-rich-black;
   width: 15px;
   height: 15px;
@@ -50,18 +50,18 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 /** FF*/
-input[type="range"]::-moz-range-progress {
+.slider::-moz-range-progress {
   background: linear-gradient(to right, #ffffff, #ffffff), rgba(255, 255, 255, 0.3);
   background-color: white;
   border-radius: 5px;
 }
 
-input[type="range"]::-moz-range-track {
+.slider::-moz-range-track {
   @apply bg-white/30;
   border-radius: 5px;
 }
 
-input[type="range"]::-moz-range-thumb {
+.slider::-moz-range-thumb {
   @apply bg-rich-black;
   width: 15px;
   height: 15px;
@@ -74,10 +74,10 @@ input[type="range"]::-moz-range-thumb {
 
 /** WARNING STATUS **/
 
-input[type="range"].warning::-webkit-slider-thumb {
+.slider.warning::-webkit-slider-thumb {
   /* border: solid #FEB928 2px; */
 }
-input[type="range"].warning::-webkit-slider-runnable-track {
+.slider.warning::-webkit-slider-runnable-track {
   /* background-image: linear-gradient(to right, #FEB928, #FEB928), rgba(255, 255, 255, 0.3);
   background-size: var(--background-size, 0%) 100%; */
 }
