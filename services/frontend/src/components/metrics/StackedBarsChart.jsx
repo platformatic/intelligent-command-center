@@ -49,7 +49,7 @@ const StackedBarsChart = ({
   }
 
   useEffect(() => {
-    if (svgRef.current && tooltipRef.current && !paused) {
+    if (svgRef.current && tooltipRef.current && !paused && data.length > 0) {
       const h = svgRef.current.clientHeight
       const w = svgRef.current.clientWidth
 
@@ -65,6 +65,7 @@ const StackedBarsChart = ({
 
       // We need to slice it here otherwise we cannot pause / resume the chart scrolling
       const latestData = data
+
       const firstDatum = latestData[0]
       const lastDatum = latestData[latestData.length - 1]
       const firstTime = firstDatum.time // This is the time of the first data point in the window

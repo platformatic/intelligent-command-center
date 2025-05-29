@@ -1,3 +1,4 @@
-.sliders {
+
+.doubleRangeSlider {
   @apply flex flex-col gap-4 w-full;
 }
