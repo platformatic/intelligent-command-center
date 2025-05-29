@@ -16,14 +16,23 @@ module.exports = fp(async function (app) {
     return controllers.length === 1 ? controllers[0] : null
   })
 
-  app.decorate('updateControllerReplicas', async (applicationId, replicas) => {
+  app.decorate('updateControllerReplicas', async (applicationId, replicas, reason = null) => {
     const controller = await app.getApplicationController(applicationId)
     if (controller === null) {
       throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
     }
 
+    const oldReplicas = controller.replicas
+    const replicasDiff = replicas - oldReplicas
+
+    if (replicasDiff === 0) {
+      app.log.info({ applicationId, replicas }, 'No change in replicas, skipping update')
+      return
+    }
+
+    // Update controller in Kubernetes
     await app.machinist.updateController(
-      controller.controllerId,
+      controller.k8SControllerId,
       controller.namespace,
       controller.apiVersion,
       controller.kind,
@@ -32,14 +41,25 @@ module.exports = fp(async function (app) {
 
     await app.platformatic.entities.controller.save({
       input: {
+        id: controller.id,
         applicationId,
-        deploymentId: controller.deploymentId,
-        controllerId: controller.controllerId,
-        namespace: controller.namespace,
-        apiVersion: controller.apiVersion,
-        kind: controller.kind,
         replicas
       }
     })
+
+    // Create scale event record
+    const event = await app.platformatic.entities.scaleEvent.save({
+      input: {
+        applicationId,
+        direction: replicasDiff > 0 ? 'up' : 'down',
+        replicas,
+        replicasDiff,
+        reason
+      }
+    })
+
+    app.log.info({
+      scaleEvent: event
+    }, 'Scale event created')
   })
 })

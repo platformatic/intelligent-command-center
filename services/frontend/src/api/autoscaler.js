@@ -10,7 +10,7 @@ export async function getScalingHistory (applicationId, limit = 10) {
   query.set('orderby.createdAt', 'desc')
   query.set('limit', limit)
 
-  const res = await callApi('scaler', `/controllers?${query.toString()}`)
+  const res = await callApi('scaler', `/scaleEvents?${query.toString()}`)
   if (res.length === 0) {
     return []
   }
@@ -19,33 +19,49 @@ export async function getScalingHistory (applicationId, limit = 10) {
     return {
       id: r.id,
       time: r.createdAt,
-      values: [r.replicas]
+      values: [r.replicas],
+      direction: r.direction,
+      replicasDiff: r.replicasDiff
     }
   })
 }
 
 export async function getScalingHistorySummary (applicationId) {
-  const events = await getScalingHistory(applicationId)
-  if (events.length === 0) {
-    return []
+  const query = new URLSearchParams()
+  query.set('where.applicationId.eq', applicationId)
+  query.set('orderby.createdAt', 'desc')
+  query.set('fields', 'direction,createdAt')
+
+  const res = await callApi('scaler', `/scaleEvents?${query.toString()}`)
+  if (res.length === 0) {
+    return {
+      up: 0,
+      down: 0,
+      latestUp: null,
+      latestDown: null
+    }
   }
+
   const output = {
     up: 0,
     down: 0,
     latestUp: null,
     latestDown: null
   }
-  let previous = events[0]
-  for (let i = 1; i < events.length; i++) {
-    const current = events[i]
-    if (previous.values[0] > current.values[0]) {
+
+  for (const event of res) {
+    if (event.direction === 'up') {
       output.up++
-      output.latestUp = current.time
-    } else {
+      if (!output.latestUp || new Date(event.createdAt) > new Date(output.latestUp)) {
+        output.latestUp = event.createdAt
+      }
+    } else if (event.direction === 'down') {
       output.down++
-      output.latestDown = current.time
+      if (!output.latestDown || new Date(event.createdAt) > new Date(output.latestDown)) {
+        output.latestDown = event.createdAt
+      }
     }
-    previous = current
   }
+
   return output
 }
