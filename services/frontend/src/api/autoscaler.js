@@ -11,7 +11,9 @@ export async function getScalingHistory (applicationId, limit = 10) {
   query.set('limit', limit)
 
   const res = await callApi('scaler', `/scaleEvents?${query.toString()}`)
-  if (res.length === 0) {
+  // callApi returns true if no results are found, no idea why, but since we don't
+  // have tests and this is used in a lot of places, not changing it
+  if ((typeof res === 'boolean' && res === true) || res.length === 0) {
     return []
   }
 

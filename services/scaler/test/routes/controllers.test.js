@@ -64,4 +64,14 @@ test('should save a new controller', async (t) => {
   assert.strictEqual(scaleConfig.applicationId, applicationId)
   assert.strictEqual(scaleConfig.minPods, 1)
   assert.strictEqual(scaleConfig.maxPods, 10)
+
+  const scaleEvents = await server.platformatic.entities.scaleEvent.find()
+  assert.strictEqual(scaleEvents.length, 1)
+
+  const scaleEvent = scaleEvents[0]
+  assert.strictEqual(scaleEvent.applicationId, applicationId)
+  assert.strictEqual(scaleEvent.direction, 'up')
+  assert.strictEqual(scaleEvent.replicas, 1)
+  assert.strictEqual(scaleEvent.replicasDiff, 1)
+  assert.strictEqual(scaleEvent.reason, 'Initial controller creation')
 })
