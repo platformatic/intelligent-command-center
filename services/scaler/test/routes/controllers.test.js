@@ -52,7 +52,7 @@ test('should save a new controller', async (t) => {
   assert.strictEqual(controller.applicationId, applicationId)
   assert.strictEqual(controller.deploymentId, deploymentId)
   assert.strictEqual(controller.namespace, namespace)
-  assert.strictEqual(controller.controllerId, controllerId)
+  assert.strictEqual(controller.k8SControllerId, controllerId)
   assert.strictEqual(controller.kind, kind)
   assert.strictEqual(controller.apiVersion, apiVersion)
   assert.strictEqual(controller.replicas, 1)

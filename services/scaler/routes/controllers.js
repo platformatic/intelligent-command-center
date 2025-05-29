@@ -29,7 +29,7 @@ module.exports = async function (app) {
           applicationId,
           deploymentId,
           namespace,
-          controllerId: controller.name,
+          k8SControllerId: controller.name,
           kind: controller.kind,
           apiVersion: controller.apiVersion,
           replicas: controller.replicas
