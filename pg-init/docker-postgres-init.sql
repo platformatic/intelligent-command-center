@@ -1,6 +1,7 @@
 CREATE DATABASE user_manager;
 CREATE DATABASE activities;
 CREATE DATABASE control_plane;
+CREATE DATABASE cold_storage;
 CREATE DATABASE cron;
 CREATE DATABASE compliance;
 CREATE DATABASE scaler;
