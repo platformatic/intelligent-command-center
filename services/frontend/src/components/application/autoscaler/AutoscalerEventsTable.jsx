@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import styles from './AutoscalerEventsTable.module.css'
-import { MAIN_GREEN, ERROR_RED } from '@platformatic/ui-components/src/components/constants'
+import { FLUORESCENT_CYAN, TERTIARY_BLUE } from '@platformatic/ui-components/src/components/constants'
 import { getScalingHistory } from '../../../api/autoscaler'
 import { getFormattedTimeAndDate } from '../../../utilities/dates'
 import StatusPill from '../../common/StatusPill'
@@ -50,9 +50,9 @@ const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10
       case 'activity':
         // get random direction, up or down
         if (direction === 'up') {
-          content = <StatusPill backgroundColor={MAIN_GREEN} status='Scaled up' />
+          content = <StatusPill backgroundColor={TERTIARY_BLUE} status='New pod' />
         } else {
-          content = <StatusPill backgroundColor={ERROR_RED} status='Scaled down' />
+          content = <StatusPill backgroundColor={FLUORESCENT_CYAN} status='Pod Removed' />
         }
         break
       case 'description':
