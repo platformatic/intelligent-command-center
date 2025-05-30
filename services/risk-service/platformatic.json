@@ -20,5 +20,13 @@
       }
     ]
   },
+  "clients": [
+    {
+      "schema": "../../clients/risk-cold-storage/coldStorage.openapi.json",
+      "name": "coldStorage",
+      "type": "openapi",
+      "serviceId": "risk-cold-storage"
+    }
+  ],
   "watch": "{DEV_K8S}"
 }
