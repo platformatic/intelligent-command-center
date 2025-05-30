@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.16.0.json",
+  "server": {
+    "logger": {
+      "level": "{PLT_COLD_STORAGE_LOGGER_LEVEL}"
+    }
+  },
+  "db": {
+    "connectionString": "{PLT_COLD_STORAGE_DATABASE_URL}",
+    "graphql": false,
+    "openapi": true
+  },
+  "watch": {
+    "enabled": "{DEV_K8S}",
+    "ignore": [
+      "*.sqlite",
+      "*.sqlite-journal"
+    ]
+  },
+  "migrations": {
+    "dir": "migrations",
+    "autoApply": true
+  },
+  "plugins": {
+    "paths": [
+      "./plugins",
+      "./routes"
+    ],
+    "typescript": false
+  },
+  "types": {
+    "autogenerate": false
+  },
+  "clients": [
+    {
+      "schema": "../../clients/risk-service/risk-service.openapi.json",
+      "name": "riskService",
+      "type": "openapi",
+      "serviceId": "risk-service"
+    }
+  ]
+}

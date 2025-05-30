@@ -1,0 +1,5 @@
+{
+  "name": "risk-service",
+  "types": "./risk-service.d.ts",
+  "main": "./risk-service.cjs"
+}

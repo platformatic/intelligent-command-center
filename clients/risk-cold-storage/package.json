@@ -1,0 +1,5 @@
+{
+  "name": "coldStorage",
+  "types": "./coldStorage.d.ts",
+  "main": "./coldStorage.cjs"
+}
