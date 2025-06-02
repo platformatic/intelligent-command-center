@@ -5,3 +5,4 @@ CREATE DATABASE cold_storage;
 CREATE DATABASE cron;
 CREATE DATABASE compliance;
 CREATE DATABASE scaler;
+CREATE DATABASE trafficante;

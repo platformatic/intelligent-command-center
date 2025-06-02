@@ -56,7 +56,6 @@ test('should update application resources', async (t) => {
   assert.strictEqual(generationsAppConfigs.length, 1)
 
   const generation2Config = generationsAppConfigs[0]
-  assert.strictEqual(generation2Config.version, 2)
   assert.strictEqual(generation2Config.applicationId, application.id)
   assert.deepStrictEqual(generation2Config.resources, {
     threads: 12,
@@ -90,7 +89,8 @@ test('should update application resources', async (t) => {
             threads: 42
           }
         ]
-      }
+      },
+      httpCacheConfig: null
     }
   })
 })
@@ -153,8 +153,7 @@ test('should detect a new pod after updating application resources', async (t) =
     assert.strictEqual(statusCode, 200, body)
 
     const { config } = JSON.parse(body)
-    const { version, resources } = config
-    assert.strictEqual(version, 2)
+    const { resources } = config
     assert.strictEqual(resources.threads, 12)
     assert.strictEqual(resources.heap, 123)
     assert.deepStrictEqual(resources.services, [
@@ -186,7 +185,8 @@ test('should detect a new pod after updating application resources', async (t) =
             threads: 42
           }
         ]
-      }
+      },
+      httpCacheConfig: null
     }
   })
 })

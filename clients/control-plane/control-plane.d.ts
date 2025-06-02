@@ -664,6 +664,11 @@ declare namespace controlPlane {
      * @param req - request parameters object
      * @returns the API response body
      */
+    emitApplicationConfig(req: EmitApplicationConfigRequest): Promise<EmitApplicationConfigResponses>;
+    /**
+     * @param req - request parameters object
+     * @returns the API response body
+     */
     getGenerationGraph(req: GetGenerationGraphRequest): Promise<GetGenerationGraphResponses>;
     /**
      * @param req - request parameters object
@@ -3167,6 +3172,17 @@ declare namespace controlPlane {
   export type DeleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigIdResponses =
     DeleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigIdResponseOK
 
+  export type EmitApplicationConfigRequest = {
+    'id': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type EmitApplicationConfigResponseOK = object
+  export type EmitApplicationConfigResponses =
+    EmitApplicationConfigResponseOK
+
   export type GetGenerationGraphRequest = {
     'generationId'?: string;
   }
@@ -3186,7 +3202,7 @@ declare namespace controlPlane {
   /**
    * Default Response
    */
-  export type InitApplicationInstanceResponseOK = { 'applicationId': string; 'config': { 'version': number; 'resources'?: { 'threads'?: number; 'heap'?: number; 'services'?: Array<{ 'name'?: string; 'heap'?: number; 'threads'?: number }> } }; 'httpCache': { 'clientOpts'?: { 'host': string; 'port': number; 'username': string; 'password': string; 'keyPrefix': string } }; 'iccServices': Record<string, { 'url': string }> }
+  export type InitApplicationInstanceResponseOK = { 'applicationId': string; 'config': { 'resources'?: { 'threads'?: number; 'heap'?: number; 'services'?: Array<{ 'name'?: string; 'heap'?: number; 'threads'?: number }> }; 'httpCacheConfig'?: object | null }; 'httpCache': { 'clientOpts'?: { 'host': string; 'port': number; 'username': string; 'password': string; 'keyPrefix': string } }; 'iccServices': Record<string, { 'url': string }> }
   export type InitApplicationInstanceResponses =
     InitApplicationInstanceResponseOK
 

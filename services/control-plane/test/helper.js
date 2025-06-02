@@ -28,6 +28,7 @@ const defaultEnv = {
   PLT_METRICS_URL: 'http://localhost:3009',
   PLT_MAIN_SERVICE_URL: 'http://localhost:3010',
   PLT_COMPLIANCE_URL: 'http://localhost:3022',
+  PLT_TRAFFICANTE_URL: 'http://localhost:3033',
 
   PLT_CONTROL_PLANE_CACHE_PROVIDER: 'valkey-oss',
   PLT_CONTROL_PLANE_SECRET_KEYS: 'secret',
@@ -93,6 +94,12 @@ async function startControlPlane (t, entities = {}, env = {}) {
         name: 'scaler',
         type: 'openapi',
         url: process.env.PLT_SCALER_URL
+      },
+      {
+        schema: join(clientsDir, 'trafficante', 'trafficante.openapi.json'),
+        name: 'trafficante',
+        type: 'openapi',
+        url: process.env.PLT_TRAFFICANTE_URL
       }
     ],
     watch: false
@@ -121,6 +128,28 @@ async function startControlPlane (t, entities = {}, env = {}) {
         namespace,
         testCtx
       )
+    },
+    saveApplicationState: async (podId, state) => {
+      state = {
+        metadata: {
+          platformaticVersion: '1.42.0'
+        },
+        ...state
+      }
+
+      const { statusCode, body } = await app.inject({
+        method: 'POST',
+        url: `/pods/${podId}/instance/state`,
+        headers: {
+          'content-type': 'application/json',
+          'x-k8s': generateK8sHeader(podId)
+        },
+        body: state
+      })
+
+      if (statusCode !== 200) {
+        throw new Error(body)
+      }
     }
   })
 
@@ -520,6 +549,21 @@ async function startCompliance (t, opts = {}) {
   return compliance
 }
 
+async function startTrafficante (t, opts = {}) {
+  const trafficante = fastify({ keepAliveTimeout: 1 })
+
+  trafficante.get('/interceptorConfigs/', async (req) => {
+    return opts?.getInterceptorConfigs() ?? []
+  })
+
+  t.after(async () => {
+    await trafficante.close()
+  })
+
+  await trafficante.listen({ port: 3033 })
+  return trafficante
+}
+
 function generateK8sAuthContext (podId, namespace) {
   return { namespace, pod: { name: podId } }
 }
@@ -535,6 +579,7 @@ module.exports = {
   startMetrics,
   startMachinist,
   startCompliance,
+  startTrafficante,
   startScaler,
   startMainService,
   generateGeneration,
