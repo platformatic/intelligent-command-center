@@ -46,11 +46,7 @@ export const callApiUpdateRecommendationStatus = async (recommendation, newStatu
     headers: {
       'content-type': 'application/json'
     },
-    body: JSON.stringify({
-      taxonomyId: '00000000-0000-0000-0000-000000000000',
-      ...recommendation,
-      status: newStatus
-    })
+    body: JSON.stringify({ ...recommendation, status: newStatus })
   })
   const { status } = response
   const payload = await response.json()
@@ -129,11 +125,7 @@ export const callApiUpdateRecommendationRoute = async ({ recommendationId, route
 }
 
 export const callApiApplyRecommendation = async (applicationId, saveInterceptorConfig = false) => {
-  const query = {
-    applicationId,
-    taxonomyId: '00000000-0000-0000-0000-000000000000',
-    saveInterceptorConfig
-  }
+  const query = { applicationId, saveInterceptorConfig }
   const url = `${baseUrl}/recommendations/apply?${new URLSearchParams(query).toString()}`
   const response = await fetch(url, {
     method: 'POST',

@@ -8,13 +8,14 @@ export const callApiGetRecommendations = async () => {
     credentials: 'include'
   })
   const { status } = response
-  const json = await response.json()
 
   if (status !== 200) {
     const error = await response.text()
     console.error(`Failed to get recommendations: ${error}`)
     throw new Error(`Failed to get recommendations : ${error}`)
   }
+
+  const json = await response.json()
   return json
 }
 

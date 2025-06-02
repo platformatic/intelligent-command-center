@@ -597,6 +597,31 @@ importers:
         specifier: ^17.1.2
         version: 17.1.2
 
+  services/trafficante:
+    dependencies:
+      '@fastify/env':
+        specifier: ^5.0.1
+        version: 5.0.2
+      '@fastify/error':
+        specifier: ^4.0.0
+        version: 4.1.0
+      '@fastify/redis':
+        specifier: ^7.0.1
+        version: 7.0.2
+      fastify-plugin:
+        specifier: ^5.0.1
+        version: 5.0.1
+    devDependencies:
+      '@platformatic/db':
+        specifier: ^2.51.0
+        version: 2.66.0
+      borp:
+        specifier: ^0.19.0
+        version: 0.19.0
+      standard:
+        specifier: ^17.1.2
+        version: 17.1.2
+
   services/user-manager:
     dependencies:
       '@fastify/cookie':
