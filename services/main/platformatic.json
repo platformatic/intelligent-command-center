@@ -81,6 +81,12 @@
         "proxy": {
           "prefix": "risk-cold-storage"
         }
+      },
+      {
+        "id": "trafficante",
+        "proxy": {
+          "prefix": "trafficante"
+        }
       }
     ]
   },

@@ -552,9 +552,6 @@
       "applicationInstanceConfig": {
         "type": "object",
         "properties": {
-          "version": {
-            "type": "integer"
-          },
           "resources": {
             "type": "object",
             "properties": {
@@ -583,11 +580,13 @@
                 }
               }
             }
+          },
+          "httpCacheConfig": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
           }
-        },
-        "required": [
-          "version"
-        ]
+        }
       }
     }
   },
@@ -15985,6 +15984,34 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GenerationsApplicationsConfig"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/applications/{id}/config": {
+      "patch": {
+        "operationId": "emitApplicationConfig",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false
                 }
               }
             }

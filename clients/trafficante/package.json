@@ -1,0 +1,5 @@
+{
+  "name": "trafficante",
+  "types": "./trafficante.d.ts",
+  "main": "./trafficante.cjs"
+}

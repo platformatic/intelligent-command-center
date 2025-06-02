@@ -26,6 +26,12 @@
       "name": "coldStorage",
       "type": "openapi",
       "serviceId": "risk-cold-storage"
+    },
+    {
+      "schema": "../../clients/trafficante/trafficante.openapi.json",
+      "name": "trafficante",
+      "type": "openapi",
+      "serviceId": "trafficante"
     }
   ],
   "watch": "{DEV_K8S}"

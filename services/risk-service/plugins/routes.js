@@ -84,7 +84,7 @@ async function plugin (fastify) {
       .map(result => result.urlRoute)
 
     if (changedRoutes.length > 0 && ctx) {
-      // await ctx.req.trafficante.saveUrlsRoutes({ routes: changedRoutes })
+      await ctx.req.trafficante.saveUrlsRoutes({ routes: changedRoutes })
     }
   })
 

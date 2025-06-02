@@ -11,7 +11,6 @@ module.exports = fp(async function (app) {
     $id: 'applicationInstanceConfig',
     type: 'object',
     properties: {
-      version: { type: 'integer' },
       resources: {
         type: 'object',
         properties: {
@@ -30,9 +29,13 @@ module.exports = fp(async function (app) {
             }
           }
         }
+      },
+      httpCacheConfig: {
+        type: 'object',
+        nullable: true,
+        additionalProperties: true
       }
-    },
-    required: ['version']
+    }
   })
 
   app.post('/pods/:podId/instance', {

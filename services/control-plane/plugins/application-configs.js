@@ -63,9 +63,9 @@ const plugin = fp(async function (app) {
 
     let newApplicationConfig = null
     await app.getGenerationLockTx(async (tx) => {
-      ctx = { ...ctx, tx }
+      const newCtx = { ...ctx, tx }
 
-      const applicationConfig = await app.getApplicationConfig(application, ctx)
+      const applicationConfig = await app.getApplicationConfig(application, newCtx)
 
       await app.createGeneration(async () => {
         newApplicationConfig = await app.platformatic.entities.applicationsConfig.save({
@@ -77,18 +77,56 @@ const plugin = fp(async function (app) {
           tx
         })
         ctx.logger.info({ config: newApplicationConfig }, 'Saved new application config')
-      }, ctx)
+      }, newCtx)
     }, ctx)
 
+    await app.emitWattproConfig(application, ctx)
+  })
+
+  app.decorate('getWattproConfig', async (application, ctx) => {
+    const [config, httpCacheConfig] = await Promise.all([
+      app.getApplicationConfig(application, ctx),
+      app.getHttpCacheConfig(application, ctx)
+    ])
+    return { resources: config.resources, httpCacheConfig }
+  })
+
+  app.decorate('emitWattproConfig', async (application, ctx) => {
+    const wattproConfig = await app.getWattproConfig(application, ctx)
     await app.emitUpdate(`applications/${application.id}`, {
       topic: 'config',
       type: 'config-updated',
-      data: {
-        resources: newApplicationConfig.resources
-      }
+      data: wattproConfig
     }).catch((err) => {
       ctx.logger.error({ err }, 'Failed to send notification to app instance')
     })
+  })
+
+  app.decorate('getHttpCacheConfig', async (application, ctx) => {
+    try {
+      const cacheConfigs = await ctx.req.trafficante.getInterceptorConfigs({
+        'where.applicationId.eq': application.id,
+        'where.applied.eq': true,
+        'orderby.createdAt': 'desc',
+        limit: 1
+      })
+
+      if (cacheConfigs.error) {
+        ctx.logger.error({ error: cacheConfigs }, 'Failed to get cache config')
+        return null
+      }
+
+      if (cacheConfigs.length === 0) {
+        ctx.logger.error('No cache config found')
+        return null
+      }
+
+      const cacheConfig = cacheConfigs[0].config
+      return cacheConfig
+    } catch (error) {
+      ctx.logger.error({ error }, 'Failed to get cache config')
+      return null
+    }
   })
 }, {
   name: 'application-config',
