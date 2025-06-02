@@ -173,9 +173,9 @@ const bootstrap = async function bootstrap (t, serverOverrides = {}, env = {}) {
   })
 
   server.addHook('onRequest', function (req, reply, done) {
-    // req.trafficante = {
-    //   saveUrlsRoutes: async () => ({ ok: true })
-    // }
+    req.trafficante = {
+      saveUrlsRoutes: async () => ({ ok: true })
+    }
     done()
   })
 

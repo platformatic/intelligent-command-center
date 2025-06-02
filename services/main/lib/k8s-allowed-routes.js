@@ -4,7 +4,6 @@
 const k8sAllowedRoutes = [
   // wattpro (zio) called routes
   ['/risk-cold-storage/sync', ['GET']],
-  ['/trafficante/requests', ['POST']],
   ['/cron/watt-jobs', ['PUT']],
   ['/risk-service/dump', '*'],
   ['/risk-manager/db-schema', ['POST']],

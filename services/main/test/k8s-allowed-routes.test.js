@@ -28,7 +28,6 @@ test('isUrlAllowed handles URLs with query parameters correctly', async (t) => {
 test('isUrlAllowed handles exact path matches correctly', async (t) => {
   const validRequests = [
     createMockRequest('/risk-cold-storage/sync', 'GET'),
-    createMockRequest('/trafficante/requests', 'POST'),
     createMockRequest('/cron/watt-jobs', 'PUT'),
     createMockRequest('/risk-service/dump', 'DELETE'),
     createMockRequest('/risk-manager/db-schema', 'POST'),
@@ -42,7 +41,6 @@ test('isUrlAllowed handles exact path matches correctly', async (t) => {
 
   const invalidMethodRequests = [
     createMockRequest('/risk-cold-storage/sync', 'POST'),
-    createMockRequest('/trafficante/requests', 'GET'),
     createMockRequest('/cron/watt-jobs', 'POST'),
     createMockRequest('/risk-manager/db-schema', 'GET'),
     createMockRequest('/compliance/metadata', 'GET'),

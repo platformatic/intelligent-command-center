@@ -130,7 +130,7 @@ module.exports = fp(async function (app) {
     }
 
     const [config, httpCacheClientOpts] = await Promise.all([
-      app.getApplicationConfig(application, ctx),
+      app.getWattproConfig(application, ctx),
       app.getValkeyClientOpts(application.id, ctx)
     ])
 

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.50.0.json",
+  "server": {
+    "logger": {
+      "level": "{PLT_TRAFFICANTE_LOGGER_LEVEL}"
+    },
+    "pluginTimeout": 60000
+  },
+  "db": {
+    "connectionString": "{PLT_TRAFFICANTE_DATABASE_URL}",
+    "openapi": {
+      "ignoreRoutes": [
+        { "method": "POST", "path": "/recommendations"},
+        { "method": "POST", "path": "/requests"}
+      ]
+    },
+    "events": false,
+    "schemalock": true,
+    "limit": {
+      "default": 100,
+      "max": 1000
+    }
+  },
+  "migrations": {
+    "dir": "migrations",
+    "autoApply": true
+  },
+  "types": {
+    "autogenerate": true
+  },
+  "plugins": {
+    "paths": [
+      "./plugins",
+      "./routes"
+    ],
+    "typescript": false
+  },
+  "clients": [
+    {
+      "schema": "../../clients/control-plane/control-plane.openapi.json",
+      "name": "controlPlane",
+      "type": "openapi",
+      "serviceId": "control-plane"
+    }
+  ],
+  "watch": "{DEV_K8S}"
+}

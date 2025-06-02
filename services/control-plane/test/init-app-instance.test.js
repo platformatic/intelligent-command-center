@@ -10,6 +10,7 @@ const {
   startMachinist,
   startMainService,
   startCompliance,
+  startTrafficante,
   startScaler,
   generateK8sHeader
 } = require('./helper')
@@ -71,11 +72,11 @@ test('should save an instance of a new application', async (t) => {
 
   const { applicationId, config, httpCache, iccServices } = JSON.parse(body)
 
-  const { version, resources } = config
-  assert.strictEqual(version, 1)
+  const { resources, httpCacheConfig } = config
   assert.strictEqual(resources.threads, 1)
   assert.strictEqual(resources.heap, 1024)
   assert.deepStrictEqual(resources.services, [])
+  assert.strictEqual(httpCacheConfig, null)
 
   assert.strictEqual(httpCache.clientOpts.host, 'localhost')
   assert.strictEqual(httpCache.clientOpts.port, 6342)
@@ -238,6 +239,17 @@ test('should save a new app instance with the same image', async (t) => {
     getPodDetails: (podId) => ({ image: imageId })
   })
 
+  let interceptorConfig = null
+  await startTrafficante(t, {
+    getInterceptorConfigs: () => {
+      const configs = []
+      if (interceptorConfig) {
+        configs.push(interceptorConfig)
+      }
+      return configs
+    }
+  })
+
   const controlPlane = await startControlPlane(t)
 
   const {
@@ -260,6 +272,19 @@ test('should save a new app instance with the same image', async (t) => {
     'test-pod-2'
   )
 
+  interceptorConfig = {
+    applicationId: application1.id,
+    applied: true,
+    config: {
+      rules: [{
+        routeToMatch: 'http://testcom/products/:id',
+        headers: {
+          'cache-control': 'public, max-age=60'
+        }
+      }]
+    }
+  }
+
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
     url: `/pods/${podId}/instance`,
@@ -274,11 +299,11 @@ test('should save a new app instance with the same image', async (t) => {
 
   const { applicationId, config } = JSON.parse(body)
 
-  const { version, resources } = config
-  assert.strictEqual(version, 1)
+  const { resources, httpCacheConfig } = config
   assert.strictEqual(resources.threads, 1)
   assert.strictEqual(resources.heap, 1024)
   assert.deepStrictEqual(resources.services, [])
+  assert.deepStrictEqual(httpCacheConfig, interceptorConfig.config)
 
   const { entities } = controlPlane.platformatic
 
@@ -422,8 +447,7 @@ test('should detect the same pod with the same image', async (t) => {
 
   const { applicationId, config } = JSON.parse(body)
 
-  const { version, resources } = config
-  assert.strictEqual(version, 1)
+  const { resources } = config
   assert.strictEqual(resources.threads, 1)
   assert.strictEqual(resources.heap, 1024)
   assert.deepStrictEqual(resources.services, [])
@@ -529,8 +553,7 @@ test('should save an app instance with a different image', async (t) => {
 
   const { applicationId, config } = JSON.parse(body)
 
-  const { version, resources } = config
-  assert.strictEqual(version, 1)
+  const { resources } = config
   assert.strictEqual(resources.threads, 1)
   assert.strictEqual(resources.heap, 1024)
   assert.deepStrictEqual(resources.services, [])
