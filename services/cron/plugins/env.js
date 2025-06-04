@@ -12,7 +12,7 @@ const schema = {
     // comma separated list of internal schedulers. Emypty string means no schedulers (useful for tests)
     // PLT_CRON_ICC_JOBS: { type: 'string', default: 'RISK_SERVICE_DUMP, SYNC' },
     // We activate ony the risk service dump and sync jobs for the time being.
-    PLT_CRON_ICC_JOBS: { type: 'string', default: 'RISK_SERVICE_DUMP' },
+    PLT_CRON_ICC_JOBS: { type: 'string', default: 'RISK_SERVICE_DUMP, FFC_RECOMMENDER, TRAFFICANTE' },
     // PLT_CRON_ICC_JOBS: { type: 'string', default: 'RISK_SERVICE_DUMP, FFC_RECOMMENDER, TRAFFICANTE, SYNC' }
 
     // Risk Service

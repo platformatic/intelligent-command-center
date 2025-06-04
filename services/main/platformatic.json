@@ -87,6 +87,12 @@
         "proxy": {
           "prefix": "trafficante"
         }
+      },
+      {
+        "id": "cluster-manager",
+        "proxy": {
+          "prefix": "cluster-manager"
+        }
       }
     ]
   },
