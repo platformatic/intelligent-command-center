@@ -1,0 +1,23 @@
+{
+  "name": "cluster-manager",
+  "scripts": {
+    "start": "platformatic start",
+    "test": "npm run lint && borp --concurrency 1 --timeout=60000",
+    "lint": "standard ."
+  },
+  "devDependencies": {
+    "borp": "^0.19.0",
+    "fastify": "^5.2.1",
+    "standard": "^17.1.2"
+  },
+  "dependencies": {
+    "@fastify/error": "^4.0.0",
+    "@platformatic/db": "^2.50.0",
+    "@platformatic/service-grouping": "^3.0.4",
+    "fastify-plugin": "^5.0.1",
+    "undici": "^7.1.0"
+  },
+  "engines": {
+    "node": "^18.8.0 || >=20.6.0"
+  }
+}

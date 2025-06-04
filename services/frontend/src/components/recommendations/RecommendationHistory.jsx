@@ -12,7 +12,7 @@ import Paginator from '../ui/Paginator'
 import StatusPill from './StatusPill'
 import DetailView from './DetailView'
 import NoDataFound from '~/components/ui/NoDataFound'
-// import { callApiGetRecommendations } from '../../api/recommendations'
+import { callApiGetRecommendations } from '../../api/recommendations'
 import { callApiGetCacheRecommendations, callApiUpdateRecommendationStatus, callApiTriggerTrafficante } from '../../api/cache-recommendations'
 
 /** @typedef Recommendation
@@ -91,21 +91,19 @@ export default function RecommendationsHistory () {
     })
   }
 
-  // async function getSystemRecommendations () {
-  //   const systemRecommendations = await callApiGetRecommendations()
-  //   return systemRecommendations.map((r) => {
-  //     return { ...r, type: 'system' }
-  //   })
-  // }
+  async function getSystemRecommendations () {
+    const systemRecommendations = await callApiGetRecommendations()
+    return systemRecommendations.map((r) => {
+      return { ...r, type: 'system' }
+    })
+  }
 
   async function getRecommendationsHistory () {
     setInnerLoading(false)
-    // TODO: uncomment when system recommendations are implemented
-    // const systemRecommendations = await getSystemRecommendations()
+    const systemRecommendations = await getSystemRecommendations()
     const cacheRecommendations = await getCacheRecommendations()
 
-    // const allRecommendations = [...systemRecommendations, ...cacheRecommendations]
-    const allRecommendations = [...cacheRecommendations]
+    const allRecommendations = [...systemRecommendations, ...cacheRecommendations]
 
     // sort by createdAt descending
     allRecommendations.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
