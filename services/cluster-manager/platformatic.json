@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.25.0.json",
+  "server": {
+    "logger": {
+      "level": "info"
+    },
+    "maxParamLength": 1000,
+    "pluginTimeout": 60000
+  },
+  "db": {
+    "connectionString": "{PLT_CLUSTER_MANAGER_DATABASE_URL}",
+    "openapi": true,
+    "schemalock": true
+  },
+  "migrations": {
+    "dir": "migrations",
+    "autoApply": true
+  },
+  "plugins": {
+    "paths": ["./plugins", "./routes"]
+  },
+  "clients": [
+    {
+      "schema": "../../clients/control-plane/control-plane.openapi.json",
+      "name": "controlPlane",
+      "type": "openapi",
+      "serviceId": "control-plane"
+    },
+    {
+      "schema": "../../clients/metrics/metrics.openapi.json",
+      "name": "metrics",
+      "type": "openapi",
+      "serviceId": "metrics"
+    },
+    {
+      "schema": "../../clients/risk-service/risk-service.openapi.json",
+      "name": "riskService",
+      "type": "openapi",
+      "serviceId": "risk-service"
+    }
+  ],
+  "watch": "{DEV_K8S}"
+}

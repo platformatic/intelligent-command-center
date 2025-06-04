@@ -1,7 +1,7 @@
 const baseUrl = `${import.meta.env.VITE_API_BASE_URL}`
 
 export const callApiGetRecommendations = async () => {
-  const query = { 'orderby.createdAt': 'DESC' }
+  const query = { 'orderby.createdAt': 'desc' }
   const url = `${baseUrl}/cluster-manager/recommendations`
   const response = await fetch(`${url}?${new URLSearchParams(query).toString()}`, {
     method: 'GET',
