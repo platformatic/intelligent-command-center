@@ -29,7 +29,7 @@ importers:
     devDependencies:
       '@platformatic/config':
         specifier: ^2.50.0
-        version: 2.66.1
+        version: 2.69.0
       '@platformatic/runtime':
         specifier: ^2.50.0
         version: 2.69.0
