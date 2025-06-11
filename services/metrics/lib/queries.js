@@ -56,11 +56,11 @@ const createEventLoopPodQuery = ({ podId }) =>
 const createRequestLatencyQuery = ({ applicationId, timeWindow }) =>
   `avg(
     (
-      rate(http_request_duration_seconds_sum[${timeWindow}])
+      rate(http_request_all_duration_seconds_sum[${timeWindow}])
       * on(pod) group_left(label_platformatic_dev_application_id)
       kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
     ) / (
-      rate(http_request_duration_seconds_count[${timeWindow}])
+      rate(http_request_all_duration_seconds_count[${timeWindow}])
       * on(pod) group_left(label_platformatic_dev_application_id)
       kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
     ) > 0
@@ -68,7 +68,7 @@ const createRequestLatencyQuery = ({ applicationId, timeWindow }) =>
 
 const createRequestPerSecondQuery = ({ applicationId, timeWindow }) =>
   `avg(
-    rate(http_request_summary_seconds_count[${timeWindow}])
+    rate(http_request_all_summary_seconds_count[${timeWindow}])
     * on(pod) group_left(label_platformatic_dev_application_id)
     kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"} > 0
   )`

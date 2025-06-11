@@ -4,17 +4,17 @@ const { queryPrometheus } = require('./prom')
 
 const createMaxServiceCount = ({ timeWindow, offset = '1ms' }) =>
   'sum by (applicationId, serviceId, telemetry_id) ' +
-  `(max_over_time(http_request_duration_seconds_count[${timeWindow}] offset ${offset}))`
+  `(max_over_time(http_request_all_duration_seconds_count[${timeWindow}] offset ${offset}))`
 
 const createMaxServiceLatency = ({ timeWindow, offset = '1ms' }) =>
   'sum by (applicationId, serviceId, telemetry_id) ' +
-  `(max_over_time(http_request_duration_seconds_sum[${timeWindow}] offset ${offset}))`
+  `(max_over_time(http_request_all_duration_seconds_sum[${timeWindow}] offset ${offset}))`
 
 const createAvgCountServiceQuery = ({ timeWindow }) =>
-  `avg(sum by (applicationId, serviceId) (increase(http_request_duration_seconds_count[${timeWindow}])))`
+  `avg(sum by (applicationId, serviceId) (increase(http_request_all_duration_seconds_count[${timeWindow}])))`
 
 const createLatencyQuery = ({ quantile, timeWindow }) =>
-  `histogram_quantile(${quantile}, sum(rate(http_request_duration_seconds_bucket[${timeWindow}])) by (le))`
+  `histogram_quantile(${quantile}, sum(rate(http_request_all_duration_seconds_bucket[${timeWindow}])) by (le))`
 
 const getServicesMetrics = async (applications, options) => {
   const timeWindow = getTimeWindow(options)
