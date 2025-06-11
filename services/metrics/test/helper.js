@@ -94,18 +94,18 @@ async function startPrometheusK8s (t, applicationId) {
   const requestLatencyQuery = sanitizePromQuery(`
     avg(
     (
-      rate(http_request_duration_seconds_sum[1m])
+      rate(http_request_all_duration_seconds_sum[1m])
       * on(pod) group_left(label_platformatic_dev_application_id)
       kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
     ) / (
-      rate(http_request_duration_seconds_count[1m])
+      rate(http_request_all_duration_seconds_count[1m])
       * on(pod) group_left(label_platformatic_dev_application_id)
       kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
     ) > 0
   )`)
 
   const requestPerSecondQuery = sanitizePromQuery(`avg(
-    rate(http_request_summary_seconds_count[5m])
+    rate(http_request_all_summary_seconds_count[5m])
     * on(pod) group_left(label_platformatic_dev_application_id)
     kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"} > 0
   )`)
@@ -189,7 +189,7 @@ async function startPrometheus (t, machineId) {
       value = 0.5
     } else if (query.includes('nodejs_eventloop_utilization')) {
       value = 0.461803
-    } else if (query.includes('http_request_duration_seconds_sum')) {
+    } else if (query.includes('http_request_all_duration_seconds_sum')) {
       if (query.includes('1y')) {
         value = 0.123
       } else {
@@ -207,7 +207,7 @@ async function startPrometheus (t, machineId) {
       } else {
         value = 0
       }
-    } else if (query.includes('http_request_duration_seconds_count')) {
+    } else if (query.includes('http_request_all_duration_seconds_count')) {
       if (query.includes('1y')) {
         value = 555
       } else {

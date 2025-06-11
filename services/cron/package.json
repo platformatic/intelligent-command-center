@@ -10,11 +10,11 @@
     "snazzy": "^9.0.0",
     "standard": "^17.1.2",
     "@matteo.collina/tspl": "^0.2.0",
-    "platformatic": "^2.50.0"
+    "platformatic": "^2.70.0"
   },
   "dependencies": {
-    "@platformatic/config": "^2.50.0",
-    "@platformatic/db": "^2.50.0",
+    "@platformatic/config": "^2.70.0",
+    "@platformatic/db": "^2.70.0",
     "@databases/pg": "^5.5.0",
     "@fastify/env": "^5.0.1",
     "@fastify/error": "^4.0.0",
