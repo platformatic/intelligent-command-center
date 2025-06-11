@@ -6,7 +6,7 @@
     "lint": "standard ."
   },
   "devDependencies": {
-    "borp": "^0.19.0",
+    "borp": "^0.20.0",
     "fastify": "^5.2.1",
     "standard": "^17.1.2"
   },
