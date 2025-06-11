@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@fastify/error": "^4.0.0",
-    "@platformatic/db": "^2.50.0",
+    "@platformatic/db": "^2.70.0",
     "@platformatic/service-grouping": "^3.0.4",
     "fastify-plugin": "^5.0.1",
     "undici": "^7.1.0"

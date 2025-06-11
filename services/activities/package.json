@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@fastify/error": "^4.0.0",
-    "@platformatic/db": "^2.59.0"
+    "@platformatic/db": "^2.70.0"
   },
   "engines": {
     "node": "^18.8.0 || >=20.6.0"
