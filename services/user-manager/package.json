@@ -9,7 +9,7 @@
     "fastify": "^5.2.1"
   },
   "dependencies": {
-    "@platformatic/db": "^2.59.0",
+    "@platformatic/db": "^2.70.0",
     "@fastify/secure-session": "^8.1.0",
     "@fastify/cookie": "^11.0.0",
     "@fastify/env": "^5.0.1",
