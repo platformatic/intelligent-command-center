@@ -6,43 +6,63 @@ const test = require('node:test')
 const assert = require('node:assert')
 const path = require('node:path')
 const fs = require('node:fs')
-const ScalingAlgorithm = require('../../../lib/scaling-algorithm')
+const ReactiveScalingAlgorithm = require('../../../lib/reactive-scaling-algorithm')
+const Store = require('../../../lib/store')
+const { valkeyConnectionString } = require('../../helper')
 
-function createMockStore () {
-  const redisData = new Map()
-
+function createMockLog () {
+  const logs = []
   return {
-    redis: {
-      get: async (key) => redisData.get(key),
-      set: async (key, value) => redisData.set(key, value),
-      keys: async (pattern) => {
-        const result = []
-        const regex = new RegExp(pattern.replace('*', '.*'))
-        for (const key of redisData.keys()) {
-          if (regex.test(key)) {
-            result.push(key)
-          }
+    info: (data, msg) => logs.push({ level: 'info', data, msg }),
+    debug: (data, msg) => logs.push({ level: 'debug', data, msg }),
+    warn: (data, msg) => logs.push({ level: 'warn', data, msg }),
+    error: (data, msg) => logs.push({ level: 'error', data, msg }),
+    getLogs: () => logs
+  }
+}
+
+function createMockApp (store, log, metrics) {
+  return {
+    store,
+    log,
+    scalerMetrics: metrics,
+    platformatic: {
+      entities: {
+        performanceHistory: {
+          find: async () => [],
+          save: async () => {}
         }
-        return result
-      },
-      mget: async (keys) => keys.map(key => redisData.get(key))
+      }
     }
   }
 }
 
-function createMockLog () {
-  return {
-    info: () => {},
-    debug: () => {},
-    warn: () => {},
-    error: () => {}
+async function setupStore (t) {
+  const store = new Store(valkeyConnectionString, createMockLog())
+
+  // Clean up before test
+  const keys = await store.redis.keys('scaler:*')
+  if (keys.length > 0) {
+    await store.redis.del(keys)
   }
+
+  // Register cleanup after test
+  t.after(async () => {
+    const keys = await store.redis.keys('scaler:*')
+    if (keys.length > 0) {
+      await store.redis.del(keys)
+    }
+    await store.close()
+  })
+
+  return store
 }
 
 test('algorithm processes real alert structure correctly', async (t) => {
-  const store = createMockStore()
+  const store = await setupStore(t)
   const log = createMockLog()
-  const algorithm = new ScalingAlgorithm(store, log)
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   await store.redis.set('scaler:last-scaling:test-app-alert', (Date.now() - 600000).toString())
 
@@ -117,6 +137,7 @@ test('algorithm processes real alert structure correctly', async (t) => {
   // With ELU at 99.67%, this should trigger scaling
   if (realAlerts[0].elu > 0.95) {
     assert.ok(result.nfinal > currentPodCount, 'Should scale up due to very high ELU (>95%)')
+    assert.strictEqual(result.reason, 'Scaling up for high utilization', 'Should have correct reason for scale up')
   }
 
   console.log('=================================')

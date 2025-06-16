@@ -6,9 +6,7 @@ const { randomUUID } = require('node:crypto')
 const { setTimeout } = require('node:timers/promises')
 const Store = require('../../lib/store')
 const { valkeyConnectionString } = require('../helper')
-
-const PREFIX = 'scaler:'
-const ALERTS_PREFIX = `${PREFIX}alerts:`
+const { ALERTS_PREFIX } = require('../../lib/store-constants')
 
 async function setup (t) {
   const mockLogger = {
@@ -360,4 +358,83 @@ test('saveAlert - saves alert with healthHistory array', async (t) => {
   assert.strictEqual(savedAlert.healthHistory[1].id, healthHistory[1].id, 'healthHistory items should match')
   assert.strictEqual(savedAlert.healthHistory[0].currentHealth.elu, healthHistory[0].currentHealth.elu, 'healthHistory details should match')
   assert.strictEqual(savedAlert.healthHistory[1].unhealthy, healthHistory[1].unhealthy, 'healthHistory unhealthy flag should match')
+})
+
+test('loadPerfHistory returns empty array when no data exists', async (t) => {
+  const store = await setup(t)
+  const history = await store.loadPerfHistory('app-1')
+  assert.deepStrictEqual(history, [])
+})
+
+test('savePerfHistory and loadPerfHistory store and retrieve data correctly', async (t) => {
+  const store = await setup(t)
+  const testHistory = [
+    { timestamp: 1620000000, podsAdded: 1, preEluMean: 0.8 },
+    { timestamp: 1620000600, podsAdded: 2, preEluMean: 0.9 }
+  ]
+
+  await store.savePerfHistory('app-1', testHistory)
+  const loadedHistory = await store.loadPerfHistory('app-1')
+
+  assert.deepStrictEqual(loadedHistory, testHistory)
+})
+
+test('addPerfHistoryEvent trims history to maxHistoryEvents', async (t) => {
+  const store = await setup(t)
+  const maxHistoryEvents = 3
+
+  for (let i = 1; i <= 5; i++) {
+    await store.addPerfHistoryEvent('app-1', {
+      timestamp: 1620000000 + i * 100,
+      podsAdded: i
+    }, maxHistoryEvents)
+  }
+
+  const history = await store.loadPerfHistory('app-1')
+
+  assert.strictEqual(history.length, 3)
+  assert.strictEqual(history[0].podsAdded, 5)
+  assert.strictEqual(history[1].podsAdded, 4)
+  assert.strictEqual(history[2].podsAdded, 3)
+})
+
+test('loadClusters returns empty array when no data exists', async (t) => {
+  const store = await setup(t)
+  const clusters = await store.loadClusters('app-1')
+  assert.deepStrictEqual(clusters, [])
+})
+
+test('saveClusters and loadClusters store and retrieve data correctly', async (t) => {
+  const store = await setup(t)
+  const testClusters = [
+    {
+      eluMean: 0.8,
+      heapMean: 0.7,
+      eluTrendMean: 0.05,
+      heapTrendMean: 0.03,
+      performanceScore: 0.9,
+      weight: 1
+    }
+  ]
+
+  await store.saveClusters('app-1', testClusters)
+  const loadedClusters = await store.loadClusters('app-1')
+
+  assert.deepStrictEqual(loadedClusters, testClusters)
+})
+
+test('getLastScalingTime returns 0 when no data exists', async (t) => {
+  const store = await setup(t)
+  const time = await store.getLastScalingTime('app-1')
+  assert.strictEqual(time, 0)
+})
+
+test('saveLastScalingTime and getLastScalingTime store and retrieve data correctly', async (t) => {
+  const store = await setup(t)
+  const testTime = 1620000000
+
+  await store.saveLastScalingTime('app-1', testTime)
+  const loadedTime = await store.getLastScalingTime('app-1')
+
+  assert.strictEqual(loadedTime, testTime)
 })

@@ -31,6 +31,10 @@ async function getConfig () {
           path: '/controllers'
         }
       ]
+    },
+    limit: {
+      default: 100,
+      max: 1000
     }
   }
 
@@ -111,6 +115,9 @@ async function buildServerWithPlugins (t, options = {}, plugins = []) {
 
 async function cleanDb (app) {
   const { db, sql } = app.platformatic
+  try {
+    await db.query(sql`DELETE FROM "performance_history"`)
+  } catch (err) {}
   try {
     await db.query(sql`DELETE FROM "scale_events"`)
   } catch (err) {}

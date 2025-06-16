@@ -4,36 +4,55 @@ process.env.SKIP_POST_SCALING_EVALUATION = 'true'
 
 const test = require('node:test')
 const assert = require('node:assert')
-const ScalingAlgorithm = require('../../lib/scaling-algorithm')
+const ReactiveScalingAlgorithm = require('../../lib/reactive-scaling-algorithm')
+const {
+  calculateTrend,
+  calculateVariability,
+  getPerformanceSuccessScore,
+  calculateEluScore,
+  processPodMetrics,
+  updateClusters
+} = require('../../lib/scaling-algorithm-utils')
+const Store = require('../../lib/store')
+const { valkeyConnectionString } = require('../helper')
 
-function createMockStore () {
-  const redisData = new Map()
-
+function createMockLog () {
+  const logs = []
   return {
-    redis: {
-      get: async (key) => redisData.get(key),
-      set: async (key, value) => redisData.set(key, value),
-      keys: async (pattern) => {
-        const result = []
-        const regex = new RegExp(pattern.replace('*', '.*'))
-        for (const key of redisData.keys()) {
-          if (regex.test(key)) {
-            result.push(key)
-          }
-        }
-        return result
-      },
-      mget: async (keys) => keys.map(key => redisData.get(key))
-    }
+    info: (data, msg) => logs.push({ level: 'info', data, msg }),
+    debug: (data, msg) => logs.push({ level: 'debug', data, msg }),
+    warn: (data, msg) => logs.push({ level: 'warn', data, msg }),
+    error: (data, msg) => logs.push({ level: 'error', data, msg }),
+    getLogs: () => logs
   }
 }
 
-function createMockLog () {
+async function setupStore (t) {
+  const store = new Store(valkeyConnectionString, createMockLog())
+
+  // Clean up before test
+  const keys = await store.redis.keys('scaler:*')
+  if (keys.length > 0) {
+    await store.redis.del(keys)
+  }
+
+  // Register cleanup after test
+  t.after(async () => {
+    const keys = await store.redis.keys('scaler:*')
+    if (keys.length > 0) {
+      await store.redis.del(keys)
+    }
+    await store.close()
+  })
+
+  return store
+}
+
+function createMockApp (store, log, metrics) {
   return {
-    info: () => {},
-    debug: () => {},
-    warn: () => {},
-    error: () => {}
+    store,
+    log,
+    scalerMetrics: metrics
   }
 }
 
@@ -60,11 +79,12 @@ function createMockMetrics () {
   }
 }
 
-test('ScalingAlgorithm constructor initializes with default options', async (t) => {
-  const store = createMockStore()
+test('ReactiveScalingAlgorithm constructor initializes with default options', async (t) => {
+  const store = await setupStore(t)
   const log = createMockLog()
+  const app = createMockApp(store, log)
 
-  const algorithm = new ScalingAlgorithm(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   assert.strictEqual(algorithm.maxHistoryEvents, 10)
   assert.strictEqual(algorithm.maxClusters, 5)
@@ -72,9 +92,10 @@ test('ScalingAlgorithm constructor initializes with default options', async (t) 
   assert.strictEqual(algorithm.heapThreshold, 0.85)
 })
 
-test('ScalingAlgorithm constructor initializes with custom options', async (t) => {
-  const store = createMockStore()
+test('ReactiveScalingAlgorithm constructor initializes with custom options', async (t) => {
+  const store = await setupStore(t)
   const log = createMockLog()
+  const app = createMockApp(store, log)
 
   const options = {
     maxHistoryEvents: 15,
@@ -86,7 +107,7 @@ test('ScalingAlgorithm constructor initializes with custom options', async (t) =
     maxPodsDefault: 20
   }
 
-  const algorithm = new ScalingAlgorithm(store, log, options)
+  const algorithm = new ReactiveScalingAlgorithm(app, options)
 
   assert.strictEqual(algorithm.maxHistoryEvents, 15)
   assert.strictEqual(algorithm.maxClusters, 3)
@@ -97,77 +118,37 @@ test('ScalingAlgorithm constructor initializes with custom options', async (t) =
   assert.strictEqual(algorithm.maxPodsDefault, 20)
 })
 
-test('loadPerfHistory returns empty array when no data exists', async (t) => {
-  const store = createMockStore()
-  const log = createMockLog()
-
-  const algorithm = new ScalingAlgorithm(store, log)
-  const history = await algorithm.loadPerfHistory('app-1')
-
-  assert.deepStrictEqual(history, [])
-})
-
-test('savePerfHistory and loadPerfHistory store and retrieve data correctly', async (t) => {
-  const store = createMockStore()
-  const log = createMockLog()
-
-  const algorithm = new ScalingAlgorithm(store, log)
-  const testHistory = [
-    { timestamp: 1620000000, podsAdded: 1, preEluMean: 0.8 },
-    { timestamp: 1620000600, podsAdded: 2, preEluMean: 0.9 }
-  ]
-
-  await algorithm.savePerfHistory('app-1', testHistory)
-  const loadedHistory = await algorithm.loadPerfHistory('app-1')
-
-  assert.deepStrictEqual(loadedHistory, testHistory)
-})
-
 test('calculateTrend computes linear trend correctly', async (t) => {
-  const store = createMockStore()
-  const log = createMockLog()
+  assert.strictEqual(calculateTrend([0.5, 0.5, 0.5, 0.5]), 0)
 
-  const algorithm = new ScalingAlgorithm(store, log)
-
-  assert.strictEqual(algorithm.calculateTrend([0.5, 0.5, 0.5, 0.5]), 0)
-
-  const positiveTrend = algorithm.calculateTrend([0.1, 0.2, 0.3, 0.4])
+  const positiveTrend = calculateTrend([0.1, 0.2, 0.3, 0.4])
   assert.ok(positiveTrend > 0)
   assert.ok(Math.abs(positiveTrend - 0.1) < 0.0001)
 
-  const negativeTrend = algorithm.calculateTrend([0.4, 0.3, 0.2, 0.1])
+  const negativeTrend = calculateTrend([0.4, 0.3, 0.2, 0.1])
   assert.ok(negativeTrend < 0)
   assert.ok(Math.abs(negativeTrend + 0.1) < 0.0001)
 
-  assert.strictEqual(algorithm.calculateTrend([]), 0)
-  assert.strictEqual(algorithm.calculateTrend([0.5]), 0)
+  assert.strictEqual(calculateTrend([]), 0)
+  assert.strictEqual(calculateTrend([0.5]), 0)
 })
 
 test('calculateVariability computes standard deviation correctly', async (t) => {
-  const store = createMockStore()
-  const log = createMockLog()
+  assert.strictEqual(calculateVariability([0.5, 0.5, 0.5, 0.5]), 0)
 
-  const algorithm = new ScalingAlgorithm(store, log)
-
-  assert.strictEqual(algorithm.calculateVariability([0.5, 0.5, 0.5, 0.5]), 0)
-
-  const variability = algorithm.calculateVariability([0.1, 0.2, 0.3, 0.4])
+  const variability = calculateVariability([0.1, 0.2, 0.3, 0.4])
   assert.ok(variability > 0)
   assert.ok(Math.abs(variability - 0.1118) < 0.001)
 
-  assert.strictEqual(algorithm.calculateVariability([]), 0)
-  assert.strictEqual(algorithm.calculateVariability([0.5]), 0)
+  assert.strictEqual(calculateVariability([]), 0)
+  assert.strictEqual(calculateVariability([0.5]), 0)
 })
 
 test('processPodMetrics computes pod metrics correctly', async (t) => {
-  const store = createMockStore()
-  const log = createMockLog()
-
-  const algorithm = new ScalingAlgorithm(store, log)
   const podMetrics = createMockMetrics()
   const clusters = []
 
-  const result = algorithm.processPodMetrics(podMetrics, clusters)
+  const result = processPodMetrics(podMetrics, clusters, 0.9, 0.85)
 
   assert.ok(Math.abs(result.eluMean - 0.825) < 0.001)
 
@@ -183,10 +164,6 @@ test('processPodMetrics computes pod metrics correctly', async (t) => {
 })
 
 test('getPerformanceSuccessScore returns default when no clusters exist', async (t) => {
-  const store = createMockStore()
-  const log = createMockLog()
-
-  const algorithm = new ScalingAlgorithm(store, log)
   const podMetrics = {
     eluMean: 0.85,
     heapMean: 0.7,
@@ -194,15 +171,11 @@ test('getPerformanceSuccessScore returns default when no clusters exist', async 
     heapTrend: 0.03
   }
 
-  const score = algorithm.getPerformanceSuccessScore(podMetrics, [])
+  const score = getPerformanceSuccessScore(podMetrics, [])
   assert.strictEqual(score, 1.0)
 })
 
 test('getPerformanceSuccessScore calculates weighted average from clusters', async (t) => {
-  const store = createMockStore()
-  const log = createMockLog()
-
-  const algorithm = new ScalingAlgorithm(store, log)
   const podMetrics = {
     eluMean: 0.85,
     heapMean: 0.7,
@@ -229,24 +202,19 @@ test('getPerformanceSuccessScore calculates weighted average from clusters', asy
     }
   ]
 
-  const score = algorithm.getPerformanceSuccessScore(podMetrics, clusters)
+  const score = getPerformanceSuccessScore(podMetrics, clusters)
 
   assert.ok(score > 0.7)
   assert.ok(score < 0.81)
 })
 
 test('calculateEluScore correctly weighs components', async (t) => {
-  const store = createMockStore()
-  const log = createMockLog()
-
-  const algorithm = new ScalingAlgorithm(store, log)
-
   let podMetrics = {
     eluMean: 0.8,
     eluTrend: 0,
     eluVariability: 0
   }
-  const score1 = algorithm.calculateEluScore(podMetrics, 1.0)
+  const score1 = calculateEluScore(podMetrics, 1.0, 0.9)
   assert.strictEqual(score1, 0)
 
   podMetrics = {
@@ -254,36 +222,33 @@ test('calculateEluScore correctly weighs components', async (t) => {
     eluTrend: 0.05,
     eluVariability: 0.1
   }
-  const score2 = algorithm.calculateEluScore(podMetrics, 1.0)
+  const score2 = calculateEluScore(podMetrics, 1.0, 0.9)
   assert.ok(score2 > 0.3)
 
-  const score3 = algorithm.calculateEluScore(podMetrics, 0.5)
+  const score3 = calculateEluScore(podMetrics, 0.5, 0.9)
   assert.ok(Math.abs(score3 - score2 * 0.5) < 0.001)
 })
 
 test('calculateScalingDecision respects cooldown period', async (t) => {
-  const store = createMockStore()
+  const store = await setupStore(t)
   const log = createMockLog()
 
   await store.redis.set('scaler:last-scaling:app-1', Date.now().toString())
 
-  const algorithm = new ScalingAlgorithm(store, log)
-
-  algorithm.processPodMetrics = () => ({
-    eluMean: 0.95,
-    heapMean: 0.9,
-    eluVariability: 0.1,
-    heapVariability: 0.1,
-    eluTrend: 0.05,
-    heapTrend: 0.05,
-    performanceScore: 1.0,
-    eluScore: 0.8,
-    heapScore: 0.7,
-    shouldScale: true
-  })
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   const podsMetrics = {
-    'pod-1': createMockMetrics()
+    'pod-1': {
+      eventLoopUtilization: [{
+        metric: { podId: 'pod-1' },
+        values: [[Date.now(), '0.95']]
+      }],
+      heapSize: [{
+        metric: { podId: 'pod-1' },
+        values: [[Date.now(), (0.9 * 8 * 1024 * 1024 * 1024).toString()]]
+      }]
+    }
   }
 
   const result = await algorithm.calculateScalingDecision('app-1', podsMetrics, 1)
@@ -293,7 +258,7 @@ test('calculateScalingDecision respects cooldown period', async (t) => {
 })
 
 test('calculateScalingDecision respects maximum pods limit', async (t) => {
-  const store = createMockStore()
+  const store = await setupStore(t)
   const log = createMockLog()
 
   await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
@@ -302,87 +267,63 @@ test('calculateScalingDecision respects maximum pods limit', async (t) => {
     maxPodsDefault: 5
   }
 
-  const algorithm = new ScalingAlgorithm(store, log, options)
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app, options)
 
-  algorithm.processPodMetrics = () => ({
-    eluMean: 0.95,
-    heapMean: 0.8,
-    eluTrend: 0.05,
-    heapTrend: 0.03,
-    eluVariability: 0.1,
-    heapVariability: 0.1,
-    performanceScore: 1.0,
-    eluScore: 0.8,
-    heapScore: 0.7,
-    shouldScale: true
-  })
+  const highLoadMetrics = {
+    'pod-1': {
+      eventLoopUtilization: [{
+        metric: { podId: 'pod-1' },
+        values: [[Date.now(), '0.95']]
+      }],
+      heapSize: [{
+        metric: { podId: 'pod-1' },
+        values: [[Date.now(), (0.8 * 8 * 1024 * 1024 * 1024).toString()]]
+      }]
+    }
+  }
 
-  const result = await algorithm.calculateScalingDecision('app-1', { 'pod-1': {} }, 5)
+  const result = await algorithm.calculateScalingDecision('app-1', highLoadMetrics, 5)
 
   // We're already at the max, so nfinal should be the current count (5)
   assert.strictEqual(result.nfinal, 5, 'Should return current pod count when at maximum')
 })
 
 test('calculateScalingDecision computes nfinal correctly', async (t) => {
-  const store = createMockStore()
+  const store = await setupStore(t)
   const log = createMockLog()
 
   await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
-  const algorithm = new ScalingAlgorithm(store, log)
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
-  algorithm.processPodMetrics = () => ({
-    eluMean: 0.95,
-    heapMean: 0.9,
-    eluTrend: 0.05,
-    heapTrend: 0.05,
-    eluVariability: 0.2,
-    heapVariability: 0.2,
-    performanceScore: 1.0,
-    eluScore: 0.8,
-    heapScore: 0.7,
-    shouldScale: true
-  })
+  const highLoadMetrics = {
+    'pod-1': {
+      eventLoopUtilization: [{
+        metric: { podId: 'pod-1' },
+        values: [[Date.now(), '0.95']]
+      }],
+      heapSize: [{
+        metric: { podId: 'pod-1' },
+        values: [[Date.now(), (0.9 * 8 * 1024 * 1024 * 1024).toString()]]
+      }]
+    }
+  }
 
   const currentPodCount = 2
-  const result = await algorithm.calculateScalingDecision('app-1', { 'pod-1': {} }, currentPodCount)
+  const result = await algorithm.calculateScalingDecision('app-1', highLoadMetrics, currentPodCount)
 
   // New nfinal should be greater than current pod count when scaling up
   assert.ok(result.nfinal > currentPodCount, 'Should scale up from current pod count')
   // The maximum scale up should not exceed current + 8
   assert.ok(result.nfinal <= currentPodCount + 8, 'Should not scale up by more than 8 pods')
-})
-
-test('addPerfHistoryEvent trims history to maxHistoryEvents', async (t) => {
-  const store = createMockStore()
-  const log = createMockLog()
-
-  const options = {
-    maxHistoryEvents: 3
-  }
-
-  const algorithm = new ScalingAlgorithm(store, log, options)
-
-  for (let i = 1; i <= 5; i++) {
-    await algorithm.addPerfHistoryEvent('app-1', {
-      timestamp: 1620000000 + i * 100,
-      podsAdded: i
-    })
-  }
-
-  const history = await algorithm.loadPerfHistory('app-1')
-
-  assert.strictEqual(history.length, 3)
-  assert.strictEqual(history[0].podsAdded, 5)
-  assert.strictEqual(history[1].podsAdded, 4)
-  assert.strictEqual(history[2].podsAdded, 3)
+  // Should have the correct reason for scaling up
+  assert.strictEqual(result.reason, 'Scaling up for high utilization', 'Should have correct reason for scale up')
 })
 
 test('updateClusters creates new cluster when none exist', async (t) => {
-  const store = createMockStore()
-  const log = createMockLog()
-
-  const algorithm = new ScalingAlgorithm(store, log)
+  const store = await setupStore(t)
 
   const newEvent = {
     timestamp: 1620000000,
@@ -397,7 +338,7 @@ test('updateClusters creates new cluster when none exist', async (t) => {
     sigmaHeap: 0.1
   }
 
-  const clusters = await algorithm.updateClusters('app-1', newEvent)
+  const clusters = await updateClusters(store, 'app-1', newEvent)
 
   assert.strictEqual(clusters.length, 1)
   assert.strictEqual(clusters[0].eluMean, 0.8)
@@ -406,12 +347,9 @@ test('updateClusters creates new cluster when none exist', async (t) => {
 })
 
 test('updateClusters updates closest cluster when similar', async (t) => {
-  const store = createMockStore()
-  const log = createMockLog()
+  const store = await setupStore(t)
 
-  const algorithm = new ScalingAlgorithm(store, log)
-
-  await algorithm.updateClusters('app-1', {
+  await updateClusters(store, 'app-1', {
     timestamp: 1620000000,
     podsAdded: 1,
     preEluMean: 0.8,
@@ -437,7 +375,7 @@ test('updateClusters updates closest cluster when similar', async (t) => {
     sigmaHeap: 0.11
   }
 
-  const clusters = await algorithm.updateClusters('app-1', newEvent)
+  const clusters = await updateClusters(store, 'app-1', newEvent)
 
   assert.strictEqual(clusters.length, 1)
   assert.strictEqual(clusters[0].weight, 2)
@@ -445,11 +383,12 @@ test('updateClusters updates closest cluster when similar', async (t) => {
 })
 
 test('calculateScalingDecision enforces minimum pod count', async (t) => {
-  const store = createMockStore()
+  const store = await setupStore(t)
   const log = createMockLog()
 
   // Initialize the scaling algorithm with default min/max pods
-  const algorithm = new ScalingAlgorithm(store, log, {
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app, {
     minPodsDefault: 3,
     maxPodsDefault: 10
   })
@@ -509,13 +448,14 @@ test('calculateScalingDecision enforces minimum pod count', async (t) => {
 // New tests for alerts and scaling based on metrics
 
 test('calculateScalingDecision scales up with alerts', async (t) => {
-  const store = createMockStore()
+  const store = await setupStore(t)
   const log = createMockLog()
 
   // Set last scaling time to be outside the cooldown period
   await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
-  const algorithm = new ScalingAlgorithm(store, log)
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   // Mock implementation of processPodMetrics
   const originalProcessPodMetrics = algorithm.processPodMetrics
@@ -574,34 +514,31 @@ test('calculateScalingDecision scales up with alerts', async (t) => {
 
   // Should scale up from current pod count when alert triggers
   assert.ok(result.nfinal > currentPodCount, 'Should scale up when alert indicates high ELU')
+  assert.strictEqual(result.reason, 'Scaling up for high utilization', 'Should have correct reason for scale up')
 })
 
 test('calculateScalingDecision scales up with high metrics', async (t) => {
-  const store = createMockStore()
+  const store = await setupStore(t)
   const log = createMockLog()
 
   // Set last scaling time to be outside the cooldown period
   await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
-  const algorithm = new ScalingAlgorithm(store, log)
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
-  // Override the processPodMetrics method to ensure it returns metrics that will trigger scaling
-  algorithm.processPodMetrics = () => ({
-    eluMean: 0.95,
-    heapMean: 0.9,
-    eluTrend: 0.05,
-    heapTrend: 0.05,
-    eluVariability: 0.2,
-    heapVariability: 0.2,
-    performanceScore: 1.0,
-    eluScore: 0.8,
-    heapScore: 0.7,
-    shouldScale: true
-  })
-
-  // Mock high load pod metrics
+  // Create high load pod metrics that will definitely trigger scaling
   const highLoadPodMetrics = {
-    'pod-1': createMockMetrics()
+    'pod-1': {
+      eventLoopUtilization: [{
+        metric: { podId: 'pod-1' },
+        values: [[Date.now(), '0.95']] // 95% ELU - should trigger immediate scaling
+      }],
+      heapSize: [{
+        metric: { podId: 'pod-1' },
+        values: [[Date.now(), (0.9 * 8 * 1024 * 1024 * 1024).toString()]] // 90% heap - should trigger immediate scaling
+      }]
+    }
   }
 
   // Current pod count of 3
@@ -618,16 +555,18 @@ test('calculateScalingDecision scales up with high metrics', async (t) => {
 
   // Should scale up from current pod count when metrics are high
   assert.ok(result.nfinal > currentPodCount, 'Should scale up when metrics indicate high load')
+  assert.strictEqual(result.reason, 'Scaling up for high utilization', 'Should have correct reason for scale up')
 })
 
 test('calculateScalingDecision maintains pod count with normal metrics', async (t) => {
-  const store = createMockStore()
+  const store = await setupStore(t)
   const log = createMockLog()
 
   // Set last scaling time to be outside the cooldown period
   await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
-  const algorithm = new ScalingAlgorithm(store, log)
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   // Create normal load pod metrics that should not trigger scaling
   const normalLoadPodMetrics = {
@@ -661,13 +600,14 @@ test('calculateScalingDecision maintains pod count with normal metrics', async (
 })
 
 test('calculateScalingDecision with low metrics should scale down', async (t) => {
-  const store = createMockStore()
+  const store = await setupStore(t)
   const log = createMockLog()
 
   // Set last scaling time to be outside the cooldown period
   await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
-  const algorithm = new ScalingAlgorithm(store, log)
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   // Create very low load pod metrics (well below 50% of thresholds)
   const lowLoadPodMetrics = {
@@ -703,13 +643,14 @@ test('calculateScalingDecision with low metrics should scale down', async (t) =>
 })
 
 test('calculateScalingDecision should respect minimum pod count when scaling down', async (t) => {
-  const store = createMockStore()
+  const store = await setupStore(t)
   const log = createMockLog()
 
   // Set last scaling time to be outside the cooldown period
   await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
-  const algorithm = new ScalingAlgorithm(store, log)
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   // Create very low load pod metrics
   const lowLoadPodMetrics = {
@@ -744,13 +685,14 @@ test('calculateScalingDecision should respect minimum pod count when scaling dow
 })
 
 test('calculateScalingDecision should not scale down when in cooldown period', async (t) => {
-  const store = createMockStore()
+  const store = await setupStore(t)
   const log = createMockLog()
 
   // Set last scaling time to be inside the cooldown period
   await store.redis.set('scaler:last-scaling:app-1', Date.now().toString())
 
-  const algorithm = new ScalingAlgorithm(store, log)
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   // Create very low load pod metrics
   const lowLoadPodMetrics = {
@@ -780,5 +722,5 @@ test('calculateScalingDecision should not scale down when in cooldown period', a
 
   // Should not scale during cooldown
   assert.strictEqual(result.nfinal, currentPodCount, 'Should not scale down during cooldown period')
-  assert.strictEqual(result.reason, 'No pods triggered scaling', 'Reason should indicate no scaling needed during cooldown period')
+  assert.strictEqual(result.reason, 'In cooldown period', 'Reason should indicate cooldown period')
 })
