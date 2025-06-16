@@ -1,9 +1,12 @@
 'use strict'
 
 const Redis = require('iovalkey')
-
-const PREFIX = 'scaler:'
-const ALERTS_PREFIX = `${PREFIX}alerts:`
+const {
+  ALERTS_PREFIX,
+  PERF_HISTORY_PREFIX,
+  CLUSTERS_PREFIX,
+  LAST_SCALING_PREFIX
+} = require('./store-constants')
 
 class Store {
   constructor (redisUrl, log, options = {}) {
@@ -92,6 +95,90 @@ class Store {
 
     const pattern = `${ALERTS_PREFIX}app:*:pod:${podId}:*`
     return this.#getAlertsByPattern(pattern, timeWindow)
+  }
+
+  // Performance History Methods
+  async loadPerfHistory (applicationId) {
+    try {
+      const key = `${PERF_HISTORY_PREFIX}${applicationId}`
+      const historyStr = await this.redis.get(key)
+      if (!historyStr) {
+        return []
+      }
+      return JSON.parse(historyStr)
+    } catch (err) {
+      this.log.error({ err, applicationId }, 'Failed to load performance history')
+      return []
+    }
+  }
+
+  async savePerfHistory (applicationId, history) {
+    try {
+      const key = `${PERF_HISTORY_PREFIX}${applicationId}`
+      await this.redis.set(key, JSON.stringify(history))
+    } catch (err) {
+      this.log.error({ err, applicationId }, 'Failed to save performance history')
+    }
+  }
+
+  async addPerfHistoryEvent (applicationId, event, maxHistoryEvents = 10) {
+    const history = await this.loadPerfHistory(applicationId)
+    history.push(event)
+
+    // Sort by timestamp (newest first)
+    history.sort((a, b) => b.timestamp - a.timestamp)
+
+    if (history.length > maxHistoryEvents) {
+      history.length = maxHistoryEvents
+    }
+
+    await this.savePerfHistory(applicationId, history)
+    return history
+  }
+
+  // Clusters Methods
+  async loadClusters (applicationId) {
+    try {
+      const key = `${CLUSTERS_PREFIX}${applicationId}`
+      const clustersStr = await this.redis.get(key)
+      if (!clustersStr) {
+        return []
+      }
+      return JSON.parse(clustersStr)
+    } catch (err) {
+      this.log.error({ err, applicationId }, 'Failed to load clusters')
+      return []
+    }
+  }
+
+  async saveClusters (applicationId, clusters) {
+    try {
+      const key = `${CLUSTERS_PREFIX}${applicationId}`
+      await this.redis.set(key, JSON.stringify(clusters))
+    } catch (err) {
+      this.log.error({ err, applicationId }, 'Failed to save clusters')
+    }
+  }
+
+  // Last Scaling Time Methods
+  async getLastScalingTime (applicationId) {
+    try {
+      const key = `${LAST_SCALING_PREFIX}${applicationId}`
+      const timeStr = await this.redis.get(key)
+      return timeStr ? Number(timeStr) : 0
+    } catch (err) {
+      this.log.error({ err, applicationId }, 'Failed to get last scaling time')
+      return 0
+    }
+  }
+
+  async saveLastScalingTime (applicationId, time) {
+    try {
+      const key = `${LAST_SCALING_PREFIX}${applicationId}`
+      await this.redis.set(key, time.toString())
+    } catch (err) {
+      this.log.error({ err, applicationId }, 'Failed to save last scaling time')
+    }
   }
 }
 

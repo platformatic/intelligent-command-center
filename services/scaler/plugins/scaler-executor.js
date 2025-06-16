@@ -1,14 +1,13 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const ScalingAlgorithm = require('../lib/scaling-algorithm')
+const ReactiveScalingAlgorithm = require('../lib/reactive-scaling-algorithm')
 
 class ScalerExecutor {
   constructor (app) {
     this.app = app
 
     const options = {
-      metrics: app.scalerMetrics,
       maxHistoryEvents: Number(process.env.PLT_SCALER_MAX_HISTORY) || 10,
       maxClusters: Number(process.env.PLT_SCALER_MAX_CLUSTERS) || 5,
       eluThreshold: Number(process.env.PLT_SCALER_ELU_THRESHOLD) || 0.9,
@@ -19,7 +18,7 @@ class ScalerExecutor {
       maxPodsDefault: Number(process.env.PLT_SCALER_MAX_PODS_DEFAULT) || 10
     }
 
-    this.scalingAlgorithm = new ScalingAlgorithm(app.store, app.log, options)
+    this.scalingAlgorithm = new ReactiveScalingAlgorithm(app, options)
   }
 
   async #getCurrentPodCount (applicationId) {
@@ -110,7 +109,7 @@ class ScalerExecutor {
         return { success: false, podId, timestamp: Date.now(), error: 'Missing applicationId' }
       }
 
-      const podsMetrics = await this.app.scalerMetrics.getApplicationMetrics(applicationId)
+      const podsMetrics = await this.app?.scalerMetrics?.getApplicationMetrics(applicationId)
       if (!podsMetrics || Object.keys(podsMetrics).length === 0) {
         this.app.log.warn({ podId, applicationId }, 'No metrics found for application')
         return { success: false, podId, applicationId, timestamp: Date.now(), error: 'No metrics found' }

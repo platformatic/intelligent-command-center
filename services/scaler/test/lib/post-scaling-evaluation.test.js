@@ -1,9 +1,14 @@
 'use strict'
 
+// Ensure post-scaling evaluation is not skipped for these tests
+delete process.env.SKIP_POST_SCALING_EVALUATION
+
 const test = require('node:test')
 const assert = require('node:assert')
 const { setTimeout } = require('node:timers/promises')
-const ScalingAlgorithm = require('../../lib/scaling-algorithm')
+const ReactiveScalingAlgorithm = require('../../lib/reactive-scaling-algorithm')
+const PerformanceHistory = require('../../lib/performance-history')
+const { processPodMetrics, updateClusters } = require('../../lib/scaling-algorithm-utils')
 const Store = require('../../lib/store')
 const { valkeyConnectionString } = require('../helper')
 
@@ -15,6 +20,14 @@ function createMockLog () {
     warn: (data, msg) => logs.push({ level: 'warn', data, msg }),
     error: (data, msg) => logs.push({ level: 'error', data, msg }),
     getLogs: () => logs
+  }
+}
+
+function createMockApp (store, log, metrics) {
+  return {
+    store,
+    log,
+    scalerMetrics: metrics
   }
 }
 
@@ -80,7 +93,8 @@ test('performPostScalingEvaluation updates event with post-scaling metrics', asy
   const log = createMockLog()
   const metricsService = createMockMetricsService()
 
-  const algorithm = new ScalingAlgorithm(store, log, { metrics: metricsService })
+  const app = createMockApp(store, log, metricsService)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   const scalingTimestamp = Date.now()
   const initialEvent = {
@@ -96,11 +110,20 @@ test('performPostScalingEvaluation updates event with post-scaling metrics', asy
     sigmaHeap: 0
   }
 
-  await algorithm.addPerfHistoryEvent('app-1', initialEvent)
+  await store.addPerfHistoryEvent('app-1', initialEvent, 10)
   metricsService.setApplicationMetrics('app-1', createPostScalingMetrics(0.7, 0.65))
-  await algorithm.performPostScalingEvaluation('app-1', scalingTimestamp)
+  const performanceHistory = new PerformanceHistory(app)
+  await performanceHistory.postScalingEvaluation({
+    applicationId: 'app-1',
+    scalingTimestamp,
+    store,
+    log,
+    metrics: metricsService,
+    eluThreshold: algorithm.eluThreshold,
+    heapThreshold: algorithm.heapThreshold
+  })
 
-  const history = await algorithm.loadPerfHistory('app-1')
+  const history = await store.loadPerfHistory('app-1')
   const updatedEvent = history.find(e => e.timestamp === scalingTimestamp)
 
   assert.ok(updatedEvent, 'Event should exist in history')
@@ -109,7 +132,7 @@ test('performPostScalingEvaluation updates event with post-scaling metrics', asy
   assert.ok(updatedEvent.sigmaElu >= 0, 'Sigma ELU should be non-negative')
   assert.ok(updatedEvent.sigmaHeap >= 0, 'Sigma heap should be non-negative')
 
-  const clusters = await algorithm.loadClusters('app-1')
+  const clusters = await store.loadClusters('app-1')
   assert.ok(clusters.length > 0, 'Clusters should be created/updated')
 })
 
@@ -118,9 +141,19 @@ test('performPostScalingEvaluation handles missing event gracefully', async (t) 
   const log = createMockLog()
   const metricsService = createMockMetricsService()
 
-  const algorithm = new ScalingAlgorithm(store, log, { metrics: metricsService })
+  const app = createMockApp(store, log, metricsService)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
-  await algorithm.performPostScalingEvaluation('app-1', Date.now())
+  const performanceHistory = new PerformanceHistory(app)
+  await performanceHistory.postScalingEvaluation({
+    applicationId: 'app-1',
+    scalingTimestamp: Date.now(),
+    store,
+    log,
+    metrics: metricsService,
+    eluThreshold: algorithm.eluThreshold,
+    heapThreshold: algorithm.heapThreshold
+  })
 
   const logs = log.getLogs()
   const warningLog = logs.find(l => l.level === 'warn' && l.msg.includes('event not found'))
@@ -137,10 +170,11 @@ test('performPostScalingEvaluation handles metrics service errors', async (t) =>
     }
   }
 
-  const algorithm = new ScalingAlgorithm(store, log, { metrics: metricsService })
+  const app = createMockApp(store, log, metricsService)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   const scalingTimestamp = Date.now()
-  await algorithm.addPerfHistoryEvent('app-1', {
+  await store.addPerfHistoryEvent('app-1', {
     timestamp: scalingTimestamp,
     podsAdded: 1,
     preEluMean: 0.9,
@@ -151,9 +185,18 @@ test('performPostScalingEvaluation handles metrics service errors', async (t) =>
     deltaHeap: 0,
     sigmaElu: 0,
     sigmaHeap: 0
-  })
+  }, 10)
 
-  await algorithm.performPostScalingEvaluation('app-1', scalingTimestamp)
+  const performanceHistory = new PerformanceHistory(app)
+  await performanceHistory.postScalingEvaluation({
+    applicationId: 'app-1',
+    scalingTimestamp,
+    store,
+    log,
+    metrics: metricsService,
+    eluThreshold: algorithm.eluThreshold,
+    heapThreshold: algorithm.heapThreshold
+  })
 
   const logs = log.getLogs()
   const errorLog = logs.find(l => l.level === 'error' && l.msg.includes('Error fetching metrics'))
@@ -165,10 +208,11 @@ test('performPostScalingEvaluation handles no metrics available', async (t) => {
   const log = createMockLog()
   const metricsService = createMockMetricsService()
 
-  const algorithm = new ScalingAlgorithm(store, log, { metrics: metricsService })
+  const app = createMockApp(store, log, metricsService)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   const scalingTimestamp = Date.now()
-  await algorithm.addPerfHistoryEvent('app-1', {
+  await store.addPerfHistoryEvent('app-1', {
     timestamp: scalingTimestamp,
     podsAdded: 1,
     preEluMean: 0.9,
@@ -179,10 +223,19 @@ test('performPostScalingEvaluation handles no metrics available', async (t) => {
     deltaHeap: 0,
     sigmaElu: 0,
     sigmaHeap: 0
-  })
+  }, 10)
 
   metricsService.setApplicationMetrics('app-1', {})
-  await algorithm.performPostScalingEvaluation('app-1', scalingTimestamp)
+  const performanceHistory = new PerformanceHistory(app)
+  await performanceHistory.postScalingEvaluation({
+    applicationId: 'app-1',
+    scalingTimestamp,
+    store,
+    log,
+    metrics: metricsService,
+    eluThreshold: algorithm.eluThreshold,
+    heapThreshold: algorithm.heapThreshold
+  })
 
   const logs = log.getLogs()
   const warningLog = logs.find(l => l.level === 'warn' && l.msg.includes('no metrics available'))
@@ -194,10 +247,11 @@ test('performPostScalingEvaluation calculates performance score correctly', asyn
   const log = createMockLog()
   const metricsService = createMockMetricsService()
 
-  const algorithm = new ScalingAlgorithm(store, log, { metrics: metricsService })
+  const app = createMockApp(store, log, metricsService)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   const scalingTimestamp = Date.now()
-  await algorithm.addPerfHistoryEvent('app-1', {
+  await store.addPerfHistoryEvent('app-1', {
     timestamp: scalingTimestamp,
     podsAdded: 3,
     preEluMean: 0.95,
@@ -208,10 +262,19 @@ test('performPostScalingEvaluation calculates performance score correctly', asyn
     deltaHeap: 0,
     sigmaElu: 0,
     sigmaHeap: 0
-  })
+  }, 10)
 
   metricsService.setApplicationMetrics('app-1', createPostScalingMetrics(0.6, 0.55))
-  await algorithm.performPostScalingEvaluation('app-1', scalingTimestamp)
+  const performanceHistory = new PerformanceHistory(app)
+  await performanceHistory.postScalingEvaluation({
+    applicationId: 'app-1',
+    scalingTimestamp,
+    store,
+    log,
+    metrics: metricsService,
+    eluThreshold: algorithm.eluThreshold,
+    heapThreshold: algorithm.heapThreshold
+  })
 
   const logs = log.getLogs()
   const performanceLog = logs.find(l =>
@@ -230,15 +293,48 @@ test('schedulePostScalingEvaluation schedules evaluation after delay', async (t)
   const store = await setupStore(t)
   const log = createMockLog()
   const metricsService = createMockMetricsService()
-
-  const algorithm = new ScalingAlgorithm(store, log, {
-    metrics: metricsService,
+  const app = createMockApp(store, log, metricsService)
+  const algorithm = new ReactiveScalingAlgorithm(app, {
     postScalingWindow: 0.1
   })
 
-  const scalingTimestamp = Date.now()
-  await algorithm.addPerfHistoryEvent('app-1', {
-    timestamp: scalingTimestamp,
+  metricsService.setApplicationMetrics('app-1', createPostScalingMetrics(0.7, 0.65))
+
+  // Test the scheduling through applyScaling
+  const performanceHistory = new PerformanceHistory(app)
+  await performanceHistory.scalingEvaluation({
+    applicationId: 'app-1',
+    actualPodsChange: 1, // 2 - 1 = 1 pod added
+    preMetrics: { eluMean: 0.9, heapMean: 0.85, eluTrend: 0, heapTrend: 0 },
+    source: 'signal',
+    postScalingWindow: 0.1,
+    maxHistoryEvents: 10,
+    eluThreshold: algorithm.eluThreshold,
+    heapThreshold: algorithm.heapThreshold
+  })
+
+  // Get the new event created by applyScaling
+  const immediateHistory = await store.loadPerfHistory('app-1')
+  // Find the most recent event (should be the one we just created)
+  const newEvent = immediateHistory[immediateHistory.length - 1]
+
+  // The deltaElu should be 0 initially (not calculated yet)
+  assert.strictEqual(newEvent.deltaElu, 0, 'Evaluation should not be called immediately')
+
+  await setTimeout(150)
+
+  // After delay, evaluation should have run and updated the event
+  const finalHistory = await store.loadPerfHistory('app-1')
+  const finalEvent = finalHistory.find(e => e.timestamp === newEvent.timestamp)
+  assert.notStrictEqual(finalEvent.deltaElu, 0, 'Evaluation should be called after delay')
+})
+
+test('schedulePostScalingEvaluation handles errors in evaluation', async (t) => {
+  const store = await setupStore(t)
+  const log = createMockLog()
+  // Create a performance history event first
+  await store.addPerfHistoryEvent('app-1', {
+    timestamp: Date.now(),
     podsAdded: 1,
     preEluMean: 0.9,
     preHeapMean: 0.85,
@@ -248,39 +344,34 @@ test('schedulePostScalingEvaluation schedules evaluation after delay', async (t)
     deltaHeap: 0,
     sigmaElu: 0,
     sigmaHeap: 0
-  })
+  }, 10)
 
-  metricsService.setApplicationMetrics('app-1', createPostScalingMetrics(0.7, 0.65))
-
-  let evaluationCalled = false
-  const originalPerform = algorithm.performPostScalingEvaluation
-  algorithm.performPostScalingEvaluation = async function (...args) {
-    evaluationCalled = true
-    return originalPerform.apply(this, args)
+  // Create a store that will fail during the evaluation phase
+  const originalLoadPerfHistory = store.loadPerfHistory
+  let callCount = 0
+  store.loadPerfHistory = async (applicationId) => {
+    callCount++
+    if (callCount > 1) {
+      // Fail on subsequent calls (during evaluation)
+      throw new Error('Evaluation failed')
+    }
+    // Succeed on first call (during applyScaling)
+    return originalLoadPerfHistory.call(store, applicationId)
   }
 
-  algorithm.schedulePostScalingEvaluation('app-1', scalingTimestamp)
-
-  assert.ok(!evaluationCalled, 'Evaluation should not be called immediately')
-
-  await setTimeout(150)
-
-  assert.ok(evaluationCalled, 'Evaluation should be called after delay')
-})
-
-test('schedulePostScalingEvaluation handles errors in evaluation', async (t) => {
-  const store = await setupStore(t)
-  const log = createMockLog()
-
-  const algorithm = new ScalingAlgorithm(store, log, {
-    postScalingWindow: 0.1
+  // Test the error handling through applyScaling
+  const testApp2 = createMockApp(store, log)
+  const performanceHistory = new PerformanceHistory(testApp2)
+  await performanceHistory.scalingEvaluation({
+    applicationId: 'app-1',
+    actualPodsChange: 1, // 2 - 1 = 1 pod added
+    preMetrics: { eluMean: 0.9, heapMean: 0.85, eluTrend: 0, heapTrend: 0 },
+    source: 'signal',
+    postScalingWindow: 0.1,
+    maxHistoryEvents: 10,
+    eluThreshold: 0.9,
+    heapThreshold: 0.85
   })
-
-  algorithm.performPostScalingEvaluation = async () => {
-    throw new Error('Evaluation failed')
-  }
-
-  algorithm.schedulePostScalingEvaluation('app-1', Date.now())
 
   await setTimeout(150)
 
@@ -294,8 +385,8 @@ test('Integration: full post-scaling evaluation cycle', async (t) => {
   const log = createMockLog()
   const metricsService = createMockMetricsService()
 
-  const algorithm = new ScalingAlgorithm(store, log, {
-    metrics: metricsService,
+  const app = createMockApp(store, log, metricsService)
+  const algorithm = new ReactiveScalingAlgorithm(app, {
     cooldownPeriod: 0.1,
     postScalingWindow: 0.1
   })
@@ -322,8 +413,9 @@ test('Integration: full post-scaling evaluation cycle', async (t) => {
   )
 
   assert.ok(result.nfinal > 2, 'Should scale up')
+  assert.strictEqual(result.reason, 'Scaling up for high utilization', 'Should have correct reason for scale up')
 
-  const history = await algorithm.loadPerfHistory('app-1')
+  const history = await store.loadPerfHistory('app-1')
   assert.strictEqual(history.length, 1, 'Should have one history event')
   assert.strictEqual(history[0].deltaElu, 0, 'Initial delta should be 0')
 
@@ -331,13 +423,13 @@ test('Integration: full post-scaling evaluation cycle', async (t) => {
 
   await setTimeout(150)
 
-  const updatedHistory = await algorithm.loadPerfHistory('app-1')
+  const updatedHistory = await store.loadPerfHistory('app-1')
   const updatedEvent = updatedHistory[0]
 
   assert.ok(updatedEvent.deltaElu < 0, 'Delta ELU should show improvement')
   assert.ok(updatedEvent.deltaHeap < 0, 'Delta heap should show improvement')
 
-  const clusters = await algorithm.loadClusters('app-1')
+  const clusters = await store.loadClusters('app-1')
   assert.ok(clusters.length > 0, 'Should have created clusters')
   assert.ok(clusters[0].performanceScore > 0, 'Cluster should have performance score')
 })
@@ -347,8 +439,8 @@ test('Integration: multiple scaling events create performance history', async (t
   const log = createMockLog()
   const metricsService = createMockMetricsService()
 
-  const algorithm = new ScalingAlgorithm(store, log, {
-    metrics: metricsService,
+  const app = createMockApp(store, log, metricsService)
+  const algorithm = new ReactiveScalingAlgorithm(app, {
     maxHistoryEvents: 3,
     maxClusters: 2
   })
@@ -356,7 +448,7 @@ test('Integration: multiple scaling events create performance history', async (t
   for (let i = 0; i < 5; i++) {
     const timestamp = Date.now() - (i * 1000)
 
-    await algorithm.addPerfHistoryEvent('app-1', {
+    await store.addPerfHistoryEvent('app-1', {
       timestamp,
       podsAdded: i + 1,
       preEluMean: 0.9 - (i * 0.05),
@@ -367,19 +459,30 @@ test('Integration: multiple scaling events create performance history', async (t
       deltaHeap: 0,
       sigmaElu: 0,
       sigmaHeap: 0
-    })
+    }, 3)
 
     const postElu = 0.7 - (i * 0.05)
     const postHeap = 0.65 - (i * 0.05)
     metricsService.setApplicationMetrics('app-1', createPostScalingMetrics(postElu, postHeap))
 
-    await algorithm.performPostScalingEvaluation('app-1', timestamp)
+    const performanceHistory = new PerformanceHistory(app)
+    await performanceHistory.postScalingEvaluation({
+      applicationId: 'app-1',
+      scalingTimestamp: timestamp,
+      store,
+      log,
+      metrics: metricsService,
+      processPodMetrics: (podMetrics, clusters) => processPodMetrics(podMetrics, clusters, algorithm.eluThreshold, algorithm.heapThreshold),
+      updateClusters: (applicationId, newEvent) => updateClusters(store, applicationId, newEvent),
+      eluThreshold: algorithm.eluThreshold,
+      heapThreshold: algorithm.heapThreshold
+    })
   }
 
-  const history = await algorithm.loadPerfHistory('app-1')
+  const history = await store.loadPerfHistory('app-1')
   assert.strictEqual(history.length, 3, 'History should be limited to maxHistoryEvents')
 
-  const clusters = await algorithm.loadClusters('app-1')
+  const clusters = await store.loadClusters('app-1')
   assert.ok(clusters.length <= 2, 'Clusters should be limited to maxClusters')
 
   for (const event of history) {
@@ -392,12 +495,13 @@ test('Post-scaling evaluation updates cluster weights correctly', async (t) => {
   const log = createMockLog()
   const metricsService = createMockMetricsService()
 
-  const algorithm = new ScalingAlgorithm(store, log, { metrics: metricsService })
+  const app = createMockApp(store, log, metricsService)
+  const algorithm = new ReactiveScalingAlgorithm(app)
 
   for (let i = 0; i < 2; i++) {
     const timestamp = Date.now() - (i * 1000)
 
-    await algorithm.addPerfHistoryEvent('app-1', {
+    await store.addPerfHistoryEvent('app-1', {
       timestamp,
       podsAdded: 2,
       preEluMean: 0.9,
@@ -412,10 +516,21 @@ test('Post-scaling evaluation updates cluster weights correctly', async (t) => {
 
     metricsService.setApplicationMetrics('app-1', createPostScalingMetrics(0.7, 0.65))
 
-    await algorithm.performPostScalingEvaluation('app-1', timestamp)
+    const performanceHistory = new PerformanceHistory(app)
+    await performanceHistory.postScalingEvaluation({
+      applicationId: 'app-1',
+      scalingTimestamp: timestamp,
+      store,
+      log,
+      metrics: metricsService,
+      processPodMetrics: (podMetrics, clusters) => processPodMetrics(podMetrics, clusters, algorithm.eluThreshold, algorithm.heapThreshold),
+      updateClusters: (applicationId, newEvent) => updateClusters(store, applicationId, newEvent),
+      eluThreshold: algorithm.eluThreshold,
+      heapThreshold: algorithm.heapThreshold
+    })
   }
 
-  const clusters = await algorithm.loadClusters('app-1')
+  const clusters = await store.loadClusters('app-1')
   assert.strictEqual(clusters.length, 1, 'Should have one cluster for similar events')
   assert.ok(clusters[0].weight > 1, 'Cluster weight should increase with similar events')
 })
