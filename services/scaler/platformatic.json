@@ -18,6 +18,10 @@
           "path": "/controllers"
         }
       ]
+    },
+    "limit": {
+      "default": 100,
+      "max": 1000
     }
   },
   "migrations": {
@@ -25,10 +29,7 @@
     "autoApply": true
   },
   "plugins": {
-    "paths": [
-      "./routes",
-      "./plugins"
-    ],
+    "paths": ["./routes", "./plugins"],
     "typescript": false
   },
   "metrics": {
