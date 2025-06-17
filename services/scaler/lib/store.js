@@ -5,12 +5,13 @@ const {
   ALERTS_PREFIX,
   PERF_HISTORY_PREFIX,
   CLUSTERS_PREFIX,
-  LAST_SCALING_PREFIX
+  LAST_SCALING_PREFIX,
+  PREDICTIONS_PREFIX
 } = require('./store-constants')
 
 class Store {
   constructor (redisUrl, log, options = {}) {
-    this.redis = new Redis(redisUrl, {
+    this.valkey = new Redis(redisUrl, {
       enableAutoPipelining: true
     })
     this.log = log
@@ -18,14 +19,14 @@ class Store {
   }
 
   async close () {
-    if (this.redis) {
-      await this.redis.quit()
-      this.redis = null
+    if (this.valkey) {
+      await this.valkey.quit()
+      this.valkey = null
     }
   }
 
   async #getAlertsByPattern (pattern, timeWindow = 0) {
-    const keys = await this.redis.keys(pattern)
+    const keys = await this.valkey.keys(pattern)
 
     if (keys.length === 0) {
       return []
@@ -34,7 +35,7 @@ class Store {
     const now = Date.now()
     const alerts = []
 
-    const values = await this.redis.mget(keys)
+    const values = await this.valkey.mget(keys)
     for (let i = 0; i < values.length; i++) {
       if (!values[i]) continue
 
@@ -76,7 +77,7 @@ class Store {
     const alertKey = `${ALERTS_PREFIX}app:${applicationId}:pod:${podId}:${timestampStr}`
 
     const alertStr = JSON.stringify(alertWithTimestamp)
-    await this.redis.set(alertKey, alertStr, 'EX', this.alertRetention)
+    await this.valkey.set(alertKey, alertStr, 'EX', this.alertRetention)
   }
 
   async getAlertsByApplicationId (applicationId, timeWindow = 0) {
@@ -97,11 +98,10 @@ class Store {
     return this.#getAlertsByPattern(pattern, timeWindow)
   }
 
-  // Performance History Methods
   async loadPerfHistory (applicationId) {
     try {
       const key = `${PERF_HISTORY_PREFIX}${applicationId}`
-      const historyStr = await this.redis.get(key)
+      const historyStr = await this.valkey.get(key)
       if (!historyStr) {
         return []
       }
@@ -115,7 +115,7 @@ class Store {
   async savePerfHistory (applicationId, history) {
     try {
       const key = `${PERF_HISTORY_PREFIX}${applicationId}`
-      await this.redis.set(key, JSON.stringify(history))
+      await this.valkey.set(key, JSON.stringify(history))
     } catch (err) {
       this.log.error({ err, applicationId }, 'Failed to save performance history')
     }
@@ -125,7 +125,6 @@ class Store {
     const history = await this.loadPerfHistory(applicationId)
     history.push(event)
 
-    // Sort by timestamp (newest first)
     history.sort((a, b) => b.timestamp - a.timestamp)
 
     if (history.length > maxHistoryEvents) {
@@ -136,11 +135,10 @@ class Store {
     return history
   }
 
-  // Clusters Methods
   async loadClusters (applicationId) {
     try {
       const key = `${CLUSTERS_PREFIX}${applicationId}`
-      const clustersStr = await this.redis.get(key)
+      const clustersStr = await this.valkey.get(key)
       if (!clustersStr) {
         return []
       }
@@ -154,17 +152,16 @@ class Store {
   async saveClusters (applicationId, clusters) {
     try {
       const key = `${CLUSTERS_PREFIX}${applicationId}`
-      await this.redis.set(key, JSON.stringify(clusters))
+      await this.valkey.set(key, JSON.stringify(clusters))
     } catch (err) {
       this.log.error({ err, applicationId }, 'Failed to save clusters')
     }
   }
 
-  // Last Scaling Time Methods
   async getLastScalingTime (applicationId) {
     try {
       const key = `${LAST_SCALING_PREFIX}${applicationId}`
-      const timeStr = await this.redis.get(key)
+      const timeStr = await this.valkey.get(key)
       return timeStr ? Number(timeStr) : 0
     } catch (err) {
       this.log.error({ err, applicationId }, 'Failed to get last scaling time')
@@ -175,9 +172,76 @@ class Store {
   async saveLastScalingTime (applicationId, time) {
     try {
       const key = `${LAST_SCALING_PREFIX}${applicationId}`
-      await this.redis.set(key, time.toString())
+      await this.valkey.set(key, time.toString())
     } catch (err) {
       this.log.error({ err, applicationId }, 'Failed to save last scaling time')
+    }
+  }
+
+  async savePredictions (predictions) {
+    try {
+      const key = `${PREDICTIONS_PREFIX}all`
+      const sortedPredictions = [...predictions]
+        .filter(p => p.applicationId)
+        .sort((a, b) => a.absoluteTime - b.absoluteTime)
+      await this.valkey.set(key, JSON.stringify(sortedPredictions))
+    } catch (err) {
+      this.log.error({ err }, 'Failed to save predictions')
+    }
+  }
+
+  async getPredictions () {
+    try {
+      const key = `${PREDICTIONS_PREFIX}all`
+      const predictionsStr = await this.valkey.get(key)
+      if (!predictionsStr) {
+        return []
+      }
+      return JSON.parse(predictionsStr)
+    } catch (err) {
+      this.log.error({ err }, 'Failed to get predictions')
+      return []
+    }
+  }
+
+  async getApplicationPredictions (applicationId) {
+    const allPredictions = await this.getPredictions()
+    return allPredictions.filter(p => p.applicationId === applicationId)
+  }
+
+  async getNextPrediction () {
+    const predictions = await this.getPredictions()
+    return predictions.length > 0 ? predictions[0] : null
+  }
+
+  async removePrediction (predictionToRemove) {
+    try {
+      const predictions = await this.getPredictions()
+      const filteredPredictions = predictions.filter(p =>
+        !(p.applicationId === predictionToRemove.applicationId &&
+          p.absoluteTime === predictionToRemove.absoluteTime &&
+          p.action === predictionToRemove.action &&
+          p.pods === predictionToRemove.pods)
+      )
+      await this.savePredictions(filteredPredictions)
+      return filteredPredictions
+    } catch (err) {
+      this.log.error({ err, predictionToRemove }, 'Failed to remove prediction')
+      return []
+    }
+  }
+
+  async replaceApplicationPredictions (applicationId, newPredictions) {
+    try {
+      const allPredictions = await this.getPredictions()
+      const otherPredictions = allPredictions.filter(p => p.applicationId !== applicationId)
+      const predictionsWithAppId = newPredictions.map(p => ({ ...p, applicationId }))
+      const combined = [...otherPredictions, ...predictionsWithAppId]
+      await this.savePredictions(combined)
+      return combined
+    } catch (err) {
+      this.log.error({ err, applicationId }, 'Failed to replace application predictions')
+      return []
     }
   }
 }
