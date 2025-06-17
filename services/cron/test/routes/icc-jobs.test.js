@@ -65,24 +65,25 @@ test('GET job by name', async (t) => {
 })
 
 test('GET all jobs', async (t) => {
-  const server = await buildServer(t, { PLT_CRON_ICC_JOBS: 'RISK_SERVICE_DUMP,SYNC,FFC_RECOMMENDER,TRAFFICANTE' })
+  const server = await buildServer(t, { PLT_CRON_ICC_JOBS: 'RISK_SERVICE_DUMP,SYNC,FFC_RECOMMENDER,TRAFFICANTE,SCALER' })
 
   const res = await server.inject({
     method: 'GET',
     url: '/icc-jobs'
   })
   const { statusCode, body } = res
-  assert.equal(statusCode, 200)
   const job = JSON.parse(body)
-  assert.equal(job.length, 4)
+  assert.equal(statusCode, 200)
+  assert.equal(job.length, 5)
   assert.equal(job[0].name, 'risk-service-dump')
   assert.equal(job[1].name, 'sync')
   assert.equal(job[2].name, 'ffc-recommender')
   assert.equal(job[3].name, 'trafficante')
+  assert.equal(job[4].name, 'scaler')
 })
 
 test('Change multiple jobs schedules', async (t) => {
-  const server = await buildServer(t, { PLT_CRON_ICC_JOBS: 'RISK_SERVICE_DUMP,SYNC,FFC_RECOMMENDER,TRAFFICANTE' })
+  const server = await buildServer(t, { PLT_CRON_ICC_JOBS: 'RISK_SERVICE_DUMP,SYNC,FFC_RECOMMENDER,TRAFFICANTE,SCALER' })
 
   const jobs = {
     'risk-service-dump': '* * */2 * * *',

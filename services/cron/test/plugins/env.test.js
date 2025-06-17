@@ -29,7 +29,12 @@ test('Setup the default scheduler env information', async (t) => {
     PLT_CRON_ICC_JOB_TRAFFICANTE_CRON: '0 0 * * *',
     PLT_CRON_ICC_JOB_TRAFFICANTE_URL: 'http://trafficante.plt.local/recommendations',
     PLT_CRON_ICC_JOB_TRAFFICANTE_METHOD: 'POST',
-    PLT_CRON_ICC_JOB_TRAFFICANTE_MAX_RETRIES: 3
+    PLT_CRON_ICC_JOB_TRAFFICANTE_MAX_RETRIES: 3,
+    PLT_CRON_ICC_JOB_SCALER_NAME: 'scaler',
+    PLT_CRON_ICC_JOB_SCALER_CRON: '0 */12 * * *',
+    PLT_CRON_ICC_JOB_SCALER_URL: 'http://scaler.plt.local/predictions/calculate',
+    PLT_CRON_ICC_JOB_SCALER_METHOD: 'POST',
+    PLT_CRON_ICC_JOB_SCALER_MAX_RETRIES: 3
   }
   assert.deepEqual(server.env, expected)
 })
@@ -62,7 +67,12 @@ test('Overrides scheduler configuration', async (t) => {
     PLT_CRON_ICC_JOB_TRAFFICANTE_CRON: '0 0 * * *',
     PLT_CRON_ICC_JOB_TRAFFICANTE_URL: 'http://trafficante.plt.local/recommendations',
     PLT_CRON_ICC_JOB_TRAFFICANTE_METHOD: 'POST',
-    PLT_CRON_ICC_JOB_TRAFFICANTE_MAX_RETRIES: 3
+    PLT_CRON_ICC_JOB_TRAFFICANTE_MAX_RETRIES: 3,
+    PLT_CRON_ICC_JOB_SCALER_NAME: 'scaler',
+    PLT_CRON_ICC_JOB_SCALER_CRON: '0 */12 * * *',
+    PLT_CRON_ICC_JOB_SCALER_URL: 'http://scaler.plt.local/predictions/calculate',
+    PLT_CRON_ICC_JOB_SCALER_METHOD: 'POST',
+    PLT_CRON_ICC_JOB_SCALER_MAX_RETRIES: 3
   }
   assert.deepEqual(server.env, expected)
 })
