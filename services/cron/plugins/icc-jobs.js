@@ -44,7 +44,7 @@ async function plugin (app) {
   }
 
   const getICCJobs = async () => {
-    const JOB_NAMES = ['risk-service-dump', 'sync', 'ffc-recommender', 'trafficante']
+    const JOB_NAMES = ['risk-service-dump', 'sync', 'ffc-recommender', 'trafficante', 'scaler']
     const jobs = await Promise.all(JOB_NAMES.map(getICCJob))
     return jobs
   }
