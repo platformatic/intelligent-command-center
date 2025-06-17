@@ -41,16 +41,16 @@ async function setupStore (t) {
   const store = new Store(valkeyConnectionString, createMockLog())
 
   // Clean up before test
-  const keys = await store.redis.keys('scaler:*')
+  const keys = await store.valkey.keys('scaler:*')
   if (keys.length > 0) {
-    await store.redis.del(keys)
+    await store.valkey.del(keys)
   }
 
   // Register cleanup after test
   t.after(async () => {
-    const keys = await store.redis.keys('scaler:*')
+    const keys = await store.valkey.keys('scaler:*')
     if (keys.length > 0) {
-      await store.redis.del(keys)
+      await store.valkey.del(keys)
     }
     await store.close()
   })
@@ -64,7 +64,7 @@ test('algorithm processes real alert structure correctly', async (t) => {
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
 
-  await store.redis.set('scaler:last-scaling:test-app-alert', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app-alert', (Date.now() - 600000).toString())
 
   // Load real alert structure
   const alertPath = path.join(__dirname, 'alert.json')
