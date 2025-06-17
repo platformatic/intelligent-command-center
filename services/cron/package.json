@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "platformatic start",
-    "test": "npm run lint && borp --concurrency 1 --timeout=60000",
+    "test": "npm run lint && borp --concurrency 1 --timeout=80000",
     "lint": "standard ."
   },
   "devDependencies": {

@@ -49,4 +49,29 @@ CREATE TABLE messages (
   callback_url VARCHAR(2048)
 );
 
+/* Performance indexes for common query patterns */
+
+/* Critical index for the main executor query that fetches pending messages */
+CREATE INDEX idx_messages_executor ON messages(sent_at, failed, "when", deleted_at) 
+WHERE sent_at IS NULL AND failed = false AND deleted_at IS NULL;
+
+/* Index for timer updates to find the next message to process */
+CREATE INDEX idx_messages_timer ON messages("when") 
+WHERE sent_at IS NULL AND deleted_at IS NULL;
+
+/* Index for job-specific message lookups */
+CREATE INDEX idx_messages_job_pending ON messages(job_id, sent_at) 
+WHERE sent_at IS NULL;
+
+/* Composite index for job lookups by name, type, and application */
+CREATE INDEX idx_jobs_name_type_app ON jobs(name, job_type, application_id) 
+WHERE deleted_at IS NULL;
+
+/* Index for soft delete queries on jobs */
+CREATE INDEX idx_jobs_deleted ON jobs(deleted_at) 
+WHERE deleted_at IS NULL;
+
+/* Foreign key index for messages.job_id if not automatically created */
+CREATE INDEX IF NOT EXISTS idx_messages_job_id ON messages(job_id);
+
 

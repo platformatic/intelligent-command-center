@@ -2,7 +2,7 @@
 
 const fp = require('fastify-plugin')
 const fastifyEnv = require('@fastify/env')
-const { EVERY_DAY } = require('../lib/cron-expressions')
+const { EVERY_DAY, EVERY_12_HOURS } = require('../lib/cron-expressions')
 
 const schema = {
   type: 'object',
@@ -10,10 +10,8 @@ const schema = {
 
   properties: {
     // comma separated list of internal schedulers. Emypty string means no schedulers (useful for tests)
-    // PLT_CRON_ICC_JOBS: { type: 'string', default: 'RISK_SERVICE_DUMP, SYNC' },
-    // We activate ony the risk service dump and sync jobs for the time being.
-    PLT_CRON_ICC_JOBS: { type: 'string', default: 'RISK_SERVICE_DUMP, FFC_RECOMMENDER, TRAFFICANTE' },
-    // PLT_CRON_ICC_JOBS: { type: 'string', default: 'RISK_SERVICE_DUMP, FFC_RECOMMENDER, TRAFFICANTE, SYNC' }
+    PLT_CRON_ICC_JOBS: { type: 'string', default: 'RISK_SERVICE_DUMP, FFC_RECOMMENDER, TRAFFICANTE, SCALER' },
+    // PLT_CRON_ICC_JOBS: { type: 'string', default: 'RISK_SERVICE_DUMP, FFC_RECOMMENDER, TRAFFICANTE, SCALER, SYNC' }
 
     // Risk Service
     PLT_CRON_ICC_JOB_RISK_SERVICE_DUMP_NAME: { type: 'string', default: 'risk-service-dump' },
@@ -41,7 +39,14 @@ const schema = {
     PLT_CRON_ICC_JOB_TRAFFICANTE_CRON: { type: 'string', default: EVERY_DAY },
     PLT_CRON_ICC_JOB_TRAFFICANTE_URL: { type: 'string', default: 'http://trafficante.plt.local/recommendations' },
     PLT_CRON_ICC_JOB_TRAFFICANTE_METHOD: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'], default: 'POST' },
-    PLT_CRON_ICC_JOB_TRAFFICANTE_MAX_RETRIES: { type: 'integer', default: 3 }
+    PLT_CRON_ICC_JOB_TRAFFICANTE_MAX_RETRIES: { type: 'integer', default: 3 },
+
+    // Scaler
+    PLT_CRON_ICC_JOB_SCALER_NAME: { type: 'string', default: 'scaler' },
+    PLT_CRON_ICC_JOB_SCALER_CRON: { type: 'string', default: EVERY_12_HOURS },
+    PLT_CRON_ICC_JOB_SCALER_URL: { type: 'string', default: 'http://scaler.plt.local/predictions/calculate' },
+    PLT_CRON_ICC_JOB_SCALER_METHOD: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'], default: 'POST' },
+    PLT_CRON_ICC_JOB_SCALER_MAX_RETRIES: { type: 'integer', default: 3 }
   }
 }
 
