@@ -35,16 +35,16 @@ async function setupStore (t) {
   const store = new Store(valkeyConnectionString, createMockLog())
 
   // Clean up before test
-  const keys = await store.redis.keys('scaler:*')
+  const keys = await store.valkey.keys('scaler:*')
   if (keys.length > 0) {
-    await store.redis.del(keys)
+    await store.valkey.del(keys)
   }
 
   // Register cleanup after test
   t.after(async () => {
-    const keys = await store.redis.keys('scaler:*')
+    const keys = await store.valkey.keys('scaler:*')
     if (keys.length > 0) {
-      await store.redis.del(keys)
+      await store.valkey.del(keys)
     }
     await store.close()
   })

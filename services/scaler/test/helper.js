@@ -127,6 +127,12 @@ async function cleanDb (app) {
   try {
     await db.query(sql`DELETE FROM "application_scale_configs"`)
   } catch (err) {}
+
+  if (app.store) {
+    try {
+      await app.store.savePredictions([])
+    } catch (err) {}
+  }
 }
 
 let pool = null
