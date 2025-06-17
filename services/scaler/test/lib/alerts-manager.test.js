@@ -8,7 +8,7 @@ const { valkeyConnectionString } = require('../helper')
 const Redis = require('iovalkey')
 
 // Helper function to clean Redis data
-async function cleanRedisData () {
+async function cleanValkeyData () {
   const redis = new Redis(valkeyConnectionString)
   try {
     const keys = await redis.keys('scaler:triggered-pods:*')
@@ -21,28 +21,28 @@ async function cleanRedisData () {
 }
 
 test('AlertsManager clearRecentTriggers', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
-  const mockRedis = new Redis(valkeyConnectionString)
-  const mockStore = { redis: mockRedis }
+  const mockValkey = new Redis(valkeyConnectionString)
+  const mockStore = { valkey: mockValkey }
   const mockApp = {
     log: { debug: () => {}, info: () => {} },
     store: mockStore
   }
   const manager = new AlertsManager(mockApp)
 
-  await mockRedis.set('scaler:triggered-pods:pod1', Date.now(), 'EX', 30)
-  await mockRedis.set('scaler:triggered-pods:pod2', Date.now(), 'EX', 30)
+  await mockValkey.set('scaler:triggered-pods:pod1', Date.now(), 'EX', 30)
+  await mockValkey.set('scaler:triggered-pods:pod2', Date.now(), 'EX', 30)
 
-  const initialKeys = await mockRedis.keys('scaler:triggered-pods:*')
+  const initialKeys = await mockValkey.keys('scaler:triggered-pods:*')
   assert.strictEqual(initialKeys.length, 2)
 
   await manager.clearRecentTriggers()
 
-  const remainingKeys = await mockRedis.keys('scaler:triggered-pods:*')
+  const remainingKeys = await mockValkey.keys('scaler:triggered-pods:*')
   assert.strictEqual(remainingKeys.length, 0)
 
-  await mockRedis.quit()
+  await mockValkey.quit()
 })
 
 test('AlertsManager setDebounceWindow', async (t) => {
@@ -57,10 +57,10 @@ test('AlertsManager setDebounceWindow', async (t) => {
 })
 
 test('AlertsManager getLastTriggeredTime and setLastTriggeredTime', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
-  const mockRedis = new Redis(valkeyConnectionString)
-  const mockStore = { redis: mockRedis }
+  const mockValkey = new Redis(valkeyConnectionString)
+  const mockStore = { valkey: mockValkey }
   const mockApp = {
     log: { debug: () => {}, info: () => {} },
     store: mockStore
@@ -79,18 +79,18 @@ test('AlertsManager getLastTriggeredTime and setLastTriggeredTime', async (t) =>
   assert.strictEqual(retrievedValue, timestamp)
 
   const key = `scaler:triggered-pods:${podId}`
-  const ttl = await mockRedis.ttl(key)
+  const ttl = await mockValkey.ttl(key)
   assert.ok(ttl > 0, 'Key should have a TTL')
 
-  await mockRedis.quit()
+  await mockValkey.quit()
 })
 
 test('AlertsManager processAlert - unhealthy alert triggers scaler', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const notifyScalerCalled = []
   const savedAlerts = []
-  const mockRedis = new Redis(valkeyConnectionString)
+  const mockValkey = new Redis(valkeyConnectionString)
 
   const mockApp = {
     log: {
@@ -98,7 +98,7 @@ test('AlertsManager processAlert - unhealthy alert triggers scaler', async (t) =
       info: () => {}
     },
     store: {
-      redis: mockRedis,
+      valkey: mockValkey,
       saveAlert: async (alert) => {
         savedAlerts.push(alert)
       }
@@ -128,18 +128,18 @@ test('AlertsManager processAlert - unhealthy alert triggers scaler', async (t) =
   assert.strictEqual(notifyScalerCalled[0], unhealthyAlert.podId)
 
   const key = `scaler:triggered-pods:${unhealthyAlert.podId}`
-  const exists = await mockRedis.exists(key)
+  const exists = await mockValkey.exists(key)
   assert.strictEqual(exists, 1, 'Should have a Redis key for the triggered pod')
 
-  await mockRedis.quit()
+  await mockValkey.quit()
 })
 
 test('AlertsManager processAlert - debounces subsequent unhealthy alerts', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const notifyScalerCalled = []
   const debugLogs = []
-  const mockRedis = new Redis(valkeyConnectionString)
+  const mockValkey = new Redis(valkeyConnectionString)
 
   const mockApp = {
     log: {
@@ -149,7 +149,7 @@ test('AlertsManager processAlert - debounces subsequent unhealthy alerts', async
       info: () => {}
     },
     store: {
-      redis: mockRedis,
+      valkey: mockValkey,
       saveAlert: async () => {}
     },
     notifyScaler: async (podId) => {
@@ -175,8 +175,8 @@ test('AlertsManager processAlert - debounces subsequent unhealthy alerts', async
   await manager.processAlert(firstAlert)
   assert.strictEqual(notifyScalerCalled.length, 1)
 
-  const exists = await mockRedis.exists(`scaler:triggered-pods:${podId}`)
-  assert.strictEqual(exists, 1, 'Redis should have the pod key')
+  const exists = await mockValkey.exists(`scaler:triggered-pods:${podId}`)
+  assert.strictEqual(exists, 1, 'Valkey should have the pod key')
 
   const secondAlert = {
     applicationId: randomUUID(),
@@ -197,14 +197,14 @@ test('AlertsManager processAlert - debounces subsequent unhealthy alerts', async
   )
   assert.ok(skipLogEntry, 'Should log about skipping the trigger')
 
-  await mockRedis.quit()
+  await mockValkey.quit()
 })
 
 test('AlertsManager processAlert - allows trigger after debounce window', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const notifyScalerCalled = []
-  const mockRedis = new Redis(valkeyConnectionString)
+  const mockValkey = new Redis(valkeyConnectionString)
 
   const mockApp = {
     log: {
@@ -212,7 +212,7 @@ test('AlertsManager processAlert - allows trigger after debounce window', async 
       info: () => {}
     },
     store: {
-      redis: mockRedis,
+      valkey: mockValkey,
       saveAlert: async () => {}
     },
     notifyScaler: async (podId) => {
@@ -246,11 +246,11 @@ test('AlertsManager processAlert - allows trigger after debounce window', async 
   assert.strictEqual(notifyScalerCalled.length, 1, 'Should notify again after debounce window')
   assert.strictEqual(notifyScalerCalled[0], podId)
 
-  await mockRedis.quit()
+  await mockValkey.quit()
 })
 
 test('AlertsManager handles Redis errors gracefully', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const errorRedis = {
     get: async () => { throw new Error('Redis get error') },

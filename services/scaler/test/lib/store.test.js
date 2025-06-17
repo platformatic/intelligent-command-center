@@ -15,15 +15,15 @@ async function setup (t) {
   }
   const store = new Store(valkeyConnectionString, mockLogger)
 
-  const keys = await store.redis.keys('scaler:*')
+  const keys = await store.valkey.keys('scaler:*')
   if (keys.length > 0) {
-    await store.redis.del(keys)
+    await store.valkey.del(keys)
   }
 
   t.after(async () => {
-    const keys = await store.redis.keys('scaler:*')
+    const keys = await store.valkey.keys('scaler:*')
     if (keys.length > 0) {
-      await store.redis.del(keys)
+      await store.valkey.del(keys)
     }
     await store.close()
   })
@@ -45,16 +45,16 @@ test('saveAlert - saves an alert to Redis with timestamp', async (t) => {
 
   await store.saveAlert(alert)
 
-  const appAlertKeys = await store.redis.keys(`${ALERTS_PREFIX}app:${alert.applicationId}:*`)
+  const appAlertKeys = await store.valkey.keys(`${ALERTS_PREFIX}app:${alert.applicationId}:*`)
   assert.strictEqual(appAlertKeys.length, 1, 'Should have one app alert key')
 
-  const podAlertKeys = await store.redis.keys(`${ALERTS_PREFIX}app:*:pod:${alert.podId}:*`)
+  const podAlertKeys = await store.valkey.keys(`${ALERTS_PREFIX}app:*:pod:${alert.podId}:*`)
   assert.strictEqual(podAlertKeys.length, 1, 'Should have one pod alert key')
 
   const alertKey = appAlertKeys[0]
   assert.ok(alertKey, 'Alert key should exist')
 
-  const alertData = await store.redis.get(alertKey)
+  const alertData = await store.valkey.get(alertKey)
   assert.ok(alertData, 'Alert data should exist')
 
   const savedAlert = JSON.parse(alertData)
@@ -66,7 +66,7 @@ test('saveAlert - saves an alert to Redis with timestamp', async (t) => {
   assert.strictEqual(savedAlert.heapTotal, alert.heapTotal)
   assert.ok(savedAlert.timestamp, 'Alert should have a timestamp')
 
-  const alertTtl = await store.redis.ttl(alertKey)
+  const alertTtl = await store.valkey.ttl(alertKey)
   assert.ok(alertTtl > 0 && alertTtl <= 120, 'Alert data should have expiry set')
 })
 
@@ -95,7 +95,7 @@ test('getAlertsByApplicationId - returns all alerts for an application in chrono
 
   for (const alert of alerts) {
     await store.saveAlert(alert)
-    await setTimeout(50) // Small delay to ensure different timestamps
+    await setTimeout(50)
   }
 
   const retrievedAlerts = await store.getAlertsByApplicationId(applicationId)

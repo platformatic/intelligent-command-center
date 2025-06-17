@@ -41,16 +41,16 @@ async function setupStore (t) {
   const store = new Store(valkeyConnectionString, createMockLog())
 
   // Clean up before test
-  const keys = await store.redis.keys('scaler:*')
+  const keys = await store.valkey.keys('scaler:*')
   if (keys.length > 0) {
-    await store.redis.del(keys)
+    await store.valkey.del(keys)
   }
 
   // Register cleanup after test
   t.after(async () => {
-    const keys = await store.redis.keys('scaler:*')
+    const keys = await store.valkey.keys('scaler:*')
     if (keys.length > 0) {
-      await store.redis.del(keys)
+      await store.valkey.del(keys)
     }
     await store.close()
   })
@@ -84,7 +84,7 @@ test('scaling algorithm with metrics-low.json data', async (t) => {
   const store = await setupStore(t)
   const log = createMockLog()
 
-  await store.redis.set('scaler:last-scaling:test-app', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app', (Date.now() - 600000).toString())
 
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
@@ -195,7 +195,7 @@ test('scaling progression: scale down then stop', async (t) => {
   console.log('=== Scaling Progression Test ===')
 
   console.log('\n--- Phase 1: Initial scale down ---')
-  await store.redis.set('scaler:last-scaling:test-app-progression', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app-progression', (Date.now() - 600000).toString())
 
   const veryLowMetrics = loadMetricsFile('metrics-very-low.json')
   const veryLowAnalysis = analyzeMetrics(veryLowMetrics)
@@ -219,7 +219,7 @@ test('scaling progression: scale down then stop', async (t) => {
   assert.strictEqual(result1.reason, 'Scaling down due to low utilization')
 
   console.log('\n--- Phase 2: After scale down, moderate utilization ---')
-  await store.redis.set('scaler:last-scaling:test-app-progression', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app-progression', (Date.now() - 600000).toString())
 
   const moderateMetrics = loadMetricsFile('metrics-moderate.json')
   const moderateAnalysis = analyzeMetrics(moderateMetrics)

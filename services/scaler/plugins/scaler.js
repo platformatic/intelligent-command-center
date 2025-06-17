@@ -7,7 +7,7 @@ const createLeaderElector = require('../lib/leader')
 async function plugin (app) {
   const lock = Number(process.env.PLT_SCALER_LOCK) || 4242
   const poll = Number(process.env.PLT_SCALER_LEADER_POLL) || 10000
-  const periodicTriggerInterval = (Number(process.env.PLT_SCALER_PERIODIC_TRIGGER) || 60) * 1000 // Convert seconds to milliseconds
+  const periodicTriggerInterval = (Number(process.env.PLT_SCALER_PERIODIC_TRIGGER) || 60) * 1000
   const { db } = app.platformatic
   let periodicTriggerController = null
   let isLeader = false
@@ -20,15 +20,23 @@ async function plugin (app) {
     channel: 'trigger_scaler',
     log: app.log,
     onNotification: app.scalerExecutor.checkScalingOnAlert.bind(app.scalerExecutor),
-    onLeadershipChange: (newIsLeader) => {
+    onLeadershipChange: async (newIsLeader) => {
       if (newIsLeader !== isLeader) {
         isLeader = newIsLeader
         app.log.info({ isLeader }, 'Leadership status changed')
 
         if (isLeader) {
           startPeriodicTrigger()
+          // Start prediction scheduling if available
+          if (app.startPredictionScheduling) {
+            await app.startPredictionScheduling()
+          }
         } else {
           stopPeriodicTrigger()
+          // Stop prediction scheduling if available
+          if (app.stopPredictionScheduling) {
+            await app.stopPredictionScheduling()
+          }
         }
       }
     }
@@ -36,7 +44,7 @@ async function plugin (app) {
 
   async function startPeriodicTrigger () {
     if (periodicTriggerController && !periodicTriggerController.signal.aborted) {
-      return // Already running
+      return
     }
 
     periodicTriggerController = new AbortController()
@@ -44,7 +52,7 @@ async function plugin (app) {
 
     app.log.info({ interval: periodicTriggerInterval }, 'Starting periodic scaler trigger')
 
-    // Continuous loop that executes the periodic trigger (only runs on leader)
+    // Only runs on leader
     try {
       while (!signal.aborted) {
         await setTimeout(periodicTriggerInterval, null, { signal })
@@ -52,7 +60,6 @@ async function plugin (app) {
         if (isLeader) {
           app.log.info('Executing periodic scaler trigger')
           try {
-            // Execute without a specific podId - this will trigger a global scaling evaluation
             await app.scalerExecutor.checkScalingOnMetrics()
           } catch (err) {
             app.log.error({ err }, 'Error during periodic trigger execution')
@@ -100,5 +107,5 @@ async function plugin (app) {
 
 module.exports = fp(plugin, {
   name: 'scaler',
-  dependencies: ['env', 'scaler-executor']
+  dependencies: ['env', 'scaler-executor', 'prediction-scheduler']
 })

@@ -31,16 +31,16 @@ async function setupStore (t) {
   const store = new Store(valkeyConnectionString, createMockLog())
 
   // Clean up before test
-  const keys = await store.redis.keys('scaler:*')
+  const keys = await store.valkey.keys('scaler:*')
   if (keys.length > 0) {
-    await store.redis.del(keys)
+    await store.valkey.del(keys)
   }
 
   // Register cleanup after test
   t.after(async () => {
-    const keys = await store.redis.keys('scaler:*')
+    const keys = await store.valkey.keys('scaler:*')
     if (keys.length > 0) {
-      await store.redis.del(keys)
+      await store.valkey.del(keys)
     }
     await store.close()
   })
@@ -233,7 +233,7 @@ test('calculateScalingDecision respects cooldown period', async (t) => {
   const store = await setupStore(t)
   const log = createMockLog()
 
-  await store.redis.set('scaler:last-scaling:app-1', Date.now().toString())
+  await store.valkey.set('scaler:last-scaling:app-1', Date.now().toString())
 
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
@@ -261,7 +261,7 @@ test('calculateScalingDecision respects maximum pods limit', async (t) => {
   const store = await setupStore(t)
   const log = createMockLog()
 
-  await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
   const options = {
     maxPodsDefault: 5
@@ -293,7 +293,7 @@ test('calculateScalingDecision computes nfinal correctly', async (t) => {
   const store = await setupStore(t)
   const log = createMockLog()
 
-  await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
@@ -394,7 +394,7 @@ test('calculateScalingDecision enforces minimum pod count', async (t) => {
   })
 
   // Set last scaling time to be outside the cooldown period
-  await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
   // Test 1: Current pod count below the minimum should scale up
   const result1 = await algorithm.calculateScalingDecision(
@@ -452,7 +452,7 @@ test('calculateScalingDecision scales up with alerts', async (t) => {
   const log = createMockLog()
 
   // Set last scaling time to be outside the cooldown period
-  await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
@@ -522,7 +522,7 @@ test('calculateScalingDecision scales up with high metrics', async (t) => {
   const log = createMockLog()
 
   // Set last scaling time to be outside the cooldown period
-  await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
@@ -563,7 +563,7 @@ test('calculateScalingDecision maintains pod count with normal metrics', async (
   const log = createMockLog()
 
   // Set last scaling time to be outside the cooldown period
-  await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
@@ -604,7 +604,7 @@ test('calculateScalingDecision with low metrics should scale down', async (t) =>
   const log = createMockLog()
 
   // Set last scaling time to be outside the cooldown period
-  await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
@@ -647,7 +647,7 @@ test('calculateScalingDecision should respect minimum pod count when scaling dow
   const log = createMockLog()
 
   // Set last scaling time to be outside the cooldown period
-  await store.redis.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:app-1', (Date.now() - 600000).toString())
 
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
@@ -689,7 +689,7 @@ test('calculateScalingDecision should not scale down when in cooldown period', a
   const log = createMockLog()
 
   // Set last scaling time to be inside the cooldown period
-  await store.redis.set('scaler:last-scaling:app-1', Date.now().toString())
+  await store.valkey.set('scaler:last-scaling:app-1', Date.now().toString())
 
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)

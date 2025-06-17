@@ -21,7 +21,7 @@ class AlertsManager {
   async getLastTriggeredTime (podId) {
     try {
       const key = this._getTriggeredPodKey(podId)
-      const value = await this.app.store.redis.get(key)
+      const value = await this.app.store.valkey.get(key)
       return value ? Number(value) : null
     } catch (err) {
       this.app.log.error({ err, podId }, 'Failed to get triggered pod timestamp from Redis')
@@ -33,7 +33,7 @@ class AlertsManager {
     try {
       const key = this._getTriggeredPodKey(podId)
       const expiry = Math.max(1, Math.ceil(this.debounceWindow / 1000))
-      await this.app.store.redis.set(key, timestamp.toString(), 'EX', expiry)
+      await this.app.store.valkey.set(key, timestamp.toString(), 'EX', expiry)
       this.app.log.debug({ podId, timestamp, ttl: expiry }, 'Set pod trigger timestamp in Redis')
     } catch (err) {
       this.app.log.error({ err, podId, timestamp }, 'Failed to set triggered pod timestamp in Redis')
@@ -42,10 +42,10 @@ class AlertsManager {
 
   async _deleteTriggeredPodKeys (pattern) {
     try {
-      const keys = await this.app.store.redis.keys(`${TRIGGERED_PODS_PREFIX}${pattern}`)
+      const keys = await this.app.store.valkey.keys(`${TRIGGERED_PODS_PREFIX}${pattern}`)
 
       if (keys.length > 0) {
-        await this.app.store.redis.del(keys)
+        await this.app.store.valkey.del(keys)
         this.app.log.debug({ deletedCount: keys.length }, 'Deleted triggered pod entries')
       }
 

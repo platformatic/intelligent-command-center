@@ -21,7 +21,7 @@ class ScalerExecutor {
     this.scalingAlgorithm = new ReactiveScalingAlgorithm(app, options)
   }
 
-  async #getCurrentPodCount (applicationId) {
+  async getCurrentPodCount (applicationId) {
     const controller = await this.app.getApplicationController(applicationId)
     if (!controller) {
       this.app.log.error({ applicationId }, 'No controller found for application')
@@ -30,7 +30,7 @@ class ScalerExecutor {
     return controller.replicas
   }
 
-  async #getScaleConfig (applicationId) {
+  async getScaleConfig (applicationId) {
     try {
       const scaleConfig = await this.app.getScaleConfig(applicationId)
       if (scaleConfig) {
@@ -46,8 +46,8 @@ class ScalerExecutor {
   }
 
   async #calculateAndApplyScaling (applicationId, podsMetrics, alerts = [], logContext = {}) {
-    const currentPodCount = await this.#getCurrentPodCount(applicationId)
-    const { minPods, maxPods } = await this.#getScaleConfig(applicationId)
+    const currentPodCount = await this.getCurrentPodCount(applicationId)
+    const { minPods, maxPods } = await this.getScaleConfig(applicationId)
 
     const result = await this.scalingAlgorithm.calculateScalingDecision(
       applicationId,
@@ -134,6 +134,12 @@ class ScalerExecutor {
       this.app.log.error({ err, podId }, 'Error calculating scaling decision')
       return { success: false, timestamp: Date.now(), error: err.message }
     }
+  }
+
+  applyScaleConstraints (targetPods, minPods, maxPods) {
+    const effectiveMin = minPods || 1
+    const effectiveMax = maxPods || Number.MAX_SAFE_INTEGER
+    return Math.max(effectiveMin, Math.min(effectiveMax, targetPods))
   }
 
   async executeScaling (applicationId, podsNumber, reason = null) {
