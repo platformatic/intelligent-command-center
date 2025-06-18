@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const assert = require('node:assert')
 const { startMetrics, startPrometheus, getControlPlane } = require('./helper')
 
@@ -119,16 +119,39 @@ test('pod chart metrics', async (t) => {
   })
   assert.equal(res.statusCode, 200)
   const metrics = res.json()
-  const expected = [
-    {
+  const expected = {
+    chart: [{
       date: '2024-07-16T09:38:06.143Z',
-      cpu: 2.71828,
+      cpu: 3.71828,
       elu: 0.461803,
       rss: 2721122686,
       usedHeapSize: 3721122686,
       totalHeapSize: 1721122686,
       newSpaceSize: 0,
-      oldSpaceSize: 0,
+      oldSpaceSize: 0
+    },
+    {
+      date: '2024-07-16T09:54:46.143Z',
+      cpu: 3.71828,
+      elu: 0.461803,
+      rss: 2721122686,
+      usedHeapSize: 3721122686,
+      totalHeapSize: 1721122686,
+      newSpaceSize: 0,
+      oldSpaceSize: 0
+    },
+    {
+      date: '2024-07-16T10:11:26.143Z',
+      cpu: 3.71828,
+      elu: 0.461803,
+      rss: 2721122686,
+      usedHeapSize: 3721122686,
+      totalHeapSize: 1721122686,
+      newSpaceSize: 0,
+      oldSpaceSize: 0
+    }],
+    latency: [{
+      date: '2024-07-16T09:38:06.143Z',
       latencies: {
         p50: 0,
         p90: 222,
@@ -138,13 +161,6 @@ test('pod chart metrics', async (t) => {
     },
     {
       date: '2024-07-16T09:54:46.143Z',
-      cpu: 2.71828,
-      elu: 0.461803,
-      rss: 2721122686,
-      usedHeapSize: 3721122686,
-      totalHeapSize: 1721122686,
-      newSpaceSize: 0,
-      oldSpaceSize: 0,
       latencies: {
         p50: 0,
         p90: 222,
@@ -154,21 +170,14 @@ test('pod chart metrics', async (t) => {
     },
     {
       date: '2024-07-16T10:11:26.143Z',
-      cpu: 2.71828,
-      elu: 0.461803,
-      rss: 2721122686,
-      usedHeapSize: 3721122686,
-      totalHeapSize: 1721122686,
-      newSpaceSize: 0,
-      oldSpaceSize: 0,
       latencies: {
         p50: 0,
         p90: 222,
         p95: 333,
         p99: 444
       }
-    }
-  ]
+    }]
+  }
   assert.deepEqual(metrics, expected)
 })
 
@@ -186,8 +195,8 @@ test('pod service chart metrics', async (t) => {
   })
   assert.equal(res.statusCode, 200)
   const metrics = res.json()
-  const expected = [
-    {
+  const expected = {
+    chart: [{
       date: '2024-07-16T09:38:06.143Z',
       cpu: 3.71828,
       elu: 0.461803,
@@ -195,13 +204,7 @@ test('pod service chart metrics', async (t) => {
       usedHeapSize: 3721122686,
       totalHeapSize: 1721122686,
       newSpaceSize: 0,
-      oldSpaceSize: 0,
-      latencies: {
-        p50: 0,
-        p90: 222,
-        p95: 333,
-        p99: 444
-      }
+      oldSpaceSize: 0
     },
     {
       date: '2024-07-16T09:54:46.143Z',
@@ -211,13 +214,7 @@ test('pod service chart metrics', async (t) => {
       usedHeapSize: 3721122686,
       totalHeapSize: 1721122686,
       newSpaceSize: 0,
-      oldSpaceSize: 0,
-      latencies: {
-        p50: 0,
-        p90: 222,
-        p95: 333,
-        p99: 444
-      }
+      oldSpaceSize: 0
     },
     {
       date: '2024-07-16T10:11:26.143Z',
@@ -227,14 +224,35 @@ test('pod service chart metrics', async (t) => {
       usedHeapSize: 3721122686,
       totalHeapSize: 1721122686,
       newSpaceSize: 0,
-      oldSpaceSize: 0,
+      oldSpaceSize: 0
+    }],
+    latency: [{
+      date: '2024-07-16T09:38:06.143Z',
       latencies: {
         p50: 0,
         p90: 222,
         p95: 333,
         p99: 444
       }
-    }
-  ]
+    },
+    {
+      date: '2024-07-16T09:54:46.143Z',
+      latencies: {
+        p50: 0,
+        p90: 222,
+        p95: 333,
+        p99: 444
+      }
+    },
+    {
+      date: '2024-07-16T10:11:26.143Z',
+      latencies: {
+        p50: 0,
+        p90: 222,
+        p95: 333,
+        p99: 444
+      }
+    }]
+  }
   assert.deepEqual(metrics, expected)
 })

@@ -9,7 +9,8 @@ const {
 const {
   getPodMemMetrics,
   getPodCpuEventMetrics,
-  getPodChartsMetrics
+  getPodChartsMetrics,
+  getPodLatencyMetrics
 } = require('../lib/pods-metrics')
 
 const { getEntrypoint } = require('../lib/control-plane')
@@ -67,11 +68,11 @@ module.exports = async function (app) {
   app.get('/apps/:appId/pods/:podId', {
     handler: async (req) => {
       const { appId, podId } = req.params
-      app.log.info({ podId }, 'Getting pod detail metrics')
       const { controlPlane } = req
       const entrypoint = await getEntrypoint(controlPlane, appId, app.log)
-      const chart = await getPodChartsMetrics({ podId, entrypoint })
-      return chart
+      const chart = await getPodChartsMetrics({ podId, serviceId: entrypoint })
+      const latency = await getPodLatencyMetrics({ podId, serviceId: entrypoint })
+      return { chart, latency }
     }
   })
 
@@ -79,9 +80,9 @@ module.exports = async function (app) {
   app.get('/apps/:appId/pods/:podId/services/:serviceId', {
     handler: async (req) => {
       const { podId, serviceId } = req.params
-      app.log.info({ podId, serviceId }, 'Getting pod detail metrics')
       const chart = await getPodChartsMetrics({ podId, serviceId })
-      return chart
+      const latency = await getPodLatencyMetrics({ podId, serviceId })
+      return { chart, latency }
     }
   })
 

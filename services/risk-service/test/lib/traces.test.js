@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const assert = require('node:assert')
 const { checkTrace } = require('../../lib/traces')
 const { createTraceId, createSpanId, createSpanData } = require('../helper')

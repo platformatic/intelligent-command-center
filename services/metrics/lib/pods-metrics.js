@@ -25,6 +25,7 @@ const {
   createNewHeapSpacePodChartQuery
 } = require('./chart-queries')
 
+const dayjs = require('dayjs')
 const { toGB } = require('./utils')
 
 const getPodMemMetrics = async ({ podId, timeWindow }) => {
@@ -62,10 +63,7 @@ const getPodCpuEventMetrics = async ({ podId, timeWindow }) => {
   return { cpu, eventLoop, podCores }
 }
 
-const getPodChartsMetrics = async ({ podId, entrypoint, serviceId = null }) => {
-  // If entrypoint is provided, use it to get latency metrics. Otherwise, use serviceId
-  const latencyServiceId = entrypoint || serviceId
-
+const getPodChartsMetrics = async ({ podId, serviceId = null }) => {
   const chartWindowInMinutes = 5
 
   const end = new Date().getTime() / 1000
@@ -81,22 +79,15 @@ const getPodChartsMetrics = async ({ podId, entrypoint, serviceId = null }) => {
   const newSpaceSizeQuery = createNewHeapSpacePodChartQuery(podId, serviceId)
   const cpuQuery = createCPUPodChartQuery(podId, serviceId)
   const eventLoopQuery = createEventLoopPodChartQuery(podId, serviceId)
-  const latencyQuery50 = createLatencyPodChartQuery(podId, latencyServiceId, '0.5')
-  const latencyQuery90 = createLatencyPodChartQuery(podId, latencyServiceId, '0.9')
-  const latencyQuery95 = createLatencyPodChartQuery(podId, latencyServiceId, '0.95')
-  const latencyQuery99 = createLatencyPodChartQuery(podId, latencyServiceId, '0.99')
-  const [rssRes, totalHeapRes, usedHeapRes, oldSpaceSizeRes, newSpaceSizeRes, cpuRes, eventLoopRes, latencyRes50, latencyRes90, latencyRes95, latencyRes99] = await Promise.all([
+
+  const [rssRes, totalHeapRes, usedHeapRes, oldSpaceSizeRes, newSpaceSizeRes, cpuRes, eventLoopRes] = await Promise.all([
     queryRangePrometheus(rssMemoryQuery, start, end, step),
     queryRangePrometheus(totalHEAPMemoryQuery, start, end, step),
     queryRangePrometheus(usedHEAPMemoryQuery, start, end, step),
     queryRangePrometheus(oldSpaceSizeQuery, start, end, step),
     queryRangePrometheus(newSpaceSizeQuery, start, end, step),
     queryRangePrometheus(cpuQuery, start, end, step),
-    queryRangePrometheus(eventLoopQuery, start, end, step),
-    queryRangePrometheus(latencyQuery50, start, end, step),
-    queryRangePrometheus(latencyQuery90, start, end, step),
-    queryRangePrometheus(latencyQuery95, start, end, step),
-    queryRangePrometheus(latencyQuery99, start, end, step)
+    queryRangePrometheus(eventLoopQuery, start, end, step)
   ])
 
   const numberOfPoints = rssRes?.data?.result[0]?.values.length
@@ -110,6 +101,44 @@ const getPodChartsMetrics = async ({ podId, entrypoint, serviceId = null }) => {
     const newSpaceSize = newSpaceSizeRes?.data?.result[0]?.values[i][1]
     const cpu = cpuRes?.data?.result[0]?.values[i][1]
     const elu = eventLoopRes?.data?.result[0]?.values[i][1]
+    data.push({
+      date: new Date(date * 1000),
+      cpu,
+      elu,
+      rss,
+      usedHeapSize,
+      totalHeapSize,
+      newSpaceSize,
+      oldSpaceSize
+    })
+  }
+
+  return data
+}
+
+const getPodLatencyMetrics = async ({ podId, serviceId }) => {
+  const chartWindowInMinutes = 5
+
+  const end = dayjs()
+  const start = end.subtract(chartWindowInMinutes, 'minutes')
+  // Note that this must be <= of the refresh interval of the chart in ui.
+  // Otherwise we shift the chart but the data ars not updated
+  const step = '2s'
+  const latencyQuery50 = createLatencyPodChartQuery(podId, serviceId, '0.5')
+  const latencyQuery90 = createLatencyPodChartQuery(podId, serviceId, '0.9')
+  const latencyQuery95 = createLatencyPodChartQuery(podId, serviceId, '0.95')
+  const latencyQuery99 = createLatencyPodChartQuery(podId, serviceId, '0.99')
+  const [latencyRes50, latencyRes90, latencyRes95, latencyRes99] = await Promise.all([
+    queryRangePrometheus(latencyQuery50, start.unix(), end.unix(), step),
+    queryRangePrometheus(latencyQuery90, start.unix(), end.unix(), step),
+    queryRangePrometheus(latencyQuery95, start.unix(), end.unix(), step),
+    queryRangePrometheus(latencyQuery99, start.unix(), end.unix(), step)
+  ])
+  const numberOfPoints = latencyRes50?.data?.result[0]?.values.length
+  const data = []
+  for (let i = 0; i < numberOfPoints; i++) {
+    const date = latencyRes50?.data?.result[0]?.values[i][0]
+
     let latency50 = 0
     if (latencyRes50?.data?.result[0]?.values[i]) {
       latency50 = parseFloat(latencyRes50?.data?.result[0]?.values[i][1]) * 1000
@@ -126,16 +155,8 @@ const getPodChartsMetrics = async ({ podId, entrypoint, serviceId = null }) => {
     if (latencyRes99?.data?.result[0]?.values[i]) {
       latency99 = parseFloat(latencyRes99?.data?.result[0]?.values[i][1]) * 1000
     }
-
     data.push({
       date: new Date(date * 1000),
-      cpu,
-      elu,
-      rss,
-      usedHeapSize,
-      totalHeapSize,
-      newSpaceSize,
-      oldSpaceSize,
       latencies: {
         p50: latency50,
         p90: latency90,
@@ -144,12 +165,12 @@ const getPodChartsMetrics = async ({ podId, entrypoint, serviceId = null }) => {
       }
     })
   }
-
   return data
 }
 
 module.exports = {
   getPodMemMetrics,
   getPodCpuEventMetrics,
-  getPodChartsMetrics
+  getPodChartsMetrics,
+  getPodLatencyMetrics
 }

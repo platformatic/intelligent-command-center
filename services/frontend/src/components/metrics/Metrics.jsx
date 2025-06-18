@@ -34,13 +34,22 @@ export default function Metrics ({
   }
 
   function handleMetrics (metrics) {
-    const parsedMetrics = metrics
+    const { chart, latency } = metrics
     const memory = []
     const cpuEL = []
-    const latency = []
-    for (const parsedMetric of parsedMetrics) {
-      const { date, cpu, elu, rss, totalHeapSize, usedHeapSize, newSpaceSize, oldSpaceSize, latencies } = parsedMetric
-      const { p90: P90, p95: P95, p99: P99 } = latencies
+
+    const latencyData = latency.map(parsedMetric => {
+      const { date, latencies } = parsedMetric
+      const time = new Date(date)
+      return {
+        time,
+        P90: latencies.p90,
+        P95: latencies.p95,
+        P99: latencies.p99
+      }
+    })
+    chart.forEach(parsedMetric => {
+      const { date, cpu, elu, rss, totalHeapSize, usedHeapSize, newSpaceSize, oldSpaceSize } = parsedMetric
       const time = new Date(date)
       const eluPercentage = elu * 100
       memory.push({
@@ -51,13 +60,12 @@ export default function Metrics ({
         time,
         values: [cpu, eluPercentage]
       })
-      latency.push({ time, P90, P95, P99 })
-    }
+    })
 
     setData({
       memory,
       cpuEL,
-      latency
+      latency: latencyData
     })
 
     if (initialLoading && memory.length > 3) {
