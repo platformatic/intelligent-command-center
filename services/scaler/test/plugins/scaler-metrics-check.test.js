@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const { buildServerWithPlugins, startMachinist, setupMockPrometheusServer } = require('../helper')
 const assert = require('node:assert')
 const executorPlugin = require('../../plugins/scaler-executor')

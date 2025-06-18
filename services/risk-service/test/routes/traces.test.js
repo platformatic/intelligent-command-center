@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const assert = require('node:assert')
 const { createResourceSpan, createHTTPSpan, createTraceId, createSpanId, bootstrap } = require('../helper')
 const { request, Agent } = require('undici')

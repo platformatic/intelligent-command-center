@@ -14,6 +14,10 @@ async function getDeployment (controlPlane, appId, logger) {
 
 const getEntrypoint = async (controlPlane, appId, logger) => {
   const deployment = await getDeployment(controlPlane, appId, logger)
+  if (!deployment) {
+    logger.error({ appId }, 'No deployment found')
+    throw new Error(`No deployment found for application ${appId}`)
+  }
   const { applicationStateId } = deployment
   const applicationState = await controlPlane.getApplicationStateById({ id: applicationStateId })
   if (!applicationState) {
