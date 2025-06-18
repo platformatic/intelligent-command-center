@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const { EventEmitter, once } = require('node:events')
 const Fastify = require('fastify')
 const { buildServer } = require('../helper')

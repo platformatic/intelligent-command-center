@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const { bootstrap, mockS3Commands } = require('../../helper')
 const assert = require('node:assert')
 const { tmpdir } = require('node:os')

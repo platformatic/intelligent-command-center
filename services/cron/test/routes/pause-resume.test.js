@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const { buildServer } = require('../helper')
 const tspl = require('@matteo.collina/tspl')
 

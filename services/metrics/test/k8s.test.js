@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const assert = require('node:assert')
 const { startMetrics, startPrometheusK8s, getControlPlane } = require('./helper')
 

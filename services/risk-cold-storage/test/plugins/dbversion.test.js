@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const { bootstrap } = require('../helper')
 const { join } = require('node:path')
 const { readdir } = require('node:fs/promises')
