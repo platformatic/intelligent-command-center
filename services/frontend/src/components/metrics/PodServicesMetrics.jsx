@@ -53,13 +53,23 @@ export default function PodServicesMetrics ({
   }, [innerHeight])
 
   function handleMetrics (metrics, service = false) {
-    const parsedMetrics = metrics
+    const { chart, latency } = metrics
     const memory = []
     const cpuEL = []
-    const latency = []
-    for (const parsedMetric of parsedMetrics) {
-      const { date, cpu, elu, rss, totalHeapSize, usedHeapSize, newSpaceSize, oldSpaceSize, latencies } = parsedMetric
-      const { p90: P90, p95: P95, p99: P99 } = latencies
+    // const latency = []
+
+    const latencyData = latency.map(parsedMetric => {
+      const { date, latencies } = parsedMetric
+      const time = new Date(date)
+      return {
+        time,
+        P90: latencies.p90,
+        P95: latencies.p95,
+        P99: latencies.p99
+      }
+    })
+    chart.forEach(parsedMetric => {
+      const { date, cpu, elu, rss, totalHeapSize, usedHeapSize, newSpaceSize, oldSpaceSize } = parsedMetric
       const time = new Date(date)
       const eluPercentage = elu * 100
       memory.push({
@@ -70,19 +80,21 @@ export default function PodServicesMetrics ({
         time,
         values: [cpu, eluPercentage]
       })
-      latency.push({ time, P90, P95, P99 })
+    })
+    if (latencyData.length > 0) {
+      console.log('latencyData', latencyData)
     }
     if (service) {
       setDataService({
         memory,
         cpuEL,
-        latency
+        latency: latencyData
       })
     } else {
       setDataAggregated({
         memory,
         cpuEL,
-        latency
+        latency: latencyData
       })
     }
 
@@ -314,8 +326,8 @@ export default function PodServicesMetrics ({
                   tooltipPosition={POSITION_FIXED}
                   numberLabelsOnXAxis={showAggregatedMetrics ? 5 : 10}
                   heightChart={heightChart}
-
                 />
+
               </BorderedBox>
 
               {showAggregatedMetrics && (

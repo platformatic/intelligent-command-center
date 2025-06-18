@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const { buildServer, buildServerWithPlugins, createExecutor } = require('../helper')
 const assert = require('node:assert')
 const { setTimeout: sleep } = require('node:timers/promises')

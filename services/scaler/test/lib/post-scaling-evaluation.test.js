@@ -3,7 +3,7 @@
 // Ensure post-scaling evaluation is not skipped for these tests
 delete process.env.SKIP_POST_SCALING_EVALUATION
 
-const test = require('node:test')
+const { test } = require('node:test')
 const assert = require('node:assert')
 const { setTimeout } = require('node:timers/promises')
 const ReactiveScalingAlgorithm = require('../../lib/reactive-scaling-algorithm')

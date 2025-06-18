@@ -2,7 +2,7 @@
 
 process.env.SKIP_POST_SCALING_EVALUATION = 'true'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const assert = require('node:assert')
 const path = require('node:path')
 const fs = require('node:fs')

@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const assert = require('node:assert')
 const { randomUUID } = require('node:crypto')
 const { buildServer } = require('../helper')

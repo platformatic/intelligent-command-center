@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('node:test')
+const { test } = require('node:test')
 const { bootstrap, dbVersionFromMigrations } = require('../helper')
 const assert = require('node:assert')
 const { rm, mkdtemp, writeFile } = require('node:fs/promises')
