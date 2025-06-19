@@ -9,6 +9,7 @@ const storePlugin = require('../../plugins/store')
 const metricsPlugin = require('../../plugins/metrics')
 const scaleConfigPlugin = require('../../plugins/scale-configs')
 const controllerPlugin = require('../../plugins/controllers')
+const activitiesPlugin = require('../../plugins/activities')
 
 test('scaler-executor should be registered correctly', async (t) => {
   const server = await buildServer(t)
@@ -23,6 +24,7 @@ test('checkScalingOnAlert should return error when pod has no alerts', async (t)
     envPlugin,
     storePlugin,
     metricsPlugin,
+    activitiesPlugin,
     scaleConfigPlugin,
     executorPlugin,
     controllerPlugin
@@ -51,6 +53,7 @@ test('checkScalingOnAlert should return error when application has no metrics', 
     envPlugin,
     storePlugin,
     metricsPlugin,
+    activitiesPlugin,
     scaleConfigPlugin,
     executorPlugin,
     controllerPlugin
@@ -125,6 +128,7 @@ test('checkScalingOnAlert should call scaling algorithm and return result', asyn
     envPlugin,
     storePlugin,
     metricsPlugin,
+    activitiesPlugin,
     scaleConfigPlugin,
     executorPlugin,
     controllerPlugin
@@ -214,6 +218,7 @@ test('checkScalingOnAlert should return error when no podId is provided', async 
     envPlugin,
     storePlugin,
     metricsPlugin,
+    activitiesPlugin,
     scaleConfigPlugin,
     executorPlugin,
     controllerPlugin
@@ -233,6 +238,7 @@ test('checkScalingOnAlert should merge metrics from alerts with pod metrics for 
     envPlugin,
     storePlugin,
     metricsPlugin,
+    activitiesPlugin,
     scaleConfigPlugin,
     executorPlugin,
     controllerPlugin
@@ -326,6 +332,7 @@ test('checkScalingOnAlert should handle unexpected errors', async (t) => {
     envPlugin,
     storePlugin,
     metricsPlugin,
+    activitiesPlugin,
     scaleConfigPlugin,
     executorPlugin,
     controllerPlugin

@@ -18,7 +18,7 @@ module.exports = fp(async function (app) {
 
   app.decorate('saveScaleConfig', async (applicationId, config) => {
     const controller = await app.getApplicationController(applicationId)
-    /* c8 ignore next */
+    /* c8 ignore next 3 */
     if (controller === null) {
       throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
     }
@@ -43,6 +43,7 @@ module.exports = fp(async function (app) {
 
   app.decorate('saveDefaultScaleConfig', async (applicationId) => {
     const scaleConfig = await app.getScaleConfig(applicationId)
+    /* c8 ignore next */
     if (scaleConfig !== null) return
 
     await app.platformatic.entities.applicationScaleConfig.save({
