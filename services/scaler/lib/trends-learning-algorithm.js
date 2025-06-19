@@ -132,11 +132,11 @@ class TrendsLearningAlgorithm {
           const successScore = event.successScore || 1.0 // Default to 1.0 for signal-based events
 
           const weightedScore = weight * successScore
-          weightSum += weight
+          weightSum += weightedScore
           weightedSuccessSum += weightedScore
           weightedPodsSum += Math.abs(event.podsAdded) * weightedScore
-          weightedEluSum += event.preEluMean * weight
-          weightedHeapSum += event.preHeapMean * weight
+          weightedEluSum += event.preEluMean * weightedScore
+          weightedHeapSum += event.preHeapMean * weightedScore
 
           // Count recent events (within 3 days)
           if (currentTimeSeconds - event.timestamp / 1000 <= 259200) {
@@ -145,8 +145,8 @@ class TrendsLearningAlgorithm {
         }
 
         // Calculate confidence and average values
-        const confidence = weightedSuccessSum / (weightSum + 1)
-        const avgPods = weightedPodsSum / (weightedSuccessSum + 1)
+        const confidence = weightSum / (weightSum + 1)
+        const avgPods = weightedPodsSum / (weightSum + 1)
         const avgSuccess = weightedSuccessSum / (weightSum + 0.001)
         const avgElu = weightedEluSum / (weightSum + 0.001)
         const avgHeap = weightedHeapSum / (weightSum + 0.001)

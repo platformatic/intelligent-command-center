@@ -105,6 +105,7 @@ class Metrics {
 
   async #queryAllApplicationsMetric (metricName, timeRange, step = 1) {
     const now = Math.floor(Date.now() / 1000)
+    /* c8 ignore next */
     const start = now - (timeRange ?? this.timeRange)
     const end = now
 

@@ -12,8 +12,8 @@ const controllerPlugin = require('../../plugins/controllers')
 
 test('scaler-executor should be registered correctly', async (t) => {
   const server = await buildServer(t)
-  assert.ok(server.scalerExecutor, 'server should have scalerExecutor decorator')
-  assert.strictEqual(typeof server.scalerExecutor.checkScalingOnAlert, 'function', 'scalerExecutor should have checkScalingOnAlert method')
+  assert.ok(server.scalerExecutor)
+  assert.strictEqual(typeof server.scalerExecutor.checkScalingOnAlert, 'function')
 })
 
 test('checkScalingOnAlert should return error when pod has no alerts', async (t) => {
@@ -38,8 +38,8 @@ test('checkScalingOnAlert should return error when pod has no alerts', async (t)
 
   const result = await server.scalerExecutor.checkScalingOnAlert('test-pod-1')
 
-  assert.strictEqual(result.success, true, 'checkScalingOnAlert should succeed with no alerts')
-  assert.strictEqual(result.nfinal, 0, 'nfinal should be 0 when no alerts')
+  assert.strictEqual(result.success, true)
+  assert.strictEqual(result.nfinal, 0)
 
   await machinist.close()
 })
@@ -305,8 +305,6 @@ test('checkScalingOnAlert should merge metrics from alerts with pod metrics for 
       })
     }
 
-    console.log('Test is verifying that alert metrics would be merged into pod metrics')
-
     return { nfinal: currentPodCount + 1, source: 'combined' }
   }
 
@@ -347,4 +345,217 @@ test('checkScalingOnAlert should handle unexpected errors', async (t) => {
 
   assert.strictEqual(result.success, false, 'checkScalingOnAlert should fail')
   assert.strictEqual(result.error, 'Test error', 'error message should match thrown error')
+})
+
+test('getCurrentPodCount should throw error when no controller found', async (t) => {
+  const server = await buildServer(t)
+
+  server.getApplicationController = async () => null
+
+  await assert.rejects(
+    () => server.scalerExecutor.getCurrentPodCount('nonexistent-app'),
+    { message: 'No controller found for application: nonexistent-app' }
+  )
+})
+
+test('getScaleConfig should return config when available', async (t) => {
+  const server = await buildServer(t)
+
+  server.getScaleConfig = async (appId) => ({
+    minPods: 2,
+    maxPods: 8
+  })
+
+  const config = await server.scalerExecutor.getScaleConfig('test-app')
+  assert.strictEqual(config.minPods, 2)
+  assert.strictEqual(config.maxPods, 8)
+})
+
+test('getScaleConfig should return undefined values when error occurs', async (t) => {
+  const server = await buildServer(t)
+
+  server.getScaleConfig = async () => {
+    throw new Error('Config not found')
+  }
+
+  const config = await server.scalerExecutor.getScaleConfig('test-app')
+  assert.strictEqual(config.minPods, undefined)
+  assert.strictEqual(config.maxPods, undefined)
+})
+
+test('getScaleConfig should return undefined when no config found', async (t) => {
+  const server = await buildServer(t)
+
+  server.getScaleConfig = async () => null
+
+  const config = await server.scalerExecutor.getScaleConfig('test-app')
+  assert.strictEqual(config.minPods, undefined)
+  assert.strictEqual(config.maxPods, undefined)
+})
+
+test('checkScalingOnAlert should handle missing applicationId in alerts', async (t) => {
+  const server = await buildServer(t)
+
+  server.store.getAlertsByPodId = async () => [{
+    podId: 'test-pod-1',
+    timestamp: Date.now(),
+    elu: 0.90
+  }]
+
+  const result = await server.scalerExecutor.checkScalingOnAlert('test-pod-1')
+
+  assert.strictEqual(result.success, false)
+  assert.strictEqual(result.error, 'Missing applicationId')
+})
+
+test('applyScaleConstraints should apply min and max constraints', async (t) => {
+  const server = await buildServer(t)
+
+  assert.strictEqual(server.scalerExecutor.applyScaleConstraints(0, 2, 10), 2)
+  assert.strictEqual(server.scalerExecutor.applyScaleConstraints(5, 2, 10), 5)
+  assert.strictEqual(server.scalerExecutor.applyScaleConstraints(15, 2, 10), 10)
+})
+
+test('applyScaleConstraints should use defaults when constraints are undefined', async (t) => {
+  const server = await buildServer(t)
+
+  assert.strictEqual(server.scalerExecutor.applyScaleConstraints(0), 1)
+  assert.strictEqual(server.scalerExecutor.applyScaleConstraints(5), 5)
+  assert.strictEqual(server.scalerExecutor.applyScaleConstraints(1000000), 1000000)
+})
+
+test('executeScaling should handle errors', async (t) => {
+  const server = await buildServer(t)
+
+  server.updateControllerReplicas = async () => {
+    throw new Error('Scaling failed')
+  }
+
+  const result = await server.scalerExecutor.executeScaling('test-app', 3, 'test reason')
+
+  assert.strictEqual(result.success, false)
+  assert.strictEqual(result.error, 'Scaling failed')
+  assert.strictEqual(result.applicationId, 'test-app')
+  assert.strictEqual(result.podsNumber, 3)
+})
+
+test('executeScaling should succeed when no errors', async (t) => {
+  const server = await buildServer(t)
+
+  server.updateControllerReplicas = async () => ({ success: true })
+
+  const result = await server.scalerExecutor.executeScaling('test-app', 3, 'test reason')
+
+  assert.strictEqual(result.success, true)
+  assert.strictEqual(result.applicationId, 'test-app')
+  assert.strictEqual(result.podsNumber, 3)
+})
+
+test('checkScalingOnMetrics should handle missing scalerMetrics plugin', async (t) => {
+  const server = await buildServer(t)
+
+  server.scalerMetrics = null
+
+  const result = await server.scalerExecutor.checkScalingOnMetrics()
+
+  assert.strictEqual(result.success, false)
+  assert.strictEqual(result.periodic, true)
+  assert.strictEqual(result.error, 'Scaler metrics plugin is not available')
+})
+
+test('checkScalingOnMetrics should handle no application metrics', async (t) => {
+  const server = await buildServer(t)
+
+  server.scalerMetrics = {
+    getAllApplicationsMetrics: async () => ({})
+  }
+
+  const result = await server.scalerExecutor.checkScalingOnMetrics()
+
+  assert.strictEqual(result.success, true)
+  assert.strictEqual(result.periodic, true)
+  assert.strictEqual(result.message, 'No application metrics found')
+})
+
+test('checkScalingOnMetrics should process applications and handle errors', async (t) => {
+  const server = await buildServer(t)
+
+  server.getApplicationController = async (appId) => {
+    if (appId === 'app-1') return { replicas: 2 }
+    throw new Error('Controller not found')
+  }
+
+  server.getScaleConfig = async () => ({ minPods: 1, maxPods: 10 })
+  server.updateControllerReplicas = async () => ({ success: true })
+
+  server.scalerMetrics = {
+    getAllApplicationsMetrics: async () => ({
+      'app-1': { 'pod-1': { heapSize: [], eventLoopUtilization: [] } },
+      'app-2': { 'pod-2': { heapSize: [], eventLoopUtilization: [] } }
+    })
+  }
+
+  server.scalerExecutor.scalingAlgorithm.calculateScalingDecision = async () => ({
+    nfinal: 3,
+    reason: 'Test scaling'
+  })
+
+  const result = await server.scalerExecutor.checkScalingOnMetrics()
+
+  assert.strictEqual(result.success, true)
+  assert.strictEqual(result.periodic, true)
+  assert.ok(Array.isArray(result.results))
+  assert.strictEqual(result.results.length, 2)
+
+  const successResult = result.results.find(r => r.applicationId === 'app-1')
+  assert.ok(successResult)
+  assert.strictEqual(successResult.currentPodCount, 2)
+  assert.strictEqual(successResult.newPodCount, 3)
+  assert.strictEqual(successResult.scaled, true)
+
+  const errorResult = result.results.find(r => r.applicationId === 'app-2')
+  assert.ok(errorResult)
+  assert.ok(errorResult.error)
+})
+
+test('checkScalingOnMetrics should skip unknown applications', async (t) => {
+  const server = await buildServer(t)
+
+  server.scalerMetrics = {
+    getAllApplicationsMetrics: async () => ({
+      unknown: { 'pod-1': { heapSize: [], eventLoopUtilization: [] } },
+      'app-1': { 'pod-2': { heapSize: [], eventLoopUtilization: [] } }
+    })
+  }
+
+  server.getApplicationController = async () => ({ replicas: 1 })
+  server.getScaleConfig = async () => ({ minPods: 1, maxPods: 10 })
+  server.updateControllerReplicas = async () => ({ success: true })
+
+  server.scalerExecutor.scalingAlgorithm.calculateScalingDecision = async () => ({
+    nfinal: 1,
+    reason: 'No change'
+  })
+
+  const result = await server.scalerExecutor.checkScalingOnMetrics()
+
+  assert.strictEqual(result.success, true)
+  assert.strictEqual(result.results.length, 1)
+  assert.strictEqual(result.results[0].applicationId, 'app-1')
+})
+
+test('checkScalingOnMetrics should handle getAllApplicationsMetrics errors', async (t) => {
+  const server = await buildServer(t)
+
+  server.scalerMetrics = {
+    getAllApplicationsMetrics: async () => {
+      throw new Error('Metrics fetch failed')
+    }
+  }
+
+  const result = await server.scalerExecutor.checkScalingOnMetrics()
+
+  assert.strictEqual(result.success, false)
+  assert.strictEqual(result.periodic, true)
+  assert.strictEqual(result.error, 'Metrics fetch failed')
 })

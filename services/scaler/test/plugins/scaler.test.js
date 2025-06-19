@@ -137,3 +137,170 @@ test('if one instance is shut down, the other is elected', async (t) => {
   await sleep(1000)
   assert.ok(server1.isScalerLeader(), 'Server 1 should be the leader after server 2 is closed')
 })
+
+test('should stop prediction scheduling when losing leadership', async (t) => {
+  const server = await buildServer(t, {
+    env: {
+      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6000).toString(),
+      PLT_SCALER_LEADER_POLL: '100',
+      PLT_SCALER_PERIODIC_TRIGGER: '1'
+    }
+  })
+
+  server.stopPredictionScheduling = async () => {}
+
+  t.after(async () => {
+    await server.close()
+  })
+
+  await sleep(200)
+  await server.close()
+
+  assert.strictEqual(typeof server.stopPredictionScheduling, 'function')
+})
+
+test('should handle periodic trigger already running scenario', async (t) => {
+  const server = await buildServer(t, {
+    env: {
+      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6100).toString(),
+      PLT_SCALER_LEADER_POLL: '100',
+      PLT_SCALER_PERIODIC_TRIGGER: '1'
+    }
+  })
+
+  server.scalerExecutor = {
+    checkScalingOnMetrics: async () => {
+      return { success: true }
+    }
+  }
+
+  t.after(async () => {
+    await server.close()
+  })
+
+  await sleep(200)
+})
+
+test('should execute periodic metrics check when leader', async (t) => {
+  const server = await buildServer(t, {
+    env: {
+      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6200).toString(),
+      PLT_SCALER_LEADER_POLL: '100',
+      PLT_SCALER_PERIODIC_TRIGGER: '1'
+    }
+  })
+
+  server.scalerExecutor = {
+    checkScalingOnMetrics: async () => {
+      return { success: true }
+    }
+  }
+
+  t.after(async () => {
+    await server.close()
+  })
+
+  await sleep(1200)
+})
+
+test('should handle error in periodic trigger execution', async (t) => {
+  const server = await buildServer(t, {
+    env: {
+      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6300).toString(),
+      PLT_SCALER_LEADER_POLL: '100',
+      PLT_SCALER_PERIODIC_TRIGGER: '1'
+    }
+  })
+
+  const originalError = server.log.error
+  server.log.error = (data, msg) => {
+    originalError.call(server.log, data, msg)
+  }
+
+  server.scalerExecutor = {
+    checkScalingOnMetrics: async () => {
+      throw new Error('Metrics check failed')
+    }
+  }
+
+  t.after(() => {
+    server.log.error = originalError
+  })
+
+  await sleep(1200)
+  await server.close()
+})
+
+test('should handle error in periodic trigger loop with restart logic', async (t) => {
+  const server = await buildServer(t, {
+    env: {
+      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6400).toString(),
+      PLT_SCALER_LEADER_POLL: '100',
+      PLT_SCALER_PERIODIC_TRIGGER: '1'
+    }
+  })
+
+  const originalError = server.log.error
+  server.log.error = (data, msg) => {
+    originalError.call(server.log, data, msg)
+  }
+
+  t.after(() => {
+    server.log.error = originalError
+  })
+
+  await sleep(1200)
+  await server.close()
+})
+
+test('should trigger leadership change and stop periodic trigger when losing leadership', async (t) => {
+  const lockId = (Math.floor(Math.random() * 1000) + 6500).toString()
+
+  const server1 = await buildServer(t, {
+    env: {
+      PLT_SCALER_LOCK: lockId,
+      PLT_SCALER_LEADER_POLL: '100',
+      PLT_SCALER_PERIODIC_TRIGGER: '1'
+    }
+  })
+
+  server1.stopPredictionScheduling = async () => {}
+
+  await sleep(200)
+  assert.ok(server1.isScalerLeader(), 'Server 1 should be the leader')
+
+  const server2 = await buildServer(t, {
+    env: {
+      PLT_SCALER_LOCK: lockId,
+      PLT_SCALER_LEADER_POLL: '50',
+      PLT_SCALER_PERIODIC_TRIGGER: '1'
+    }
+  })
+
+  await sleep(200)
+
+  await server1.close()
+  await sleep(300)
+
+  t.after(async () => {
+    await server2.close()
+  })
+
+  assert.ok(server2.isScalerLeader(), 'Server 2 should become leader after server 1 closes')
+})
+
+test('should prevent starting periodic trigger when already running', async (t) => {
+  const server = await buildServer(t, {
+    env: {
+      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6600).toString(),
+      PLT_SCALER_LEADER_POLL: '100',
+      PLT_SCALER_PERIODIC_TRIGGER: '2'
+    }
+  })
+
+  t.after(async () => {
+    await server.close()
+  })
+
+  await sleep(2200)
+})

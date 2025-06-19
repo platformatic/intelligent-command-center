@@ -15,7 +15,7 @@
   "dependencies": {
     "@fastify/env": "^5.0.2",
     "@fastify/formbody": "^8.0.2",
-    "@platformatic/service": "^2.70.0",
+    "@platformatic/service": "^2.70.1",
     "dayjs": "^1.11.13",
     "fastify-plugin": "^5.0.1",
     "prom-client": "^15.1.3",

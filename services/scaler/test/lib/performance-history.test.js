@@ -512,3 +512,395 @@ test('should save events with correct source values', async (t) => {
   assert.strictEqual(records[1].source, 'prediction')
   assert.strictEqual(records[2].source, 'signal')
 })
+
+test('should handle large limits with pagination in getPerformanceHistory', async (t) => {
+  const server = await buildServer(t)
+  const performanceHistory = new PerformanceHistory(server)
+
+  const applicationId = randomUUID()
+  const now = Date.now()
+
+  for (let i = 0; i < 2500; i++) {
+    await performanceHistory.saveEvent(applicationId, {
+      timestamp: now - (i * 1000),
+      podsAdded: (i % 5) + 1,
+      preEluMean: 0.80,
+      preHeapMean: 0.75,
+      preEluTrend: 0.04,
+      preHeapTrend: 0.02,
+      deltaElu: -0.10,
+      deltaHeap: -0.08,
+      sigmaElu: 0.015,
+      sigmaHeap: 0.010
+    })
+  }
+
+  const records = await performanceHistory.getPerformanceHistory({
+    applicationId,
+    limit: 1500
+  })
+
+  assert.strictEqual(records.length, 1500)
+  for (let i = 1; i < records.length; i++) {
+    assert.ok(records[i - 1].eventTimestamp >= records[i].eventTimestamp)
+  }
+})
+
+test('should handle pagination edge cases in getPerformanceHistory', async (t) => {
+  const server = await buildServer(t)
+  const performanceHistory = new PerformanceHistory(server)
+
+  const applicationId = randomUUID()
+  const now = Date.now()
+
+  for (let i = 0; i < 1000; i++) {
+    await performanceHistory.saveEvent(applicationId, {
+      timestamp: now - (i * 1000),
+      podsAdded: 1,
+      preEluMean: 0.80,
+      preHeapMean: 0.75,
+      preEluTrend: 0.04,
+      preHeapTrend: 0.02,
+      deltaElu: -0.10,
+      deltaHeap: -0.08,
+      sigmaElu: 0.015,
+      sigmaHeap: 0.010
+    })
+  }
+
+  const records1000 = await performanceHistory.getPerformanceHistory({
+    applicationId,
+    limit: 1000
+  })
+  assert.strictEqual(records1000.length, 1000)
+
+  const records1001 = await performanceHistory.getPerformanceHistory({
+    applicationId,
+    limit: 1001
+  })
+  assert.strictEqual(records1001.length, 1000)
+
+  const records2000 = await performanceHistory.getPerformanceHistory({
+    applicationId,
+    limit: 2000
+  })
+  assert.strictEqual(records2000.length, 1000)
+})
+
+test('should calculate prediction success score in postScalingEvaluation', async (t) => {
+  const server = await buildServer(t)
+
+  const scalingTimestamp = Date.now()
+  let savedHistory = null
+
+  const mockStore = {
+    loadPerfHistory: async () => [{
+      timestamp: scalingTimestamp,
+      podsAdded: 2,
+      preEluMean: 0.85,
+      preHeapMean: 0.80,
+      preEluTrend: 0.05,
+      preHeapTrend: 0.03,
+      deltaElu: 0,
+      deltaHeap: 0,
+      sigmaElu: 0,
+      sigmaHeap: 0,
+      source: 'prediction'
+    }],
+    savePerfHistory: async (appId, history) => {
+      savedHistory = history
+    },
+    loadClusters: async () => []
+  }
+
+  const mockMetrics = {
+    getApplicationMetrics: async () => ({
+      'pod-1': {
+        eventLoopUtilization: [{
+          values: [[Date.now(), '0.70'], [Date.now() + 1000, '0.72']]
+        }],
+        heapSize: [{
+          values: [[Date.now(), '65000000'], [Date.now() + 1000, '67000000']]
+        }]
+      },
+      'pod-2': {
+        eventLoopUtilization: [{
+          values: [[Date.now(), '0.72'], [Date.now() + 1000, '0.74']]
+        }],
+        heapSize: [{
+          values: [[Date.now(), '68000000'], [Date.now() + 1000, '70000000']]
+        }]
+      }
+    })
+  }
+
+  const mockApp = {
+    platformatic: server.platformatic,
+    log: createMockLog(),
+    store: mockStore,
+    scalerMetrics: mockMetrics
+  }
+
+  const performanceHistory = new PerformanceHistory(mockApp)
+
+  await performanceHistory.postScalingEvaluation({
+    applicationId: randomUUID(),
+    scalingTimestamp,
+    store: mockStore,
+    log: mockApp.log,
+    metrics: mockMetrics,
+    eluThreshold: 0.9,
+    heapThreshold: 0.85
+  })
+
+  assert.ok(savedHistory, 'History should be saved')
+  const savedEvent = savedHistory[0]
+  assert.ok(savedEvent.successScore !== 1.0, 'Success score should be calculated for prediction')
+  assert.ok(savedEvent.successScore >= 0 && savedEvent.successScore <= 1, 'Success score should be between 0 and 1')
+  assert.ok(savedEvent.deltaElu !== 0, 'Delta ELU should be calculated')
+  assert.ok(savedEvent.deltaHeap !== 0, 'Delta heap should be calculated')
+})
+
+test('should handle errors in postScalingEvaluation', async (t) => {
+  const logs = []
+  const mockLog = {
+    debug: () => {},
+    info: () => {},
+    warn: () => {},
+    error: (data, msg) => logs.push({ level: 'error', data, msg })
+  }
+
+  const mockStore = {
+    loadPerfHistory: async () => [{
+      timestamp: Date.now(),
+      podsAdded: 1,
+      preEluMean: 0.80,
+      preHeapMean: 0.75,
+      source: 'signal'
+    }],
+    savePerfHistory: async () => {},
+    loadClusters: async () => []
+  }
+
+  const mockMetrics = {
+    getApplicationMetrics: async () => { throw new Error('Metrics error') }
+  }
+
+  const mockApp = {
+    log: mockLog,
+    store: mockStore
+  }
+
+  const performanceHistory = new PerformanceHistory(mockApp)
+
+  await performanceHistory.postScalingEvaluation({
+    applicationId: randomUUID(),
+    scalingTimestamp: Date.now(),
+    store: mockStore,
+    log: mockLog,
+    metrics: mockMetrics
+  })
+
+  assert.strictEqual(logs.length, 1)
+  assert.strictEqual(logs[0].level, 'error')
+  assert.strictEqual(logs[0].msg, 'Error fetching metrics for post-scaling evaluation')
+})
+
+test('should handle scalingEvaluationForPrediction successfully', async (t) => {
+  const server = await buildServer(t)
+
+  const applicationId = randomUUID()
+  const logs = []
+
+  const mockStore = {
+    loadClusters: async () => [],
+    addPerfHistoryEvent: async () => {},
+    saveLastScalingTime: async () => {},
+    savePerfHistory: async () => {}
+  }
+
+  const mockMetrics = {
+    getApplicationMetrics: async () => ({
+      'pod-1': {
+        eventLoopUtilization: [{
+          values: [[Date.now(), '0.85'], [Date.now() + 1000, '0.87']]
+        }],
+        heapSize: [{
+          values: [[Date.now(), '80000000'], [Date.now() + 1000, '82000000']]
+        }]
+      }
+    })
+  }
+
+  const mockApp = {
+    platformatic: server.platformatic,
+    log: {
+      debug: () => {},
+      info: (data, msg) => logs.push({ level: 'info', data, msg }),
+      warn: () => {},
+      error: () => {}
+    },
+    store: mockStore,
+    scalerMetrics: mockMetrics
+  }
+
+  const performanceHistory = new PerformanceHistory(mockApp)
+
+  process.env.SKIP_POST_SCALING_EVALUATION = 'true'
+
+  const result = await performanceHistory.scalingEvaluationForPrediction({
+    applicationId,
+    prediction: {
+      action: 'up',
+      pods: 3,
+      confidence: 0.85,
+      timeOfDay: 14,
+      reasons: ['high load expected']
+    },
+    postScalingWindow: 300,
+    maxHistoryEvents: 10,
+    eluThreshold: 0.9,
+    heapThreshold: 0.85
+  })
+
+  delete process.env.SKIP_POST_SCALING_EVALUATION
+
+  assert.ok(result.success)
+  assert.strictEqual(result.actualPodsChange, 3)
+  assert.ok(result.preMetrics)
+  assert.ok(result.preMetrics.eluMean > 0.84 && result.preMetrics.eluMean < 0.88)
+  assert.ok(result.preMetrics.heapMean > 0)
+
+  const infoLog = logs.find(l => l.msg === 'Applied prediction-based scaling evaluation')
+  assert.ok(infoLog)
+  assert.strictEqual(infoLog.data.prediction.action, 'up')
+  assert.strictEqual(infoLog.data.prediction.pods, 3)
+})
+
+test('should handle scale down in scalingEvaluationForPrediction', async (t) => {
+  const server = await buildServer(t)
+
+  const mockStore = {
+    loadClusters: async () => [],
+    addPerfHistoryEvent: async () => {},
+    saveLastScalingTime: async () => {},
+    savePerfHistory: async () => {}
+  }
+
+  const mockMetrics = {
+    getApplicationMetrics: async () => ({
+      'pod-1': {
+        eventLoopUtilization: [{
+          values: [[Date.now(), '0.30'], [Date.now() + 1000, '0.32']]
+        }],
+        heapSize: [{
+          values: [[Date.now(), '25000000'], [Date.now() + 1000, '26000000']]
+        }]
+      },
+      'pod-2': {
+        eventLoopUtilization: [{
+          values: [[Date.now(), '0.35'], [Date.now() + 1000, '0.37']]
+        }],
+        heapSize: [{
+          values: [[Date.now(), '30000000'], [Date.now() + 1000, '31000000']]
+        }]
+      }
+    })
+  }
+
+  const mockApp = {
+    platformatic: server.platformatic,
+    log: createMockLog(),
+    store: mockStore,
+    scalerMetrics: mockMetrics
+  }
+
+  const performanceHistory = new PerformanceHistory(mockApp)
+
+  process.env.SKIP_POST_SCALING_EVALUATION = 'true'
+
+  const result = await performanceHistory.scalingEvaluationForPrediction({
+    applicationId: randomUUID(),
+    prediction: {
+      action: 'down',
+      pods: 1,
+      confidence: 0.90,
+      timeOfDay: 3,
+      reasons: ['low traffic period']
+    }
+  })
+
+  delete process.env.SKIP_POST_SCALING_EVALUATION
+
+  assert.ok(result.success)
+  assert.strictEqual(result.actualPodsChange, -1)
+})
+
+test('should handle no metrics in scalingEvaluationForPrediction', async (t) => {
+  const server = await buildServer(t)
+
+  const logs = []
+  const mockMetrics = {
+    getApplicationMetrics: async () => ({})
+  }
+
+  const mockApp = {
+    platformatic: server.platformatic,
+    log: {
+      debug: () => {},
+      info: () => {},
+      warn: (data, msg) => logs.push({ level: 'warn', data, msg }),
+      error: () => {}
+    },
+    store: {},
+    scalerMetrics: mockMetrics
+  }
+
+  const performanceHistory = new PerformanceHistory(mockApp)
+
+  const result = await performanceHistory.scalingEvaluationForPrediction({
+    applicationId: randomUUID(),
+    prediction: { action: 'up', pods: 2, confidence: 0.80 }
+  })
+
+  assert.ok(!result.success)
+  assert.strictEqual(result.error, 'No metrics available for application')
+
+  const warnLog = logs.find(l => l.msg === 'No metrics available for prediction application')
+  assert.ok(warnLog)
+})
+
+test('should handle errors in scalingEvaluationForPrediction', async (t) => {
+  const server = await buildServer(t)
+
+  const logs = []
+  const mockMetrics = {
+    getApplicationMetrics: async () => { throw new Error('Metrics service unavailable') }
+  }
+
+  const mockApp = {
+    platformatic: server.platformatic,
+    log: {
+      debug: () => {},
+      info: () => {},
+      warn: () => {},
+      error: (data, msg) => logs.push({ level: 'error', data, msg })
+    },
+    store: {},
+    scalerMetrics: mockMetrics
+  }
+
+  const performanceHistory = new PerformanceHistory(mockApp)
+
+  const result = await performanceHistory.scalingEvaluationForPrediction({
+    applicationId: randomUUID(),
+    prediction: { action: 'up', pods: 1, confidence: 0.75 }
+  })
+
+  assert.ok(!result.success)
+  assert.strictEqual(result.error, 'Metrics service unavailable')
+
+  const errorLog = logs.find(l => l.msg === 'Error in prediction-based scaling evaluation')
+  assert.ok(errorLog)
+  assert.strictEqual(errorLog.data.err.message, 'Metrics service unavailable')
+})
