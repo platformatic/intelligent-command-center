@@ -17,6 +17,8 @@ test('should get activities\' types', async (t) => {
     USER_LOGIN: 'User Login',
     APPLICATION_CREATE: 'Application Create',
     APPLICATION_DEPLOY: 'Application Deploy',
-    APPLICATION_RESOURCES_UPDATE: 'Application Resources Update'
+    APPLICATION_RESOURCES_UPDATE: 'Application Resources Update',
+    SCALED_UP: 'Application Scaled Up',
+    SCALED_DOWN: 'Application Scaled Down'
   })
 })

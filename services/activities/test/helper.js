@@ -17,7 +17,7 @@ async function startActivities (t, envOverride, activities = []) {
   const app = await buildServer({
     server: {
       hostname: '127.0.0.1',
-      port: 3123,
+      port: 0,
       logger: { level: 'silent' }
     },
     db: {
