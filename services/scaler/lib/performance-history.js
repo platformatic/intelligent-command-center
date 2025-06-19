@@ -384,7 +384,7 @@ class PerformanceHistory {
       // Save performance history event to database
       try {
         await this.saveEvent(applicationId, event, 'signal')
-        // c8: ignore next
+        // c8 ignore next
       } catch (err) {
         log.error({ err, applicationId, eventTimestamp: event.timestamp },
           'Failed to save performance history event to database')

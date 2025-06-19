@@ -34,5 +34,19 @@
   },
   "metrics": {
     "server": "parent"
-  }
+  },
+  "clients": [
+    {
+      "schema": "../../clients/activities/activities.openapi.json",
+      "name": "activities",
+      "type": "openapi",
+      "serviceId": "activities"
+    },
+    {
+      "schema": "../../clients/control-plane/control-plane.openapi.json",
+      "name": "controlPlane",
+      "type": "openapi",
+      "serviceId": "control-plane"
+    }
+  ]
 }

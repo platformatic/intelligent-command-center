@@ -5,6 +5,8 @@ const userLoginEvent = require('./user-login-event')
 const createApplicationEvent = require('./create-application-event')
 const deployApplicationEvent = require('./deploy-application-event')
 const updateApplicationResources = require('./update-application-resources-event')
+const scaleUpEvent = require('./scale-up-event')
+const scaleDownEvent = require('./scale-down-event')
 
 module.exports.getPayloadForEventType = function (type, data) {
   let payload = {}
@@ -34,6 +36,24 @@ module.exports.getPayloadForEventType = function (type, data) {
         data.username
       )
       break
+    case 'SCALED_UP':
+      payload = scaleUpEvent(
+        data.applicationId,
+        data.data.applicationName,
+        data.data.oldReplicas,
+        data.data.newReplicas,
+        data.data.reason
+      )
+      break
+    case 'SCALED_DOWN':
+      payload = scaleDownEvent(
+        data.applicationId,
+        data.data.applicationName,
+        data.data.oldReplicas,
+        data.data.newReplicas,
+        data.data.reason
+      )
+      break
 
     default:
       throw new UnknownEventTypeError(type)
@@ -49,6 +69,8 @@ module.exports.getTypes = function () {
     USER_LOGIN: 'User Login',
     APPLICATION_CREATE: 'Application Create',
     APPLICATION_DEPLOY: 'Application Deploy',
-    APPLICATION_RESOURCES_UPDATE: 'Application Resources Update'
+    APPLICATION_RESOURCES_UPDATE: 'Application Resources Update',
+    SCALED_UP: 'Application Scaled Up',
+    SCALED_DOWN: 'Application Scaled Down'
   }
 }

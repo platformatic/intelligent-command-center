@@ -61,5 +61,10 @@ module.exports = fp(async function (app) {
     app.log.info({
       scaleEvent: event
     }, 'Scale event created')
+
+    // Record scaling activity
+    await app.recordScalingActivity(applicationId, oldReplicas, replicas, replicasDiff > 0 ? 'up' : 'down', reason)
   })
+}, {
+  dependencies: ['activities']
 })
