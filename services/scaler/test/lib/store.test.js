@@ -438,3 +438,656 @@ test('saveLastScalingTime and getLastScalingTime store and retrieve data correct
 
   assert.strictEqual(loadedTime, testTime)
 })
+
+// Test error handling and edge cases
+test('saveAlert - throws error when applicationId is missing', async (t) => {
+  const store = await setup(t)
+
+  const alert = {
+    serviceId: randomUUID(),
+    podId: randomUUID(),
+    elu: 75,
+    heapUsed: 100,
+    heapTotal: 200
+  }
+
+  await assert.rejects(
+    () => store.saveAlert(alert),
+    { message: 'Missing required fields: applicationId' }
+  )
+})
+
+test('saveAlert - throws error when podId is missing', async (t) => {
+  const store = await setup(t)
+
+  const alert = {
+    applicationId: 'test:' + randomUUID(),
+    serviceId: randomUUID(),
+    elu: 75,
+    heapUsed: 100,
+    heapTotal: 200
+  }
+
+  await assert.rejects(
+    () => store.saveAlert(alert),
+    { message: 'Missing required fields: podId' }
+  )
+})
+
+test('saveAlert - throws error when both applicationId and podId are missing', async (t) => {
+  const store = await setup(t)
+
+  const alert = {
+    serviceId: randomUUID(),
+    elu: 75,
+    heapUsed: 100,
+    heapTotal: 200
+  }
+
+  await assert.rejects(
+    () => store.saveAlert(alert),
+    { message: 'Missing required fields: applicationId, podId' }
+  )
+})
+
+test('saveAlert - converts non-array healthHistory to empty array with warning', async (t) => {
+  // Create a mock logger that captures log calls
+  const logCalls = []
+  const mockLogger = {
+    error: () => {},
+    info: () => {},
+    warn: (data, message) => logCalls.push({ level: 'warn', data, message })
+  }
+
+  // Create a new store with the mock logger
+  const storeWithMockLogger = new Store(valkeyConnectionString, mockLogger)
+
+  t.after(async () => {
+    await storeWithMockLogger.close()
+  })
+
+  const alert = {
+    applicationId: 'test:' + randomUUID(),
+    serviceId: randomUUID(),
+    podId: randomUUID(),
+    elu: 75,
+    heapUsed: 100,
+    heapTotal: 200,
+    healthHistory: 'not an array' // Invalid healthHistory
+  }
+
+  await storeWithMockLogger.saveAlert(alert)
+
+  // Verify warning was logged
+  assert.strictEqual(logCalls.length, 1)
+  assert.strictEqual(logCalls[0].level, 'warn')
+  assert.strictEqual(logCalls[0].message, 'healthHistory is not an array, converting to empty array')
+
+  // Verify alert was saved with empty array
+  const alerts = await storeWithMockLogger.getAlertsByApplicationId(alert.applicationId)
+  assert.strictEqual(alerts.length, 1)
+  assert.ok(Array.isArray(alerts[0].healthHistory))
+  assert.strictEqual(alerts[0].healthHistory.length, 0)
+})
+
+test('getAlertsByPattern - handles JSON parse errors gracefully', async (t) => {
+  const store = await setup(t)
+
+  // Create a mock logger that captures error calls
+  const logCalls = []
+  const mockLogger = {
+    error: (data, message) => logCalls.push({ level: 'error', data, message }),
+    info: () => {},
+    warn: () => {}
+  }
+
+  // Create a new store with the mock logger
+  const storeWithMockLogger = new Store(valkeyConnectionString, mockLogger)
+
+  t.after(async () => {
+    await storeWithMockLogger.close()
+  })
+
+  const applicationId = 'test:' + randomUUID()
+  const alertKey = `${ALERTS_PREFIX}app:${applicationId}:pod:${randomUUID()}:${Date.now().toString().padStart(13, '0')}`
+
+  // Manually insert invalid JSON data
+  await store.valkey.set(alertKey, 'invalid json data', 'EX', 60)
+
+  // Try to get alerts - should handle the parse error gracefully
+  const alerts = await storeWithMockLogger.getAlertsByApplicationId(applicationId)
+
+  // Should return empty array despite the invalid data
+  assert.strictEqual(alerts.length, 0)
+
+  // Should have logged the error
+  assert.strictEqual(logCalls.length, 1)
+  assert.strictEqual(logCalls[0].level, 'error')
+  assert.strictEqual(logCalls[0].message, 'Failed to parse alert')
+})
+
+test('getAlertsByApplicationId - returns empty array when applicationId is missing', async (t) => {
+  const store = await setup(t)
+
+  const alerts = await store.getAlertsByApplicationId('')
+  assert.deepStrictEqual(alerts, [], 'Should return empty array for empty applicationId')
+
+  const alerts2 = await store.getAlertsByApplicationId(null)
+  assert.deepStrictEqual(alerts2, [], 'Should return empty array for null applicationId')
+
+  const alerts3 = await store.getAlertsByApplicationId(undefined)
+  assert.deepStrictEqual(alerts3, [], 'Should return empty array for undefined applicationId')
+})
+
+test('getAlertsByPodId - returns empty array when podId is missing', async (t) => {
+  const store = await setup(t)
+
+  const alerts = await store.getAlertsByPodId('')
+  assert.deepStrictEqual(alerts, [], 'Should return empty array for empty podId')
+
+  const alerts2 = await store.getAlertsByPodId(null)
+  assert.deepStrictEqual(alerts2, [], 'Should return empty array for null podId')
+
+  const alerts3 = await store.getAlertsByPodId(undefined)
+  assert.deepStrictEqual(alerts3, [], 'Should return empty array for undefined podId')
+})
+
+// Test error handling for all Redis operations
+test('loadPerfHistory - handles Redis errors gracefully', async (t) => {
+  const logCalls = []
+  const mockLogger = {
+    error: (data, message) => logCalls.push({ level: 'error', data, message }),
+    info: () => {},
+    warn: () => {}
+  }
+
+  const store = new Store(valkeyConnectionString, mockLogger)
+
+  // Close the connection to simulate an error
+  await store.valkey.quit()
+
+  const history = await store.loadPerfHistory('test-app')
+
+  // Should return empty array and log error
+  assert.deepStrictEqual(history, [])
+  assert.strictEqual(logCalls.length, 1)
+  assert.strictEqual(logCalls[0].level, 'error')
+  assert.strictEqual(logCalls[0].message, 'Failed to load performance history')
+})
+
+test('savePerfHistory - handles Redis errors gracefully', async (t) => {
+  const logCalls = []
+  const mockLogger = {
+    error: (data, message) => logCalls.push({ level: 'error', data, message }),
+    info: () => {},
+    warn: () => {}
+  }
+
+  const store = new Store(valkeyConnectionString, mockLogger)
+
+  // Close the connection to simulate an error
+  await store.valkey.quit()
+
+  await store.savePerfHistory('test-app', [{ timestamp: 123, event: 'test' }])
+
+  // Should log error
+  assert.strictEqual(logCalls.length, 1)
+  assert.strictEqual(logCalls[0].level, 'error')
+  assert.strictEqual(logCalls[0].message, 'Failed to save performance history')
+})
+
+test('loadClusters - handles Redis errors gracefully', async (t) => {
+  const logCalls = []
+  const mockLogger = {
+    error: (data, message) => logCalls.push({ level: 'error', data, message }),
+    info: () => {},
+    warn: () => {}
+  }
+
+  const store = new Store(valkeyConnectionString, mockLogger)
+
+  // Close the connection to simulate an error
+  await store.valkey.quit()
+
+  const clusters = await store.loadClusters('test-app')
+
+  // Should return empty array and log error
+  assert.deepStrictEqual(clusters, [])
+  assert.strictEqual(logCalls.length, 1)
+  assert.strictEqual(logCalls[0].level, 'error')
+  assert.strictEqual(logCalls[0].message, 'Failed to load clusters')
+})
+
+test('saveClusters - handles Redis errors gracefully', async (t) => {
+  const logCalls = []
+  const mockLogger = {
+    error: (data, message) => logCalls.push({ level: 'error', data, message }),
+    info: () => {},
+    warn: () => {}
+  }
+
+  const store = new Store(valkeyConnectionString, mockLogger)
+
+  // Close the connection to simulate an error
+  await store.valkey.quit()
+
+  await store.saveClusters('test-app', [{ cluster: 'test' }])
+
+  // Should log error
+  assert.strictEqual(logCalls.length, 1)
+  assert.strictEqual(logCalls[0].level, 'error')
+  assert.strictEqual(logCalls[0].message, 'Failed to save clusters')
+})
+
+test('getLastScalingTime - handles Redis errors gracefully', async (t) => {
+  const logCalls = []
+  const mockLogger = {
+    error: (data, message) => logCalls.push({ level: 'error', data, message }),
+    info: () => {},
+    warn: () => {}
+  }
+
+  const store = new Store(valkeyConnectionString, mockLogger)
+
+  // Close the connection to simulate an error
+  await store.valkey.quit()
+
+  const time = await store.getLastScalingTime('test-app')
+
+  // Should return 0 and log error
+  assert.strictEqual(time, 0)
+  assert.strictEqual(logCalls.length, 1)
+  assert.strictEqual(logCalls[0].level, 'error')
+  assert.strictEqual(logCalls[0].message, 'Failed to get last scaling time')
+})
+
+test('saveLastScalingTime - handles Redis errors gracefully', async (t) => {
+  const logCalls = []
+  const mockLogger = {
+    error: (data, message) => logCalls.push({ level: 'error', data, message }),
+    info: () => {},
+    warn: () => {}
+  }
+
+  const store = new Store(valkeyConnectionString, mockLogger)
+
+  // Close the connection to simulate an error
+  await store.valkey.quit()
+
+  await store.saveLastScalingTime('test-app', 123456)
+
+  // Should log error
+  assert.strictEqual(logCalls.length, 1)
+  assert.strictEqual(logCalls[0].level, 'error')
+  assert.strictEqual(logCalls[0].message, 'Failed to save last scaling time')
+})
+
+// Test predictions functionality
+test('savePredictions and getPredictions - store and retrieve predictions correctly', async (t) => {
+  const store = await setup(t)
+
+  const predictions = [
+    {
+      applicationId: 'app-1',
+      absoluteTime: 1620000000,
+      action: 'up',
+      pods: 2,
+      confidence: 0.9,
+      reasons: { event_count: 10 }
+    },
+    {
+      applicationId: 'app-2',
+      absoluteTime: 1620000100,
+      action: 'down',
+      pods: 1,
+      confidence: 0.8,
+      reasons: { event_count: 5 }
+    }
+  ]
+
+  await store.savePredictions(predictions)
+  const loadedPredictions = await store.getPredictions()
+
+  assert.deepStrictEqual(loadedPredictions, predictions)
+})
+
+test('getPredictions - returns empty array when no predictions exist', async (t) => {
+  const store = await setup(t)
+
+  const predictions = await store.getPredictions()
+  assert.deepStrictEqual(predictions, [])
+})
+
+test('savePredictions - filters out predictions without applicationId and sorts by absoluteTime', async (t) => {
+  const store = await setup(t)
+
+  const predictions = [
+    {
+      applicationId: 'app-1',
+      absoluteTime: 1620000200,
+      action: 'up',
+      pods: 3
+    },
+    {
+      // Missing applicationId - should be filtered out
+      absoluteTime: 1620000150,
+      action: 'down',
+      pods: 1
+    },
+    {
+      applicationId: 'app-2',
+      absoluteTime: 1620000100,
+      action: 'up',
+      pods: 2
+    }
+  ]
+
+  await store.savePredictions(predictions)
+  const loadedPredictions = await store.getPredictions()
+
+  // Should have only 2 predictions (filtered out the one without applicationId)
+  assert.strictEqual(loadedPredictions.length, 2)
+
+  // Should be sorted by absoluteTime
+  assert.strictEqual(loadedPredictions[0].applicationId, 'app-2')
+  assert.strictEqual(loadedPredictions[0].absoluteTime, 1620000100)
+  assert.strictEqual(loadedPredictions[1].applicationId, 'app-1')
+  assert.strictEqual(loadedPredictions[1].absoluteTime, 1620000200)
+})
+
+test('getApplicationPredictions - returns predictions for specific application', async (t) => {
+  const store = await setup(t)
+
+  const predictions = [
+    {
+      applicationId: 'app-1',
+      absoluteTime: 1620000000,
+      action: 'up',
+      pods: 2
+    },
+    {
+      applicationId: 'app-2',
+      absoluteTime: 1620000100,
+      action: 'down',
+      pods: 1
+    },
+    {
+      applicationId: 'app-1',
+      absoluteTime: 1620000200,
+      action: 'down',
+      pods: 1
+    }
+  ]
+
+  await store.savePredictions(predictions)
+
+  const app1Predictions = await store.getApplicationPredictions('app-1')
+  assert.strictEqual(app1Predictions.length, 2)
+  assert.ok(app1Predictions.every(p => p.applicationId === 'app-1'))
+
+  const app2Predictions = await store.getApplicationPredictions('app-2')
+  assert.strictEqual(app2Predictions.length, 1)
+  assert.strictEqual(app2Predictions[0].applicationId, 'app-2')
+
+  const nonExistentPredictions = await store.getApplicationPredictions('app-3')
+  assert.strictEqual(nonExistentPredictions.length, 0)
+})
+
+test('getNextPrediction - returns first prediction from sorted list', async (t) => {
+  const store = await setup(t)
+
+  const predictions = [
+    {
+      applicationId: 'app-1',
+      absoluteTime: 1620000200,
+      action: 'up',
+      pods: 3
+    },
+    {
+      applicationId: 'app-2',
+      absoluteTime: 1620000100,
+      action: 'up',
+      pods: 2
+    }
+  ]
+
+  await store.savePredictions(predictions)
+
+  const nextPrediction = await store.getNextPrediction()
+  assert.ok(nextPrediction)
+  assert.strictEqual(nextPrediction.applicationId, 'app-2')
+  assert.strictEqual(nextPrediction.absoluteTime, 1620000100)
+})
+
+test('getNextPrediction - returns null when no predictions exist', async (t) => {
+  const store = await setup(t)
+
+  const nextPrediction = await store.getNextPrediction()
+  assert.strictEqual(nextPrediction, null)
+})
+
+test('removePrediction - removes matching prediction', async (t) => {
+  const store = await setup(t)
+
+  const predictions = [
+    {
+      applicationId: 'app-1',
+      absoluteTime: 1620000000,
+      action: 'up',
+      pods: 2
+    },
+    {
+      applicationId: 'app-2',
+      absoluteTime: 1620000100,
+      action: 'down',
+      pods: 1
+    }
+  ]
+
+  await store.savePredictions(predictions)
+
+  const predictionToRemove = {
+    applicationId: 'app-1',
+    absoluteTime: 1620000000,
+    action: 'up',
+    pods: 2
+  }
+
+  const remainingPredictions = await store.removePrediction(predictionToRemove)
+
+  assert.strictEqual(remainingPredictions.length, 1)
+  assert.strictEqual(remainingPredictions[0].applicationId, 'app-2')
+
+  // Verify it was actually removed from storage
+  const storedPredictions = await store.getPredictions()
+  assert.strictEqual(storedPredictions.length, 1)
+  assert.strictEqual(storedPredictions[0].applicationId, 'app-2')
+})
+
+test('replaceApplicationPredictions - replaces predictions for specific application', async (t) => {
+  const store = await setup(t)
+
+  const initialPredictions = [
+    {
+      applicationId: 'app-1',
+      absoluteTime: 1620000000,
+      action: 'up',
+      pods: 2
+    },
+    {
+      applicationId: 'app-2',
+      absoluteTime: 1620000100,
+      action: 'down',
+      pods: 1
+    }
+  ]
+
+  await store.savePredictions(initialPredictions)
+
+  const newApp1Predictions = [
+    {
+      absoluteTime: 1620000300,
+      action: 'up',
+      pods: 3
+    },
+    {
+      absoluteTime: 1620000400,
+      action: 'down',
+      pods: 2
+    }
+  ]
+
+  const result = await store.replaceApplicationPredictions('app-1', newApp1Predictions)
+
+  // Should have 3 predictions total (1 for app-2, 2 new for app-1)
+  assert.strictEqual(result.length, 3)
+
+  // Verify the new predictions have applicationId added
+  const app1Predictions = result.filter(p => p.applicationId === 'app-1')
+  assert.strictEqual(app1Predictions.length, 2)
+  assert.ok(app1Predictions.every(p => p.applicationId === 'app-1'))
+
+  // Verify app-2 prediction is still there
+  const app2Predictions = result.filter(p => p.applicationId === 'app-2')
+  assert.strictEqual(app2Predictions.length, 1)
+
+  // Verify it was actually updated in storage
+  const storedPredictions = await store.getPredictions()
+  assert.strictEqual(storedPredictions.length, 3)
+})
+
+// Test error handling for predictions
+test('savePredictions - handles Redis errors gracefully', async (t) => {
+  const logCalls = []
+  const mockLogger = {
+    error: (data, message) => logCalls.push({ level: 'error', data, message }),
+    info: () => {},
+    warn: () => {}
+  }
+
+  const store = new Store(valkeyConnectionString, mockLogger)
+
+  // Close the connection to simulate an error
+  await store.valkey.quit()
+
+  await store.savePredictions([{ applicationId: 'test', absoluteTime: 123 }])
+
+  // Should log error
+  assert.strictEqual(logCalls.length, 1)
+  assert.strictEqual(logCalls[0].level, 'error')
+  assert.strictEqual(logCalls[0].message, 'Failed to save predictions')
+})
+
+test('getPredictions - handles Redis errors gracefully', async (t) => {
+  const logCalls = []
+  const mockLogger = {
+    error: (data, message) => logCalls.push({ level: 'error', data, message }),
+    info: () => {},
+    warn: () => {}
+  }
+
+  const store = new Store(valkeyConnectionString, mockLogger)
+
+  // Close the connection to simulate an error
+  await store.valkey.quit()
+
+  const predictions = await store.getPredictions()
+
+  // Should return empty array and log error
+  assert.deepStrictEqual(predictions, [])
+  assert.strictEqual(logCalls.length, 1)
+  assert.strictEqual(logCalls[0].level, 'error')
+  assert.strictEqual(logCalls[0].message, 'Failed to get predictions')
+})
+
+test('removePrediction - handles Redis errors gracefully', async (t) => {
+  const logCalls = []
+  const mockLogger = {
+    error: (data, message) => logCalls.push({ level: 'error', data, message }),
+    info: () => {},
+    warn: () => {}
+  }
+
+  const store = new Store(valkeyConnectionString, mockLogger)
+
+  // Close the connection to simulate an error
+  await store.valkey.quit()
+
+  const result = await store.removePrediction({ applicationId: 'test', absoluteTime: 123, action: 'up', pods: 1 })
+
+  // Should return empty array and log error (may be from getPredictions or savePredictions)
+  assert.deepStrictEqual(result, [])
+  assert.ok(logCalls.length >= 1, 'Should have at least one error log')
+  // The error could be from getPredictions or savePredictions since removePrediction calls both
+  const errorMessages = logCalls.map(log => log.message)
+  assert.ok(
+    errorMessages.includes('Failed to get predictions') ||
+    errorMessages.includes('Failed to save predictions') ||
+    errorMessages.includes('Failed to remove prediction'),
+    'Should log a relevant error message'
+  )
+})
+
+test('replaceApplicationPredictions - handles Redis errors gracefully', async (t) => {
+  const logCalls = []
+  const mockLogger = {
+    error: (data, message) => logCalls.push({ level: 'error', data, message }),
+    info: () => {},
+    warn: () => {}
+  }
+
+  const store = new Store(valkeyConnectionString, mockLogger)
+
+  // Close the connection immediately to simulate Redis error
+  await store.valkey.quit()
+
+  const result = await store.replaceApplicationPredictions('test-app', [{ absoluteTime: 123, action: 'up', pods: 1 }])
+
+  // Since getPredictions and savePredictions handle their own errors internally,
+  // the method continues and returns the new predictions despite errors
+  assert.deepStrictEqual(result, [{ absoluteTime: 123, action: 'up', pods: 1, applicationId: 'test-app' }])
+  assert.ok(logCalls.length >= 2, 'Should have at least two error logs')
+  // There should be errors from both getPredictions and savePredictions
+  const errorMessages = logCalls.map(log => log.message)
+  assert.ok(
+    errorMessages.includes('Failed to get predictions'),
+    'Should log getPredictions error'
+  )
+  assert.ok(
+    errorMessages.includes('Failed to save predictions'),
+    'Should log savePredictions error'
+  )
+})
+
+test('Store constructor - sets custom alertRetention option', async (t) => {
+  const mockLogger = {
+    error: () => {},
+    info: () => {},
+    warn: () => {}
+  }
+
+  const customRetention = 120 // 2 minutes
+  const store = new Store(valkeyConnectionString, mockLogger, { alertRetention: customRetention })
+
+  t.after(async () => {
+    await store.close()
+  })
+
+  assert.strictEqual(store.alertRetention, customRetention)
+})
+
+test('Store constructor - uses default alertRetention when not specified', async (t) => {
+  const mockLogger = {
+    error: () => {},
+    info: () => {},
+    warn: () => {}
+  }
+
+  const store = new Store(valkeyConnectionString, mockLogger)
+
+  t.after(async () => {
+    await store.close()
+  })
+
+  assert.strictEqual(store.alertRetention, 60) // default value
+})

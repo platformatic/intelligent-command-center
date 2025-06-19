@@ -293,3 +293,37 @@ test('AlertsManager handles Redis errors gracefully', async (t) => {
 
   assert.ok(true)
 })
+
+test('AlertsManager handles _deleteTriggeredPodKeys Redis error gracefully', async (t) => {
+  await cleanValkeyData()
+
+  const errorLogs = []
+  const errorRedis = {
+    keys: async () => { throw new Error('Redis keys error') }
+  }
+
+  const mockApp = {
+    log: {
+      debug: () => {},
+      info: () => {},
+      error: (data, msg) => {
+        errorLogs.push({ data, msg })
+      }
+    },
+    store: {
+      valkey: errorRedis
+    }
+  }
+
+  const manager = new AlertsManager(mockApp)
+
+  const result = await manager.clearRecentTriggers()
+
+  assert.strictEqual(result, 0)
+
+  const errorLog = errorLogs.find(log =>
+    log.msg === 'Failed to delete triggered pod keys from Redis' &&
+    log.data.err.message === 'Redis keys error'
+  )
+  assert.ok(errorLog, 'Should log error when Redis operation fails')
+})

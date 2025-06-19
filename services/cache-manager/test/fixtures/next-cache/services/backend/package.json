@@ -4,6 +4,6 @@
     "start": "platformatic start"
   },
   "dependencies": {
-    "@platformatic/service": "^2.70.0"
+    "@platformatic/service": "^2.70.1"
   }
 }

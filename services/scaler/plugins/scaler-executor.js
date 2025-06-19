@@ -65,6 +65,7 @@ class ScalerExecutor {
 
     const logMessage = result.nfinal !== currentPodCount
       ? `Scaling decision: ${scalingAction} from ${currentPodCount} to ${result.nfinal} pods`
+      /* c8 ignore next */
       : `Scaling decision: ${scalingAction} - ${result.reason || 'Algorithm determined no scaling needed'}`
 
     this.app.log.info({

@@ -56,8 +56,8 @@ test('should notify through PostgreSQL notification', async (t) => {
   await listenClient.end()
   await pool.dispose()
 
-  assert.ok(notificationReceived, 'should receive notification on test_channel')
-  assert.strictEqual(receivedPayload, testPayload, 'should receive correct payload')
+  assert.ok(notificationReceived)
+  assert.strictEqual(receivedPayload, testPayload)
 })
 
 test('leadedElector properly passes payload to callback', async (t) => {
@@ -100,8 +100,8 @@ test('leadedElector properly passes payload to callback', async (t) => {
   await leaderElector.stop()
   await pool.dispose()
 
-  assert.strictEqual(callbackCount, 1, 'Notification callback should be called once')
-  assert.strictEqual(callbackPayload, testPayload, 'Callback should receive correct payload')
+  assert.strictEqual(callbackCount, 1)
+  assert.strictEqual(callbackPayload, testPayload)
 })
 
 test('if one instance is shut down, the other is elected', async (t) => {
@@ -148,7 +148,7 @@ test('if one instance is shut down, the other is elected', async (t) => {
   // Start the first instance (this should become the leader)
   leaderElector1.start()
   await sleep(500)
-  assert.ok(leaderElector1.isLeader(), 'First instance should be the leader')
+  assert.ok(leaderElector1.isLeader())
 
   const leaderElector2 = createLeaderElector({
     db: pool2,
@@ -163,8 +163,8 @@ test('if one instance is shut down, the other is elected', async (t) => {
   await sleep(500)
 
   // First instance should still be leader, second should not
-  assert.ok(leaderElector1.isLeader(), 'First instance should still be leader')
-  assert.ok(!leaderElector2.isLeader(), 'Second instance should not be leader')
+  assert.ok(leaderElector1.isLeader())
+  assert.ok(!leaderElector2.isLeader())
 
   // Now stop the first instance (leader)
   await leaderElector1.stop()
@@ -174,7 +174,7 @@ test('if one instance is shut down, the other is elected', async (t) => {
   await sleep(500)
 
   const elected2 = leaderElector2.isLeader()
-  assert.ok(elected2, 'Second instance should become leader after first instance is stopped')
+  assert.ok(elected2)
 
   await leaderElector2.stop()
 })
@@ -244,7 +244,7 @@ test('only the leader instance executes notification callbacks and leadership tr
   await sleep(300)
 
   // Verify initial leadership state
-  assert.ok(leaderElector1.isLeader(), 'First instance should be the leader')
+  assert.ok(leaderElector1.isLeader())
   assert.ok(!leaderElector2.isLeader(), 'Second instance should not be leader')
 
   const testPayload1 = 'test-notification-payload-1'
@@ -252,8 +252,8 @@ test('only the leader instance executes notification callbacks and leadership tr
 
   await sleep(300)
 
-  assert.strictEqual(instance1Notifications, 1, 'Leader instance should receive 1 notification')
-  assert.strictEqual(instance2Notifications, 0, 'Non-leader instance should not receive notifications')
+  assert.strictEqual(instance1Notifications, 1)
+  assert.strictEqual(instance2Notifications, 0)
 
   // Now stop the first instance (leader)
   await leaderElector1.stop()
@@ -262,7 +262,7 @@ test('only the leader instance executes notification callbacks and leadership tr
 
   await sleep(500)
   const elected2 = leaderElector2.isLeader()
-  assert.ok(elected2, 'Second instance should become leader after first instance is stopped')
+  assert.ok(elected2)
 
   // Send a notification while instance2 is now leader
   const testPayload2 = 'test-notification-payload-2'
@@ -270,9 +270,100 @@ test('only the leader instance executes notification callbacks and leadership tr
 
   await sleep(300)
 
-  assert.strictEqual(instance1Notifications, 1, 'First instance should still have only 1 notification')
-  assert.strictEqual(instance2Notifications, 1, 'New leader should now receive notifications')
+  assert.strictEqual(instance1Notifications, 1)
+  assert.strictEqual(instance2Notifications, 1)
 
   // Clean up
   await leaderElector2.stop()
+})
+
+test('should throw error when required parameters are missing', async (t) => {
+  assert.throws(() => {
+    createLeaderElector({ log: { info: () => {} }, lock: 123 })
+  }, { message: 'db is required' })
+
+  assert.throws(() => {
+    createLeaderElector({ db: {}, log: { info: () => {} } })
+  }, { message: 'lock is required' })
+
+  assert.throws(() => {
+    createLeaderElector({ db: {}, lock: 123, log: { info: () => {} } })
+  }, { message: 'onNotification is required' })
+
+  assert.throws(() => {
+    createLeaderElector({})
+  })
+})
+
+test('should trigger onLeadershipChange callback when leadership changes', async (t) => {
+  const pool = createConnectionPool({
+    connectionString,
+    bigIntMode: 'bigint'
+  })
+
+  const leadershipChanges = []
+
+  const leaderElector = createLeaderElector({
+    db: pool,
+    lock: 8888,
+    poll: 200,
+    channel: 'test_leadership_change',
+    log: {
+      info: () => {},
+      debug: () => {},
+      warn: () => {},
+      error: () => {}
+    },
+    onNotification: () => {},
+    onLeadershipChange: (isLeader) => {
+      leadershipChanges.push(isLeader)
+    }
+  })
+
+  leaderElector.start()
+  await sleep(500)
+
+  assert.ok(leaderElector.isLeader())
+  assert.strictEqual(leadershipChanges.length, 1)
+  assert.strictEqual(leadershipChanges[0], true)
+
+  await leaderElector.stop()
+  await pool.dispose()
+})
+
+test('should handle errors in onNotification callback', async (t) => {
+  const pool = createConnectionPool({
+    connectionString,
+    bigIntMode: 'bigint'
+  })
+
+  const logMessages = []
+  const leaderElector = createLeaderElector({
+    db: pool,
+    lock: 7777,
+    poll: 200,
+    channel: 'test_notification_error',
+    log: {
+      info: () => {},
+      debug: () => {},
+      warn: (data, msg) => logMessages.push({ level: 'warn', data, msg }),
+      error: () => {}
+    },
+    onNotification: () => {
+      throw new Error('Test notification error')
+    }
+  })
+
+  leaderElector.start()
+  await sleep(500)
+
+  await leaderElector.notify('test-error-payload')
+  await sleep(500)
+
+  await leaderElector.stop()
+  await pool.dispose()
+
+  const warnLog = logMessages.find(log => log.level === 'warn' && log.data.err)
+  assert.ok(warnLog)
+  assert.strictEqual(warnLog.data.err.message, 'Test notification error')
 })

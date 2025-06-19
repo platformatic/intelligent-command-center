@@ -4,7 +4,6 @@
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = async function (app) {
   app.post('/controllers', {
-    logLevel: 'info',
     schema: {
       operationId: 'savePodController',
       body: {

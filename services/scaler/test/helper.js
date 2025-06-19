@@ -20,7 +20,7 @@ async function getConfig () {
   const config = {}
   config.server = {
     port: 0,
-    logger: { level: 'error' }
+    logger: { level: 'silent' }
   }
   config.db = {
     connectionString,
