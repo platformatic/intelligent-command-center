@@ -9,12 +9,14 @@ const storePlugin = require('../../plugins/store')
 const metricsPlugin = require('../../plugins/metrics')
 const scaleConfigPlugin = require('../../plugins/scale-configs')
 const controllerPlugin = require('../../plugins/controllers')
+const activitiesPlugin = require('../../plugins/activities')
 
 test('checkScalingOnMetrics should handle no metrics case', async (t) => {
   const plugins = [
     envPlugin,
     storePlugin,
     metricsPlugin,
+    activitiesPlugin,
     scaleConfigPlugin,
     executorPlugin
   ]
@@ -84,6 +86,7 @@ test('checkScalingOnMetrics should process all applications with metrics', async
     envPlugin,
     storePlugin,
     metricsPlugin,
+    activitiesPlugin,
     scaleConfigPlugin,
     executorPlugin,
     controllerPlugin
@@ -202,6 +205,7 @@ test('checkScalingOnMetrics should handle errors gracefully', async (t) => {
     envPlugin,
     storePlugin,
     metricsPlugin,
+    activitiesPlugin,
     scaleConfigPlugin,
     executorPlugin,
     controllerPlugin
@@ -229,6 +233,7 @@ test('checkScalingOnMetrics should skip the unknown application ID', async (t) =
     envPlugin,
     storePlugin,
     metricsPlugin,
+    activitiesPlugin,
     scaleConfigPlugin,
     executorPlugin,
     controllerPlugin
