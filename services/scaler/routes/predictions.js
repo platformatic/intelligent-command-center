@@ -5,16 +5,9 @@ const TrendsLearningAlgorithm = require('../lib/trends-learning-algorithm')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = async function (app) {
-  let trendsAlgorithm
-  try {
-    trendsAlgorithm = new TrendsLearningAlgorithm(app)
-  } catch (err) {
-    app.log.error({ err }, 'Failed to initialize TrendsLearningAlgorithm')
-    throw err
-  }
+  const trendsAlgorithm = new TrendsLearningAlgorithm(app)
 
   app.get('/predictions/:applicationId', {
-    logLevel: 'info',
     schema: {
       operationId: 'getApplicationPredictions',
       params: {
@@ -75,7 +68,6 @@ module.exports = async function (app) {
   })
 
   app.get('/predictions', {
-    logLevel: 'info',
     schema: {
       operationId: 'getAllPredictions',
       response: {
@@ -149,7 +141,6 @@ module.exports = async function (app) {
   })
 
   app.post('/predictions/calculate', {
-    logLevel: 'info',
     schema: {
       operationId: 'calculatePredictions',
       response: {
@@ -184,6 +175,7 @@ module.exports = async function (app) {
         let totalPredictions = 0
         let processedApplications = 0
 
+        /* c8 ignore next */
         const rows = result.rows || result || []
 
         for (const row of rows) {

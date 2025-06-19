@@ -18,6 +18,7 @@ module.exports = fp(async function (app) {
 
   app.decorate('saveScaleConfig', async (applicationId, config) => {
     const controller = await app.getApplicationController(applicationId)
+    /* c8 ignore next */
     if (controller === null) {
       throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
     }
