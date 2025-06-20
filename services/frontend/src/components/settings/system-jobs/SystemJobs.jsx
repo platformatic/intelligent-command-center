@@ -38,6 +38,31 @@ function SystemJobs () {
   const [schedules, setSchedules] = useState(null)
   const [error, setError] = useState(null)
 
+  const [systemJobTypes, setSystemJobTypes] = useState([])
+
+  useEffect(() => {
+    if (schedules) {
+      const enabledJobs = [{
+        name: 'Trafficante',
+        label: 'How often you want the ICC to check for Cache optimization.',
+        cron: schedules.trafficante
+      },
+      {
+        name: 'Fusion & Fission',
+        label: 'How often you want the ICC to check for System improvements.',
+        cron: schedules['ffc-recommender']
+      }
+        // TODO: add risk-service-dump when it is available
+        // {
+        //   name: 'Risk Engine',
+        //   label: 'How often you want the ICC to check for System improvements.',
+        //   cron: schedules['risk-service-dump']
+        // }
+      ]
+      setSystemJobTypes(enabledJobs)
+    }
+  }, [schedules])
+
   useEffect(() => {
     if (showSuccess) {
       setTimeout(() => {
@@ -135,30 +160,16 @@ function SystemJobs () {
       </div>
       {schedules &&
         <div className={`${commonStyles.smallFlexCol} ${commonStyles.fullWidth} ${commonStyles.justifyBetween} ${styles.jobs}`}>
-          <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyBetween} ${styles.job}`}>
-            <Job
-              title='Trafficante'
-              label='How often you want the ICC to check for Cache optimization.'
-              cron={schedules.trafficante}
-              setFormStatus={setFormStatus('trafficante')}
-            />
-          </div>
-          <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyBetween} ${styles.job}`}>
-            <Job
-              title='Fusion & Fission'
-              label='How often you want the ICC to check for System improvements.'
-              cron={schedules['ffc-recommender']}
-              setFormStatus={setFormStatus('ffc-recommender')}
-            />
-          </div>
-          <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyBetween} ${styles.job}`}>
-            <Job
-              title='Risk Engine'
-              label='How often you want the ICC to check for System improvements.'
-              cron={schedules['risk-service-dump']}
-              setFormStatus={setFormStatus('risk-service-dump')}
-            />
-          </div>
+          {systemJobTypes.map((job) => (
+            <div key={job.name} className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyBetween} ${styles.job}`}>
+              <Job
+                title={job.name}
+                label={job.label}
+                cron={job.cron}
+                setFormStatus={setFormStatus(job.name)}
+              />
+            </div>
+          ))}
         </div>}
       <Button
         label='Apply Changes'
