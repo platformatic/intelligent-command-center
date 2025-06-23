@@ -45,17 +45,18 @@ function SystemJobs () {
       const enabledJobs = [{
         name: 'Trafficante',
         label: 'How often you want the ICC to check for Cache optimization.',
-        cron: schedules.trafficante
+        slug: 'trafficante'
       },
       {
         name: 'Fusion & Fission',
         label: 'How often you want the ICC to check for System improvements.',
-        cron: schedules['ffc-recommender']
+        slug: 'ffc-recommender'
       }
         // TODO: add risk-service-dump when it is available
         // {
         //   name: 'Risk Engine',
         //   label: 'How often you want the ICC to check for System improvements.',
+        //   slug: 'risk-service-dump',
         //   cron: schedules['risk-service-dump']
         // }
       ]
@@ -165,8 +166,8 @@ function SystemJobs () {
               <Job
                 title={job.name}
                 label={job.label}
-                cron={job.cron}
-                setFormStatus={setFormStatus(job.name)}
+                cron={schedules[job.slug]}
+                setFormStatus={setFormStatus(job.slug)}
               />
             </div>
           ))}
