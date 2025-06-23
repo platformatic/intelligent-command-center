@@ -60,8 +60,8 @@ module.exports = async function (app) {
         type: 'object',
         properties: {
           search: { type: 'string' },
-          offset: { type: 'integer', minimum: 0 },
-          limit: { type: 'integer', minimum: 1, maximum: 100 }
+          offset: { type: 'integer', minimum: 0, default: 0 },
+          limit: { type: 'integer', minimum: 1, maximum: 1000, default: 100 }
         },
         additionalProperties: false
       },
@@ -79,12 +79,12 @@ module.exports = async function (app) {
     },
     handler: async (req, reply) => {
       const { applicationId } = req.params
-      const { search } = req.query
+      const { search, limit, offset } = req.query
 
       const logger = req.log.child({ applicationId })
       const entries = await app.getCacheEntries(
         applicationId,
-        { search },
+        { search, limit, offset },
         { req, logger }
       )
       return entries
