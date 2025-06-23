@@ -108,12 +108,12 @@ module.exports = fp(async function (app) {
 
   await httpCacheManager.subscribe()
 
-  app.decorate('getCacheEntries', async (applicationId, { search }) => {
+  app.decorate('getCacheEntries', async (applicationId, { search, limit, offset }) => {
     const keyPrefix = serializeKeyPrefix(applicationId)
 
     const { client: clientDB, server: serverDB } = await getOramaCache(keyPrefix)
-    const clientResults = orama.search(clientDB, { term: search })
-    const serverResults = orama.search(serverDB, { term: search })
+    const clientResults = orama.search(clientDB, { term: search, limit, offset })
+    const serverResults = orama.search(serverDB, { term: search, limit, offset })
 
     const foundClientEntries = []
     const foundServerEntries = []
