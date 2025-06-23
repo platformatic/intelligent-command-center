@@ -40,3 +40,27 @@ test('should get an application cache', async (t) => {
     assert.ok(entry.deleteAt)
   }
 })
+
+test('should get an application cache with a limit', async (t) => {
+  const applicationId = randomUUID()
+  const cacheManager = await startCacheManager(t)
+
+  const requestOpts = []
+  for (let i = 0; i < 100; i++) {
+    requestOpts.push({ method: 'GET', path: `/test-${i}` })
+  }
+
+  const keyPrefix = `${applicationId}:`
+  await generateRequests(t, keyPrefix, requestOpts)
+
+  const limit = 33
+
+  const { statusCode, body } = await cacheManager.inject({
+    url: `/applications/${applicationId}/http-cache`,
+    query: { limit }
+  })
+  assert.deepStrictEqual(statusCode, 200, body)
+
+  const { client } = JSON.parse(body)
+  assert.strictEqual(client.length, limit)
+})
