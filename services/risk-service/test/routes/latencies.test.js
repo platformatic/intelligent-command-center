@@ -9,7 +9,7 @@ const Fastify = require('fastify')
 const fp = require('fastify-plugin')
 
 const setupServer = async (t, plugins = []) => {
-  process.env.PLT_ICC_VALKEY_CONNECTION_STRING = 'redis://localhost:6379'
+  process.env.PLT_ICC_VALKEY_CONNECTION_STRING = 'redis://localhost:6343'
   const fastify = Fastify()
   await fastify.register(env)
   await fastify.register(store)
@@ -30,6 +30,12 @@ test('get no latencies if none are available', async (t) => {
   const coldStorageMock = fp(async function (fastify, opts) {
     fastify.addHook('onRequest', function (req, reply, done) {
       req.coldStorage = {
+        getStatus: async () => {
+          return {
+            isImporter: false,
+            isExporter: true
+          }
+        },
         getLatenciesWindow: async () => {
           return []
         }
@@ -53,6 +59,12 @@ test('get the latencies from redis', async (t) => {
   const coldStorageMock = fp(async function (fastify, opts) {
     fastify.addHook('onRequest', function (req, reply, done) {
       req.coldStorage = {
+        getStatus: async () => {
+          return {
+            isImporter: false,
+            isExporter: true
+          }
+        },
         getLatenciesWindow: async () => {
           return []
         }
@@ -99,6 +111,12 @@ test('get the latencies from cold storage', async (t) => {
   const coldStorageMock = fp(async function (fastify, opts) {
     fastify.addHook('onRequest', function (req, reply, done) {
       req.coldStorage = {
+        getStatus: async () => {
+          return {
+            isImporter: false,
+            isExporter: true
+          }
+        },
         getLatenciesWindow: async () => {
           return [
             {
@@ -149,6 +167,12 @@ test('get the latencies from cold storage AND redis, calculating the correct mea
   const coldStorageMock = fp(async function (fastify, opts) {
     fastify.addHook('onRequest', function (req, reply, done) {
       req.coldStorage = {
+        getStatus: async () => {
+          return {
+            isImporter: false,
+            isExporter: true
+          }
+        },
         getLatenciesWindow: async () => {
           return [
             {
@@ -201,4 +225,69 @@ test('get the latencies from cold storage AND redis, calculating the correct mea
       to: 'B'
     }
   ].sort())
+})
+
+test('get latencies only from cold storage when isImporter is true', async (t) => {
+  const coldStorageMock = fp(async function (fastify, opts) {
+    fastify.addHook('onRequest', function (req, reply, done) {
+      req.coldStorage = {
+        getStatus: async () => {
+          return {
+            isImporter: true,
+            isExporter: false
+          }
+        },
+        getLatenciesWindow: async () => {
+          return [
+            {
+              from: '',
+              to: 'A',
+              mean: 1000,
+              count: 2
+            },
+            {
+              from: 'A',
+              to: 'B',
+              mean: 1000,
+              count: 4
+            }
+          ]
+        }
+      }
+      done()
+    })
+  })
+
+  const fastify = await setupServer(t, [coldStorageMock])
+
+  // Insert some data in Redis - this should be ignored when isImporter is true
+  const latencies = {
+    '||A': [100, 200],
+    'A||B': [200, 300]
+  }
+
+  await fastify.store.storeLatencies(latencies)
+
+  const { body, statusCode } = await fastify.inject({
+    method: 'GET',
+    url: '/latencies'
+  })
+  const res = JSON.parse(body)
+
+  assert.equal(statusCode, 200)
+  // Should only return cold storage data, ignoring Redis data
+  assert.deepStrictEqual(res.sort(compare), [
+    {
+      count: 2,
+      from: '',
+      mean: 1000,
+      to: 'A'
+    },
+    {
+      count: 4,
+      from: 'A',
+      mean: 1000,
+      to: 'B'
+    }
+  ].sort(compare))
 })

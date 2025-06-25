@@ -20,7 +20,7 @@ const Fastify = require('fastify')
 const { setTimeout: sleep } = require('node:timers/promises')
 
 const setupServer = async (t) => {
-  process.env.PLT_ICC_VALKEY_CONNECTION_STRING = 'redis://localhost:6379'
+  process.env.PLT_ICC_VALKEY_CONNECTION_STRING = 'redis://localhost:6343'
   const fastify = Fastify()
   await fastify.register(env)
   await fastify.register(messages)

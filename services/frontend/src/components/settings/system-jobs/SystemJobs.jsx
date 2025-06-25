@@ -9,6 +9,7 @@ import SuccessComponent from '~/components/success/SuccessComponent'
 import ErrorComponent from '~/components/errors/ErrorComponent'
 import Job from './Job'
 import { getSystemJobs, setSystemJobs } from '~/api/system-jobs'
+import { callApiGetSyncConfig } from '~/api'
 
 const TIMEOUT_AFTER_SUCCESS = 2000
 
@@ -28,20 +29,20 @@ function SystemJobs () {
     },
     'ffc-recommender': {
       valid: true
-    },
-    'risk-service-dump': {
-      valid: true
     }
   })
   const [showSuccess, setShowSuccess] = useState(false)
   const [showErrorComponent, setShowErrorComponent] = useState(false)
   const [schedules, setSchedules] = useState(null)
   const [error, setError] = useState(null)
+  const [syncConfig, setSyncConfig] = useState({})
 
   const [systemJobTypes, setSystemJobTypes] = useState([])
 
   useEffect(() => {
     if (schedules) {
+      const isImporter = syncConfig?.enabled && syncConfig?.isImporter
+
       const enabledJobs = [{
         name: 'Trafficante',
         label: 'How often you want the ICC to check for Cache optimization.',
@@ -51,18 +52,41 @@ function SystemJobs () {
         name: 'Fusion & Fission',
         label: 'How often you want the ICC to check for System improvements.',
         slug: 'ffc-recommender'
+      }]
+
+      // Only add Cold Storage Dump if not in importer mode
+      if (!isImporter) {
+        enabledJobs.push({
+          name: 'Cold Storage Dump',
+          label: 'How often you want the dump system data to the Cold Storage.',
+          slug: 'risk-service-dump',
+          cron: schedules['risk-service-dump']
+        })
+
+        // Also add it to jobStatus if it doesn't exist
+        setJobStatus(prev => {
+          if (!prev['risk-service-dump']) {
+            return {
+              ...prev,
+              'risk-service-dump': {
+                valid: true
+              }
+            }
+          }
+          return prev
+        })
+      } else {
+        // Remove it from jobStatus if in importer mode
+        setJobStatus(prev => {
+          const newStatus = { ...prev }
+          delete newStatus['risk-service-dump']
+          return newStatus
+        })
       }
-        // TODO: add risk-service-dump when it is available
-        // {
-        //   name: 'Risk Engine',
-        //   label: 'How often you want the ICC to check for System improvements.',
-        //   slug: 'risk-service-dump',
-        //   cron: schedules['risk-service-dump']
-        // }
-      ]
+
       setSystemJobTypes(enabledJobs)
     }
-  }, [schedules])
+  }, [schedules, syncConfig])
 
   useEffect(() => {
     if (showSuccess) {
@@ -75,9 +99,13 @@ function SystemJobs () {
   useEffect(() => {
     async function loadData () {
       try {
-        const res = await getSystemJobs()
+        const [res, syncConfigResponse] = await Promise.all([
+          getSystemJobs(),
+          callApiGetSyncConfig()
+        ])
         const schedules = getSchedules(res)
         setSchedules(schedules)
+        setSyncConfig(syncConfigResponse)
       } catch (error) {
         console.error(`Error on get exports ${error}`)
         setError(error)
