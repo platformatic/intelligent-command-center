@@ -21,8 +21,8 @@ async function plugin (app) {
         throw e
       }
     }
-    // We create the job if missing. Note tht we do not update the job if it exists because
-    // users can now cahnge it through the ICC settings UI.
+    // We create the job if missing. Note that we do not update the job if it exists because
+    // users can now change it through the ICC settings UI.
     if (!iccJob) {
       iccJob = await app.iccJobAPIs.saveICCJob(job)
     }

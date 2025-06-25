@@ -2,8 +2,7 @@
 
 // List of routes that can be authorized via K8s JWT authentication
 const k8sAllowedRoutes = [
-  // wattpro (zio) called routes
-  ['/risk-cold-storage/sync', ['GET']],
+  [/\/risk-cold-storage\/sync$/, ['GET']],
   ['/cron/watt-jobs', ['PUT']],
   ['/risk-service/dump', '*'],
   ['/risk-manager/db-schema', ['POST']],
