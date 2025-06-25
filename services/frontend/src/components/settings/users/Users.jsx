@@ -5,8 +5,6 @@ import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './Users.module.css'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import { BorderedBox, Button, Modal } from '@platformatic/ui-components'
-import ErrorComponent from '~/components/errors/ErrorComponent'
-import SuccessComponent from '~/components/success/SuccessComponent'
 import TableUsers from './TableUsers'
 import {
   getApiUsers,
@@ -18,12 +16,12 @@ import Forms from '@platformatic/ui-components/src/components/forms'
 import RemoveUser from './RemoveUser'
 import ChangeRoleUser from './ChangeRoleUser'
 import InviteUser from './InviteUser'
+import useICCStore from '~/useICCStore'
+import { isSuperAdmin } from '../../../utils'
 
 function Users () {
-  const [error, setError] = useState(null)
-  const [showErrorComponent, setShowErrorComponent] = useState(false)
-  const [usersLoaded, setUsersLoaded] = useState(false)
-  const [reloadUsers, setReloadUsers] = useState(true)
+  const globalState = useICCStore()
+  const { showSplashScreen, user: loggedUser } = globalState
   const [users, setUsers] = useState([])
   const [filteredUsers, setFilteredUsers] = useState([])
   const [showOnlyJoinedUsers, setShowOnlyJoinedUsers] = useState(false)
@@ -31,28 +29,28 @@ function Users () {
   const [showModalInviteUser, setShowModalInviteUser] = useState(false)
   const [showModalRemoveUser, setShowModalRemoveUser] = useState(false)
   const [showModalChangeRole, setShowModalChangeRole] = useState(false)
-  const [showSuccessComponent, setShowSuccessComponent] = useState(false)
-  const [showSuccessComponentProps, setShowSuccessComponentProps] = useState({})
+
+  async function loadUsers () {
+    try {
+      const users = await getApiUsers()
+      setUsers([...users])
+      setFilteredUsers([...users])
+    } catch (error) {
+      console.error(`Error on loadUsers ${error}`)
+      showSplashScreen({
+        title: 'Error',
+        message: `Failed to load users: ${error.message}`,
+        type: 'error'
+      })
+    }
+  }
+  useEffect(() => {
+    loadUsers()
+  }, [])
 
   useEffect(() => {
-    if (!usersLoaded && reloadUsers) {
-      setUsersLoaded(false)
-      async function loadUsers () {
-        try {
-          const users = await getApiUsers()
-          setUsersLoaded(true)
-          setReloadUsers(false)
-          setUsers([...users])
-          setFilteredUsers([...users])
-        } catch (error) {
-          console.error(`Error on loadUsers ${error}`)
-          setError(error)
-          setShowErrorComponent(true)
-        }
-      }
-      loadUsers()
-    }
-  }, [usersLoaded, reloadUsers])
+    console.log('filteredUsers', filteredUsers)
+  }, [filteredUsers])
 
   useEffect(() => {
     if (showOnlyJoinedUsers) {
@@ -61,22 +59,6 @@ function Users () {
       setFilteredUsers([...users])
     }
   }, [showOnlyJoinedUsers])
-
-  function renderContent () {
-    if (showErrorComponent) {
-      return <ErrorComponent error={error} onClickDismiss={() => setShowErrorComponent(false)} />
-    }
-
-    return (
-      <TableUsers
-        usersLoaded={usersLoaded}
-        users={filteredUsers}
-        onClickAddUser={handleOnClickAddUser}
-        onClickChangeRole={handleOnClickChangeRole}
-        onClickRemove={handleOnClickRemove}
-      />
-    )
-  }
 
   // Invite User
   function handleOnClickAddUser () {
@@ -90,22 +72,24 @@ function Users () {
   async function handleModalConfirmInviteUser (emails) {
     try {
       await callApiInviteUser(emails)
-      setShowSuccessComponentProps({ title: `User${emails.length > 1 ? 's' : ''} added`, subtitle: `You added new member${emails.length > 1 ? 's' : ''} to the organization successfully` })
-      handleCloseModalInviteUser()
-      setShowSuccessComponent(true)
-      setTimeout(() => {
-        setShowSuccessComponent(false)
-        setUsers([])
-        setFilteredUsers([])
-        setUsersLoaded(false)
-        setReloadUsers(true)
-      }, 3000)
+      showSplashScreen({
+        title: `User${emails.length > 1 ? 's' : ''} added`,
+        message: `You added new member${emails.length > 1 ? 's' : ''} to the organization successfully`,
+        type: 'success',
+        onDismiss () {
+          setUsers([])
+          setFilteredUsers([])
+        }
+      })
     } catch (error) {
       console.error(`Error on callApiInviteUser ${error}`)
+      showSplashScreen({
+        title: 'Error',
+        message: `Failed to add user: ${error.message}`,
+        type: 'error'
+      })
+    } finally {
       handleCloseModalInviteUser()
-      setError(error)
-      setShowErrorComponent(true)
-      setShowSuccessComponent(false)
     }
   }
 
@@ -122,23 +106,36 @@ function Users () {
 
   async function handleModalConfirmChangeRole (newRole) {
     try {
-      await callApiChangeRoleUser(selectedUser.id, newRole)
-      setShowSuccessComponentProps({ title: 'New role assigned', subtitle: 'You assigned a new role successfully.' })
+      const res = await callApiChangeRoleUser(selectedUser.id, newRole)
+      if (!res.ok) {
+        const body = await res.json()
+        showSplashScreen({
+          title: 'Error',
+          message: `Failed to update role: ${body.message}`,
+          type: 'error'
+        })
+      } else {
+        showSplashScreen({
+          title: 'New role assigned',
+          message: 'You assigned a new role successfully.',
+          type: 'success',
+          onDismiss () {
+            setUsers([])
+            setFilteredUsers([])
+            loadUsers()
+          }
+        })
+      }
       handleCloseModalChangeRole()
-      setShowSuccessComponent(true)
-      setTimeout(() => {
-        setShowSuccessComponent(false)
-        setUsers([])
-        setFilteredUsers([])
-        setUsersLoaded(false)
-        setReloadUsers(true)
-      }, 3000)
     } catch (error) {
       console.error(`Error on callApiChangeRoleUser ${error}`)
+      showSplashScreen({
+        title: 'Error',
+        message: `Failed to update role: ${error.message}`,
+        type: 'error'
+      })
+    } finally {
       handleCloseModalChangeRole()
-      setError(error)
-      setShowErrorComponent(true)
-      setShowSuccessComponent(false)
     }
   }
 
@@ -155,48 +152,68 @@ function Users () {
 
   async function handleModalConfirmRemoveUser () {
     try {
-      await callApiRemoveUser(selectedUser.id)
-      setShowSuccessComponentProps({ title: 'User removed', subtitle: 'You removed the user from the organization successfully.' })
-      handleCloseModalRemoveUser()
-      setShowSuccessComponent(true)
-      setTimeout(() => {
-        setShowSuccessComponent(false)
-        setUsers([])
-        setFilteredUsers([])
-        setUsersLoaded(false)
-        setReloadUsers(true)
-      }, 3000)
+      const res = await callApiRemoveUser(selectedUser.id)
+      if (res.ok) {
+        showSplashScreen({
+          title: 'User removed',
+          message: 'You removed the user from the organization successfully.',
+          type: 'success',
+          onDismiss () {
+            setUsers([])
+            setFilteredUsers([])
+            loadUsers()
+          }
+        })
+      } else {
+        const body = await res.json()
+        showSplashScreen({
+          title: 'Error',
+          message: `Failed to remove user: ${body.message}`,
+          type: 'error',
+          onDismiss () {
+            setUsers([])
+            setFilteredUsers([])
+            loadUsers()
+          }
+        })
+      }
     } catch (error) {
       console.error(`Error on callApiRemoveUser ${error}`)
+      showSplashScreen({
+        title: 'Error',
+        message: `Failed to remove user: ${error.message}`,
+        type: 'error'
+      })
+    } finally {
       handleCloseModalRemoveUser()
-      setError(error)
-      setShowErrorComponent(true)
-      setShowSuccessComponent(false)
     }
   }
-
   return (
     <>
-      <BorderedBox color={TRANSPARENT} backgroundColor={BLACK_RUSSIAN} classes={styles.compliancyUsersBox}>
-        <div className={`${commonStyles.smallFlexBlock} ${commonStyles.fullWidth}`}>
-          <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyBetween}`}>
-            <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
+      <BorderedBox color={TRANSPARENT} backgroundColor={BLACK_RUSSIAN}>
+        <div className={styles.container}>
+          <div className={styles.header}>
+            <div className={styles.headerTitle}>
               <Icons.TeamsIcon color={WHITE} size={MEDIUM} />
               <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Users</p>
+
               {users.length > 0 && <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>({users.length} user{users.length > 1 ? 's' : ''})</span>}
             </div>
 
-            <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyEnd}`}>
-              <div>
-                <Forms.ToggleSwitch
-                  label='Hide pending users'
-                  labelClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}
-                  name='showOnlyJoinedUsers'
-                  onChange={() => setShowOnlyJoinedUsers(!showOnlyJoinedUsers)}
-                  checked={showOnlyJoinedUsers}
-                  size={SMALL}
-                />
-              </div>
+          </div>
+
+          <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyEnd}`}>
+            <div>
+              <Forms.ToggleSwitch
+                label='Hide pending users'
+                labelClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}
+                name='showOnlyJoinedUsers'
+                onChange={() => setShowOnlyJoinedUsers(!showOnlyJoinedUsers)}
+                checked={showOnlyJoinedUsers}
+                size={SMALL}
+              />
+            </div>
+            {isSuperAdmin(loggedUser) && (
               <Button
                 label='Add new User'
                 onClick={() => handleOnClickAddUser()}
@@ -208,15 +225,17 @@ function Users () {
                 platformaticIcon={{ iconName: 'AddUserIcon', color: RICH_BLACK }}
                 bordered={false}
               />
-            </div>
+            )}
           </div>
-
-          {renderContent()}
         </div>
+
+        <TableUsers
+          users={filteredUsers}
+          onClickAddUser={handleOnClickAddUser}
+          onClickChangeRole={handleOnClickChangeRole}
+          onClickRemove={handleOnClickRemove}
+        />
       </BorderedBox>
-      {showSuccessComponent && (
-        <SuccessComponent {...showSuccessComponentProps} />
-      )}
       {showModalRemoveUser && (
         <Modal
           key='ModalRemoveUser'
