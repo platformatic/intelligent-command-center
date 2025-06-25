@@ -1,3 +1,12 @@
+.container {
+  @apply flex items-center justify-between mb-4;
+}
+.header {
+  @apply flex items-center gap-2 w-full;
+}
+.headerTitle {
+  @apply flex items-center gap-2;
+}
 .compliancyRulesBox {
   @apply grow-0;
 }

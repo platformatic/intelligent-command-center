@@ -1,5 +1,5 @@
 .container {
-  @apply grow flex flex-col w-full relative;
+  @apply grow flex flex-col w-full relative h-[calc(100vh-10rem)];
   box-sizing: border-box;
   flex-basis: 1rem;
 }
