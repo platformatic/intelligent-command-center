@@ -31,11 +31,11 @@ const Settings = React.forwardRef(({ _ }, ref) => {
   const isImport = syncConfig?.enabled && syncConfig?.isImporter
 
   let SyncPanel = Exports
-  let syncTitle = 'Export Base Data'
+  let syncTitle = 'Export'
   let iconName = 'ExportIcon'
   if (isImport) {
     SyncPanel = Imports
-    syncTitle = 'Import Base Data'
+    syncTitle = 'Import'
     iconName = 'ImportIcon'
   }
 
