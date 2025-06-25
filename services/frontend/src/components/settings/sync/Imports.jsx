@@ -194,7 +194,7 @@ function Imports ({ config = {} }) {
             <div className={` ${commonStyles.fullWidth} ${styles.leftContainer}`}>
               <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
                 <Icons.ImportIcon color={WHITE} size={MEDIUM} />
-                <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Import Base Data</p>
+                <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Import</p>
               </div>
             </div>
 
