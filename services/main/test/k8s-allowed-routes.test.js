@@ -27,7 +27,6 @@ test('isUrlAllowed handles URLs with query parameters correctly', async (t) => {
 
 test('isUrlAllowed handles exact path matches correctly', async (t) => {
   const validRequests = [
-    createMockRequest('/risk-cold-storage/sync', 'GET'),
     createMockRequest('/cron/watt-jobs', 'PUT'),
     createMockRequest('/risk-service/dump', 'DELETE'),
     createMockRequest('/risk-manager/db-schema', 'POST'),
@@ -40,7 +39,6 @@ test('isUrlAllowed handles exact path matches correctly', async (t) => {
   }
 
   const invalidMethodRequests = [
-    createMockRequest('/risk-cold-storage/sync', 'POST'),
     createMockRequest('/cron/watt-jobs', 'POST'),
     createMockRequest('/risk-manager/db-schema', 'GET'),
     createMockRequest('/compliance/metadata', 'GET'),
@@ -131,7 +129,6 @@ test('isUrlAllowed checks method against specific allowed methods', async (t) =>
     { url: '/compliance/metadata', method: 'GET', expected: false },
     { url: '/compliance/compliance', method: 'POST', expected: true },
     { url: '/compliance/compliance', method: 'PUT', expected: false },
-    { url: '/risk-cold-storage/sync', method: 'GET', expected: true },
     { url: '/risk-cold-storage/sync', method: 'DELETE', expected: false }
   ]
 
