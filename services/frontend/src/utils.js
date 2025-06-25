@@ -1,3 +1,5 @@
+import { ROLE_SUPER_ADMIN, ROLE_ADMIN, ROLE_USER } from './ui-constants.js'
+
 // Regular Expression for Application paths (must end with a trailing slash)
 export const pathRegExp = /^((\/|(\\?))[\w\-_.]+)+\/$/i
 
@@ -63,4 +65,16 @@ export function generateUUID () {
     const v = c === 'x' ? r : (r & 0x3 | 0x8)
     return v.toString(16)
   })
+}
+
+export function isSuperAdmin (user) {
+  return user.role === ROLE_SUPER_ADMIN
+}
+
+export function isAdmin (user) {
+  return user.role === ROLE_ADMIN
+}
+
+export function isRegularUser (user) {
+  return user.role === ROLE_USER
 }
