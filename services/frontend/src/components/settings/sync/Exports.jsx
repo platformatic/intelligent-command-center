@@ -190,7 +190,7 @@ function Exports ({ config = {} }) {
             <div className={` ${commonStyles.fullWidth}`}>
               <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
                 <Icons.ExportIcon color={WHITE} size={MEDIUM} />
-                <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Export Base Data</p>
+                <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Export</p>
               </div>
             </div>
             <div className={`${commonStyles.smallFlexRow} ${commonStyles.justifyEnd} ${commonStyles.fullWidth} ${styles.rightContainer}`}>
