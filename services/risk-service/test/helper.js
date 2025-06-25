@@ -145,7 +145,7 @@ function setUpEnvironment (env = {}) {
     PLT_CLIENTS_ROLE: 'clients',
     PLT_TOKEN_SVC_HOST: '',
     PLT_CORE_ROLE: 'plt-local-core',
-    PLT_ICC_VALKEY_CONNECTION_STRING: 'redis://localhost:6379'
+    PLT_ICC_VALKEY_CONNECTION_STRING: 'redis://localhost:6343'
   }
 
   Object.assign(process.env, defaultEnv, env)

@@ -10,7 +10,7 @@ const env = require('../../plugins/env')
 const compare = (a, b) => a.mean - b.mean
 
 const setupServer = async (t, options) => {
-  process.env.PLT_ICC_VALKEY_CONNECTION_STRING = 'redis://localhost:6379'
+  process.env.PLT_ICC_VALKEY_CONNECTION_STRING = 'redis://localhost:6343'
   const fastify = Fastify()
   await fastify.register(env)
   await fastify.register(store, options)
