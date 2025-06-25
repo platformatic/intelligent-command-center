@@ -24,12 +24,30 @@ const mergeMeans = (meansFromColdStorage, meansFromRedis) => {
 
 // TODO: add a proper JSON schema. Now we don't know if this API will say here or be moved
 // so let's wait before completing it
-async function plugin (fastify, opts) {
+async function plugin (fastify) {
   fastify.get('/latencies', {
     handler: async (request) => {
       const { coldStorage } = request
       const { store } = fastify
+
+      // Check if risk-cold-storage is configured as an importer
+      const statusResponse = await coldStorage.getStatus()
+
       const pathsFromColdStorage = await coldStorage.getLatenciesWindow()
+
+      if (statusResponse.isImporter) {
+        // When isImporter is true, only return latencies from cold storage, so the "imported" ones.
+        // the dump is disabled when importes, so all the data in the cold storage are imported from
+        // another env
+        request.log.info({
+          pathsFromColdStorage,
+          pathsFromRedis: [],
+          allLatencies: pathsFromColdStorage
+        }, 'latencies from risk-service (importer mode)')
+        return pathsFromColdStorage
+      }
+
+      // Otherwise, merge latencies from both sources
       const pathsFromRedis = await store.getAllLatencyValues()
       const allLatencies = mergeMeans(pathsFromColdStorage, pathsFromRedis)
       request.log.info({

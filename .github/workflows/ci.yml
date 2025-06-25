@@ -169,9 +169,9 @@ jobs:
         ports:
           - 5433:5432
       valkey:
-        image: 'valkey/valkey:8.1'
+        image: "valkey/valkey:8.1"
         ports:
-          - '6343:6379'
+          - "6343:6379"
     needs: setup-node_modules
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -182,9 +182,9 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
@@ -304,9 +304,9 @@ jobs:
           - 5433:5432
 
       valkey:
-        image: 'valkey/valkey:8.1'
+        image: "valkey/valkey:8.1"
         ports:
-          - '6379:6379'
+          - "6343:6379"
 
     needs: setup-node_modules
     runs-on: ubuntu-latest
@@ -318,7 +318,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -350,9 +350,9 @@ jobs:
           - 5433:5432
 
       valkey:
-        image: 'valkey/valkey:8.1'
+        image: "valkey/valkey:8.1"
         ports:
-          - '6379:6379'
+          - "6379:6379"
 
     needs: setup-node_modules
     runs-on: ubuntu-latest
@@ -364,7 +364,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -411,9 +411,9 @@ jobs:
   ci-cluster-manager:
     services:
       valkey:
-        image: 'valkey/valkey:8.1'
+        image: "valkey/valkey:8.1"
         ports:
-          - '6342:6379'
+          - "6342:6379"
       icc-postgres:
         image: postgres
         env:
@@ -437,7 +437,7 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           node-version: 20
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres

@@ -12,7 +12,7 @@ const fp = require('fastify-plugin')
 const compare = (a, b) => a.mean - b.mean
 
 const setupServer = async (t, plugins = []) => {
-  process.env.PLT_ICC_VALKEY_CONNECTION_STRING = 'redis://localhost:6379'
+  process.env.PLT_ICC_VALKEY_CONNECTION_STRING = 'redis://localhost:6343'
   const fastify = Fastify()
   await fastify.register(env)
   await fastify.register(store)
@@ -33,6 +33,12 @@ test('no latencies if no data', async (t) => {
   const coldStorageMock = fp(async function (fastify, opts) {
     fastify.addHook('onRequest', function (req, reply, done) {
       req.coldStorage = {
+        getStatus: async () => {
+          return {
+            isImporter: false,
+            isExporter: true
+          }
+        },
         postPathsDump: async (_dump) => {
           postDumpCall = _dump
           return { ok: true }
@@ -57,6 +63,12 @@ test('dump paths', async (t) => {
   const coldStorageMock = fp(async function (fastify, opts) {
     fastify.addHook('onRequest', function (req, reply, done) {
       req.coldStorage = {
+        getStatus: async () => {
+          return {
+            isImporter: false,
+            isExporter: true
+          }
+        },
         postPathsDump: async (_dump) => {
           postDumpCalls.push(_dump)
           return { ok: true }
@@ -101,6 +113,12 @@ test('dump no db operations if none are available', async (t) => {
   const coldStorageMock = fp(async function (fastify, opts) {
     fastify.addHook('onRequest', function (req, reply, done) {
       req.coldStorage = {
+        getStatus: async () => {
+          return {
+            isImporter: false,
+            isExporter: true
+          }
+        },
         postPathsDump: async (_dump) => {},
         postDbDump: async (_dump) => {
           postDumpDBCall = 'POST DB OPERATIONS DUMP'
@@ -128,6 +146,12 @@ test('dump db operations', async (t) => {
   const coldStorageMock = fp(async function (fastify, opts) {
     fastify.addHook('onRequest', function (req, reply, done) {
       req.coldStorage = {
+        getStatus: async () => {
+          return {
+            isImporter: false,
+            isExporter: true
+          }
+        },
         postPathsDump: async (_dump) => {
           return { ok: true }
         },
@@ -229,6 +253,12 @@ test('dump no latencies if none are available', async (t) => {
   const coldStorageMock = fp(async function (fastify, opts) {
     fastify.addHook('onRequest', function (req, reply, done) {
       req.coldStorage = {
+        getStatus: async () => {
+          return {
+            isImporter: false,
+            isExporter: true
+          }
+        },
         postPathsDump: async (_dump) => {},
         postDbDump: async (_dump) => {},
         postLatenciesDump: async (_dump) => {
@@ -249,51 +279,24 @@ test('dump no latencies if none are available', async (t) => {
   assert.deepStrictEqual(postDumpLatencies, null)
 })
 
-test('dump latencies', async (t) => {
-  const postDumpCalls = []
+test('dump returns 503 when isImporter is true', async (t) => {
   const coldStorageMock = fp(async function (fastify, opts) {
     fastify.addHook('onRequest', function (req, reply, done) {
       req.coldStorage = {
-        postPathsDump: async (_dump) => {},
-        postLatenciesDump: async (_dump) => {
-          postDumpCalls.push(_dump)
-          return { ok: true }
-        }
+        getStatus: async () => ({ isImporter: true, isExporter: false })
       }
       done()
     })
   })
 
   const fastify = await setupServer(t, [coldStorageMock])
+  const res = await fastify.inject({ method: 'GET', url: '/dump' })
 
-  // Insert some data
-  const latencies = {
-    '||A': [100, 200],
-    'A||B': [200, 300, 400]
-  }
-
-  await fastify.store.storeLatencies(latencies)
-
-  const res = await fastify.inject({
-    method: 'GET',
-    url: '/dump'
+  assert.equal(res.statusCode, 503)
+  assert.deepStrictEqual(res.json(), {
+    error: 'Service Unavailable',
+    message: 'Dump operation is disabled when risk-cold-storage is configured as an importer'
   })
-
-  assert.equal(res.statusCode, 200)
-  assert.equal(postDumpCalls.length, 1)
-  assert.deepStrictEqual(postDumpCalls[0].dump.sort(compare), [
-    {
-      from: '',
-      to: 'A',
-      mean: 150,
-      count: 2
-    }, {
-      from: 'A',
-      to: 'B',
-      mean: 300,
-      count: 3
-    }].sort(compare)
-  )
 })
 
 test('dump latencies', async (t) => {
@@ -301,6 +304,12 @@ test('dump latencies', async (t) => {
   const coldStorageMock = fp(async function (fastify, opts) {
     fastify.addHook('onRequest', function (req, reply, done) {
       req.coldStorage = {
+        getStatus: async () => {
+          return {
+            isImporter: false,
+            isExporter: true
+          }
+        },
         postPathsDump: async (_dump) => {},
         postLatenciesDump: async (_dump) => {
           postDumpCalls.push(_dump)

@@ -46,7 +46,8 @@ function dbConfig () {
         resolve(__dirname, '..', 'routes', 'db-ops.js'),
         resolve(__dirname, '..', 'routes', 'latencies.js'),
         resolve(__dirname, '..', 'routes', 'download.js'),
-        resolve(__dirname, '..', 'routes', 'sync.js')
+        resolve(__dirname, '..', 'routes', 'sync.js'),
+        resolve(__dirname, '..', 'routes', 'status.js')
       ]
     },
     watch: false

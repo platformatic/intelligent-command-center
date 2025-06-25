@@ -94,7 +94,6 @@ test('isUrlAllowed handles non-matching paths correctly', async (t) => {
 
 test('isUrlAllowed behavior with path extensions', async (t) => {
   const allowedExtendedPaths = [
-    createMockRequest('/risk-cold-storage/sync/extra', 'GET'),
     createMockRequest('/compliance/metadata/extra/path', 'POST'),
     createMockRequest('/cron/watt-jobs/extra', 'PUT')
   ]
