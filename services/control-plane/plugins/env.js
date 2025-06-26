@@ -22,7 +22,8 @@ const schema = {
     'PLT_EXTERNAL_METRICS_URL',
     'PLT_EXTERNAL_SCALER_URL',
     'PLT_CONTROL_PLANE_SECRET_KEYS',
-    'PLT_ICC_SESSION_SECRET'
+    'PLT_ICC_SESSION_SECRET',
+    'PLT_FEATURE_CACHE_RECOMMENDATIONS'
   ],
 
   properties: {
@@ -48,7 +49,8 @@ const schema = {
     PLT_CONTROL_PLANE_ELASTICACHE_CLUSTERID_PREFIX: { type: 'string' },
     PLT_CONTROL_PLANE_SECRET_KEYS: { type: 'string' },
     PLT_CONTROL_PLANE_DB_LOCK_MIN_TIMEOUT: { type: 'number', default: 100 },
-    PLT_ICC_SESSION_SECRET: { type: 'string' }
+    PLT_ICC_SESSION_SECRET: { type: 'string' },
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: { type: 'boolean', default: false }
   }
 }
 
