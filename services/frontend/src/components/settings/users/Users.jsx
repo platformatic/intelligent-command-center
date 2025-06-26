@@ -49,10 +49,6 @@ function Users () {
   }, [])
 
   useEffect(() => {
-    console.log('filteredUsers', filteredUsers)
-  }, [filteredUsers])
-
-  useEffect(() => {
     if (showOnlyJoinedUsers) {
       setFilteredUsers([...users.filter(user => user.joined)])
     } else {
@@ -77,8 +73,7 @@ function Users () {
         message: `You added new member${emails.length > 1 ? 's' : ''} to the organization successfully`,
         type: 'success',
         onDismiss () {
-          setUsers([])
-          setFilteredUsers([])
+          loadUsers()
         }
       })
     } catch (error) {
@@ -120,8 +115,6 @@ function Users () {
           message: 'You assigned a new role successfully.',
           type: 'success',
           onDismiss () {
-            setUsers([])
-            setFilteredUsers([])
             loadUsers()
           }
         })
@@ -159,8 +152,6 @@ function Users () {
           message: 'You removed the user from the organization successfully.',
           type: 'success',
           onDismiss () {
-            setUsers([])
-            setFilteredUsers([])
             loadUsers()
           }
         })
@@ -171,8 +162,6 @@ function Users () {
           message: `Failed to remove user: ${body.message}`,
           type: 'error',
           onDismiss () {
-            setUsers([])
-            setFilteredUsers([])
             loadUsers()
           }
         })
