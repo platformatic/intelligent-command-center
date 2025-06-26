@@ -7,7 +7,6 @@ import tooltipStyles from '~/styles/TooltipStyles.module.css'
 import { BorderedBox, PlatformaticIcon, Tooltip, VerticalSeparator } from '@platformatic/ui-components'
 import { getFormattedDate } from '~/utilities/dates'
 import Icons from '@platformatic/ui-components/src/components/icons'
-import ApplicationStatusPills from '~/components/ui/ApplicationStatusPills'
 import useICCStore from '~/useICCStore'
 
 function AppNameBox ({
@@ -17,7 +16,7 @@ function AppNameBox ({
 }) {
   const globalState = useICCStore()
 
-  const { taxonomyStatus, packageVersions } = globalState
+  const { packageVersions } = globalState
 
   return (
     <BorderedBox classes={`${styles.borderexBoxContainer} ${gridClassName}`} backgroundColor={BLACK_RUSSIAN} color={TRANSPARENT}>
@@ -33,7 +32,6 @@ function AppNameBox ({
                 <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite} ${typographyStyles.ellipsis}`}>{application.name}</p>
               </div>
             </div>
-            {taxonomyStatus && <ApplicationStatusPills status={taxonomyStatus} />}
           </div>
         </div>
         <div className={`${commonStyles.tinyFlexBlock} ${commonStyles.fullWidth}`}>

@@ -69,6 +69,7 @@ function createUserSessionCookie (serverInstance, user = null) {
       username: 'johndoe',
       full_name: 'John Doe',
       image: 'https://picsum.photos/200/300',
+      role: 'admin',
       email: 'john@doe.com'
     }
   }
