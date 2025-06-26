@@ -110,7 +110,7 @@ function TableUsers ({
     function renderButtons (user) {
       // Do not render action button if the user is a normal user
       // or if the user is the only user in the organization
-      if (!loggedUser && (isRegularUser(loggedUser) || users.length === 1)) {
+      if (!loggedUser || (isRegularUser(loggedUser) || users.length === 1)) {
         return null
       }
       return (
