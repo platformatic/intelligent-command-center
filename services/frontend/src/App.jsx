@@ -15,10 +15,10 @@ import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import styles from './App.module.css'
+import callApi from './api/common'
 
 export default function App () {
-  const globalState = useICCStore()
-  const { user, setUser, isAuthenticated, setIsAuthenticated, setPackageVersions, setCurrentWindowWidth, setEnableSidebarFirstLevel, splashScreen, hideSplashScreen } = globalState
+  const { user, setUser, isAuthenticated, setIsAuthenticated, setPackageVersions, setCurrentWindowWidth, setEnableSidebarFirstLevel, splashScreen, hideSplashScreen, setConfig } = useICCStore()
   const [innerLoading, setInnerLoading] = useState(false)
 
   useEffect(() => {
@@ -49,6 +49,14 @@ export default function App () {
     getUserLocal()
   }, [])
 
+  async function loadConfig () {
+    try {
+      const data = await callApi('', '/api/config', 'GET')
+      setConfig(data)
+    } catch (error) {
+      console.error('Error on loadConfig', error)
+    }
+  }
   useEffect(() => {
     setCurrentWindowWidth(window.innerWidth)
 
@@ -79,6 +87,7 @@ export default function App () {
           setInnerLoading(false)
         }
       }
+      loadConfig()
       loadPackageVersions()
     }
   }, [isAuthenticated])
