@@ -9,7 +9,7 @@ const Fastify = require('fastify')
 test('happy path', async (t) => {
   const plan = tspl(t, { plan: 5 })
   const ee = new EventEmitter()
-  const server = await buildServer(t)
+  const server = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
 
   const target = Fastify()
   const p = once(ee, 'called')

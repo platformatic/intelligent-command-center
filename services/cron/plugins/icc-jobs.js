@@ -6,6 +6,18 @@ const fp = require('fastify-plugin')
 const notFound = createError('NOT_FOUND', 'Not found %s', 404)
 
 async function plugin (app) {
+  async function buildJobResponse (job, message) {
+    return {
+      name: job.name,
+      schedule: job.schedule,
+      when: message.when,
+      url: job.callbackUrl,
+      method: job.method,
+      maxRetries: job.maxRetries,
+      paused: job.paused
+    }
+  }
+
   async function getICCJob (name) {
     const { entities } = app.platformatic
     const job = (await entities.job.find({
@@ -30,23 +42,33 @@ async function plugin (app) {
       app.log.info({ name }, 'No scheduled message found')
       throw notFound(name)
     }
-    const message = messages[0]
 
-    return {
-      name,
-      schedule: job.schedule,
-      when: message.when,
-      url: job.callbackUrl,
-      method: job.method,
-      maxRetries: job.maxRetries,
-      paused: job.paused
-    }
+    return buildJobResponse(job, messages[0])
   }
 
   const getICCJobs = async () => {
-    const JOB_NAMES = ['risk-service-dump', 'sync', 'ffc-recommender', 'trafficante', 'scaler']
-    const jobs = await Promise.all(JOB_NAMES.map(getICCJob))
-    return jobs
+    const { entities } = app.platformatic
+    const jobs = await entities.job.find({
+      where: {
+        jobType: { eq: 'ICC' },
+        applicationId: { eq: null }
+      }
+    })
+
+    const result = []
+    for (const job of jobs) {
+      const messages = await entities.message.find({
+        where: {
+          jobId: { eq: job.id }
+        }
+      })
+
+      if (messages.length > 0) {
+        result.push(await buildJobResponse(job, messages[0]))
+      }
+    }
+
+    return result
   }
 
   // Creates or update a ICC internal job

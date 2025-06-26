@@ -71,17 +71,7 @@ test('scaler job is included in getICCJob', async (t) => {
 
 test('multiple jobs including scaler are created', async (t) => {
   const app = await buildServer(t, {
-    PLT_CRON_ICC_JOBS: 'RISK_SERVICE_DUMP, SCALER',
-    PLT_CRON_ICC_JOB_RISK_SERVICE_DUMP_NAME: 'risk-service-dump',
-    PLT_CRON_ICC_JOB_RISK_SERVICE_DUMP_CRON: '0 0 * * *',
-    PLT_CRON_ICC_JOB_RISK_SERVICE_DUMP_URL: 'http://risk-service.plt.local/dump',
-    PLT_CRON_ICC_JOB_RISK_SERVICE_DUMP_METHOD: 'GET',
-    PLT_CRON_ICC_JOB_RISK_SERVICE_DUMP_MAX_RETRIES: 3,
-    PLT_CRON_ICC_JOB_SCALER_NAME: 'scaler',
-    PLT_CRON_ICC_JOB_SCALER_CRON: '0 */12 * * *',
-    PLT_CRON_ICC_JOB_SCALER_URL: 'http://scaler.plt.local/predictions/calculate',
-    PLT_CRON_ICC_JOB_SCALER_METHOD: 'POST',
-    PLT_CRON_ICC_JOB_SCALER_MAX_RETRIES: 3
+    PLT_FEATURE_RISK_SERVICE_DUMP: true
   })
 
   await app.listen({ port: 0 })
@@ -92,9 +82,10 @@ test('multiple jobs including scaler are created', async (t) => {
     }
   })
 
-  equal(jobs.length, 2, 'two ICC jobs should be created')
+  equal(jobs.length, 3, 'three ICC jobs should be created') // SCALER, SYNC, RISK_SERVICE_DUMP
 
   const jobNames = jobs.map(job => job.name).sort()
   equal(jobNames[0], 'risk-service-dump')
   equal(jobNames[1], 'scaler')
+  equal(jobNames[2], 'sync')
 })

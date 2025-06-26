@@ -9,8 +9,9 @@ const same = deepEqual
 
 test('happy path', async (t) => {
   const ee = new EventEmitter()
-  const server1 = await buildServer(t)
-  const server2 = await buildServer(t)
+
+  const server1 = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
+  const server2 = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
 
   const target = Fastify()
   target.post('/', async (req, reply) => {
@@ -87,8 +88,8 @@ test('happy path', async (t) => {
 
 test('re-election', async (t) => {
   const ee = new EventEmitter()
-  const server1 = await buildServer(t)
-  const server2 = await buildServer(t)
+  const server1 = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
+  const server2 = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
 
   const target = Fastify()
   target.post('/', async (req, reply) => {

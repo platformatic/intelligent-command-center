@@ -19,7 +19,7 @@ test('GET job by name that does not exist must return 404', async (t) => {
 })
 
 test('Change a job schedule', async (t) => {
-  const server = await buildServer(t, { PLT_CRON_ICC_JOBS: 'RISK_SERVICE_DUMP' })
+  const server = await buildServer(t, { PLT_FEATURE_RISK_SERVICE_DUMP: true })
   const jobName = 'risk-service-dump'
 
   const ee = new EventEmitter()
@@ -46,7 +46,11 @@ test('Change a job schedule', async (t) => {
 })
 
 test('GET job by name', async (t) => {
-  const server = await buildServer(t, { PLT_CRON_ICC_JOBS: 'RISK_SERVICE_DUMP,SYNC,FFC_RECOMMENDER,TRAFFICANTE' })
+  const server = await buildServer(t, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: true,
+    PLT_FEATURE_RISK_SERVICE_DUMP: true,
+    PLT_FEATURE_FFC: true
+  })
 
   const res = await server.inject({
     method: 'GET',
@@ -65,25 +69,41 @@ test('GET job by name', async (t) => {
 })
 
 test('GET all jobs', async (t) => {
-  const server = await buildServer(t, { PLT_CRON_ICC_JOBS: 'RISK_SERVICE_DUMP,SYNC,FFC_RECOMMENDER,TRAFFICANTE,SCALER' })
+  const server = await buildServer(t, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: true,
+    PLT_FEATURE_RISK_SERVICE_DUMP: true,
+    PLT_FEATURE_FFC: true
+  })
 
   const res = await server.inject({
     method: 'GET',
     url: '/icc-jobs'
   })
   const { statusCode, body } = res
-  const job = JSON.parse(body)
+  const jobs = JSON.parse(body)
   assert.equal(statusCode, 200)
-  assert.equal(job.length, 5)
-  assert.equal(job[0].name, 'risk-service-dump')
-  assert.equal(job[1].name, 'sync')
-  assert.equal(job[2].name, 'ffc-recommender')
-  assert.equal(job[3].name, 'trafficante')
-  assert.equal(job[4].name, 'scaler')
+
+  const jobNames = jobs.map(job => job.name).sort()
+  const expectedJobs = ['ffc-recommender', 'risk-service-dump', 'scaler', 'sync', 'trafficante']
+  assert.deepEqual(jobNames, expectedJobs)
+
+  jobs.forEach(job => {
+    assert.ok(job.name)
+    assert.ok(job.schedule !== undefined)
+    assert.ok(job.url)
+    assert.ok(job.method)
+    assert.ok(job.maxRetries !== undefined)
+    assert.ok(job.paused !== undefined)
+    assert.ok(job.when)
+  })
 })
 
 test('Change multiple jobs schedules', async (t) => {
-  const server = await buildServer(t, { PLT_CRON_ICC_JOBS: 'RISK_SERVICE_DUMP,SYNC,FFC_RECOMMENDER,TRAFFICANTE,SCALER' })
+  const server = await buildServer(t, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: true,
+    PLT_FEATURE_RISK_SERVICE_DUMP: true,
+    PLT_FEATURE_FFC: true
+  })
 
   const jobs = {
     'risk-service-dump': '* * */2 * * *',
