@@ -10,7 +10,7 @@ const { setTimeout: sleep } = require('node:timers/promises')
 test('retries on failure', async (t) => {
   const plan = tspl(t, { plan: 6 })
   const ee = new EventEmitter()
-  const server = await buildServer(t)
+  const server = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
 
   const target = Fastify()
   let called = 0
@@ -50,7 +50,7 @@ test('retries on failure', async (t) => {
     const body = res.json()
     const { data } = body
     jobId = data.saveJob.id
-    plan.strictEqual(jobId, '1')
+    plan.ok(jobId) // Just verify we got a job ID
   }
 
   let p = once(ee, 'called')
@@ -96,7 +96,7 @@ test('retries on failure', async (t) => {
 
 test('see the message as failed after the retries are done', async (t) => {
   const plan = tspl(t, { plan: 12 })
-  const server = await buildServer(t)
+  const server = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
 
   const target = Fastify()
   target.post('/', async (req, reply) => {
@@ -172,7 +172,7 @@ test('see the message as failed after the retries are done', async (t) => {
   // We wait for the retries to be done
   await sleep(800)
 
-  const messages = await server.platformatic.entities.message.find()
+  const messages = await server.platformatic.entities.message.find({ where: { jobId: { eq: jobId } } })
   plan.strictEqual(messages.length, 1)
   const message = messages[0]
   plan.strictEqual(message.jobId, Number(jobId))

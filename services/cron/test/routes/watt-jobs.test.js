@@ -121,7 +121,7 @@ test('PUT /watt-jobs does not update a job when no changes are made', async (t) 
     payload: jobPayload
   })
 
-  const { updatedAt: updatedAtBefore } = (await server.platformatic.entities.job.find({}))[0]
+  const { updatedAt: updatedAtBefore } = (await server.platformatic.entities.job.find({ where: { jobType: { eq: 'WATT' } } }))[0]
 
   // Wait to ensure timestamps would be different if updated
   await sleep(200)
@@ -143,7 +143,7 @@ test('PUT /watt-jobs does not update a job when no changes are made', async (t) 
   assert.equal(secondJob.applicationId, jobPayload.applicationId)
   assert.equal(secondJob.jobType, 'WATT')
 
-  const jobsAfter = await server.platformatic.entities.job.find({})
+  const jobsAfter = await server.platformatic.entities.job.find({ where: { jobType: { eq: 'WATT' } } })
   const { updatedAt: updatedAtAfter } = jobsAfter[0]
   assert.equal(jobsAfter.length, 1)
 

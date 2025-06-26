@@ -36,14 +36,15 @@ function SystemJobs () {
   const [schedules, setSchedules] = useState(null)
   const [error, setError] = useState(null)
   const [syncConfig, setSyncConfig] = useState({})
+  const [availableJobs, setAvailableJobs] = useState([])
 
   const [systemJobTypes, setSystemJobTypes] = useState([])
 
   useEffect(() => {
-    if (schedules) {
+    if (schedules && availableJobs.length > 0) {
       const isImporter = syncConfig?.enabled && syncConfig?.isImporter
 
-      const enabledJobs = [{
+      const allPossibleJobs = [{
         name: 'Trafficante',
         label: 'How often you want the ICC to check for Cache optimization.',
         slug: 'trafficante'
@@ -56,37 +57,30 @@ function SystemJobs () {
 
       // Only add Cold Storage Dump if not in importer mode
       if (!isImporter) {
-        enabledJobs.push({
+        allPossibleJobs.push({
           name: 'Cold Storage Dump',
           label: 'How often you want the dump system data to the Cold Storage.',
           slug: 'risk-service-dump',
           cron: schedules['risk-service-dump']
         })
-
-        // Also add it to jobStatus if it doesn't exist
-        setJobStatus(prev => {
-          if (!prev['risk-service-dump']) {
-            return {
-              ...prev,
-              'risk-service-dump': {
-                valid: true
-              }
-            }
-          }
-          return prev
-        })
-      } else {
-        // Remove it from jobStatus if in importer mode
-        setJobStatus(prev => {
-          const newStatus = { ...prev }
-          delete newStatus['risk-service-dump']
-          return newStatus
-        })
       }
+
+      // Filter jobs based on what's available from the API
+      const availableJobNames = availableJobs.map(job => job.name)
+      const enabledJobs = allPossibleJobs.filter(job => availableJobNames.includes(job.slug))
+
+      // Update jobStatus based on enabled jobs
+      setJobStatus(prev => {
+        const newStatus = {}
+        enabledJobs.forEach(job => {
+          newStatus[job.slug] = prev[job.slug] || { valid: true }
+        })
+        return newStatus
+      })
 
       setSystemJobTypes(enabledJobs)
     }
-  }, [schedules, syncConfig])
+  }, [schedules, syncConfig, availableJobs])
 
   useEffect(() => {
     if (showSuccess) {
@@ -99,13 +93,14 @@ function SystemJobs () {
   useEffect(() => {
     async function loadData () {
       try {
-        const [res, syncConfigResponse] = await Promise.all([
+        const [systemJobsResponse, syncConfigResponse] = await Promise.all([
           getSystemJobs(),
           callApiGetSyncConfig()
         ])
-        const schedules = getSchedules(res)
+        const schedules = getSchedules(systemJobsResponse)
         setSchedules(schedules)
         setSyncConfig(syncConfigResponse)
+        setAvailableJobs(systemJobsResponse)
       } catch (error) {
         console.error(`Error on get exports ${error}`)
         setError(error)
@@ -189,28 +184,45 @@ function SystemJobs () {
       </div>
       {schedules &&
         <div className={`${commonStyles.smallFlexCol} ${commonStyles.fullWidth} ${commonStyles.justifyBetween} ${styles.jobs}`}>
-          {systemJobTypes.map((job) => (
-            <div key={job.name} className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyBetween} ${styles.job}`}>
-              <Job
-                title={job.name}
-                label={job.label}
-                cron={schedules[job.slug]}
-                setFormStatus={setFormStatus(job.slug)}
-              />
-            </div>
-          ))}
+          {systemJobTypes.length > 0
+            ? (
+                systemJobTypes.map((job) => (
+                  <div key={job.name} className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyBetween} ${styles.job}`}>
+                    <Job
+                      title={job.name}
+                      label={job.label}
+                      cron={schedules[job.slug]}
+                      setFormStatus={setFormStatus(job.slug)}
+                    />
+                  </div>
+                ))
+              )
+            : (
+              <div className={`${commonStyles.mediumFlexRow} ${commonStyles.fullWidth} ${styles.noJobsMessage}`}>
+                <div className={`${commonStyles.tinyFlexBlock}`}>
+                  <p className={`${typographyStyles.desktopBody} ${typographyStyles.textWhite}`}>
+                    No ICC system jobs enabled
+                  </p>
+                  <p className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>
+                    See documentation for more information
+                  </p>
+                </div>
+              </div>
+              )}
         </div>}
-      <Button
-        label='Apply Changes'
-        onClick={() => applyChanges()}
-        color={RICH_BLACK}
-        backgroundColor={WHITE}
-        hoverEffect={DULLS_BACKGROUND_COLOR}
-        paddingClass={commonStyles.smallButtonPadding}
-        textClass={typographyStyles.desktopButtonSmall}
-        bordered={false}
-        disabled={isSaveDisabled}
-      />
+      {systemJobTypes.length > 0 && (
+        <Button
+          label='Apply Changes'
+          onClick={() => applyChanges()}
+          color={RICH_BLACK}
+          backgroundColor={WHITE}
+          hoverEffect={DULLS_BACKGROUND_COLOR}
+          paddingClass={commonStyles.smallButtonPadding}
+          textClass={typographyStyles.desktopButtonSmall}
+          bordered={false}
+          disabled={isSaveDisabled}
+        />
+      )}
     </div>
   )
 }
