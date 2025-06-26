@@ -145,26 +145,6 @@ module.exports.generateRandomActivities = function (count) {
   }
   return output
 }
-/**
- * Generate the cookie to be sent to simulate a user authenticated and logged in
- * @param {*} serverInstance the server instance
- * @param {*} user an user object with properties: username, full_name, image, email. If not sent, a default John Doe user will be generated
- * @returns {string} the cookie value
- */
-module.exports.createUserSessionCookie = function (serverInstance, user = null) {
-  if (!user) {
-    user = {
-      username: 'johndoe',
-      full_name: 'John Doe',
-      image: 'https://picsum.photos/200/300',
-      email: 'john@doe.com',
-      role: 'admin'
-    }
-  }
-  const session = serverInstance.createSecureSession({ user })
-  const cookieString = serverInstance.encodeSecureSession(session)
-  return `auth-cookie-name=${encodeURIComponent(cookieString)}; Path=/; HttpOnly`
-}
 
 module.exports.mockAuthorizeEndpoint = function (agent, callback) {
   if (agent === null) {

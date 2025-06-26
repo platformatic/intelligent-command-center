@@ -6,7 +6,6 @@ const initialState = {
   accessToken: null,
   isAuthenticated: false,
   breadCrumbs: [],
-  taxonomyStatus: '',
   currentWindowWidth: 0,
   packageVersions: {
     '@platformatic/composer': '1.52.2',
@@ -27,7 +26,7 @@ const initialState = {
     message: '',
     onDismiss: () => {}
   },
-  currentApplication: null
+  config: {}
 }
 
 const useICCStore = create((set, get) => ({
@@ -119,14 +118,6 @@ const useICCStore = create((set, get) => ({
       }
     })
   },
-  setTaxonomyStatus: (taxonomyStatus) => {
-    set((state) => {
-      return {
-        ...state,
-        taxonomyStatus
-      }
-    })
-  },
   setEnableSidebarFirstLevel: (value) => {
     set((state) => {
       return {
@@ -177,11 +168,11 @@ const useICCStore = create((set, get) => ({
       }
     })
   },
-  setCurrentApplication: (application) => {
+  setConfig: (config) => {
     set((state) => {
       return {
         ...state,
-        currentApplication: application
+        config
       }
     })
   }

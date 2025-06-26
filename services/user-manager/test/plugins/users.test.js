@@ -3,7 +3,7 @@
 const { test } = require('node:test')
 const assert = require('node:assert')
 const { getServer } = require('../helper')
-const { createUserSessionCookie } = require('../../../main/test/helper')
+const { createUserSessionCookie } = require('../helper')
 
 test('should get current user', async (t) => {
   const server = await getServer(t)

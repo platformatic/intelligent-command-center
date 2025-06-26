@@ -5,7 +5,7 @@ import styles from './ListView.module.css'
 import { Button, LoadingSpinnerV2, SearchBarV2 } from '@platformatic/ui-components'
 import ServiceElement from './ServiceElement'
 import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
-import { STATUS_STOPPED, FILTER_ALL, SERVICE_OUTDATED } from '~/ui-constants'
+import { FILTER_ALL, SERVICE_OUTDATED } from '~/ui-constants'
 import { MEDIUM, RICH_BLACK, WHITE } from '@platformatic/ui-components/src/components/constants'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
 import { generatePath, useNavigate, useRouteLoaderData } from 'react-router-dom'
@@ -194,7 +194,6 @@ function ListView () {
                   id={service.id}
                   service={service}
                   applicationEntrypoint={service.entrypoint}
-                  taxonomyStatus={STATUS_STOPPED}
                   onClickService={() => handleSelectedService(service)}
                   status={getStatusService(applicationSelectedServices, reportServices, service) ? SERVICE_OUTDATED : ''}
                   dependencies={getDependencies(service)}
