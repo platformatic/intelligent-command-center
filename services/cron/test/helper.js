@@ -88,17 +88,22 @@ async function cleandb () {
   const sql = createConnectionPool.sql
 
   try {
-    await pool.query(sql`DROP TABLE MESSAGES;`)
-  } catch {}
-  try {
-    await pool.query(sql`DROP TABLE JOBS;`)
-  } catch {}
-  try {
-    await pool.query(sql`DROP TYPE JOB_STATUS;`)
-  } catch {}
-  try {
-    await pool.query(sql`DROP TABLE VERSIONS;`)
+    // Delete all data from tables and reset sequences
+    await pool.query(sql`TRUNCATE TABLE messages, jobs RESTART IDENTITY CASCADE;`)
   } catch (err) {
+    // If truncate fails, try dropping tables (first run scenario)
+    try {
+      await pool.query(sql`DROP TABLE IF EXISTS messages CASCADE;`)
+    } catch {}
+    try {
+      await pool.query(sql`DROP TABLE IF EXISTS jobs CASCADE;`)
+    } catch {}
+    try {
+      await pool.query(sql`DROP TYPE IF EXISTS job_type_enum CASCADE;`)
+    } catch {}
+    try {
+      await pool.query(sql`DROP TABLE IF EXISTS versions CASCADE;`)
+    } catch {}
   }
 }
 

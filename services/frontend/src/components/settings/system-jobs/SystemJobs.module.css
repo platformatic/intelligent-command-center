@@ -13,3 +13,7 @@
 .job {
   @apply w-full pt-4 pb-4;
 }
+
+.noJobsMessage {
+  @apply min-h-24 w-full pt-2 ml-8;
+}

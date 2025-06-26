@@ -9,8 +9,13 @@ const schema = {
   required: [],
 
   properties: {
-    // comma separated list of internal schedulers. Emypty string means no schedulers (useful for tests)
-    PLT_CRON_ICC_JOBS: { type: 'string', default: 'RISK_SERVICE_DUMP, FFC_RECOMMENDER, TRAFFICANTE, SCALER, SYNC' },
+    // Features for ICC jobs
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: { type: 'boolean', default: false },
+    PLT_FEATURE_RISK_SERVICE_DUMP: { type: 'boolean', default: false },
+    PLT_FEATURE_FFC: { type: 'boolean', default: false },
+
+    // Useful for tests
+    PLT_CRON_DISABLE_ICC_JOBS: { type: 'boolean', default: false },
 
     // Risk Service
     PLT_CRON_ICC_JOB_RISK_SERVICE_DUMP_NAME: { type: 'string', default: 'risk-service-dump' },
@@ -31,7 +36,7 @@ const schema = {
     PLT_CRON_ICC_JOB_FFC_RECOMMENDER_CRON: { type: 'string', default: EVERY_DAY },
     PLT_CRON_ICC_JOB_FFC_RECOMMENDER_URL: { type: 'string', default: 'http://cluster-manager.plt.local/optimize' },
     PLT_CRON_ICC_JOB_FFC_RECOMMENDER_METHOD: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'], default: 'GET' },
-    PLT_CRON_ICC_JOB_FFC_RECOMMENDER_URL_MAX_RETRIES: { type: 'integer', default: 3 },
+    PLT_CRON_ICC_JOB_FFC_RECOMMENDER_MAX_RETRIES: { type: 'integer', default: 3 },
 
     // Trafficante
     PLT_CRON_ICC_JOB_TRAFFICANTE_NAME: { type: 'string', default: 'trafficante' },
@@ -56,7 +61,32 @@ const fastifyEnvOpts = {
 }
 
 async function envPlugin (fastify) {
-  fastify.register(fastifyEnv, fastifyEnvOpts)
+  // Dynamically compute PLT_CRON_ICC_JOBS based on features
+  await fastify.register(fastifyEnv, fastifyEnvOpts)
+
+  if (fastify.env.PLT_CRON_DISABLE_ICC_JOBS) {
+    fastify.log.info('ICC jobs are disabled by PLT_CRON_DISABLE_ICC_JOBS')
+    fastify.env.PLT_CRON_ICC_JOBS = ''
+    return
+  }
+
+  // Build the list of jobs based on features
+  const jobs = ['SCALER', 'SYNC'] // Always enabled
+
+  if (fastify.env.PLT_FEATURE_CACHE_RECOMMENDATIONS) {
+    jobs.push('TRAFFICANTE')
+  }
+
+  if (fastify.env.PLT_FEATURE_RISK_SERVICE_DUMP) {
+    jobs.push('RISK_SERVICE_DUMP')
+  }
+
+  if (fastify.env.PLT_FEATURE_FFC) {
+    jobs.push('FFC_RECOMMENDER')
+  }
+
+  // Set the computed value
+  fastify.env.PLT_CRON_ICC_JOBS = jobs.join(', ')
 }
 
 module.exports = fp(envPlugin, { name: 'env' })

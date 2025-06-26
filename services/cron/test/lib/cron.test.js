@@ -10,7 +10,7 @@ test('happy path', async (t) => {
   const plan = tspl(t, { plan: 12 })
   const ee = new EventEmitter()
 
-  const server = await buildServer(t)
+  const server = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
 
   const target = Fastify()
   target.post('/', async (req, reply) => {
@@ -91,7 +91,7 @@ test('happy path', async (t) => {
 
 test('invalid cron expression', async (t) => {
   const plan = tspl(t, { plan: 2 })
-  const server = await buildServer(t)
+  const server = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
 
   const targetUrl = 'http://localhost:4242'
   const schedule = 'hello world'

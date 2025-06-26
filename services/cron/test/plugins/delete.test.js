@@ -15,7 +15,7 @@ test('logical delete, happy path', async (t) => {
     }
   })
 
-  const jobs = await server.platformatic.entities.job.find({})
+  const jobs = await server.platformatic.entities.job.find({ where: { name: { eq: 'job1' } } })
   assert.equal(jobs.length, 1)
   assert.equal(jobs[0].deletedAt, null)
   const jobId = jobs[0].id
@@ -35,7 +35,7 @@ test('logical delete, happy path', async (t) => {
   })
 
   {
-    const jobs = await server.platformatic.entities.job.find({})
+    const jobs = await server.platformatic.entities.job.find({ where: { name: { eq: 'job1' } } })
     assert.equal(jobs.length, 0)
   }
 })
@@ -50,7 +50,7 @@ test('logical delete with rollback', async (t) => {
     }
   })
 
-  const jobs = await server.platformatic.entities.job.find({})
+  const jobs = await server.platformatic.entities.job.find({ where: { name: { eq: 'job1' } } })
   assert.equal(jobs.length, 1)
   assert.equal(jobs[0].deletedAt, null)
   const jobId = jobs[0].id
@@ -74,7 +74,7 @@ test('logical delete with rollback', async (t) => {
   })
 
   {
-    const jobs = await server.platformatic.entities.job.find({})
+    const jobs = await server.platformatic.entities.job.find({ where: { name: { eq: 'job1' } } })
     assert.equal(jobs.length, 1)
   }
 })
@@ -90,7 +90,7 @@ test('cannot delete protected entities', async (t) => {
     }
   })
 
-  const jobs = await server.platformatic.entities.job.find({})
+  const jobs = await server.platformatic.entities.job.find({ where: { name: { eq: 'job1' } } })
   assert.equal(jobs.length, 1)
   assert.equal(jobs[0].deletedAt, null)
   const jobId = jobs[0].id
@@ -113,7 +113,7 @@ test('cannot delete protected entities', async (t) => {
   assert.equal(body, '{"statusCode":500,"error":"Internal Server Error","message":"Cannot delete protected entity"}')
 
   {
-    const jobs = await server.platformatic.entities.job.find({})
+    const jobs = await server.platformatic.entities.job.find({ where: { name: { eq: 'job1' } } })
     assert.equal(jobs.length, 1)
     assert.equal(jobs[0].deletedAt, null)
     assert.equal(jobs[0].id, jobId)
