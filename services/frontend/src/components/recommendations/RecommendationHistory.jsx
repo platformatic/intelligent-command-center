@@ -23,13 +23,12 @@ import { callApiGetCacheRecommendations, callApiUpdateRecommendationStatus, call
 **/
 const VISIBLE_ROWS = 16
 export default function RecommendationsHistory () {
+  const { showSplashScreen, config } = useICCStore()
   const typeFilterOptions = [
     { label: 'All recommendations', value: 'all' },
     { label: 'System Recommendations', value: 'system' },
     { label: 'Cache Recommendations', value: 'cache' }
   ]
-  const globalState = useICCStore()
-  const { showSplashScreen } = globalState
   const [innerLoading, setInnerLoading] = useState(true)
   const [pagesCount, setPagesCount] = useState(0)
   const [showRecommendationModal, setShowRecommendationModal] = useState(false)
@@ -219,20 +218,23 @@ export default function RecommendationsHistory () {
             backgroundColor={MAIN_GREEN}
             hoverEffect={DULLS_BACKGROUND_COLOR}
           />
-          <Forms.Select
-            backgroundColor={RICH_BLACK}
-            borderColor={WHITE}
-            defaultOptionsClassName={`${typographyStyles.desktopButtonSmall} ${styles.maxHeightOptions}`}
-            options={typeFilterOptions}
-            onSelect={handleSelectTypeFilter}
-            optionsBorderedBottom={false}
-            mainColor={WHITE}
-            borderListColor={WHITE}
-            value={typeFilter.label}
-            inputTextClassName={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite} ${styles.heightSelectClass}`}
-            paddingClass={styles.selectPaddingClass}
-            handleClickOutside
-          />
+          {config['cache-recommendations'] && (
+            <Forms.Select
+              backgroundColor={RICH_BLACK}
+              borderColor={WHITE}
+              defaultOptionsClassName={`${typographyStyles.desktopButtonSmall} ${styles.maxHeightOptions}`}
+              options={typeFilterOptions}
+              onSelect={handleSelectTypeFilter}
+              optionsBorderedBottom={false}
+              mainColor={WHITE}
+              borderListColor={WHITE}
+              value={typeFilter.label}
+              inputTextClassName={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite} ${styles.heightSelectClass}`}
+              paddingClass={styles.selectPaddingClass}
+              handleClickOutside
+            />
+          )}
+
         </div>
       </div>
       {visibleRows.length === 0 && (

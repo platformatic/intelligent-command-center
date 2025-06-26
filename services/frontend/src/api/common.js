@@ -14,7 +14,11 @@ export default async function callApi (service, url, method, body, headers) {
   if (!method) {
     method = 'GET'
   }
-  const response = await fetch(`${baseUrl}/${service}${url}`, {
+  let urlToFetch = `${baseUrl}/${service}${url}`
+  if (service === 'main' || service === '') {
+    urlToFetch = `${baseUrl}${url}`
+  }
+  const response = await fetch(urlToFetch, {
     method,
     body,
     headers,
