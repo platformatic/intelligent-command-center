@@ -62,6 +62,9 @@ module.exports = fp(async function (app) {
           properties: {
             applicationId: { type: 'string' },
             config: { $ref: 'applicationInstanceConfig' },
+            enableOpenTelemetry: { type: 'boolean' },
+            enableSlicerInterceptor: { type: 'boolean' },
+            enableTrafficanteInterceptor: { type: 'boolean' },
             httpCache: {
               type: 'object',
               properties: {
@@ -114,19 +117,14 @@ module.exports = fp(async function (app) {
       const logger = req.log.child({ applicationName, podId })
       const ctx = { req, logger }
 
-      const { application, config, httpCache, iccServices } = await app.initApplicationInstance(
+      const { application, ...instanceConfig } = await app.initApplicationInstance(
         applicationName,
         podId,
         namespace,
         ctx
       )
 
-      return {
-        applicationId: application.id,
-        config,
-        httpCache,
-        iccServices
-      }
+      return { applicationId: application.id, ...instanceConfig }
     }
   })
 
