@@ -30,7 +30,7 @@ test('cancel retry message', async (t) => {
 
   const schedule = '*/1 * * * * *'
 
-  await server.inject({
+  const res = await server.inject({
     method: 'POST',
     url: '/graphql',
     payload: {
@@ -49,13 +49,15 @@ test('cancel retry message', async (t) => {
     }
   })
 
+  const jobId = res.json().data.saveJob.id
+
   await once(ee, 'called')
   await once(ee, 'called')
   await once(ee, 'called')
   await sleep(200) // we need to wait for the message to be saved
 
   // We have 2 messages, one scheduled (unsent yet) and one sent "now".
-  const messages = await server.platformatic.entities.message.find()
+  const messages = await server.platformatic.entities.message.find({ where: { jobId: { eq: jobId } } })
   plan.equal(messages.length, 1)
   const message = messages[0]
   plan.ok(message.retries >= 2)
@@ -67,7 +69,7 @@ test('cancel retry message', async (t) => {
     url: `/messages/${id}/cancel`
   })
 
-  const messagesAfter = await server.platformatic.entities.message.find()
+  const messagesAfter = await server.platformatic.entities.message.find({ where: { jobId: { eq: jobId } } })
   plan.equal(messagesAfter.length, 1)
   const messageAfter = messagesAfter[0]
   plan.equal(messageAfter.failed, true)

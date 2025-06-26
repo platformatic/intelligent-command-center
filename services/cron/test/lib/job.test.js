@@ -9,7 +9,8 @@ const Fastify = require('fastify')
 test('happy path', async (t) => {
   const plan = tspl(t, { plan: 5 })
   const ee = new EventEmitter()
-  const server = await buildServer(t)
+
+  const server = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
 
   const target = Fastify()
   target.post('/', async (req, reply) => {
@@ -88,7 +89,7 @@ test('happy path', async (t) => {
 test('`text plain` content type', async (t) => {
   const plan = tspl(t, { plan: 5 })
   const ee = new EventEmitter()
-  const server = await buildServer(t)
+  const server = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
 
   const target = Fastify()
   target.post('/', async (req, reply) => {
@@ -165,7 +166,7 @@ test('future when', async (t) => {
 
   const ee = new EventEmitter()
 
-  const server = await buildServer(t)
+  const server = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
 
   const target = Fastify()
   target.post('/', async (req, reply) => {
@@ -250,7 +251,7 @@ test('`text plain` content type header in the job', async (t) => {
   const plan = tspl(t, { plan: 5 })
   const ee = new EventEmitter()
 
-  const server = await buildServer(t)
+  const server = await buildServer(t, { PLT_CRON_DISABLE_ICC_JOBS: true })
 
   const target = Fastify()
   target.post('/', async (req, reply) => {
