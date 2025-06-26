@@ -70,7 +70,19 @@ test('should save an instance of a new application', async (t) => {
 
   assert.strictEqual(statusCode, 200, body)
 
-  const { applicationId, config, httpCache, iccServices } = JSON.parse(body)
+  const {
+    applicationId,
+    config,
+    httpCache,
+    iccServices,
+    enableOpenTelemetry,
+    enableSlicerInterceptor,
+    enableTrafficanteInterceptor
+  } = JSON.parse(body)
+
+  assert.strictEqual(enableOpenTelemetry, false)
+  assert.strictEqual(enableSlicerInterceptor, false)
+  assert.strictEqual(enableTrafficanteInterceptor, false)
 
   const { resources, httpCacheConfig } = config
   assert.strictEqual(resources.threads, 1)
@@ -250,7 +262,9 @@ test('should save a new app instance with the same image', async (t) => {
     }
   })
 
-  const controlPlane = await startControlPlane(t)
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'true'
+  })
 
   const {
     generation: generation1,
@@ -297,7 +311,17 @@ test('should save a new app instance with the same image', async (t) => {
 
   assert.strictEqual(statusCode, 200, body)
 
-  const { applicationId, config } = JSON.parse(body)
+  const {
+    applicationId,
+    config,
+    enableOpenTelemetry,
+    enableSlicerInterceptor,
+    enableTrafficanteInterceptor
+  } = JSON.parse(body)
+
+  assert.strictEqual(enableOpenTelemetry, true)
+  assert.strictEqual(enableSlicerInterceptor, true)
+  assert.strictEqual(enableTrafficanteInterceptor, true)
 
   const { resources, httpCacheConfig } = config
   assert.strictEqual(resources.threads, 1)
