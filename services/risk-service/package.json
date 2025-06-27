@@ -1,5 +1,4 @@
 {
-  "version": "0.1.0",
   "scripts": {
     "start": "platformatic service start",
     "test": "NODE_OPTIONS=--trace-deprecation npm run lint | borp --concurrency 1",
@@ -25,5 +24,6 @@
     "undici": "^7.1.0",
     "fastify-plugin": "^5.0.1",
     "protobufjs": "^7.5.0"
-  }
+  },
+  "version": "0.1.1"
 }
