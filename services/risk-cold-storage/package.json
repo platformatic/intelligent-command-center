@@ -1,5 +1,4 @@
 {
-  "version": "0.1.0",
   "scripts": {
     "start": "platformatic start",
     "migrate": "platformatic db migrations apply",
@@ -25,5 +24,6 @@
     "newline-json": "^0.1.1",
     "platformatic": "^2.70.1",
     "unzipper": "^0.12.3"
-  }
+  },
+  "version": "0.1.1"
 }
