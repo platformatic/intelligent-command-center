@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import styles from './PodServiceStackedBarsChart.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -6,6 +6,7 @@ import * as d3 from 'd3'
 import { xMargin, yMargin, windowInMinutes } from './chart_constants.js'
 import { getTicks } from './utils.js'
 import { POSITION_ABSOLUTE, POSITION_FIXED, DEFAULT_HEIGHT_CHART } from '~/ui-constants'
+import NoDataFound from '~/components/ui/NoDataFound'
 import colorSetLatency from './latency.module.css'
 
 const PodServiceStackedBarsChart = ({
@@ -222,9 +223,13 @@ const PodServiceStackedBarsChart = ({
           <span className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite}`}>{title}</span> <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.opacity70}`}>({unit})</span>
         </div>
       </div>
-      <svg
-        ref={svgRef} style={{ width: '100%', height: `${heightChart}px` }}
-        onClick={
+      {data.length === 0 && (
+        <NoDataFound title='No Metrics yet' subTitle={<span>There’s no metrics collected by your apps.</span>} />
+      )}
+      {data.length > 0 && (
+        <svg
+          ref={svgRef} style={{ width: '100%', height: `${heightChart}px` }}
+          onClick={
           () => {
             if (paused) {
               tooltipRef.current.style.opacity = 0
@@ -232,7 +237,8 @@ const PodServiceStackedBarsChart = ({
             setPaused(!paused)
           }
         }
-      />
+        />
+      )}
       <div ref={tooltipRef} className={`${tooltipPosition === POSITION_ABSOLUTE ? styles.tooltipAbsolute : styles.tooltipFixed} ${styles.tooltip}`} />
     </div>
 
