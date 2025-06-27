@@ -1,6 +1,6 @@
 {
   "name": "user-manager",
-  "version": "0.1.2",
+  "version": "1.0.0-RC.1",
   "scripts": {
     "start": "platformatic start",
     "test": "borp --concurrency 1"
