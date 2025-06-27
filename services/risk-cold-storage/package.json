@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "scripts": {
     "start": "platformatic start",
     "migrate": "platformatic db migrations apply",
