@@ -1,5 +1,4 @@
 {
-  "version": "0.1.0",
   "scripts": {
     "start": "platformatic start",
     "test": "npm run lint && borp --concurrency 1 --timeout=60000",
@@ -21,5 +20,6 @@
     "fastify-plugin": "^5.0.1",
     "iovalkey": "^0.3.1",
     "undici": "^7.8.0"
-  }
+  },
+  "version": "0.1.1"
 }

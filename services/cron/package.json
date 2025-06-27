@@ -1,5 +1,4 @@
 {
-  "version": "0.1.0",
   "scripts": {
     "start": "platformatic start",
     "test": "npm run lint && borp --concurrency 1 --timeout=80000",
@@ -23,5 +22,6 @@
     "cron-parser": "^5.0.3",
     "json-schema-to-typescript": "^15.0.0",
     "minimist": "^1.2.0"
-  }
+  },
+  "version": "0.1.1"
 }
