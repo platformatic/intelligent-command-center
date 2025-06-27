@@ -1,5 +1,5 @@
 import { Button, Forms, SearchBarV2 } from '@platformatic/ui-components'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './CachedEntries.module.css'
@@ -7,6 +7,21 @@ import { callApiGetApplicationHttpCache, callApiInvalidateApplicationHttpCache }
 import NoDataFound from '~/components/ui/NoDataFound'
 import OriginLine from './OriginLine'
 import { ERROR_RED, RICH_BLACK, TRANSPARENT, WHITE } from '@platformatic/ui-components/src/components/constants'
+
+function CacheSearchBar ({
+  onClear,
+  onChange
+}) {
+  return (
+    <SearchBarV2
+      placeholder='Search for key or value'
+      onClear={onClear}
+      onChange={onChange}
+      inputTextClassName={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite} ${styles.heightSelectClass}`}
+      paddingClass={styles.selectPaddingClass}
+    />
+  )
+}
 export default function CachedEntries ({
   application = null,
   onCacheEntrySelected = async () => {},
@@ -37,7 +52,8 @@ export default function CachedEntries ({
     }
   ]
   const POLLING_INTERVAL = 5000
-  let pollingInterval
+  const pollingInterval = useRef(null)
+  const debouncer = useRef(null)
 
   async function invalidate (entries = []) {
     const res = await callApiInvalidateApplicationHttpCache(application.id, entries)
@@ -46,34 +62,33 @@ export default function CachedEntries ({
     }
   }
 
-  let debouncer = null
   async function handleSearch (data) {
-    if (debouncer) {
-      clearTimeout(debouncer)
+    if (debouncer.current) {
+      clearTimeout(debouncer.current)
     }
-    debouncer = setTimeout(() => {
+    debouncer.current = setTimeout(() => {
       setSearchValue(data)
-      clearTimeout(debouncer)
     }, 200)
+  }
+
+  async function fetchCachedEntries () {
+    const groupedCache = await getApplicationCacheEntries()
+    setHttpCacheEntries(groupedCache.httpCacheEntries)
+    setNextJSCacheFetchEntries(groupedCache.nextJSCacheFetchEntries)
+    setNextJSCachePageEntries(groupedCache.nextJSCachePageEntries)
   }
 
   useEffect(() => {
     async function updateData () {
-      clearInterval(pollingInterval)
-      const groupedCache = await getApplicationCacheEntries()
-      setHttpCacheEntries(groupedCache.httpCacheEntries)
-      setNextJSCacheFetchEntries(groupedCache.nextJSCacheFetchEntries)
-      setNextJSCachePageEntries(groupedCache.nextJSCachePageEntries)
-      pollingInterval = setInterval(async () => {
-        const groupedCache = await getApplicationCacheEntries()
-        setHttpCacheEntries(groupedCache.httpCacheEntries)
-        setNextJSCacheFetchEntries(groupedCache.nextJSCacheFetchEntries)
-        setNextJSCachePageEntries(groupedCache.nextJSCachePageEntries)
+      clearInterval(pollingInterval.current)
+      pollingInterval.current = setInterval(async () => {
+        fetchCachedEntries()
       }, POLLING_INTERVAL)
+      fetchCachedEntries()
     }
     updateData()
     return () => {
-      clearInterval(pollingInterval)
+      clearInterval(pollingInterval.current)
     }
   }, [searchValue, selectedCacheType])
 
@@ -84,7 +99,7 @@ export default function CachedEntries ({
     init()
 
     return () => {
-      clearInterval(pollingInterval)
+      clearInterval(pollingInterval.current)
     }
   }, [])
 
@@ -163,10 +178,9 @@ export default function CachedEntries ({
         </div>
       )
     }
-
-    function toggleExpanded (origin) {
+    function toggleExpanded (origin, type) {
       const newExpanded = { ...expanded }
-      newExpanded[origin] = !newExpanded[origin]
+      newExpanded[`${origin}|${type}`] = !newExpanded[`${origin}|${type}`]
       setExpanded(newExpanded)
     }
 
@@ -183,8 +197,8 @@ export default function CachedEntries ({
             onCacheEntryChecked={onCacheEntryChecked}
             onCacheEntrySelected={onCacheEntrySelected}
             hideChart={hideChart}
-            onToggleExpand={() => toggleExpanded(origin)}
-            expanded={expanded[origin]}
+            onToggleExpand={() => toggleExpanded(origin, 'http')}
+            expanded={expanded[`${origin}|http`]}
             checkedEntriesId={checkedEntriesId}
                                                          />)}
 
@@ -196,8 +210,8 @@ export default function CachedEntries ({
             onCacheEntryChecked={onCacheEntryChecked}
             onCacheEntrySelected={onCacheEntrySelected}
             hideChart={hideChart}
-            onToggleExpand={() => toggleExpanded(origin)}
-            expanded={expanded[origin]}
+            onToggleExpand={() => toggleExpanded(origin, 'next-fetch')}
+            expanded={expanded[`${origin}|next-fetch`]}
             checkedEntriesId={checkedEntriesId}
                                                                 />)}
 
@@ -209,8 +223,8 @@ export default function CachedEntries ({
             onCacheEntryChecked={onCacheEntryChecked}
             onCacheEntrySelected={onCacheEntrySelected}
             hideChart={hideChart}
-            onToggleExpand={() => toggleExpanded(origin)}
-            expanded={expanded[origin]}
+            onToggleExpand={() => toggleExpanded(origin, 'next-page')}
+            expanded={expanded[`${origin}|next-page`]}
             checkedEntriesId={checkedEntriesId}
                                                                />)}
         </div>
@@ -219,52 +233,46 @@ export default function CachedEntries ({
   }
   return (
     <div className={styles.container}>
-      {allCacheEntries.length > 0 &&
-        <div className={styles.header}>
-          <div className={styles.appSelector}>
-            <Forms.Select
-              defaultContainerClassName={styles.select}
-              backgroundColor={RICH_BLACK}
-              borderColor={WHITE}
-              defaultOptionsClassName={`${typographyStyles.desktopButtonSmall} ${styles.optionsClass}`}
-              options={cacheTypeFilterOptions}
-              onSelect={async (evt) => {
-                const type = evt.detail.value
-                const selectedType = cacheTypeFilterOptions.find((opt) => opt.value === type)
-                setSelectedCacheType(selectedType)
-              }}
-              optionsBorderedBottom={false}
-              mainColor={WHITE}
-              borderListColor={WHITE}
-              value={selectedCacheType?.label}
-              inputTextClassName={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite} ${styles.heightSelectClass}`}
-              paddingClass={styles.selectPaddingClass}
-              handleClickOutside
-              placeholder='Select Cache type...'
-            />
-          </div>
-          <div className={styles.searchBar}>
-            <SearchBarV2
-              placeholder='Search for key or value'
-            /* eslint-disable-next-line */
-            onClear={() => { alert('clear')}}
-              onChange={handleSearch}
-              inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}
-              paddingClass={styles.searchBarPaddingClass}
-            />
-          </div>
-
-          <Button
-            type='button'
-            label={`Invalidate (${cachedEntriesToInvalidate.length})`}
-            onClick={() => invalidate(cachedEntriesToInvalidate)}
-            disabled={cachedEntriesToInvalidate.length === 0}
-            color={ERROR_RED}
-            backgroundColor={TRANSPARENT}
-            textClass={typographyStyles.desktopButtonSmall}
-            paddingClass={commonStyles.smallButtonPadding}
+      <div className={styles.header}>
+        <div className={styles.appSelector}>
+          <Forms.Select
+            disabled={allCacheEntries.length === 0}
+            defaultContainerClassName={styles.select}
+            backgroundColor={RICH_BLACK}
+            borderColor={WHITE}
+            defaultOptionsClassName={`${typographyStyles.desktopButtonSmall} ${styles.optionsClass}`}
+            options={cacheTypeFilterOptions}
+            onSelect={async (evt) => {
+              const type = evt.detail.value
+              const selectedType = cacheTypeFilterOptions.find((opt) => opt.value === type)
+              setSelectedCacheType(selectedType)
+            }}
+            optionsBorderedBottom={false}
+            mainColor={WHITE}
+            borderListColor={WHITE}
+            value={selectedCacheType?.label}
+            inputTextClassName={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite} ${styles.heightSelectClass}`}
+            paddingClass={styles.selectPaddingClass}
+            handleClickOutside
+            placeholder='Select Cache type...'
           />
-        </div>}
+        </div>
+        <CacheSearchBar
+          onClear={() => setSearchValue('')}
+          onChange={handleSearch}
+        />
+
+        <Button
+          type='button'
+          label={`Invalidate (${cachedEntriesToInvalidate.length})`}
+          onClick={() => invalidate(cachedEntriesToInvalidate)}
+          disabled={cachedEntriesToInvalidate.length === 0}
+          color={ERROR_RED}
+          backgroundColor={TRANSPARENT}
+          textClass={typographyStyles.desktopButtonSmall}
+          paddingClass={commonStyles.smallButtonPadding}
+        />
+      </div>
       {renderData()}
     </div>
 
