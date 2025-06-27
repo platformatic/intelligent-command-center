@@ -1,4 +1,5 @@
 {
+  "version": "0.1.2",
   "scripts": {
     "start": "platformatic start",
     "lint": "standard",
@@ -14,6 +15,5 @@
     "@fastify/error": "^4.0.0",
     "@fastify/redis": "^7.0.1",
     "fastify-plugin": "^5.0.1"
-  },
-  "version": "0.1.1"
+  }
 }
