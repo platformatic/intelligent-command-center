@@ -1,5 +1,6 @@
 {
   "name": "lazy-achiever",
+  "version": "0.1.2",
   "scripts": {
     "start": "platformatic start",
     "lint": "standard . | snazzy",
@@ -17,6 +18,5 @@
   },
   "engines": {
     "node": "^18.8.0 || >=20.6.0"
-  },
-  "version": "0.1.1"
+  }
 }

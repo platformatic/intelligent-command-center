@@ -1,4 +1,5 @@
 {
+  "version": "0.1.2",
   "scripts": {
     "start": "platformatic service start",
     "test": "npm run lint && borp --concurrency 1 --timeout=180000",
@@ -26,6 +27,5 @@
     "msgpackr": "^1.11.2",
     "platformatic": "^2.70.1",
     "undici": "^7.1.0"
-  },
-  "version": "0.1.1"
+  }
 }
