@@ -238,7 +238,7 @@ test('whitepaper scenario: prediction validation with responsiveness', async (t)
   }
 })
 
-test('whitepaper scenario: getCurrentPrediction within prediction window', async (t) => {
+test('whitepaper scenario: runAnalysis within prediction window', async (t) => {
   const server = await buildServer(t)
   const performanceHistory = new PerformanceHistory(server)
   const trendsAlgorithm = new TrendsLearningAlgorithm(server, {
@@ -253,11 +253,17 @@ test('whitepaper scenario: getCurrentPrediction within prediction window', async
 
   for (let i = 0; i < 8; i++) {
     const eventTime = currentTime - (i * 86400 * 1000) + (targetTimeOfDay * 1000)
-    const event = createHistoryEvent(eventTime, 8, 0.92, 0.83, 0.85)
+    const event = createHistoryEvent(eventTime, 8, 0.92, 0.83, 0.95)
     await performanceHistory.saveEvent(applicationId, event)
   }
 
-  const prediction = await trendsAlgorithm.getCurrentPrediction(applicationId, targetTime)
+  const result = await trendsAlgorithm.runAnalysis(applicationId)
+  assert.strictEqual(result.success, true)
+
+  const prediction = result.predictions.find(p => {
+    const timeDiff = Math.abs(targetTime - p.absoluteTime)
+    return timeDiff <= 30000 && p.confidence > 0.8
+  })
 
   if (prediction) {
     assert.strictEqual(prediction.action, 'up')
@@ -265,6 +271,10 @@ test('whitepaper scenario: getCurrentPrediction within prediction window', async
     assert.ok(Math.abs(targetTime - prediction.absoluteTime) <= 30000, 'Should be within 30 second window')
   }
 
-  const outsidePrediction = await trendsAlgorithm.getCurrentPrediction(applicationId, targetTime + 60000)
-  assert.strictEqual(outsidePrediction, null, 'Should return null outside prediction window')
+  const outsideTime = targetTime + 60000
+  const outsidePrediction = result.predictions.find(p => {
+    const timeDiff = Math.abs(outsideTime - p.absoluteTime)
+    return timeDiff <= 30000 && p.confidence > 0.8
+  })
+  assert.strictEqual(outsidePrediction, undefined, 'Should not find prediction outside window')
 })

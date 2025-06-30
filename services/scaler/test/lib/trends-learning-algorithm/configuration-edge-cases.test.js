@@ -324,9 +324,10 @@ test('should validate configuration bounds at runtime', async (t) => {
   const event = createHistoryEvent(currentTime + (43200 * 1000), 5, 0.90, 0.80, 0.95)
   await performanceHistory.saveEvent(applicationId, event)
 
-  const prediction = await trendsAlgorithm.getCurrentPrediction(applicationId, currentTime + (43200 * 1000))
+  const result = await trendsAlgorithm.runAnalysis(applicationId)
+  assert.strictEqual(result.success, true)
 
-  assert.strictEqual(prediction, null, 'Should respect confidence threshold bounds at runtime')
+  assert.strictEqual(result.predictions.length, 0, 'Should respect confidence threshold bounds at runtime')
 })
 
 test('should handle configuration modifications after instantiation', async (t) => {
