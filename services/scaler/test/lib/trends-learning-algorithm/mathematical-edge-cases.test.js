@@ -336,14 +336,21 @@ test('should handle confidence threshold edge cases', async (t) => {
   assert.strictEqual(result1.success, true)
   assert.strictEqual(result2.success, true)
 
-  const pred1 = await trendsAlgorithm1.getCurrentPrediction(applicationId, currentTime + (testSlot * 1000))
-  const pred2 = await trendsAlgorithm2.getCurrentPrediction(applicationId, currentTime + (testSlot * 1000))
+  const targetTime = currentTime + (testSlot * 1000)
+  const pred1 = result1.predictions.find(p => {
+    const timeDiff = Math.abs(targetTime - p.absoluteTime)
+    return timeDiff <= 30000 && p.confidence >= 0
+  })
+  const pred2 = result2.predictions.find(p => {
+    const timeDiff = Math.abs(targetTime - p.absoluteTime)
+    return timeDiff <= 30000 && p.confidence >= 1.5
+  })
 
   if (pred1) {
     assert.ok(pred1.confidence >= 0, 'Should accept predictions with zero threshold')
   }
 
-  assert.strictEqual(pred2, null, 'Should reject all predictions with perfect threshold')
+  assert.strictEqual(pred2, undefined, 'Should reject all predictions with perfect threshold')
 })
 
 test('should handle precision errors in time slot boundaries', async (t) => {

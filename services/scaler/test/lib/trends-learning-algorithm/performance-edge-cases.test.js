@@ -74,7 +74,7 @@ test('should handle minimum time slot configurations', async (t) => {
   assert.ok(result.predictions.length >= 0, 'Should generate predictions with fine-grained slots')
 })
 
-test('should handle rapid sequential getCurrentPrediction calls', async (t) => {
+test('should handle rapid sequential runAnalysis calls', async (t) => {
   const server = await buildServer(t)
   const performanceHistory = new PerformanceHistory(server)
   const trendsAlgorithm = new TrendsLearningAlgorithm(server, {
@@ -97,14 +97,15 @@ test('should handle rapid sequential getCurrentPrediction calls', async (t) => {
   const startTime = Date.now()
 
   for (let i = 0; i < 10; i++) {
-    promises.push(trendsAlgorithm.getCurrentPrediction(applicationId, targetTime + (i * 1000)))
+    promises.push(trendsAlgorithm.runAnalysis(applicationId))
   }
 
   const results = await Promise.all(promises)
   const executionTime = Date.now() - startTime
 
-  assert.ok(executionTime < 5000, 'Should handle concurrent prediction requests efficiently')
-  assert.ok(results.every(r => r === null || typeof r === 'object'), 'All predictions should be valid')
+  assert.ok(executionTime < 5000, 'Should handle concurrent analysis requests efficiently')
+  assert.ok(results.every(r => r.success === true), 'All analysis results should be successful')
+  assert.ok(results.every(r => Array.isArray(r.predictions)), 'All results should contain predictions array')
 })
 
 test('should handle memory efficiency with large sequences', async (t) => {

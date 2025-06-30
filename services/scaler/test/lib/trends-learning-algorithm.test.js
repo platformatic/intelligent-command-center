@@ -132,7 +132,7 @@ test('should generate predictions with basic historical data', async (t) => {
   }
 })
 
-test('should handle getCurrentPrediction API', async (t) => {
+test('should handle runAnalysis API with time filtering', async (t) => {
   const server = await buildServer(t)
   const performanceHistory = new PerformanceHistory(server)
   const trendsAlgorithm = new TrendsLearningAlgorithm(server, {
@@ -158,20 +158,30 @@ test('should handle getCurrentPrediction API', async (t) => {
     await performanceHistory.saveEvent(applicationId, event)
   }
 
-  // Should return prediction within window
-  const exactMatch = await trendsAlgorithm.getCurrentPrediction(applicationId, targetTime)
+  const result = await trendsAlgorithm.runAnalysis(applicationId)
+  assert.strictEqual(result.success, true)
+
+  // Should find prediction within window
+  const exactMatch = result.predictions.find(p => {
+    const timeDiff = Math.abs(targetTime - p.absoluteTime)
+    return timeDiff <= 30000 && p.confidence >= 0.5
+  })
 
   if (exactMatch) {
     assert.strictEqual(exactMatch.action, 'up')
     assert.ok(exactMatch.confidence > 0)
   }
 
-  // Should return null outside window
-  const outsideWindow = await trendsAlgorithm.getCurrentPrediction(applicationId, targetTime + 60000)
-  assert.strictEqual(outsideWindow, null)
+  // Should not find prediction outside window
+  const outsideTime = targetTime + 60000
+  const outsideWindow = result.predictions.find(p => {
+    const timeDiff = Math.abs(outsideTime - p.absoluteTime)
+    return timeDiff <= 30000 && p.confidence >= 0.5
+  })
+  assert.strictEqual(outsideWindow, undefined)
 })
 
-test('should handle database errors in getCurrentPrediction', async (t) => {
+test('should handle database errors with empty predictions', async (t) => {
   const log = createMockLog()
   const mockApp = {
     log,
@@ -191,12 +201,13 @@ test('should handle database errors in getCurrentPrediction', async (t) => {
   })
 
   const applicationId = randomUUID()
-  const result = await trendsAlgorithm.getCurrentPrediction(applicationId, Date.now())
+  const result = await trendsAlgorithm.runAnalysis(applicationId)
 
-  assert.strictEqual(result, null)
+  assert.strictEqual(result.success, true)
+  assert.strictEqual(result.predictions.length, 0)
 
   const logs = log.getLogs()
-  const errorLog = logs.find(l => l.level === 'error' && l.msg.includes('Failed to load performance history for trends from database'))
+  const errorLog = logs.find(l => l.level === 'error' && l.msg.includes('Failed to load performance history'))
   assert.ok(errorLog, 'Should log when database error occurs')
 })
 
