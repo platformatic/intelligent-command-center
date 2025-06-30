@@ -51,19 +51,17 @@ test('whitepaper scenario: 2 PM daily scaling pattern with sequences', async (t)
     const currentDayStart = Math.floor(currentTime / (86400 * 1000)) * (86400 * 1000)
     const dayStart = currentDayStart - (day * 86400 * 1000)
 
-    if (day < 25) {
-      const scaleUpTime = dayStart + (twoPmSlot * 1000)
-      const scaleUpEvent = createHistoryEvent(scaleUpTime, 10, 0.94, 0.82, 0.85)
-      await performanceHistory.saveEvent(applicationId, scaleUpEvent)
+    const scaleUpTime = dayStart + (twoPmSlot * 1000)
+    const scaleUpEvent = createHistoryEvent(scaleUpTime, 10, 0.94, 0.82, 0.95)
+    await performanceHistory.saveEvent(applicationId, scaleUpEvent)
 
-      const scaleDown1Time = scaleUpTime + (3 * 60 * 1000)
-      const scaleDown1Event = createHistoryEvent(scaleDown1Time, -3, 0.75, 0.70, 0.90)
-      await performanceHistory.saveEvent(applicationId, scaleDown1Event)
+    const scaleDown1Time = scaleUpTime + (3 * 60 * 1000)
+    const scaleDown1Event = createHistoryEvent(scaleDown1Time, -3, 0.75, 0.70, 0.95)
+    await performanceHistory.saveEvent(applicationId, scaleDown1Event)
 
-      const scaleDown2Time = scaleUpTime + (8 * 60 * 1000)
-      const scaleDown2Event = createHistoryEvent(scaleDown2Time, -7, 0.70, 0.65, 0.88)
-      await performanceHistory.saveEvent(applicationId, scaleDown2Event)
-    }
+    const scaleDown2Time = scaleUpTime + (8 * 60 * 1000)
+    const scaleDown2Event = createHistoryEvent(scaleDown2Time, -7, 0.70, 0.65, 0.95)
+    await performanceHistory.saveEvent(applicationId, scaleDown2Event)
 
     const otherEventsCount = Math.floor(Math.random() * 20) + 10
     for (let i = 0; i < otherEventsCount; i++) {
