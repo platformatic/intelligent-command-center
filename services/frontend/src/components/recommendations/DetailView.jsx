@@ -9,7 +9,6 @@ import Graph from './Graph'
 import ActionSelector from './ActionSelector'
 import { callApiUpdateRecommendation } from '../../api/recommendations'
 import NoDataFound from '~/components/ui/NoDataFound'
-import SplashScreen from './SplashScreen'
 import Detail from './cache/Detail'
 import RouteDetail from './cache/RouteDetail'
 import CacheHistory from './cache/CacheHistory'
@@ -33,15 +32,13 @@ export default function DetailView ({
   onRecommendationUpdate = (newStatus) => {}
 }) {
   const [currentStatus, setCurrentStatus] = useState(recommendation?.status)
-  const [showSplashScreen, setShowSplashScreen] = useState(false)
-  const [splashScreenType, setSplashScreenType] = useState('')
 
   const [cacheTag, setCacheTag] = useState('')
 
   const [modalCurrentPage, setModalCurrentPage] = useState(CACHE_RECOMMENDATION_DETAIL_PAGE)
   const [selectedRoute, setSelectedRoute] = useState(null)
   const [history, setHistory] = useState([])
-  const { showSplashScreen: showGlobalSplashScreen } = useICCStore()
+  const { showSplashScreen } = useICCStore()
 
   function onHighlightedService (step) {}
   function onHighlightedApp (step) {}
@@ -73,15 +70,21 @@ export default function DetailView ({
   async function onAbort (recommendation, currentStatus) {
     if (currentStatus === 'in_progress') {
       await onStatusUpdate(recommendation, 'aborted')
-      setSplashScreenType('aborted')
-      setShowSplashScreen(true)
+      showSplashScreen({
+        title: 'Recommendation Aborted',
+        content: 'You successfully aborted this Recommendation.',
+        type: 'success'
+      })
     }
   }
   async function onConfirm (recommendation, currentStatus) {
     if (currentStatus === 'in_progress') {
       await onStatusUpdate(recommendation, 'done')
-      setSplashScreenType('completed')
-      setShowSplashScreen(true)
+      showSplashScreen({
+        title: 'Recommendation Completed',
+        content: 'You successfully completed this Recommendation.',
+        type: 'success'
+      })
     }
   }
   async function handleChangeStatus (newStatus) {
@@ -143,13 +146,10 @@ export default function DetailView ({
                       varyHeaders: selectedRoute.varyHeaders
                     }
                     await callApiUpdateRecommendationRoute(payload)
-                    showGlobalSplashScreen({
+                    showSplashScreen({
                       title: 'Cache Tag Applied',
                       content: 'You successfully edited this Cache Tag',
-                      type: 'success',
-                      onDismiss: () => {
-
-                      }
+                      type: 'success'
                     })
                   }}
                   color={RICH_BLACK}
@@ -281,9 +281,6 @@ export default function DetailView ({
   return (
 
     <div className={styles.container}>
-      {showSplashScreen && (
-        <SplashScreen type={splashScreenType} timeout={1500} />
-      )}
       {renderHeader()}
       <div className={styles.content}>
         {renderContent()}
