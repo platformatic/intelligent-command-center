@@ -1,8 +1,11 @@
 'use strict'
 
 const fp = require('fastify-plugin')
+const TrendsLearningAlgorithm = require('../lib/trends-learning-algorithm')
 
 async function plugin (app) {
+  const trendsAlgorithm = new TrendsLearningAlgorithm(app)
+  app.decorate('trendsLearningAlgorithm', trendsAlgorithm)
   let predictionTimeout = null
   let isSchedulingActive = false
 
@@ -69,6 +72,19 @@ async function plugin (app) {
           confidence,
           source: 'prediction'
         }, 'Prediction executed successfully')
+
+        // Record prediction-based scaling event in performance history for feedback loop.
+        // This enables the trends learning algorithm to evaluate prediction effectiveness
+        // and improve future predictions through success score calculation and decay weighting.
+        if (app.trendsLearningAlgorithm) {
+          await app.trendsLearningAlgorithm.recordPredictionScaling(applicationId, {
+            action,
+            pods: Math.abs(targetPods - currentPodCount),
+            confidence,
+            timeOfDay: prediction.timeOfDay,
+            reasons
+          })
+        }
       } else {
         app.log.error({
           applicationId,

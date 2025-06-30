@@ -1,11 +1,11 @@
 /// <reference path="../global.d.ts" />
 'use strict'
 
-const TrendsLearningAlgorithm = require('../lib/trends-learning-algorithm')
+const fp = require('fastify-plugin')
 
 /** @param {import('fastify').FastifyInstance} app */
-module.exports = async function (app) {
-  const trendsAlgorithm = new TrendsLearningAlgorithm(app)
+async function plugin (app) {
+  const trendsAlgorithm = app.trendsLearningAlgorithm
 
   app.get('/predictions/:applicationId', {
     schema: {
@@ -226,3 +226,8 @@ module.exports = async function (app) {
     }
   })
 }
+
+module.exports = fp(plugin, {
+  name: 'predictions-routes',
+  dependencies: ['prediction-scheduler']
+})

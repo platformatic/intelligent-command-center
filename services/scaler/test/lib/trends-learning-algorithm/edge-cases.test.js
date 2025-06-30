@@ -329,7 +329,7 @@ test('should handle very old events beyond decay window', async (t) => {
   }
 })
 
-test('should handle getCurrentPrediction with no matching time windows', async (t) => {
+test('should handle runAnalysis with no matching time windows', async (t) => {
   const server = await buildServer(t)
   const performanceHistory = new PerformanceHistory(server)
   const trendsAlgorithm = new TrendsLearningAlgorithm(server, {
@@ -347,12 +347,18 @@ test('should handle getCurrentPrediction with no matching time windows', async (
     await performanceHistory.saveEvent(applicationId, event)
   }
 
-  const prediction = await trendsAlgorithm.getCurrentPrediction(applicationId, targetTime)
+  const result = await trendsAlgorithm.runAnalysis(applicationId)
+  assert.strictEqual(result.success, true)
 
-  assert.strictEqual(prediction, null, 'Should return null when no predictions match time window')
+  const prediction = result.predictions.find(p => {
+    const timeDiff = Math.abs(targetTime - p.absoluteTime)
+    return timeDiff <= 30000 && p.confidence >= 0.8
+  })
+
+  assert.strictEqual(prediction, undefined, 'Should not find predictions when no time windows match')
 })
 
-test('should handle getCurrentPrediction with low confidence predictions', async (t) => {
+test('should handle runAnalysis with low confidence predictions', async (t) => {
   const server = await buildServer(t)
   const performanceHistory = new PerformanceHistory(server)
   const trendsAlgorithm = new TrendsLearningAlgorithm(server, {
@@ -371,9 +377,15 @@ test('should handle getCurrentPrediction with low confidence predictions', async
     await performanceHistory.saveEvent(applicationId, event)
   }
 
-  const prediction = await trendsAlgorithm.getCurrentPrediction(applicationId, targetTime)
+  const result = await trendsAlgorithm.runAnalysis(applicationId)
+  assert.strictEqual(result.success, true)
 
-  assert.strictEqual(prediction, null, 'Should return null when confidence is below threshold')
+  const prediction = result.predictions.find(p => {
+    const timeDiff = Math.abs(targetTime - p.absoluteTime)
+    return timeDiff <= 30000 && p.confidence >= 0.9
+  })
+
+  assert.strictEqual(prediction, undefined, 'Should not find predictions when confidence is below threshold')
 })
 
 test('should handle empty time slots with no events', async (t) => {
