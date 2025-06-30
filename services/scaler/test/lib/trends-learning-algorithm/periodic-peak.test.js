@@ -41,15 +41,15 @@ test('should predict daily 14:50 peak usage pattern', async (t) => {
   const currentTime = Date.now()
   const peakTimeSlot = 53400 // 14:50 (14*3600 + 50*60 = 53400)
 
-  for (let day = 0; day < 21; day++) {
+  for (let day = 0; day < 30; day++) {
     const dayStart = Math.floor(currentTime / (86400 * 1000)) * (86400 * 1000) - (day * 86400 * 1000)
 
     const scaleUpTime = dayStart + (peakTimeSlot * 1000)
-    const scaleUpEvent = createHistoryEvent(scaleUpTime, 8, 0.95, 0.85, 0.88)
+    const scaleUpEvent = createHistoryEvent(scaleUpTime, 8, 0.95, 0.85, 0.95)
     await performanceHistory.saveEvent(applicationId, scaleUpEvent)
 
     const scaleDownTime = scaleUpTime + (10 * 60 * 1000)
-    const scaleDownEvent = createHistoryEvent(scaleDownTime, -5, 0.75, 0.65, 0.90)
+    const scaleDownEvent = createHistoryEvent(scaleDownTime, -5, 0.75, 0.65, 0.95)
     await performanceHistory.saveEvent(applicationId, scaleDownEvent)
     const randomEventsCount = Math.floor(Math.random() * 8) + 5
     for (let i = 0; i < randomEventsCount; i++) {
@@ -82,7 +82,7 @@ test('should predict daily 14:50 peak usage pattern', async (t) => {
   assert.ok(peakPrediction.confidence > 0.7, 'Should have high confidence for daily pattern')
   assert.ok(peakPrediction.pods >= 6, 'Should predict significant scaling')
 
-  assert.ok(peakPrediction.reasons.event_count >= 18, 'Should have significant event count from daily pattern')
+  assert.ok(peakPrediction.reasons.event_count >= 25, 'Should have significant event count from daily pattern')
   assert.ok(peakPrediction.reasons.avg_elu > 0.9, 'Should show high average ELU during peak')
   const scaleDownPredictions = result.predictions.filter(p =>
     p.action === 'down' &&
@@ -117,15 +117,15 @@ test('should predict consistent daily pattern across all weekdays', async (t) =>
     const dayStart = Math.floor(currentTime / (86400 * 1000)) * (86400 * 1000) - (day * 86400 * 1000)
 
     const scaleUpTime = dayStart + (consistentPeakSlot * 1000)
-    const scaleUpEvent = createHistoryEvent(scaleUpTime, 9, 0.94, 0.84, 0.89)
+    const scaleUpEvent = createHistoryEvent(scaleUpTime, 9, 0.94, 0.84, 0.95)
     await performanceHistory.saveEvent(applicationId, scaleUpEvent)
 
     const scaleDown1Time = scaleUpTime + (8 * 60 * 1000)
-    const scaleDown1Event = createHistoryEvent(scaleDown1Time, -3, 0.78, 0.68, 0.91)
+    const scaleDown1Event = createHistoryEvent(scaleDown1Time, -3, 0.78, 0.68, 0.95)
     await performanceHistory.saveEvent(applicationId, scaleDown1Event)
 
     const scaleDown2Time = scaleUpTime + (20 * 60 * 1000)
-    const scaleDown2Event = createHistoryEvent(scaleDown2Time, -6, 0.72, 0.62, 0.93)
+    const scaleDown2Event = createHistoryEvent(scaleDown2Time, -6, 0.72, 0.62, 0.95)
     await performanceHistory.saveEvent(applicationId, scaleDown2Event)
   }
 
