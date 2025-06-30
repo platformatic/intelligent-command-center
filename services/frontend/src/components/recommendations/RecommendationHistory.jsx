@@ -84,6 +84,9 @@ export default function RecommendationsHistory () {
   }, [detailView])
 
   async function getCacheRecommendations () {
+    if (!config['cache-recommendations']) {
+      return []
+    }
     const cacheRecommendations = await callApiGetCacheRecommendations()
     return cacheRecommendations.map((r) => {
       return { ...r, type: 'cache' }
@@ -141,7 +144,7 @@ export default function RecommendationsHistory () {
       icon = <Icons.AppOptimizedIcon color={WHITE} size={SMALL} />
       type = 'System'
     } else {
-      icon = <Icons.AppOptimizedIcon color={WHITE} size={SMALL} />
+      icon = <Icons.CacheRecommendationIcon color={WHITE} size={SMALL} />
       type = 'Cache'
     }
     return (
@@ -183,42 +186,41 @@ export default function RecommendationsHistory () {
           <Icons.AppOptimizedIcon color={WHITE} size={MEDIUM} />
           <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Recommendations History</p>
         </div>
+        {config['cache-recommendations'] && (
+          <div className={styles.filter}>
+            <Button
+              textClass={typographyStyles.desktopButtonSmall}
+              paddingClass={commonStyles.mediumButtonPadding}
+              label='DEMO: Optimize Cache'
+              onClick={async () => {
+                setInnerLoading(true)
+                const result = await callApiTriggerTrafficante()
+                setInnerLoading(false)
+                if (result) {
+                  getRecommendationsHistory()
+                  showSplashScreen({
+                    title: 'Recommendation triggered',
+                    content: 'You successfully triggered the recommendation',
+                    type: 'success',
+                    onDismiss: () => {
+                      getRecommendationsHistory()
+                    }
+                  })
+                } else {
+                  showSplashScreen({
+                    title: 'No new recommendations',
+                    content: 'No new recommendations were generated. Try to make some requests to the application.',
+                    type: 'error',
+                    onDismiss: () => {
 
-        <div className={styles.filter}>
-          <Button
-            textClass={typographyStyles.desktopButtonSmall}
-            paddingClass={commonStyles.mediumButtonPadding}
-            label='DEMO: Optimize Cache'
-            onClick={async () => {
-              setInnerLoading(true)
-              const result = await callApiTriggerTrafficante()
-              setInnerLoading(false)
-              if (result) {
-                getRecommendationsHistory()
-                showSplashScreen({
-                  title: 'Recommendation triggered',
-                  content: 'You successfully triggered the recommendation',
-                  type: 'success',
-                  onDismiss: () => {
-                    getRecommendationsHistory()
-                  }
-                })
-              } else {
-                showSplashScreen({
-                  title: 'No new recommendations',
-                  content: 'No new recommendations were generated. Try to make some requests to the application.',
-                  type: 'error',
-                  onDismiss: () => {
-
-                  }
-                })
-              }
-            }}
-            color={RICH_BLACK}
-            backgroundColor={MAIN_GREEN}
-            hoverEffect={DULLS_BACKGROUND_COLOR}
-          />
-          {config['cache-recommendations'] && (
+                    }
+                  })
+                }
+              }}
+              color={RICH_BLACK}
+              backgroundColor={MAIN_GREEN}
+              hoverEffect={DULLS_BACKGROUND_COLOR}
+            />
             <Forms.Select
               backgroundColor={RICH_BLACK}
               borderColor={WHITE}
@@ -233,9 +235,8 @@ export default function RecommendationsHistory () {
               paddingClass={styles.selectPaddingClass}
               handleClickOutside
             />
-          )}
-
-        </div>
+          </div>
+        )}
       </div>
       {visibleRows.length === 0 && (
         <NoDataFound fullCentered title='No recommendations found' />
