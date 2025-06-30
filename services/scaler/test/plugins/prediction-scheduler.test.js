@@ -693,3 +693,191 @@ test('should handle errors in scheduleNextPrediction', async (t) => {
 
   await server.stopPredictionScheduling()
 })
+
+test('should call recordPredictionScaling after successful prediction execution', async (t) => {
+  const server = await buildServer(t)
+  const appId = randomUUID()
+  let recordingCalled = false
+  let recordingData = null
+
+  const prediction = {
+    applicationId: appId,
+    timeOfDay: 28800,
+    absoluteTime: Date.now() - 1000,
+    action: 'up',
+    pods: 3,
+    confidence: 0.85,
+    reasons: ['Test prediction']
+  }
+
+  server.isScalerLeader = () => true
+  server.getApplicationController = async (id) => ({
+    replicas: 1,
+    applicationId: id
+  })
+  server.scalerExecutor = {
+    getCurrentPodCount: async () => 1,
+    getScaleConfig: async () => ({ minPods: 1, maxPods: 10 }),
+    applyScaleConstraints: (target, min, max) => Math.max(min, Math.min(max, target)),
+    executeScaling: async () => ({
+      success: true,
+      applicationId: appId,
+      podsNumber: 3,
+      timestamp: Date.now()
+    })
+  }
+
+  server.trendsLearningAlgorithm = {
+    recordPredictionScaling: async (applicationId, predictionData) => {
+      recordingCalled = true
+      recordingData = { applicationId, predictionData }
+    }
+  }
+
+  await server.store.replaceApplicationPredictions(appId, [prediction])
+  await server.scheduleNextPrediction()
+  await setTimeout(100)
+
+  assert.strictEqual(recordingCalled, true, 'recordPredictionScaling should be called')
+  assert.strictEqual(recordingData.applicationId, appId)
+  assert.strictEqual(recordingData.predictionData.action, 'up')
+  assert.strictEqual(recordingData.predictionData.pods, 2)
+  assert.strictEqual(recordingData.predictionData.confidence, 0.85)
+  assert.strictEqual(recordingData.predictionData.timeOfDay, 28800)
+  assert.deepStrictEqual(recordingData.predictionData.reasons, ['Test prediction'])
+
+  const remaining = await server.store.getPredictions()
+  assert.strictEqual(remaining.length, 0)
+})
+
+test('should not call recordPredictionScaling when scaling fails', async (t) => {
+  const server = await buildServer(t)
+  const appId = randomUUID()
+  let recordingCalled = false
+
+  const prediction = {
+    applicationId: appId,
+    timeOfDay: 28800,
+    absoluteTime: Date.now() - 1000,
+    action: 'up',
+    pods: 3,
+    confidence: 0.85,
+    reasons: ['Test prediction']
+  }
+
+  server.isScalerLeader = () => true
+  server.getApplicationController = async (id) => ({
+    replicas: 1,
+    applicationId: id
+  })
+  server.scalerExecutor = {
+    getCurrentPodCount: async () => 1,
+    getScaleConfig: async () => ({ minPods: 1, maxPods: 10 }),
+    applyScaleConstraints: (target, min, max) => Math.max(min, Math.min(max, target)),
+    executeScaling: async () => ({
+      success: false,
+      error: 'Scaling failed'
+    })
+  }
+
+  server.trendsLearningAlgorithm = {
+    recordPredictionScaling: async () => {
+      recordingCalled = true
+    }
+  }
+
+  await server.store.replaceApplicationPredictions(appId, [prediction])
+  await server.scheduleNextPrediction()
+  await setTimeout(100)
+
+  assert.strictEqual(recordingCalled, false, 'recordPredictionScaling should not be called when scaling fails')
+
+  const remaining = await server.store.getPredictions()
+  assert.strictEqual(remaining.length, 0)
+})
+
+test('should handle missing trendsLearningAlgorithm gracefully', async (t) => {
+  const server = await buildServer(t)
+  const appId = randomUUID()
+
+  const prediction = {
+    applicationId: appId,
+    timeOfDay: 28800,
+    absoluteTime: Date.now() - 1000,
+    action: 'up',
+    pods: 3,
+    confidence: 0.85,
+    reasons: ['Test prediction']
+  }
+
+  server.isScalerLeader = () => true
+  server.getApplicationController = async (id) => ({
+    replicas: 1,
+    applicationId: id
+  })
+  server.scalerExecutor = {
+    getCurrentPodCount: async () => 1,
+    getScaleConfig: async () => ({ minPods: 1, maxPods: 10 }),
+    applyScaleConstraints: (target, min, max) => Math.max(min, Math.min(max, target)),
+    executeScaling: async () => ({
+      success: true,
+      applicationId: appId,
+      podsNumber: 3,
+      timestamp: Date.now()
+    })
+  }
+
+  delete server.trendsLearningAlgorithm
+
+  await server.store.replaceApplicationPredictions(appId, [prediction])
+  await server.scheduleNextPrediction()
+  await setTimeout(100)
+
+  const remaining = await server.store.getPredictions()
+  assert.strictEqual(remaining.length, 0, 'Prediction should still be processed without trendsLearningAlgorithm')
+})
+
+test('should handle recordPredictionScaling errors gracefully', async (t) => {
+  const server = await buildServer(t)
+  const appId = randomUUID()
+
+  const prediction = {
+    applicationId: appId,
+    timeOfDay: 28800,
+    absoluteTime: Date.now() - 1000,
+    action: 'down',
+    pods: 1,
+    confidence: 0.75,
+    reasons: ['Scale down test']
+  }
+
+  server.isScalerLeader = () => true
+  server.getApplicationController = async (id) => ({
+    replicas: 3,
+    applicationId: id
+  })
+  server.scalerExecutor = {
+    getCurrentPodCount: async () => 3,
+    getScaleConfig: async () => ({ minPods: 1, maxPods: 10 }),
+    applyScaleConstraints: (target, min, max) => Math.max(min, Math.min(max, target)),
+    executeScaling: async () => ({
+      success: true,
+      applicationId: appId,
+      podsNumber: 1,
+      timestamp: Date.now()
+    })
+  }
+
+  server.trendsLearningAlgorithm = {
+    recordPredictionScaling: async () => {
+      throw new Error('Recording failed')
+    }
+  }
+
+  await server.store.replaceApplicationPredictions(appId, [prediction])
+  await server.scheduleNextPrediction()
+  await setTimeout(100)
+
+  const remaining = await server.store.getPredictions()
+  assert.strictEqual(remaining.length, 0, 'Prediction should still be processed even if recording fails')
+})

@@ -371,32 +371,19 @@ class TrendsLearningAlgorithm {
   }
 
   /**
-   * Get predictions for current time window
-   * Used by reactive scaler to integrate predictions
+   * Record prediction scaling event for performance tracking
    *
    * @param {string} applicationId - Application ID
-   * @param {number} currentTime - Current timestamp in milliseconds
-   * @returns {Object} Current prediction or null
+   * @param {Object} predictionData - Prediction data to record
    */
-  async getCurrentPrediction (applicationId, currentTime) {
+  async recordPredictionScaling (applicationId, predictionData) {
     try {
-      // Generate predictions on-demand
-      const analysisResult = await this.runAnalysis(applicationId)
-
-      if (!analysisResult.success || !analysisResult.predictions || analysisResult.predictions.length === 0) {
-        return null
-      }
-
-      // Find prediction within the prediction window
-      const prediction = analysisResult.predictions.find(p => {
-        const timeDiff = Math.abs(currentTime - p.absoluteTime)
-        return timeDiff <= this.#predictionWindow * 1000 && p.confidence > this.#confidenceThreshold
+      await this.#performanceHistory.scalingEvaluationForPrediction({
+        applicationId,
+        prediction: predictionData
       })
-
-      return prediction || null
     } catch (err) {
-      this.#log.error({ err, applicationId }, 'Error getting current prediction')
-      return null
+      this.#log.error({ err, applicationId }, 'Failed to record prediction scaling evaluation')
     }
   }
 }
