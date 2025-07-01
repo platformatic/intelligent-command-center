@@ -1,6 +1,6 @@
 {
   "name": "lazy-achiever",
-  "version": "1.0.0-RC.1",
+  "version": "1.0.0-RC.2",
   "scripts": {
     "start": "platformatic start",
     "lint": "standard . | snazzy",
