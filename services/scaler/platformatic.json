@@ -29,7 +29,7 @@
     "autoApply": true
   },
   "plugins": {
-    "paths": ["./routes", "./plugins"],
+    "paths": ["./plugins", "./routes"],
     "typescript": false
   },
   "metrics": {
