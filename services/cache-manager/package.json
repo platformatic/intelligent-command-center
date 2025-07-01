@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-RC.1",
+  "version": "1.0.0-RC.2",
   "scripts": {
     "start": "platformatic service start",
     "test": "npm run lint && borp --concurrency 1 --timeout=180000",
