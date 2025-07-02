@@ -53,6 +53,11 @@ function SystemJobs () {
         name: 'Fusion & Fission',
         label: 'How often you want the ICC to check for System improvements.',
         slug: 'ffc-recommender'
+      },
+      {
+        name: 'Scaler Prediciton',
+        slug: 'scaler',
+        label: 'How often you want the ICC to check for Scaler predictions.'
       }]
 
       // Only add Cold Storage Dump if not in importer mode
