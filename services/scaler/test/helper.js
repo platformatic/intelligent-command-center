@@ -7,6 +7,7 @@ const { buildServer: buildDbServer } = require('@platformatic/db')
 const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const createConnectionPool = require('@databases/pg')
+const Redis = require('iovalkey')
 
 const connectionString = 'postgres://postgres:postgres@127.0.0.1:5433/scaler'
 const valkeyConnectionString = 'redis://localhost:6343'
@@ -19,7 +20,7 @@ setGlobalDispatcher(new Agent({
 async function getConfig () {
   const config = {}
   config.server = {
-    port: 0,
+    port: 5555,
     logger: { level: 'silent' }
   }
   config.db = {
@@ -208,9 +209,9 @@ async function setupMockPrometheusServer (responses = {}) {
     const { query } = request.query
     let responseData = null
 
-    if (query.includes('nodejs_heap_size_total_bytes') && query.includes('test-app')) {
+    if (query.includes('nodejs_heap_size_total_bytes') && query.includes('applicationId')) {
       responseData = responses.heapSize
-    } else if (query.includes('nodejs_eventloop_utilization') && query.includes('test-app')) {
+    } else if (query.includes('nodejs_eventloop_utilization') && query.includes('applicationId')) {
       responseData = responses.eventLoop
     } else if (query === 'nodejs_heap_size_total_bytes') {
       responseData = responses.allHeapSize
@@ -236,11 +237,25 @@ async function setupMockPrometheusServer (responses = {}) {
   }
 }
 
+// Helper function to clean Redis data
+async function cleanValkeyData () {
+  const redis = new Redis(valkeyConnectionString)
+  try {
+    const keys = await redis.keys('scaler:*')
+    if (keys.length > 0) {
+      await redis.del(keys)
+    }
+  } finally {
+    await redis.quit()
+  }
+}
+
 module.exports = {
   setUpEnvironment,
   buildServer,
   buildServerWithPlugins,
   cleandb,
+  cleanValkeyData,
   generateK8sHeader,
   getConfig,
   createExecutor,
