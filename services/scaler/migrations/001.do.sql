@@ -48,6 +48,7 @@ CREATE TABLE performance_history (
   application_id uuid NOT NULL,
   event_timestamp TIMESTAMP NOT NULL,
   pods_added INTEGER NOT NULL,
+  total_pods INTEGER NOT NULL,
   pre_elu_mean REAL NOT NULL,
   pre_heap_mean REAL NOT NULL,
   pre_elu_trend REAL NOT NULL,

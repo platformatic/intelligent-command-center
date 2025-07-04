@@ -49,6 +49,7 @@ class TrendsLearningAlgorithm {
       const history = records.map(record => ({
         timestamp: record.eventTimestamp.getTime(),
         podsAdded: record.podsAdded,
+        totalPods: record.totalPods,
         preEluMean: record.preEluMean,
         preHeapMean: record.preHeapMean,
         preEluTrend: record.preEluTrend,
@@ -134,7 +135,7 @@ class TrendsLearningAlgorithm {
           const weightedScore = weight * successScore
           weightSum += weightedScore
           weightedSuccessSum += weightedScore
-          weightedPodsSum += Math.abs(event.podsAdded) * weightedScore
+          weightedPodsSum += event.totalPods * weightedScore
           weightedEluSum += event.preEluMean * weightedScore
           weightedHeapSum += event.preHeapMean * weightedScore
 
@@ -224,7 +225,7 @@ class TrendsLearningAlgorithm {
 
         sequenceMap.get(index).push({
           offset: (downEvent.timestamp - upEvent.timestamp) / 1000, // Convert to seconds
-          pods: Math.abs(downEvent.podsAdded),
+          pods: downEvent.totalPods,
           weight: weight * successScore
         })
       })
