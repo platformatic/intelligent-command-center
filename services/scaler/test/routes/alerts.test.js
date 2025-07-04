@@ -1,22 +1,13 @@
 'use strict'
 
 const { test } = require('node:test')
-const { buildServer, generateK8sHeader, valkeyConnectionString } = require('../helper')
 const { randomUUID } = require('node:crypto')
 const assert = require('node:assert')
-const Redis = require('iovalkey')
-
-async function cleanRedisData () {
-  const redis = new Redis(valkeyConnectionString)
-  try {
-    const keys = await redis.keys('scaler:*')
-    if (keys.length > 0) {
-      await redis.del(keys)
-    }
-  } finally {
-    await redis.quit()
-  }
-}
+const {
+  buildServer,
+  generateK8sHeader,
+  cleanValkeyData
+} = require('../helper')
 
 // Helper function to create a valid alert
 function createAlert (applicationId, serviceId) {
@@ -44,7 +35,7 @@ function createAlert (applicationId, serviceId) {
 }
 
 test('receive and save alert successfully', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const server = await buildServer(t)
   const podId = 'test-pod-id'
@@ -54,7 +45,7 @@ test('receive and save alert successfully', async (t) => {
 
   t.after(async () => {
     await server.close()
-    await cleanRedisData()
+    await cleanValkeyData()
   })
 
   const response = await server.inject({
@@ -99,7 +90,7 @@ test('receive and save alert successfully', async (t) => {
 })
 
 test('receive multiple alerts for the same pod', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const server = await buildServer(t)
   const podId = 'test-pod-multiple-alerts'
@@ -108,7 +99,7 @@ test('receive multiple alerts for the same pod', async (t) => {
 
   t.after(async () => {
     await server.close()
-    await cleanRedisData()
+    await cleanValkeyData()
   })
 
   // Send first alert
@@ -175,7 +166,7 @@ test('receive multiple alerts for the same pod', async (t) => {
 })
 
 test('fail when missing k8s context', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const server = await buildServer(t)
   const applicationId = randomUUID()
@@ -184,7 +175,7 @@ test('fail when missing k8s context', async (t) => {
 
   t.after(async () => {
     await server.close()
-    await cleanRedisData()
+    await cleanValkeyData()
   })
 
   const response = await server.inject({
