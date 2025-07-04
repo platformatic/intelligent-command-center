@@ -141,3 +141,33 @@ test('should enable demo login', async (t) => {
   })
   assert.ok(loginActivitySaved)
 })
+
+test('should check password', async (t) => {
+  const app = await getServer(t, {
+    DEMO_LOGIN: 'true',
+    PLT_MAIN_SITE_PASSWORD: 'apassword'
+  })
+  const url = await app.start()
+
+  {
+    const demoLoginRes = await request(`${url}/api/login/demo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: 'apassword' })
+    })
+    const json = await demoLoginRes.body.json()
+    assert.equal(demoLoginRes.statusCode, 200)
+    assert.deepEqual(json, { success: true })
+  }
+
+  {
+    const demoLoginRes = await request(`${url}/api/login/demo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: 'wrongpassword' })
+    })
+    const json = await demoLoginRes.body.json()
+    assert.equal(demoLoginRes.statusCode, 200)
+    assert.deepEqual(json, { success: false })
+  }
+})
