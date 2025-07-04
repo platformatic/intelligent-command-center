@@ -27,6 +27,7 @@ class PerformanceHistory {
       applicationId,
       eventTimestamp: new Date(event.timestamp),
       podsAdded: event.podsAdded,
+      totalPods: event.totalPods,
       preEluMean: event.preEluMean,
       preHeapMean: event.preHeapMean,
       preEluTrend: event.preEluTrend,
@@ -147,6 +148,7 @@ class PerformanceHistory {
    * @param {Object} scaling - The scaling parameters
    * @param {string} scaling.applicationId - The ID of the application being scaled
    * @param {number} scaling.actualPodsChange - Actual pods added/removed (positive for scale-up, negative for scale-down)
+   * @param {number} scaling.totalPods - Total number of pods after scaling
    * @param {Object} scaling.preMetrics - Pre-scaling metrics (eluMean, heapMean, eluTrend, heapTrend)
    * @param {string} [scaling.source='signal'] - Source of scaling decision ('signal' or 'prediction')
    * @param {number} [scaling.postScalingWindow=300] - Post-scaling evaluation window in seconds
@@ -158,6 +160,7 @@ class PerformanceHistory {
     const {
       applicationId,
       actualPodsChange,
+      totalPods,
       preMetrics,
       source = 'signal',
       predictionData,
@@ -181,6 +184,7 @@ class PerformanceHistory {
     const preScalingMetrics = {
       timestamp: now,
       podsAdded: actualPodsChange, // Positive for scale-up, negative for scale-down
+      totalPods, // Total number of pods after scaling
       preEluMean: preMetrics.eluMean || 0, // c8: ignore this line
       preHeapMean: preMetrics.heapMean || 0, // c8: ignore this line
       preEluTrend: preMetrics.eluTrend || 0,
@@ -462,15 +466,15 @@ class PerformanceHistory {
       // Calculate current pre-metrics
       const preMetrics = calculatePreMetrics(processedPods)
 
-      // Calculate actual pods change based on prediction action
-      const actualPodsChange = prediction.action === 'up'
-        ? prediction.pods
-        : -prediction.pods
+      const currentPodCount = Object.keys(processedPods).length
+      const actualPodsChange = prediction.pods - currentPodCount
+      const totalPods = currentPodCount
 
       // Apply the prediction with current metrics
       await this.scalingEvaluation({
         applicationId,
         actualPodsChange,
+        totalPods,
         preMetrics,
         source: 'prediction',
         predictionData: {
