@@ -1,32 +1,18 @@
 'use strict'
 
 const { test } = require('node:test')
-const { buildServer, valkeyConnectionString } = require('../helper')
+const { buildServer, cleanValkeyData } = require('../helper')
 const { randomUUID } = require('node:crypto')
 const assert = require('node:assert')
-const Redis = require('iovalkey')
 const { setTimeout: sleep } = require('node:timers/promises')
 
-// Helper function to clean Redis data
-async function cleanRedisData () {
-  const redis = new Redis(valkeyConnectionString)
-  try {
-    const keys = await redis.keys('scaler:*')
-    if (keys.length > 0) {
-      await redis.del(keys)
-    }
-  } finally {
-    await redis.quit()
-  }
-}
-
 test('should save alerts through the store decorator', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const server = await buildServer(t)
   t.after(async () => {
     await server.close()
-    await cleanRedisData()
+    await cleanValkeyData()
   })
 
   const applicationId = 'test:' + randomUUID()
@@ -61,12 +47,12 @@ test('should save alerts through the store decorator', async (t) => {
 })
 
 test('should get alerts by applicationId in chronological order', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const server = await buildServer(t)
   t.after(async () => {
     await server.close()
-    await cleanRedisData()
+    await cleanValkeyData()
   })
 
   const applicationId = 'test:' + randomUUID()
@@ -116,12 +102,12 @@ test('should get alerts by applicationId in chronological order', async (t) => {
 })
 
 test('should get alerts by podId in chronological order', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const server = await buildServer(t)
   t.after(async () => {
     await server.close()
-    await cleanRedisData()
+    await cleanValkeyData()
   })
 
   const podId = randomUUID()
@@ -181,12 +167,12 @@ test('should get alerts by podId in chronological order', async (t) => {
 })
 
 test('should store multiple alerts for the same pod/app/service', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const server = await buildServer(t)
   t.after(async () => {
     await server.close()
-    await cleanRedisData()
+    await cleanValkeyData()
   })
 
   const applicationId = 'test:' + randomUUID()
@@ -231,7 +217,7 @@ test('should store multiple alerts for the same pod/app/service', async (t) => {
 })
 
 test('should trigger scaler when alert is unhealthy', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const notifications = []
   const server = await buildServer(t)
@@ -245,7 +231,7 @@ test('should trigger scaler when alert is unhealthy', async (t) => {
   t.after(async () => {
     server.notifyScaler = originalNotifyScaler
     await server.close()
-    await cleanRedisData()
+    await cleanValkeyData()
   })
 
   const applicationId = 'test:' + randomUUID()
@@ -285,7 +271,7 @@ test('should trigger scaler when alert is unhealthy', async (t) => {
 })
 
 test('should debounce multiple unhealthy alerts for the same pod', async (t) => {
-  await cleanRedisData()
+  await cleanValkeyData()
 
   const notifications = []
   const server = await buildServer(t)
@@ -304,7 +290,7 @@ test('should debounce multiple unhealthy alerts for the same pod', async (t) => 
   t.after(async () => {
     server.notifyScaler = originalNotifyScaler
     await server.close()
-    await cleanRedisData()
+    await cleanValkeyData()
   })
 
   const applicationId = 'test:' + randomUUID()

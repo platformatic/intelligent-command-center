@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ICC Scaler Simulation</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 2800px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px; }
+    h1 { text-align: center; }
+    #status { text-align: center; margin-bottom: 10px; }
+    canvas { display: block; margin: 0 auto; max-width: 100%; width: 700px; height: 700px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ICC Scaler Simulation</h1>
+    <div id="autocannonControls" style="display: flex; justify-content: center; align-items: center; gap: 16px; margin: 24px 0;">
+      <input id="reqSecInput" type="number" min="1" placeholder="req/sec" style="padding: 8px; width: 120px;" />
+      <input id="timeoutInput" type="number" min="1" placeholder="timeout (sec)" style="padding: 8px; width: 140px;" />
+      <select id="podsSelect" multiple style="padding: 8px; width: 180px; min-height: 40px;">
+        <option value="">All Pods</option>
+      </select>
+      <button id="autocannonBtn" style="padding: 8px 18px;">Run Autocannon</button>
+      <span id="autocannonStatus" style="margin-left: 20px; color: #007bff; font-weight: bold; display: none;"></span>
+    </div>
+    <div id="status">Connecting...</div>
+    <div style="display: flex; gap: 40px; justify-content: center; align-items: flex-start;">
+      <div style="flex:1;">
+        <canvas id="scaleEventsChart" width="440" height="260"></canvas>
+      </div>
+      <div style="flex:1;">
+        <canvas id="metricsChart" width="440" height="260"></canvas>
+      </div>
+    </div>
+    <div style="margin: 40px auto 0 auto; max-width: 900px; display: flex; align-items: center;">
+      <canvas id="predictionsChart" width="900" height="260"></canvas>
+      <button id="generatePredictionsBtn" style="margin-left: 24px; height: 40px; padding: 0 18px;">Generate Predictions</button>
+    </div>
+    <h2 style="text-align:center;margin-top:40px;">Pods Metrics</h2>
+    <table id="podsTable" style="margin: 30px auto 0 auto; border-collapse: collapse; width: 80%; max-width: 700px;">
+      <thead>
+        <tr style="background:#f0f0f0;">
+          <th style="padding:8px 12px; text-align:left;">Pod ID</th>
+          <th style="padding:8px 12px; text-align:left;">req/sec</th>
+          <th style="padding:8px 12px; text-align:left;">ELU (%)</th>
+          <th style="padding:8px 12px; text-align:left;">HEAP (MB)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <script>
+    let scaleEventsChart, metricsChart, predictionsChart;
+    let lastScaleEventsLen = 0;
+    let lastMetricsLen = 0;
+    let lastPredictionsLen = 0;
+    let metricsLabels = [];
+
+    async function updateChartsAndPods() {
+      try {
+        // First chart: scaling events (replicas)
+        const chartRes = await fetch('/api/charts');
+        const { scaleEventsChart: chartData } = await chartRes.json();
+        if (!scaleEventsChart) {
+          scaleEventsChart = new Chart(document.getElementById('scaleEventsChart').getContext('2d'), chartData);
+          lastScaleEventsLen = chartData.data.labels.length;
+        } else if (chartData.data.labels.length > lastScaleEventsLen) {
+          // Append new data point
+          const newLabel = chartData.data.labels[chartData.data.labels.length - 1];
+          const newValue = chartData.data.datasets[0].data[chartData.data.datasets[0].data.length - 1];
+          scaleEventsChart.data.labels.push(newLabel);
+          scaleEventsChart.data.datasets[0].data.push(newValue);
+          if (scaleEventsChart.data.labels.length > 100) {
+            scaleEventsChart.data.labels.shift();
+            scaleEventsChart.data.datasets[0].data.shift();
+          }
+          scaleEventsChart.update('none');
+          lastScaleEventsLen = chartData.data.labels.length;
+        }
+
+        // Second chart: metrics (ELU and Heap)
+        const metricsRes = await fetch('/api/metrics');
+        const metrics = await metricsRes.json();
+        if (!metricsChart) {
+          metricsChart = new Chart(document.getElementById('metricsChart').getContext('2d'), {
+            type: 'line',
+            data: {
+              labels: metrics.timestamps.map(ts => new Date(ts).toLocaleTimeString()),
+              datasets: [
+                {
+                  label: 'ELU (%)',
+                  data: metrics.avgElu.map(v => Math.round(v)),
+                  borderColor: 'rgb(255, 99, 132)',
+                  backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                  tension: 0.1,
+                  yAxisID: 'y',
+                },
+                {
+                  label: 'Heap (%)',
+                  data: metrics.avgHeap.map(v => Math.round(v)),
+                  borderColor: 'rgb(54, 162, 235)',
+                  backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                  tension: 0.1,
+                  yAxisID: 'y',
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              plugins: { title: { display: true, text: 'ELU & Heap (%)' } },
+              scales: { y: { min: 0, max: 100, beginAtZero: true, title: { display: true, text: '%' } } }
+            }
+          });
+          lastMetricsLen = metrics.avgElu.length;
+          metricsLabels = metrics.timestamps.map(ts => new Date(ts).toLocaleTimeString());
+        } else if (metrics.avgElu.length > lastMetricsLen) {
+          // Append new data point
+          const newLabel = new Date(metrics.timestamps[metrics.timestamps.length - 1]).toLocaleTimeString();
+          const newElu = Math.round(metrics.avgElu[metrics.avgElu.length - 1]);
+          const newHeap = Math.round(metrics.avgHeap[metrics.avgHeap.length - 1]);
+          metricsChart.data.labels.push(newLabel);
+          metricsChart.data.datasets[0].data.push(newElu);
+          metricsChart.data.datasets[1].data.push(newHeap);
+          if (metricsChart.data.labels.length > 100) {
+            metricsChart.data.labels.shift();
+            metricsChart.data.datasets[0].data.shift();
+            metricsChart.data.datasets[1].data.shift();
+          }
+          metricsChart.update('none');
+          lastMetricsLen = metrics.avgElu.length;
+        }
+
+        // Third chart: predictions
+        const predRes = await fetch('/api/predictions');
+        const { predictionsChart: predChartData } = await predRes.json();
+        if (!predictionsChart) {
+          predictionsChart = new Chart(document.getElementById('predictionsChart').getContext('2d'), predChartData);
+          lastPredictionsLen = predChartData.data.labels.length;
+        } else if (predChartData.data.labels.length > lastPredictionsLen) {
+          // Append new data point
+          const newLabel = predChartData.data.labels[predChartData.data.labels.length - 1];
+          const newValue = predChartData.data.datasets[0].data[predChartData.data.datasets[0].data.length - 1];
+          predictionsChart.data.labels.push(newLabel);
+          predictionsChart.data.datasets[0].data.push(newValue);
+          if (predictionsChart.data.labels.length > 100) {
+            predictionsChart.data.labels.shift();
+            predictionsChart.data.datasets[0].data.shift();
+          }
+          predictionsChart.update('none');
+          lastPredictionsLen = predChartData.data.labels.length;
+        }
+
+        updatePodsTable(await (await fetch('/api/pods')).json());
+      } catch {}
+    }
+
+    function updatePodsTable(pods) {
+      const tbody = document.getElementById('podsTable').querySelector('tbody');
+      tbody.innerHTML = '';
+      for (const pod of pods) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td style=\"padding:6px 12px; border-bottom:1px solid #eee;\">${pod.podId}</td><td style=\"padding:6px 12px; border-bottom:1px solid #eee;\">${pod.reqPerSec}</td><td style=\"padding:6px 12px; border-bottom:1px solid #eee;\">${pod.elu}</td><td style=\"padding:6px 12px; border-bottom:1px solid #eee;\">${pod.usedHeap}</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    async function populatePodsSelect() {
+      try {
+        const res = await fetch('/api/pods');
+        const pods = await res.json();
+        const select = document.getElementById('podsSelect');
+        select.innerHTML = '<option value="">All Pods</option>';
+        for (const pod of pods) {
+          const option = document.createElement('option');
+          option.value = pod.podId;
+          option.textContent = pod.podId;
+          select.appendChild(option);
+        }
+      } catch {}
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      populatePodsSelect();
+      updateChartsAndPods();
+      setInterval(updateChartsAndPods, 5000);
+    });
+
+    document.getElementById('autocannonBtn').onclick = async function() {
+      const reqSec = parseInt(document.getElementById('reqSecInput').value, 10);
+      const timeoutSec = parseInt(document.getElementById('timeoutInput').value, 10);
+      const timeout = timeoutSec * 1000;
+      const podsSelect = document.getElementById('podsSelect');
+      const selectedPods = Array.from(podsSelect.selectedOptions).map(opt => opt.value).filter(Boolean);
+      if (!reqSec || !timeout) {
+        alert('Please enter both req/sec and timeout');
+        return;
+      }
+      try {
+        const res = await fetch('/api/autocannon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reqSec, timeout, podIds: selectedPods.length ? selectedPods : undefined })
+        });
+        if (res.ok) {
+          showAutocannonStatus(timeout);
+        } else {
+          const err = await res.text();
+          alert('Error: ' + err);
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    function showAutocannonStatus(timeoutMs) {
+      const statusEl = document.getElementById('autocannonStatus');
+      let secondsLeft = Math.ceil(timeoutMs / 1000);
+      statusEl.style.display = '';
+      statusEl.textContent = `Autocannoning... (${secondsLeft} s left)`;
+      const interval = setInterval(() => {
+        secondsLeft--;
+        if (secondsLeft > 0) {
+          statusEl.textContent = `Autocannoning... (${secondsLeft} s left)`;
+        } else {
+          statusEl.style.display = 'none';
+          clearInterval(interval);
+        }
+      }, 1000);
+    }
+
+    document.getElementById('generatePredictionsBtn').onclick = async function() {
+      try {
+        const res = await fetch('/api/predictions/calculate', { method: 'POST' });
+        if (res.ok) {
+          alert('Predictions generated');
+        } else {
+          const err = await res.text();
+          alert('Error: ' + err);
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+  </script>
+</body>
+</html> 

@@ -4,21 +4,8 @@ const { test } = require('node:test')
 const assert = require('node:assert')
 const AlertsManager = require('../../lib/alerts-manager')
 const { randomUUID } = require('node:crypto')
-const { valkeyConnectionString } = require('../helper')
+const { valkeyConnectionString, cleanValkeyData } = require('../helper')
 const Redis = require('iovalkey')
-
-// Helper function to clean Redis data
-async function cleanValkeyData () {
-  const redis = new Redis(valkeyConnectionString)
-  try {
-    const keys = await redis.keys('scaler:triggered-pods:*')
-    if (keys.length > 0) {
-      await redis.del(keys)
-    }
-  } finally {
-    await redis.quit()
-  }
-}
 
 test('AlertsManager clearRecentTriggers', async (t) => {
   await cleanValkeyData()
