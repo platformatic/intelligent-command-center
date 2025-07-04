@@ -17,14 +17,32 @@ function createMockLog () {
   }
 }
 
+function createTestEvent (overrides = {}) {
+  const baseEvent = {
+    timestamp: Date.now(),
+    podsAdded: 1,
+    totalPods: 6,
+    preEluMean: 0.8,
+    preHeapMean: 0.75,
+    preEluTrend: 0.04,
+    preHeapTrend: 0.02,
+    deltaElu: -0.1,
+    deltaHeap: -0.08,
+    sigmaElu: 0.015,
+    sigmaHeap: 0.01,
+    successScore: 0
+  }
+  return { ...baseEvent, ...overrides }
+}
+
 test('should save a new performance history event', async (t) => {
   const server = await buildServer(t)
   const performanceHistory = new PerformanceHistory(server)
 
   const applicationId = randomUUID()
-  const event = {
-    timestamp: Date.now(),
+  const event = createTestEvent({
     podsAdded: 2,
+    totalPods: 7,
     preEluMean: 0.85,
     preHeapMean: 0.80,
     preEluTrend: 0.05,
@@ -34,7 +52,7 @@ test('should save a new performance history event', async (t) => {
     sigmaElu: 0.02,
     sigmaHeap: 0.01,
     successScore: 0.82
-  }
+  })
 
   await performanceHistory.saveEvent(applicationId, event)
 
@@ -45,6 +63,7 @@ test('should save a new performance history event', async (t) => {
   assert.strictEqual(records.length, 1)
   assert.strictEqual(records[0].applicationId, applicationId)
   assert.strictEqual(records[0].podsAdded, 2)
+  assert.strictEqual(records[0].totalPods, 7)
   assert.strictEqual(records[0].preEluMean, 0.85)
   assert.strictEqual(records[0].preHeapMean, 0.80)
   assert.strictEqual(records[0].deltaElu, -0.15)
@@ -61,6 +80,7 @@ test('should update existing performance history event', async (t) => {
   const event = {
     timestamp,
     podsAdded: 2,
+    totalPods: 7,
     preEluMean: 0.85,
     preHeapMean: 0.80,
     preEluTrend: 0.05,
@@ -103,6 +123,7 @@ test('should default successScore to 0 when not provided', async (t) => {
   const event = {
     timestamp: Date.now(),
     podsAdded: 1,
+    totalPods: 6,
     preEluMean: 0.75,
     preHeapMean: 0.70,
     preEluTrend: 0.02,
@@ -140,6 +161,7 @@ test('should log debug messages when saving and updating', async (t) => {
   const event = {
     timestamp,
     podsAdded: 3,
+    totalPods: 8,
     preEluMean: 0.90,
     preHeapMean: 0.85,
     preEluTrend: 0.08,
@@ -180,6 +202,7 @@ test('should get performance history with no filters', async (t) => {
     {
       timestamp: now - 3600000,
       podsAdded: 2,
+      totalPods: 7,
       preEluMean: 0.80,
       preHeapMean: 0.75,
       preEluTrend: 0.04,
@@ -192,6 +215,7 @@ test('should get performance history with no filters', async (t) => {
     {
       timestamp: now - 7200000, // 2 hours ago
       podsAdded: 1,
+      totalPods: 6,
       preEluMean: 0.70,
       preHeapMean: 0.65,
       preEluTrend: 0.02,
@@ -224,6 +248,7 @@ test('should get performance history filtered by applicationId', async (t) => {
   await performanceHistory.saveEvent(app1, {
     timestamp: now,
     podsAdded: 2,
+    totalPods: 7,
     preEluMean: 0.80,
     preHeapMean: 0.75,
     preEluTrend: 0.04,
@@ -237,6 +262,7 @@ test('should get performance history filtered by applicationId', async (t) => {
   await performanceHistory.saveEvent(app2, {
     timestamp: now - 1000,
     podsAdded: 1,
+    totalPods: 6,
     preEluMean: 0.70,
     preHeapMean: 0.65,
     preEluTrend: 0.02,
@@ -265,9 +291,9 @@ test('should get performance history filtered by date range', async (t) => {
   const thirtyMinutesAgo = new Date(now.getTime() - 1800000)
 
   const events = [
-    { timestamp: twoHoursAgo.getTime(), podsAdded: 1 },
-    { timestamp: oneHourAgo.getTime(), podsAdded: 2 },
-    { timestamp: thirtyMinutesAgo.getTime(), podsAdded: 3 }
+    { timestamp: twoHoursAgo.getTime(), podsAdded: 1, totalPods: 6 },
+    { timestamp: oneHourAgo.getTime(), podsAdded: 2, totalPods: 7 },
+    { timestamp: thirtyMinutesAgo.getTime(), podsAdded: 3, totalPods: 8 }
   ]
 
   for (const event of events) {
@@ -313,6 +339,7 @@ test('should respect limit parameter', async (t) => {
     await performanceHistory.saveEvent(applicationId, {
       timestamp: now - (i * 1000),
       podsAdded: i + 1,
+      totalPods: (i + 1) + 5,
       preEluMean: 0.80,
       preHeapMean: 0.75,
       preEluTrend: 0.04,
@@ -351,6 +378,7 @@ test('should handle database errors gracefully when saving', async () => {
   const event = {
     timestamp: Date.now(),
     podsAdded: 1,
+    totalPods: 6,
     preEluMean: 0.75,
     preHeapMean: 0.70,
     preEluTrend: 0.02,
@@ -398,6 +426,7 @@ test('should get performance history with successScore from database', async (t)
     {
       timestamp: now - 3600000,
       podsAdded: 2,
+      totalPods: 7,
       preEluMean: 0.85,
       preHeapMean: 0.80,
       preEluTrend: 0.05,
@@ -411,6 +440,7 @@ test('should get performance history with successScore from database', async (t)
     {
       timestamp: now - 7200000,
       podsAdded: 1,
+      totalPods: 6,
       preEluMean: 0.70,
       preHeapMean: 0.65,
       preEluTrend: 0.02,
@@ -460,6 +490,7 @@ test('should return database records with proper date objects', async (t) => {
     await performanceHistory.saveEvent(applicationId, {
       timestamp: now - (i * 1000),
       podsAdded: i + 1,
+      totalPods: (i + 1) + 5,
       preEluMean: 0.80,
       preHeapMean: 0.75,
       preEluTrend: 0.04,
@@ -488,6 +519,7 @@ test('should save events with correct source values', async (t) => {
   const baseEvent = {
     timestamp: Date.now(),
     podsAdded: 2,
+    totalPods: 7,
     preEluMean: 0.85,
     preHeapMean: 0.80,
     preEluTrend: 0.05,
@@ -524,6 +556,7 @@ test('should handle large limits with pagination in getPerformanceHistory', asyn
     await performanceHistory.saveEvent(applicationId, {
       timestamp: now - (i * 1000),
       podsAdded: (i % 5) + 1,
+      totalPods: ((i % 5) + 1) + 5,
       preEluMean: 0.80,
       preHeapMean: 0.75,
       preEluTrend: 0.04,
@@ -557,6 +590,7 @@ test('should handle pagination edge cases in getPerformanceHistory', async (t) =
     await performanceHistory.saveEvent(applicationId, {
       timestamp: now - (i * 1000),
       podsAdded: 1,
+      totalPods: 6,
       preEluMean: 0.80,
       preHeapMean: 0.75,
       preEluTrend: 0.04,
@@ -597,6 +631,7 @@ test('should calculate prediction success score in postScalingEvaluation', async
     loadPerfHistory: async () => [{
       timestamp: scalingTimestamp,
       podsAdded: 2,
+      totalPods: 7,
       preEluMean: 0.85,
       preHeapMean: 0.80,
       preEluTrend: 0.05,
@@ -674,6 +709,7 @@ test('should handle errors in postScalingEvaluation', async (t) => {
     loadPerfHistory: async () => [{
       timestamp: Date.now(),
       podsAdded: 1,
+      totalPods: 6,
       preEluMean: 0.80,
       preHeapMean: 0.75,
       source: 'signal'
@@ -766,7 +802,10 @@ test('should handle scalingEvaluationForPrediction successfully', async (t) => {
   delete process.env.SKIP_POST_SCALING_EVALUATION
 
   assert.ok(result.success)
-  assert.strictEqual(result.actualPodsChange, 3)
+  // Check that actualPodsChange is calculated from absolute prediction:
+  // prediction.pods = 3 (absolute target), currentPodCount = 1 (from mock metrics)
+  // actualPodsChange = 3 - 1 = 2 (pods to add to reach target)
+  assert.strictEqual(result.actualPodsChange, 2)
   assert.ok(result.preMetrics)
   assert.ok(result.preMetrics.eluMean > 0.84 && result.preMetrics.eluMean < 0.88)
   assert.ok(result.preMetrics.heapMean > 0)
