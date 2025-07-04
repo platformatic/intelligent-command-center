@@ -741,7 +741,7 @@ test('should call recordPredictionScaling after successful prediction execution'
   assert.strictEqual(recordingCalled, true, 'recordPredictionScaling should be called')
   assert.strictEqual(recordingData.applicationId, appId)
   assert.strictEqual(recordingData.predictionData.action, 'up')
-  assert.strictEqual(recordingData.predictionData.pods, 2)
+  assert.strictEqual(recordingData.predictionData.pods, 3)
   assert.strictEqual(recordingData.predictionData.confidence, 0.85)
   assert.strictEqual(recordingData.predictionData.timeOfDay, 28800)
   assert.deepStrictEqual(recordingData.predictionData.reasons, ['Test prediction'])

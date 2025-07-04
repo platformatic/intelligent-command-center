@@ -18,10 +18,11 @@ function createMockLog () {
   }
 }
 
-function createHistoryEvent (timestamp, podsAdded, preEluMean, preHeapMean, successScore = 0.9) {
+function createHistoryEvent (timestamp, podsAdded, preEluMean, preHeapMean, successScore = 0.9, totalPods = Math.abs(podsAdded) + 5) {
   return {
     timestamp,
     podsAdded,
+    totalPods,
     preEluMean,
     preHeapMean,
     preEluTrend: 0.002,

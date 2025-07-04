@@ -203,6 +203,7 @@ class ReactiveScalingAlgorithm {
           await this.#performanceHistory.scalingEvaluation({
             applicationId,
             actualPodsChange,
+            totalPods: newPodCount,
             preMetrics: {
               eluMean: avgElu,
               heapMean: avgHeap,
@@ -259,6 +260,7 @@ class ReactiveScalingAlgorithm {
     await this.#performanceHistory.scalingEvaluation({
       applicationId,
       actualPodsChange,
+      totalPods: nfinal,
       preMetrics,
       source: 'signal',
       postScalingWindow: this.postScalingWindow,

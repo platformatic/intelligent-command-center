@@ -79,7 +79,7 @@ async function plugin (app) {
         if (app.trendsLearningAlgorithm) {
           await app.trendsLearningAlgorithm.recordPredictionScaling(applicationId, {
             action,
-            pods: Math.abs(targetPods - currentPodCount),
+            pods: targetPods,
             confidence,
             timeOfDay: prediction.timeOfDay,
             reasons

@@ -18,10 +18,11 @@ function createMockLog () {
   }
 }
 
-function createHistoryEvent (timestamp, podsAdded, preEluMean, preHeapMean, successScore = 0.9) {
+function createHistoryEvent (timestamp, podsAdded, preEluMean, preHeapMean, successScore = 0.9, totalPods = 10) {
   return {
     timestamp,
     podsAdded,
+    totalPods,
     preEluMean,
     preHeapMean,
     preEluTrend: 0.05,
@@ -111,7 +112,8 @@ test('should generate predictions with basic historical data', async (t) => {
       8,
       0.92,
       0.82,
-      0.85
+      0.85,
+      18
     )
 
     await performanceHistory.saveEvent(applicationId, event)
@@ -152,7 +154,8 @@ test('should handle runAnalysis API with time filtering', async (t) => {
       6,
       0.91,
       0.81,
-      0.8
+      0.8,
+      14
     )
 
     await performanceHistory.saveEvent(applicationId, event)

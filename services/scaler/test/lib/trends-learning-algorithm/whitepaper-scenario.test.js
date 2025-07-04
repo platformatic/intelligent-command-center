@@ -16,10 +16,11 @@ const PerformanceHistory = require('../../../lib/performance-history')
  * scaling down 3 pods after 3 minutes and 7 pods after 8 minutes
  */
 
-function createHistoryEvent (timestamp, podsAdded, preEluMean, preHeapMean, successScore = 0.9) {
+function createHistoryEvent (timestamp, podsAdded, preEluMean, preHeapMean, successScore = 0.9, totalPods = Math.abs(podsAdded) + 5) {
   return {
     timestamp,
     podsAdded,
+    totalPods,
     preEluMean,
     preHeapMean,
     preEluTrend: 0.002,
@@ -52,15 +53,15 @@ test('whitepaper scenario: 2 PM daily scaling pattern with sequences', async (t)
     const dayStart = currentDayStart - (day * 86400 * 1000)
 
     const scaleUpTime = dayStart + (twoPmSlot * 1000)
-    const scaleUpEvent = createHistoryEvent(scaleUpTime, 10, 0.94, 0.82, 0.95)
+    const scaleUpEvent = createHistoryEvent(scaleUpTime, 10, 0.94, 0.82, 0.95, 15)
     await performanceHistory.saveEvent(applicationId, scaleUpEvent)
 
     const scaleDown1Time = scaleUpTime + (3 * 60 * 1000)
-    const scaleDown1Event = createHistoryEvent(scaleDown1Time, -3, 0.75, 0.70, 0.95)
+    const scaleDown1Event = createHistoryEvent(scaleDown1Time, -3, 0.75, 0.70, 0.95, 12)
     await performanceHistory.saveEvent(applicationId, scaleDown1Event)
 
     const scaleDown2Time = scaleUpTime + (8 * 60 * 1000)
-    const scaleDown2Event = createHistoryEvent(scaleDown2Time, -7, 0.70, 0.65, 0.95)
+    const scaleDown2Event = createHistoryEvent(scaleDown2Time, -7, 0.70, 0.65, 0.95, 5)
     await performanceHistory.saveEvent(applicationId, scaleDown2Event)
 
     const otherEventsCount = Math.floor(Math.random() * 20) + 10
@@ -111,14 +112,14 @@ test('whitepaper scenario: 2 PM daily scaling pattern with sequences', async (t)
   const firstScaleDown = scaleDownPredictions[0]
   const firstOffset = firstScaleDown.timeOfDay - twoPmSlot
   assert.ok(firstOffset >= 120 && firstOffset <= 240, 'First scale-down should be around 3 minutes')
-  assert.ok(firstScaleDown.pods >= 2 && firstScaleDown.pods <= 4, 'Should scale down ~3 pods')
+  assert.ok(firstScaleDown.pods >= 10 && firstScaleDown.pods <= 14, 'Should scale down to ~12 pods')
   assert.ok(firstScaleDown.reasons.seq_count >= 15, 'Should have good sequence count')
 
   if (scaleDownPredictions.length >= 2) {
     const secondScaleDown = scaleDownPredictions[1]
     const secondOffset = secondScaleDown.timeOfDay - twoPmSlot
     assert.ok(secondOffset >= 420 && secondOffset <= 540, 'Second scale-down should be around 8 minutes')
-    assert.ok(secondScaleDown.pods >= 5 && secondScaleDown.pods <= 9, 'Should scale down ~7 pods')
+    assert.ok(secondScaleDown.pods >= 3 && secondScaleDown.pods <= 7, 'Should scale down to ~5 pods')
     assert.ok(secondScaleDown.reasons.seq_count >= 15, 'Should have good sequence count')
   }
 })
