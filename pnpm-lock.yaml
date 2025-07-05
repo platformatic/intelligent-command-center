@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@platformatic/client':
         specifier: ^2.70.1
-        version: 2.70.1
+        version: 2.71.0
       fastify:
         specifier: ^5.2.1
         version: 5.4.0
