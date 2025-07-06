@@ -106,7 +106,7 @@ importers:
         version: 2.71.0
       '@platformatic/service':
         specifier: ^2.70.1
-        version: 2.70.1
+        version: 2.71.0
       borp:
         specifier: ^0.20.0
         version: 0.20.0
@@ -457,7 +457,7 @@ importers:
         version: 8.0.2
       '@platformatic/service':
         specifier: ^2.70.1
-        version: 2.70.1
+        version: 2.71.0
       dayjs:
         specifier: ^1.11.13
         version: 1.11.13
@@ -552,7 +552,7 @@ importers:
         version: 7.0.2
       '@platformatic/service':
         specifier: ^2.70.1
-        version: 2.70.1
+        version: 2.71.0
       '@platformatic/sql-inspector':
         specifier: ^0.1.0
         version: 0.1.0
@@ -10031,7 +10031,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.0.7
+      '@types/node': 24.0.10
 
   '@ungap/structured-clone@1.3.0': {}
 
