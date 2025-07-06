@@ -25,7 +25,7 @@ importers:
         version: 4.7.1
       wattpm:
         specifier: ^2.70.1
-        version: 2.70.1
+        version: 2.71.0
     devDependencies:
       '@platformatic/config':
         specifier: ^2.70.1
@@ -2043,9 +2043,6 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@platformatic/basic@2.70.1':
-    resolution: {integrity: sha512-SrPW5p0OeR4RvysGbtPxnuEB7uDHo9uNjZVJNQL/DPUENTDjFsuemm/aWrXQihVxXDM6vgwV6DGEjKodDmSc+Q==}
-
   '@platformatic/basic@2.71.0':
     resolution: {integrity: sha512-MYAQHMGvkJu/nQeY+BSDJ/MSdrb77Tneu2SI77Zmmf1PuQucLHnNodbg95GLbb977WC/5m9i8KvRRz9DNt7rzg==}
 
@@ -2060,15 +2057,8 @@ packages:
     resolution: {integrity: sha512-mHgM+JXjQm6ejWYq2ESaTv948CvmwZU7ZMEpdN45MPEYnPCky6DhIFdlAmD1jnTN8KpwGpy5uHcHoi/CaxOW4g==}
     hasBin: true
 
-  '@platformatic/config@2.70.1':
-    resolution: {integrity: sha512-hnE522aNLvVuaa0MHsq6Y6xlkZZIwmaxtUNjGIxXYtSqEsl+RWEUhktvWZXZAViK5YujvSjknrmOnWU4PjQr+g==}
-
   '@platformatic/config@2.71.0':
     resolution: {integrity: sha512-C+tdn856EIrDxFbKvOCOZZMdf6Vwrrr4kqVM5mq6oGLsONrP9/cyIy9QTRA+B5JwkWlqRAknxHXvPP9bxgCiKw==}
-
-  '@platformatic/control@2.70.1':
-    resolution: {integrity: sha512-lUrHzb5tnMmtX+iTDrK8FjmrkdcEOkERDmvamBzPADdO+wUgL00ipe3XLhw9MUMsK8thMU9VpUjBqsH0idUPEg==}
-    hasBin: true
 
   '@platformatic/control@2.71.0':
     resolution: {integrity: sha512-Kv+Rqu9sSxqoNXzwDba5e9WeozSwvgHf6b+eXGB+ltvvjH+xY92y1q2zzHScQky8Rl9J6hPP9u2r/ZDG769WYA==}
@@ -2087,9 +2077,6 @@ packages:
   '@platformatic/fastify-openapi-glue@5.1.0':
     resolution: {integrity: sha512-R5bHPQast/w5p+I+/Y5X1r+A8Fxqn7z0etWeaSYrFkbLvvGTEFGvldu0QGXnKjHo6XQo0P2o6D6gNr5uc36ZEA==}
 
-  '@platformatic/generators@2.70.1':
-    resolution: {integrity: sha512-DaInaiV0rD5JQfuvuqDbWf3Vqgf4r5rUI8rCh1LYZLlR6FitdnYoMdg8JaHrmHxC/MyjBExAjtt+uaUutnVIyw==}
-
   '@platformatic/generators@2.71.0':
     resolution: {integrity: sha512-Amy+W4oTCb0LRYhB03lEAfTOa17AHBElFBHKt7oz6e5ckMdBi12vDAxpP2llfLn86974pWQvxGcQG5/07mwF4A==}
 
@@ -2099,14 +2086,8 @@ packages:
   '@platformatic/http-metrics@0.2.1':
     resolution: {integrity: sha512-Gy3NHUQT250MrJMlwzcSniVc+71DmCN1BpsuJcBlxyDpNacsH9axNonNWSNJqcWg8WOrv7tS6miBql2cugVuAg==}
 
-  '@platformatic/itc@2.70.1':
-    resolution: {integrity: sha512-dUaN5c5VAeDYazyUEdr/xUiemE4kWNRd5doGUMBErzlW5gOxbebgJcuxt3++FAFvGaj/bXE439cL6Hqs8NhQrA==}
-
   '@platformatic/itc@2.71.0':
     resolution: {integrity: sha512-tLoGgTmSSbQZYpweO3vBp2HB3EO9cv0uCbMRxZfw9a5X9lI086v6xbr16Dbs4XxVK+QuB6dPGqQJFIj6PjvJcw==}
-
-  '@platformatic/metrics@2.70.1':
-    resolution: {integrity: sha512-aYoJQO2nSel8jAXVLQ+S4QbPTRK1uPfCfDo3yOuTZn07McS8/WlMAxMmxFtKxXpDcSA9T1HEAbMEOqfBEL9hjQ==}
 
   '@platformatic/metrics@2.71.0':
     resolution: {integrity: sha512-arC24NgDxzDx0l19sJRpzv+kqWgPhmSnI0lCEQnLpN0vzIjIP5eIdVG1DZ9J/ufy9pa4rpjoowLeQ2vfxwJCpg==}
@@ -2120,10 +2101,6 @@ packages:
 
   '@platformatic/openapi-schema-validator@3.0.0':
     resolution: {integrity: sha512-SHEY5v1Q5EliMaIpXdPCye0QkhFVOoHkEqA8v9qkrO1PqvVOcpii1WqEHYrZZB430sEmrHqEWZInt15EUsR7mw==}
-
-  '@platformatic/runtime@2.70.1':
-    resolution: {integrity: sha512-QG91y/lkqc68ioId1xyfniBMHEty6fNd5qd8nDDoBtvtGPQvPnETAVyMeLr3Fyx0QJZbYk4kj31oiE7j/KoufQ==}
-    hasBin: true
 
   '@platformatic/runtime@2.71.0':
     resolution: {integrity: sha512-zr6M/rhHjYro7lXHoBi8DrpGDFdontJZKugcuDM7gWhf7IGW1Jfv8LZkepgEMCxOVyak0bkQJqP3fxUPy5r3Qg==}
@@ -2158,14 +2135,8 @@ packages:
   '@platformatic/sql-openapi@2.71.0':
     resolution: {integrity: sha512-Cnn6R8vSh96UevM8b5Ilf9R+aY31U34pX4YFfDXy/ogr2UtC7JkKt1UR0RTH0ImaJ3B0nsphrcRNVCts+UjGNQ==}
 
-  '@platformatic/telemetry@2.70.1':
-    resolution: {integrity: sha512-H4KKS8RrdOysnhwFob64PS3bTKUzXT4HH4H2cO6hp7G580QJh2QqQH8mlUJCo/83W+Eua8J3xYFNvdIHGEpjMA==}
-
   '@platformatic/telemetry@2.71.0':
     resolution: {integrity: sha512-pamMSyXaptodtijCo71oORxx56bD8koLhFV//O3E9fEMObNmAsE0KDZ1TWJKthDcpaO0vrI9Wk0Vt+I/D6nSdA==}
-
-  '@platformatic/ts-compiler@2.70.1':
-    resolution: {integrity: sha512-Bln6+xWbRlKZO5x6dbspy2lZYPzBuXrtLiHg3JDriLFyKeHqS1u2Jbx1qwprfTlXQ43lPSGoQkHkZddl9fjHDA==}
 
   '@platformatic/ts-compiler@2.71.0':
     resolution: {integrity: sha512-Z/HedQiqkeqzjHJo1IxX88gBHooBQR1VygYXRR3myerS6kpnD6napJfdZiylO9IvmAfexsSWDqaMg2KSccaolg==}
@@ -2178,9 +2149,6 @@ packages:
 
   '@platformatic/undici-cache-redis@0.7.1':
     resolution: {integrity: sha512-fhPD8yDJX/AgTzhXgt9B/acPNEBfKf2GA2oZlHNPBgFyJJq8dOKsq5PYAyg9FyoDHuv0fVxZAc/+U+8j6rOAsw==}
-
-  '@platformatic/utils@2.70.1':
-    resolution: {integrity: sha512-IRb8ZdNPT4TtFSQVVH4FU+E1Wcw8Hw391ffObnfNlMkZnD4J+doMaG3k8qyMS9bVH/5WkwH6+ISg55B1AA445g==}
 
   '@platformatic/utils@2.71.0':
     resolution: {integrity: sha512-XWKK69EJft7FLn1EjxL4A6hbpQ3ICIobXMHCx35H1gCN2kqb1orCr93jGr0EfJIj3iFQdBh7L1CibT1DJ9rt+Q==}
@@ -3447,10 +3415,6 @@ packages:
   crc32-stream@6.0.0:
     resolution: {integrity: sha512-piICUB6ei4IlTv1+653yq5+KoqfBYmj9bw6LqXoOneTMDXk5nM1qt12mFW1caG3LlJXEKW1Bp0WggEmIfQB34g==}
     engines: {node: '>= 14'}
-
-  create-platformatic@2.70.1:
-    resolution: {integrity: sha512-u7DqbYn+Jkf+x9BW78+RNAywrMnObhnT1y0SOzthaPydN64He1UoVs1tPH+/oM8Ix6w9MkDlySqumBvIeUv4xQ==}
-    hasBin: true
 
   create-platformatic@2.71.0:
     resolution: {integrity: sha512-nNsPI3/GnMlxx7WA9B6gpS0m4RL8gwVowZrVPqgZDK2OnjdMS6HzGZ4XguKi+vCwVyAWG2b8veCFPqq5BDROzQ==}
@@ -6425,10 +6389,6 @@ packages:
     resolution: {integrity: sha512-gBLkYIlEnSp8pFbT64yFgGE6UIB9tAkhukC23PmMDCe5Nd+cRqKxSjw5y54MK2AZMgZfJWMaNE4nYUHgi1XEOw==}
     engines: {node: '>=18.17'}
 
-  undici@7.10.0:
-    resolution: {integrity: sha512-u5otvFBOBZvmdjWLVW+5DAc9Nkq8f24g0O9oY7qw2JVIF1VocIFoyz9JFkuVOS2j41AufeO0xnlweJ2RLT8nGw==}
-    engines: {node: '>=20.18.1'}
-
   undici@7.11.0:
     resolution: {integrity: sha512-heTSIac3iLhsmZhUCjyS3JQEkZELateufzZuBaVM5RHXdSBMb1LPMQf5x+FH7qjsZYDP0ttAc3nnVpUB+wYbOg==}
     engines: {node: '>=20.18.1'}
@@ -6592,10 +6552,6 @@ packages:
 
   vscode-uri@3.0.8:
     resolution: {integrity: sha512-AyFQ0EVmsOZOlAnxoFOGOq1SQDWAB7C6aqMGS23svWAllfOaxbuFvcT8D1i8z3Gyn8fraVeZNNmN6e9bxxXkKw==}
-
-  wattpm@2.70.1:
-    resolution: {integrity: sha512-f7LewoRFx7lL6BIwuxt+lTtF10mHz7q/7AEB4t68djWWO2yah5t2fxvMdlSrnmUIu31xyqrZ4aHd2BbYrbsXgg==}
-    hasBin: true
 
   wattpm@2.71.0:
     resolution: {integrity: sha512-Tludvud0Jdxa2b0oqSuh5OLMq6YV+dlh5NBOlncqE3xKxJAhLiNe787w9al1YgNxJ35BNfVlGveGt4O9943YOA==}
@@ -8525,27 +8481,6 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@platformatic/basic@2.70.1':
-    dependencies:
-      '@fastify/error': 4.2.0
-      '@platformatic/config': 2.70.1
-      '@platformatic/itc': 2.70.1
-      '@platformatic/metrics': 2.70.1
-      '@platformatic/telemetry': 2.70.1
-      '@platformatic/utils': 2.70.1
-      execa: 9.6.0
-      fast-json-patch: 3.1.1
-      pino: 9.7.0
-      pino-abstract-transport: 2.0.0
-      semver: 7.7.2
-      split2: 4.2.0
-      undici: 7.11.0
-      ws: 8.18.3
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
   '@platformatic/basic@2.71.0':
     dependencies:
       '@fastify/error': 4.2.0
@@ -8643,20 +8578,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@platformatic/config@2.70.1':
-    dependencies:
-      '@fastify/deepmerge': 2.0.2
-      '@fastify/error': 4.2.0
-      '@platformatic/utils': 2.70.1
-      abstract-logging: 2.0.1
-      ajv: 8.17.1
-      dotenv: 16.6.1
-      jsonpath: 1.1.1
-      minimist: 1.2.8
-      pupa: 3.1.0
-      semver: 7.7.2
-      undici: 7.11.0
-
   '@platformatic/config@2.71.0':
     dependencies:
       '@fastify/deepmerge': 2.0.2
@@ -8670,21 +8591,6 @@ snapshots:
       pupa: 3.1.0
       semver: 7.7.2
       undici: 7.11.0
-
-  '@platformatic/control@2.70.1':
-    dependencies:
-      '@fastify/error': 4.2.0
-      '@platformatic/utils': 2.70.1
-      commist: 3.2.0
-      help-me: 5.0.0
-      pino: 9.7.0
-      pino-pretty: 13.0.0
-      table: 6.9.0
-      undici: 7.11.0
-      ws: 8.18.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   '@platformatic/control@2.71.0':
     dependencies:
@@ -8783,18 +8689,6 @@ snapshots:
       fastify-plugin: 5.0.1
       js-yaml: 4.1.0
 
-  '@platformatic/generators@2.70.1':
-    dependencies:
-      '@fastify/error': 4.2.0
-      '@platformatic/config': 2.70.1
-      '@platformatic/utils': 2.70.1
-      change-case-all: 2.1.0
-      execa: 9.6.0
-      fastify: 5.4.0
-      glob: 11.0.3
-      pino: 9.7.0
-      undici: 7.11.0
-
   '@platformatic/generators@2.71.0':
     dependencies:
       '@fastify/error': 4.2.0
@@ -8824,22 +8718,10 @@ snapshots:
     dependencies:
       prom-client: 15.1.3
 
-  '@platformatic/itc@2.70.1':
-    dependencies:
-      '@fastify/error': 4.2.0
-      '@watchable/unpromise': 1.0.2
-
   '@platformatic/itc@2.71.0':
     dependencies:
       '@fastify/error': 4.2.0
       '@watchable/unpromise': 1.0.2
-
-  '@platformatic/metrics@2.70.1':
-    dependencies:
-      '@platformatic/http-metrics': 0.2.1
-      prom-client: 15.1.3
-    optionalDependencies:
-      thread-cpu-usage: 0.2.0
 
   '@platformatic/metrics@2.71.0':
     dependencies:
@@ -8885,52 +8767,6 @@ snapshots:
       ajv-draft-04: 1.0.0(ajv@8.17.1)
       ajv-formats: 3.0.1(ajv@8.17.1)
       js-yaml: 4.1.0
-
-  '@platformatic/runtime@2.70.1':
-    dependencies:
-      '@fastify/accepts': 5.0.2
-      '@fastify/error': 4.2.0
-      '@fastify/websocket': 11.1.0
-      '@hapi/topo': 6.0.2
-      '@opentelemetry/api': 1.9.0
-      '@platformatic/basic': 2.70.1
-      '@platformatic/config': 2.70.1
-      '@platformatic/generators': 2.70.1
-      '@platformatic/itc': 2.70.1
-      '@platformatic/metrics': 2.70.1
-      '@platformatic/telemetry': 2.70.1
-      '@platformatic/ts-compiler': 2.70.1
-      '@platformatic/undici-cache-memory': 0.8.4
-      '@platformatic/utils': 2.70.1
-      '@watchable/unpromise': 1.0.2
-      change-case-all: 2.1.0
-      close-with-grace: 2.2.0
-      commist: 3.2.0
-      cron: 4.3.1
-      debounce: 2.2.0
-      desm: 1.3.1
-      dotenv: 16.6.1
-      dotenv-tool: 0.1.1
-      es-main: 1.3.0
-      fastest-levenshtein: 1.0.16
-      fastify: 5.4.0
-      graphql: 16.11.0
-      help-me: 5.0.0
-      minimist: 1.2.8
-      pino: 9.7.0
-      pino-pretty: 13.0.0
-      pino-roll: 2.2.0
-      prom-client: 15.1.3
-      semgrator: 0.3.0
-      sonic-boom: 4.2.0
-      tail-file-stream: 0.2.0
-      undici: 7.11.0
-      undici-thread-interceptor: 0.14.1
-      ws: 8.18.3
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
 
   '@platformatic/runtime@2.71.0':
     dependencies:
@@ -9104,28 +8940,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@platformatic/telemetry@2.70.1':
-    dependencies:
-      '@fastify/swagger': 9.5.1
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/core': 1.30.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/exporter-trace-otlp-proto': 0.57.2(@opentelemetry/api@1.9.0)
-      '@opentelemetry/exporter-zipkin': 1.30.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/instrumentation': 0.57.2(@opentelemetry/api@1.9.0)
-      '@opentelemetry/instrumentation-http': 0.56.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/instrumentation-undici': 0.13.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/resources': 1.30.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-node': 0.57.2(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-trace-base': 1.30.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/semantic-conventions': 1.30.0
-      '@platformatic/config': 2.70.1
-      '@platformatic/utils': 2.70.1
-      abstract-logging: 2.0.1
-      fast-uri: 3.0.6
-      fastify-plugin: 5.0.1
-    transitivePeerDependencies:
-      - supports-color
-
   '@platformatic/telemetry@2.71.0':
     dependencies:
       '@fastify/swagger': 9.5.1
@@ -9147,14 +8961,6 @@ snapshots:
       fastify-plugin: 5.0.1
     transitivePeerDependencies:
       - supports-color
-
-  '@platformatic/ts-compiler@2.70.1':
-    dependencies:
-      '@platformatic/utils': 2.70.1
-      execa: 9.6.0
-      pino: 9.7.0
-      pino-pretty: 13.0.0
-      resolve: 1.22.10
 
   '@platformatic/ts-compiler@2.71.0':
     dependencies:
@@ -9183,18 +8989,6 @@ snapshots:
       lru_map: 0.4.1
     transitivePeerDependencies:
       - supports-color
-
-  '@platformatic/utils@2.70.1':
-    dependencies:
-      '@fastify/deepmerge': 2.0.2
-      '@fastify/error': 4.2.0
-      '@watchable/unpromise': 1.0.2
-      boring-name-generator: 1.0.3
-      glob: 11.0.3
-      leven: 3.1.0
-      minimatch: 10.0.3
-      semver: 7.7.2
-      undici: 7.10.0
 
   '@platformatic/utils@2.71.0':
     dependencies:
@@ -10695,28 +10489,6 @@ snapshots:
     dependencies:
       crc-32: 1.2.2
       readable-stream: 4.7.0
-
-  create-platformatic@2.70.1:
-    dependencies:
-      '@platformatic/config': 2.70.1
-      '@platformatic/generators': 2.70.1
-      '@platformatic/utils': 2.70.1
-      columnify: 1.6.0
-      commist: 3.2.0
-      desm: 1.3.1
-      es-main: 1.3.0
-      execa: 9.6.0
-      help-me: 5.0.0
-      inquirer: 9.3.7
-      minimist: 1.2.8
-      ora: 6.3.1
-      pino: 9.7.0
-      pino-pretty: 13.0.0
-      resolve: 1.22.10
-      semver: 7.7.2
-      strip-ansi: 7.1.0
-      undici: 7.11.0
-      which: 3.0.1
 
   create-platformatic@2.71.0:
     dependencies:
@@ -14234,8 +14006,6 @@ snapshots:
 
   undici@6.21.3: {}
 
-  undici@7.10.0: {}
-
   undici@7.11.0: {}
 
   unicorn-magic@0.1.0: {}
@@ -14386,29 +14156,6 @@ snapshots:
       vscode-languageserver-protocol: 3.17.5
 
   vscode-uri@3.0.8: {}
-
-  wattpm@2.70.1:
-    dependencies:
-      '@platformatic/config': 2.70.1
-      '@platformatic/control': 2.70.1
-      '@platformatic/runtime': 2.70.1
-      '@platformatic/utils': 2.70.1
-      colorette: 2.0.20
-      commist: 3.2.0
-      create-platformatic: 2.70.1
-      dotenv: 16.6.1
-      execa: 9.6.0
-      help-me: 5.0.0
-      minimist: 1.2.8
-      pino: 9.7.0
-      pino-pretty: 13.0.0
-      semver: 7.7.2
-      split2: 4.2.0
-      table: 6.9.0
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
 
   wattpm@2.71.0:
     dependencies:
