@@ -8,6 +8,7 @@ const scalerPlugin = require('../../plugins/scaler')
 const predictionSchedulerPlugin = require('../../plugins/prediction-scheduler')
 const envPlugin = require('../../plugins/env')
 const storePlugin = require('../../plugins/store')
+const leaderPlugin = require('../../plugins/leader')
 
 test('should register the scaler plugin correctly', async (t) => {
   const server = await buildServer(t)
@@ -32,6 +33,7 @@ test('should pass podId through PostgreSQL notification', async (t) => {
     createExecutor(executor1),
     storePlugin,
     predictionSchedulerPlugin,
+    leaderPlugin,
     scalerPlugin
   ]
 
@@ -67,6 +69,7 @@ test('only one instance processes notifications with real scaler', async (t) => 
     createExecutor(executor1),
     storePlugin,
     predictionSchedulerPlugin,
+    leaderPlugin,
     scalerPlugin
   ]
 
@@ -81,6 +84,7 @@ test('only one instance processes notifications with real scaler', async (t) => 
     createExecutor(executor2),
     storePlugin,
     predictionSchedulerPlugin,
+    leaderPlugin,
     scalerPlugin
   ]
 

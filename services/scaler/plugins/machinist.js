@@ -48,6 +48,28 @@ class Machinist {
     return controllers[0]
   }
 
+  async getController (controllerId, namespace, apiVersion, kind) {
+    this.#app.log.info('Getting controller details')
+
+    const url = this.url + `/controllers/${namespace}/${controllerId}`
+    const { statusCode, body } = await request(url, {
+      query: { kind, apiVersion },
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      this.#app.log.error(
+        { error, controllerId, namespace, apiVersion, kind },
+        'Failed to get controller details'
+      )
+      throw new errors.FAILED_TO_GET_CONTROLLER(error)
+    }
+
+    const data = await body.json()
+    return data.controller
+  }
+
   async updateController (
     controllerId,
     namespace,
@@ -76,6 +98,27 @@ class Machinist {
       )
       throw new errors.FAILED_TO_UPDATE_CONTROLLER(error)
     }
+  }
+
+  async getControllers () {
+    this.#app.log.info('Getting all controllers')
+
+    const url = this.url + '/controllers'
+    const { statusCode, body } = await request(url, {
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      this.#app.log.error(
+        { error },
+        'Failed to get controllers'
+      )
+      throw new errors.FAILED_TO_GET_CONTROLLERS(error)
+    }
+
+    const data = await body.json()
+    return data.controllers
   }
 }
 
