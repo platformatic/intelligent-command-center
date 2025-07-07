@@ -51,7 +51,7 @@ async function getConfig () {
     ]
   }
   config.metrics = {
-    port: 19090
+    port: 0
   }
   return { config }
 }
