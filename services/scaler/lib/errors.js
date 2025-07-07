@@ -17,7 +17,13 @@ module.exports = {
   FAILED_TO_UPDATE_CONTROLLER: createError(
     `${ERROR_PREFIX}_FAILED_TO_UPDATE_CONTROLLER`, 'Failed to update controller: %s'
   ),
+  FAILED_TO_GET_CONTROLLER: createError(
+    `${ERROR_PREFIX}_FAILED_TO_GET_CONTROLLER`, 'Failed to get controller: %s'
+  ),
   APPLICATION_CONTROLLER_NOT_FOUND: createError(
     `${ERROR_PREFIX}_APPLICATION_CONTROLLER_NOT_FOUND`, 'Application controller not found for "%s" application'
+  ),
+  FAILED_TO_GET_CONTROLLERS: createError(
+    `${ERROR_PREFIX}_FAILED_TO_GET_CONTROLLERS`, 'Failed to get controllers: %s'
   )
 }
