@@ -9,33 +9,37 @@ async function plugin (app) {
   const { db } = app.platformatic
   let isLeader = false
 
-  const startPeriodicServices = async () => {
+  const startPeriodicServices = () => {
     // Start periodic scaler trigger if available
     if (app.startScalerTrigger) {
-      await app.startScalerTrigger()
+      app.startScalerTrigger()
     }
+
     // Start prediction scheduling if available
     if (app.startPredictionScheduling) {
-      await app.startPredictionScheduling()
+      app.startPredictionScheduling()
     }
+
     // Start K8s sync if available
     if (app.startK8sSync) {
-      await app.startK8sSync()
+      app.startK8sSync()
     }
   }
 
-  const stopPeriodicServices = async () => {
+  const stopPeriodicServices = () => {
     // Stop periodic scaler trigger if available
     if (app.stopScalerTrigger) {
-      await app.stopScalerTrigger()
+      app.stopScalerTrigger()
     }
+
     // Stop prediction scheduling if available
     if (app.stopPredictionScheduling) {
-      await app.stopPredictionScheduling()
+      app.stopPredictionScheduling()
     }
+
     // Stop K8s sync if available
     if (app.stopK8sSync) {
-      await app.stopK8sSync()
+      app.stopK8sSync()
     }
   }
 
@@ -57,9 +61,9 @@ async function plugin (app) {
         isLeader = newIsLeader
         app.log.info({ isLeader }, 'Leadership status changed')
         if (isLeader) {
-          await startPeriodicServices()
+          startPeriodicServices()
         } else {
-          await stopPeriodicServices()
+          stopPeriodicServices()
         }
       }
     }
