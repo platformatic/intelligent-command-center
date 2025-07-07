@@ -50,7 +50,7 @@ test('prediction scheduler should process predictions when scheduling is active'
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
 
   await setTimeout(100)
   const remaining = await server.store.getPredictions()
@@ -150,7 +150,7 @@ test('should execute overdue prediction immediately', async (t) => {
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   assert.strictEqual(scalingExecuted, true, 'Overdue prediction should be executed immediately')
@@ -192,7 +192,7 @@ test('should schedule future prediction correctly', async (t) => {
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(700)
 
   assert.strictEqual(scalingExecuted, true, 'Future prediction should be executed after timeout')
@@ -232,7 +232,7 @@ test('should respect scale config min/max constraints', async (t) => {
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   assert.strictEqual(actualTargetPods, 5, 'Target pods should be capped at maxPods')
@@ -266,7 +266,7 @@ test('should not scale when target equals current pod count', async (t) => {
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   assert.strictEqual(scalingExecuted, false, 'Scaling should not be executed when target equals current')
@@ -300,7 +300,7 @@ test('should handle missing controller gracefully', async (t) => {
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   assert.strictEqual(scalingExecuted, false, 'Scaling should not be executed when controller is missing')
@@ -334,7 +334,7 @@ test('should handle missing controllers plugin gracefully', async (t) => {
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   assert.strictEqual(scalingExecuted, false, 'Scaling should not be executed when controllers plugin is missing')
@@ -365,7 +365,7 @@ test('should handle missing scaler executor gracefully', async (t) => {
   server.scalerExecutor = undefined
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   const remaining = await server.store.getPredictions()
@@ -399,7 +399,7 @@ test('should handle scaling execution failure', async (t) => {
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   const remaining = await server.store.getPredictions()
@@ -432,7 +432,7 @@ test('should handle scaling execution error', async (t) => {
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   const remaining = await server.store.getPredictions()
@@ -470,7 +470,7 @@ test('should handle down action with min constraint', async (t) => {
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   assert.strictEqual(actualTargetPods, 2, 'Target pods should be capped at minPods')
@@ -520,7 +520,7 @@ test('should chain multiple predictions', async (t) => {
   }
 
   await server.store.replaceApplicationPredictions(appId, predictions)
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   assert.strictEqual(executedPredictions.length, 2, 'Both predictions should be executed')
@@ -745,7 +745,7 @@ test('should call recordPredictionScaling after successful prediction execution'
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   assert.strictEqual(recordingCalled, true, 'recordPredictionScaling should be called')
@@ -797,7 +797,7 @@ test('should not call recordPredictionScaling when scaling fails', async (t) => 
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   assert.strictEqual(recordingCalled, false, 'recordPredictionScaling should not be called when scaling fails')
@@ -840,7 +840,7 @@ test('should handle missing trendsLearningAlgorithm gracefully', async (t) => {
   delete server.trendsLearningAlgorithm
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   const remaining = await server.store.getPredictions()
@@ -885,7 +885,7 @@ test('should handle recordPredictionScaling errors gracefully', async (t) => {
   }
 
   await server.store.replaceApplicationPredictions(appId, [prediction])
-  await server.startPredictionScheduling()
+  await server.scheduleNextPrediction()
   await setTimeout(100)
 
   const remaining = await server.store.getPredictions()

@@ -119,46 +119,53 @@ module.exports = fp(async function (app) {
     }
   }
 
-  async function startSync () {
+  async function scheduleSync () {
+    const { signal } = syncController
+
+    if (signal.aborted) {
+      return
+    }
+
     try {
-      if ((syncController && !syncController.signal.aborted) || isServerClosed) {
-        return
-      }
-
-      syncController = new AbortController()
-      const { signal } = syncController
-
-      logger.info({ intervalSeconds: syncIntervalSeconds }, 'Starting K8s sync scheduler')
-
-      while (!signal.aborted) {
+      await setTimeout(syncIntervalSeconds * 1000, null, { signal })
+      if (!signal.aborted) {
+        logger.info('Executing K8s controller sync')
         try {
-          await setTimeout(syncIntervalSeconds * 1000, null, { signal })
-          if (!signal.aborted) {
-            logger.info('Executing K8s controller sync')
-            try {
-              await syncControllerData()
-            } catch (err) {
-              logger.error({ err }, 'Error in K8s sync execution')
-            }
-          }
+          await syncControllerData()
         } catch (err) {
-          if (err.name === 'AbortError') {
-            break
-          }
-          logger.error({ err }, 'Error in K8s sync loop, retrying after delay')
-          try {
-            await setTimeout(1000, null, { signal })
-          } catch (delayErr) {
-            if (delayErr.name === 'AbortError') {
-              break
-            }
-            logger.error({ err: delayErr }, 'Error in retry delay')
-          }
+          logger.error({ err }, 'Error in K8s sync execution')
         }
+        // Schedule next sync
+        scheduleSync()
       }
     } catch (err) {
-      logger.error({ err }, 'Failed to start K8s sync')
+      if (err.name === 'AbortError') {
+        return
+      }
+      logger.error({ err }, 'Error in K8s sync, retrying after delay')
+      try {
+        await setTimeout(1000, null, { signal })
+        // Retry scheduling
+        scheduleSync()
+      } catch (delayErr) {
+        if (delayErr.name === 'AbortError') {
+          return
+        }
+        logger.error({ err: delayErr }, 'Error in retry delay')
+      }
     }
+  }
+
+  async function startSync () {
+    if ((syncController && !syncController.signal.aborted) || isServerClosed) {
+      return
+    }
+
+    syncController = new AbortController()
+    logger.info({ intervalSeconds: syncIntervalSeconds }, 'Starting K8s sync scheduler')
+
+    // Start the recursive scheduling
+    scheduleSync()
   }
 
   async function stopSync () {
