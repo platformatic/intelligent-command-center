@@ -4,11 +4,12 @@ const fp = require('fastify-plugin')
 const { setTimeout } = require('timers/promises')
 
 async function plugin (app) {
+  let isServerClosed = false
   const periodicTriggerInterval = (Number(process.env.PLT_SCALER_PERIODIC_TRIGGER) || 60) * 1000
   let periodicTriggerController = null
 
   async function startPeriodicTrigger () {
-    if (periodicTriggerController && !periodicTriggerController.signal.aborted) {
+    if ((periodicTriggerController && !periodicTriggerController.signal.aborted) || isServerClosed) {
       return
     }
 
@@ -17,28 +18,35 @@ async function plugin (app) {
 
     app.log.info({ interval: periodicTriggerInterval }, 'Starting periodic scaler trigger')
 
-    // Only runs on leader
     try {
       while (!signal.aborted) {
-        await setTimeout(periodicTriggerInterval, null, { signal })
-
-        app.log.info('Executing periodic scaler trigger')
         try {
-          await app.scalerExecutor.checkScalingOnMetrics()
+          await setTimeout(periodicTriggerInterval, null, { signal })
+          if (!signal.aborted) {
+            app.log.info('Executing periodic scaler trigger')
+            try {
+              await app.scalerExecutor.checkScalingOnMetrics()
+            } catch (err) {
+              app.log.error({ err }, 'Error during periodic trigger execution')
+            }
+          }
         } catch (err) {
-          app.log.error({ err }, 'Error during periodic trigger execution')
+          if (err.name === 'AbortError') {
+            break
+          }
+          app.log.error({ err }, 'Error in periodic trigger loop, retrying after delay')
+          try {
+            await setTimeout(1000, null, { signal })
+          } catch (delayErr) {
+            if (delayErr.name === 'AbortError') {
+              break
+            }
+            app.log.error({ err: delayErr }, 'Error in retry delay')
+          }
         }
       }
     } catch (err) {
-      if (err.name !== 'AbortError') {
-        app.log.error({ err }, 'Error in periodic trigger loop')
-        // Restart the loop after a short delay if not aborted
-        if (!signal.aborted) {
-          setTimeout(1000).then(() => {
-            startPeriodicTrigger()
-          })
-        }
-      }
+      app.log.error({ err }, 'Failed to start periodic scaler trigger')
     }
   }
 
@@ -51,6 +59,7 @@ async function plugin (app) {
   }
 
   app.addHook('onClose', async () => {
+    isServerClosed = true
     stopPeriodicTrigger()
   })
 

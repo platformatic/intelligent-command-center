@@ -9,6 +9,36 @@ async function plugin (app) {
   const { db } = app.platformatic
   let isLeader = false
 
+  const startPeriodicServices = async () => {
+    // Start periodic scaler trigger if available
+    if (app.startScalerTrigger) {
+      await app.startScalerTrigger()
+    }
+    // Start prediction scheduling if available
+    if (app.startPredictionScheduling) {
+      await app.startPredictionScheduling()
+    }
+    // Start K8s sync if available
+    if (app.startK8sSync) {
+      await app.startK8sSync()
+    }
+  }
+
+  const stopPeriodicServices = async () => {
+    // Stop periodic scaler trigger if available
+    if (app.stopScalerTrigger) {
+      await app.stopScalerTrigger()
+    }
+    // Stop prediction scheduling if available
+    if (app.stopPredictionScheduling) {
+      await app.stopPredictionScheduling()
+    }
+    // Stop K8s sync if available
+    if (app.stopK8sSync) {
+      await app.stopK8sSync()
+    }
+  }
+
   // Create leader elector to manage leadership
   const leaderElector = createLeaderElector({
     db,
@@ -26,25 +56,10 @@ async function plugin (app) {
       if (newIsLeader !== isLeader) {
         isLeader = newIsLeader
         app.log.info({ isLeader }, 'Leadership status changed')
-
         if (isLeader) {
-          // Activate scaler periodic trigger
-          if (app.startScalerTrigger) {
-            await app.startScalerTrigger()
-          }
-          // Start prediction scheduling if available
-          if (app.startPredictionScheduling) {
-            await app.startPredictionScheduling()
-          }
+          await startPeriodicServices()
         } else {
-          // Deactivate scaler periodic trigger
-          if (app.stopScalerTrigger) {
-            await app.stopScalerTrigger()
-          }
-          // Stop prediction scheduling if available
-          if (app.stopPredictionScheduling) {
-            await app.stopPredictionScheduling()
-          }
+          await stopPeriodicServices()
         }
       }
     }
@@ -67,5 +82,5 @@ async function plugin (app) {
 
 module.exports = fp(plugin, {
   name: 'leader',
-  dependencies: ['env', 'scaler-executor', 'prediction-scheduler']
+  dependencies: ['env', 'scaler-executor', 'prediction-scheduler', 'k8s-sync']
 })
