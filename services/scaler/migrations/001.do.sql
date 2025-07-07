@@ -33,6 +33,7 @@ CREATE TABLE scale_events (
   replicas INTEGER NOT NULL,
   replicas_diff INTEGER NOT NULL,
   reason VARCHAR(1000),
+  sync BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

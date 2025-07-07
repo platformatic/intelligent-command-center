@@ -9,6 +9,19 @@ const predictionSchedulerPlugin = require('../../plugins/prediction-scheduler')
 const envPlugin = require('../../plugins/env')
 const storePlugin = require('../../plugins/store')
 const leaderPlugin = require('../../plugins/leader')
+const machinistPlugin = require('../../plugins/machinist')
+const k8sSyncPlugin = require('../../plugins/k8s-sync')
+
+const getPlugins = (executor) => [
+  envPlugin,
+  createExecutor(executor),
+  storePlugin,
+  predictionSchedulerPlugin,
+  machinistPlugin,
+  k8sSyncPlugin,
+  leaderPlugin,
+  scalerPlugin
+]
 
 test('should register the scaler plugin correctly', async (t) => {
   const server = await buildServer(t)
@@ -28,16 +41,7 @@ test('should pass podId through PostgreSQL notification', async (t) => {
       receivedPayload = payload
     }
   }
-  const plugins = [
-    envPlugin,
-    createExecutor(executor1),
-    storePlugin,
-    predictionSchedulerPlugin,
-    leaderPlugin,
-    scalerPlugin
-  ]
-
-  const server1 = await buildServerWithPlugins(t, {}, plugins)
+  const server1 = await buildServerWithPlugins(t, {}, getPlugins(executor1))
 
   t.after(async () => {
     await server1.close()
@@ -64,33 +68,15 @@ test('only one instance processes notifications with real scaler', async (t) => 
     }
   }
 
-  const plugins1 = [
-    envPlugin,
-    createExecutor(executor1),
-    storePlugin,
-    predictionSchedulerPlugin,
-    leaderPlugin,
-    scalerPlugin
-  ]
-
   const executor2 = {
     checkScalingOnAlert: async () => {
       server2ExecutionCount++
     }
   }
 
-  const plugins2 = [
-    envPlugin,
-    createExecutor(executor2),
-    storePlugin,
-    predictionSchedulerPlugin,
-    leaderPlugin,
-    scalerPlugin
-  ]
-
   // Create first the server2, so it will be the leader
-  const server2 = await buildServerWithPlugins(t, {}, plugins2)
-  const server1 = await buildServerWithPlugins(t, {}, plugins1)
+  const server2 = await buildServerWithPlugins(t, {}, getPlugins(executor1))
+  const server1 = await buildServerWithPlugins(t, {}, getPlugins(executor2))
 
   assert.ok(!server1.isScalerLeader(), 'Server 1 should not be the leader')
   assert.ok(server2.isScalerLeader(), 'Server 2 should be the leader')
