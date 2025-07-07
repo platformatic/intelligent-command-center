@@ -8,46 +8,53 @@ async function plugin (app) {
   const periodicTriggerInterval = (Number(process.env.PLT_SCALER_PERIODIC_TRIGGER) || 60) * 1000
   let periodicTriggerController = null
 
+  async function scheduleTrigger () {
+    const { signal } = periodicTriggerController
+
+    if (signal.aborted) {
+      return
+    }
+
+    try {
+      await setTimeout(periodicTriggerInterval, null, { signal })
+      if (!signal.aborted) {
+        app.log.info('Executing periodic scaler trigger')
+        try {
+          await app.scalerExecutor.checkScalingOnMetrics()
+        } catch (err) {
+          app.log.error({ err }, 'Error during periodic trigger execution')
+        }
+        // Schedule next trigger
+        scheduleTrigger()
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        return
+      }
+      app.log.error({ err }, 'Error in periodic trigger, retrying after delay')
+      try {
+        await setTimeout(1000, null, { signal })
+        // Retry scheduling
+        scheduleTrigger()
+      } catch (delayErr) {
+        if (delayErr.name === 'AbortError') {
+          return
+        }
+        app.log.error({ err: delayErr }, 'Error in retry delay')
+      }
+    }
+  }
+
   async function startPeriodicTrigger () {
     if ((periodicTriggerController && !periodicTriggerController.signal.aborted) || isServerClosed) {
       return
     }
 
     periodicTriggerController = new AbortController()
-    const { signal } = periodicTriggerController
-
     app.log.info({ interval: periodicTriggerInterval }, 'Starting periodic scaler trigger')
 
-    try {
-      while (!signal.aborted) {
-        try {
-          await setTimeout(periodicTriggerInterval, null, { signal })
-          if (!signal.aborted) {
-            app.log.info('Executing periodic scaler trigger')
-            try {
-              await app.scalerExecutor.checkScalingOnMetrics()
-            } catch (err) {
-              app.log.error({ err }, 'Error during periodic trigger execution')
-            }
-          }
-        } catch (err) {
-          if (err.name === 'AbortError') {
-            break
-          }
-          app.log.error({ err }, 'Error in periodic trigger loop, retrying after delay')
-          try {
-            await setTimeout(1000, null, { signal })
-          } catch (delayErr) {
-            if (delayErr.name === 'AbortError') {
-              break
-            }
-            app.log.error({ err: delayErr }, 'Error in retry delay')
-          }
-        }
-      }
-    } catch (err) {
-      app.log.error({ err }, 'Failed to start periodic scaler trigger')
-    }
+    // Start the recursive scheduling
+    scheduleTrigger()
   }
 
   function stopPeriodicTrigger () {
