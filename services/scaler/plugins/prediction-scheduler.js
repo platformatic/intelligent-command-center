@@ -168,8 +168,7 @@ async function plugin (app) {
     }
 
     isSchedulingActive = true
-    app.log.info('Starting prediction scheduling')
-    await scheduleNextPrediction()
+    return scheduleNextPrediction()
   }
 
   async function stopPredictionScheduling () {
