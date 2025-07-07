@@ -108,11 +108,6 @@ async function plugin (app) {
       return
     }
 
-    if (!app.isScalerLeader()) {
-      app.log.debug('Not leader, skipping prediction scheduling')
-      return
-    }
-
     try {
       if (predictionTimeout) {
         clearTimeout(predictionTimeout)
@@ -187,12 +182,6 @@ async function plugin (app) {
 
     app.log.info('Stopped prediction scheduling')
   }
-
-  app.addHook('onReady', async () => {
-    if (app.isScalerLeader()) {
-      await startPredictionScheduling()
-    }
-  })
 
   app.decorate('startPredictionScheduling', startPredictionScheduling)
   app.decorate('stopPredictionScheduling', stopPredictionScheduling)
