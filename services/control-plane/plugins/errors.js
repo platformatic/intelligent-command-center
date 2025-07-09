@@ -44,7 +44,8 @@ module.exports = {
   ),
   PodAssignedToDifferentApplication: createError(
     `${ERROR_PREFIX}_POD_ASSIGNED_TO_DIFFERENT_APPLICATION`,
-    'Pod "%s" is assigned to a different application "%s"'
+    'Pod "%s" is assigned to a different application "%s"',
+    400
   ),
   FailedToGetLock: createError(
     `${ERROR_PREFIX}_FAILED_TO_GET_LOCK`, 'Failed to get lock"'
@@ -107,5 +108,10 @@ module.exports = {
   FailedToGetK8sState: createError(
     `${ERROR_PREFIX}_FAILED_TO_GET_K8S_STATE`,
     'Failed to get k8s state: %s'
+  ),
+  ApplicationNameNotFound: createError(
+    `${ERROR_PREFIX}_APPLICATION_NAME_NOT_FOUND`,
+    'Application name not found for pod "%s"',
+    400
   )
 }

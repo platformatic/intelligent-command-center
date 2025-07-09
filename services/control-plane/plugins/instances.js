@@ -38,32 +38,56 @@ module.exports = fp(async function (app) {
 
     ctx.logger.debug({ podId }, 'Getting application instance')
 
-    const { image: imageId } = await app.machinist.getPodDetails(
-      podId,
-      namespace,
-      ctx
-    )
-
+    // Check if pod already exists in database first
     const instance = await app.getInstanceByPodId(podId, namespace)
     if (instance !== null) {
+      // Pod exists in DB, get application and deployment info
       ([application, deployment] = await Promise.all([
         app.getApplicationById(instance.applicationId),
         app.getDeploymentById(instance.deploymentId)
       ]))
-      if (applicationName !== application.name) {
+
+      // If applicationName was provided in request, validate it matches DB
+      if (applicationName && applicationName !== application.name) {
         throw new errors.PodAssignedToDifferentApplication(
           instance.podId,
           application.name
         )
       }
+
+      // Get pod details to check image consistency
+      const podDetails = await app.machinist.getPodDetails(
+        podId,
+        namespace,
+        ctx
+      )
+      const { image: imageId } = podDetails
+
       if (imageId !== deployment.imageId) {
         throw new errors.PodAssignedToDifferentImage(
           instance.podId,
           deployment.imageId
         )
       }
+
       ctx.logger.debug({ instance }, 'Got app instance with the same pod id')
     } else {
+      // Pod doesn't exist in DB, need to get pod details and resolve application name
+      const podDetails = await app.machinist.getPodDetails(
+        podId,
+        namespace,
+        ctx
+      )
+      const { image: imageId } = podDetails
+
+      // If applicationName is not provided, get it from K8s pod details
+      if (!applicationName) {
+        ctx.logger.debug({ podId, namespace }, 'Application name not provided, fetching from Kubernetes')
+        applicationName = await app.getApplicationNameFromPodDetails(podDetails, podId, ctx)
+      } else {
+        ctx.logger.debug({ podId, applicationName, method: 'request-body' }, 'Application name provided in request body')
+      }
+
       const result = await app.saveInstance(
         applicationName, imageId, podId, namespace, ctx
       )
@@ -319,6 +343,29 @@ module.exports = fp(async function (app) {
       iccServicesConfigs[name] = { url }
     }
     return iccServicesConfigs
+  })
+
+  app.decorate('getApplicationNameFromPodDetails', async (podDetails, podId, ctx) => {
+    ctx.logger.debug({ podId }, 'Getting application name from pod details')
+
+    // Try to get application name from the controller (Deployment/StatefulSet/etc.)
+    if (podDetails.controller && podDetails.controller.name) {
+      const controller = podDetails.controller
+      ctx.logger.debug({
+        podId,
+        controllerName: controller.name,
+        controllerKind: controller.kind,
+        hasLabels: !!controller.metadata?.labels
+      }, 'Found controller in pod details')
+
+      // Use the controller name directly as the application name
+      return controller.name
+    } else {
+      ctx.logger.debug({ podId }, 'No controller found in pod details')
+    }
+
+    ctx.logger.warn({ podId }, 'Could not determine application name from Kubernetes metadata')
+    throw new errors.ApplicationNameNotFound(podId)
   })
 }, {
   name: 'instances',

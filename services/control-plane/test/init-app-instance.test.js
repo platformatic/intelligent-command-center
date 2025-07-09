@@ -72,6 +72,7 @@ test('should save an instance of a new application', async (t) => {
 
   const {
     applicationId,
+    applicationName: responseApplicationName,
     config,
     httpCache,
     iccServices,
@@ -80,6 +81,7 @@ test('should save an instance of a new application', async (t) => {
     enableTrafficanteInterceptor
   } = JSON.parse(body)
 
+  assert.strictEqual(responseApplicationName, applicationName)
   assert.strictEqual(enableOpenTelemetry, false)
   assert.strictEqual(enableSlicerInterceptor, false)
   assert.strictEqual(enableTrafficanteInterceptor, false)
@@ -313,12 +315,14 @@ test('should save a new app instance with the same image', async (t) => {
 
   const {
     applicationId,
+    applicationName: responseApplicationName,
     config,
     enableOpenTelemetry,
     enableSlicerInterceptor,
     enableTrafficanteInterceptor
   } = JSON.parse(body)
 
+  assert.strictEqual(responseApplicationName, applicationName)
   assert.strictEqual(enableOpenTelemetry, true)
   assert.strictEqual(enableSlicerInterceptor, true)
   assert.strictEqual(enableTrafficanteInterceptor, true)
@@ -469,7 +473,9 @@ test('should detect the same pod with the same image', async (t) => {
 
   assert.strictEqual(statusCode, 200, body)
 
-  const { applicationId, config } = JSON.parse(body)
+  const { applicationId, applicationName: responseApplicationName, config } = JSON.parse(body)
+
+  assert.strictEqual(responseApplicationName, applicationName)
 
   const { resources } = config
   assert.strictEqual(resources.threads, 1)
@@ -575,7 +581,9 @@ test('should save an app instance with a different image', async (t) => {
 
   assert.strictEqual(statusCode, 200, body)
 
-  const { applicationId, config } = JSON.parse(body)
+  const { applicationId, applicationName: responseApplicationName, config } = JSON.parse(body)
+
+  assert.strictEqual(responseApplicationName, applicationName)
 
   const { resources } = config
   assert.strictEqual(resources.threads, 1)
@@ -932,4 +940,577 @@ test('should throw 401 if pod id param does match with a jwt pod id', async (t) 
     error: 'Unauthorized',
     message: `Request pod id "${podId}" does not match with a jwt pod id "${jwtPodId}"`
   })
+})
+
+test('should get applicationName from controller name when missing from request body', async (t) => {
+  const controllerName = 'test-app-k8s-abc123def'
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
+  const activities = []
+  await startActivities(t, {
+    saveEvent: (activity) => activities.push(activity)
+  })
+
+  const complianceRules = []
+  await startCompliance(t, {
+    saveRule: (ruleName, rule) => {
+      complianceRules.push({ ruleName, rule })
+    }
+  })
+
+  await startMetrics(t)
+
+  const controllers = []
+  await startScaler(t, {
+    savePodController: (controller) => {
+      controllers.push(controller)
+    }
+  })
+
+  const iccUpdates = []
+  await startMainService(t, {
+    saveIccUpdate: (update) => {
+      iccUpdates.push(update)
+    }
+  })
+
+  const podsLabels = []
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      controller: {
+        name: controllerName
+      }
+    }),
+    setPodLabels: (podId, labels) => {
+      podsLabels.push({ podId, labels })
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'false'
+  })
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: {} // No applicationName in body
+  })
+
+  assert.strictEqual(statusCode, 200, body)
+
+  const {
+    applicationId,
+    applicationName: responseApplicationName,
+    config,
+    httpCache,
+    iccServices,
+    enableOpenTelemetry,
+    enableSlicerInterceptor,
+    enableTrafficanteInterceptor
+  } = JSON.parse(body)
+
+  assert.strictEqual(responseApplicationName, controllerName)
+  assert.strictEqual(enableOpenTelemetry, false)
+  assert.strictEqual(enableSlicerInterceptor, false)
+  assert.strictEqual(enableTrafficanteInterceptor, false)
+
+  const { resources, httpCacheConfig } = config
+  assert.strictEqual(resources.threads, 1)
+  assert.strictEqual(resources.heap, 1024)
+  assert.deepStrictEqual(resources.services, [])
+  assert.strictEqual(httpCacheConfig, null)
+
+  assert.strictEqual(httpCache.clientOpts.host, 'localhost')
+  assert.strictEqual(httpCache.clientOpts.port, 6342)
+  assert.strictEqual(
+    httpCache.clientOpts.username,
+    `plt-application-${applicationId}`
+  )
+  assert.strictEqual(
+    httpCache.clientOpts.keyPrefix,
+    `${applicationId}:`
+  )
+  assert.ok(httpCache.clientOpts.password)
+
+  assert.deepStrictEqual(Object.keys(iccServices).sort(), [
+    'activities',
+    'compliance',
+    'cron',
+    'metrics',
+    'riskEngine',
+    'riskManager',
+    'riskService',
+    'scaler',
+    'trafficante',
+    'userManager'
+  ])
+
+  const { entities } = controlPlane.platformatic
+
+  const generations = await entities.generation.find()
+  assert.strictEqual(generations.length, 1)
+
+  const generation = generations[0]
+  assert.strictEqual(generation.version, 1)
+
+  const applications = await entities.application.find()
+  assert.strictEqual(applications.length, 1)
+
+  const application = applications[0]
+  assert.strictEqual(application.name, controllerName)
+  assert.strictEqual(application.id, applicationId)
+})
+
+test('should throw ApplicationNameNotFound when applicationName is missing from both body and controller', async (t) => {
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      controller: null // No controller
+    })
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'false'
+  })
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: {} // No applicationName in body
+  })
+
+  assert.strictEqual(statusCode, 400, body)
+
+  const error = JSON.parse(body)
+  assert.deepStrictEqual(error, {
+    statusCode: 400,
+    code: 'PLT_CONTROL_PLANE_APPLICATION_NAME_NOT_FOUND',
+    error: 'Bad Request',
+    message: `Application name not found for pod "${podId}"`
+  })
+})
+
+test('should prefer applicationName from body over controller name', async (t) => {
+  const bodyApplicationName = 'test-app-body'
+  const controllerName = 'test-app-k8s-xyz789abc'
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
+  const activities = []
+  await startActivities(t, {
+    saveEvent: (activity) => activities.push(activity)
+  })
+
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      controller: {
+        name: controllerName
+      }
+    })
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'false'
+  })
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: { applicationName: bodyApplicationName }
+  })
+
+  assert.strictEqual(statusCode, 200, body)
+
+  const {
+    applicationId,
+    applicationName: responseApplicationName
+  } = JSON.parse(body)
+
+  assert.strictEqual(responseApplicationName, bodyApplicationName)
+
+  const { entities } = controlPlane.platformatic
+  const applications = await entities.application.find()
+  assert.strictEqual(applications.length, 1)
+
+  const application = applications[0]
+  assert.strictEqual(application.name, bodyApplicationName)
+  assert.strictEqual(application.id, applicationId)
+})
+
+test('should throw ApplicationNameNotFound when controller name is undefined', async (t) => {
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      controller: {
+        name: undefined // No name
+      }
+    })
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'false'
+  })
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: {} // No applicationName in body
+  })
+
+  assert.strictEqual(statusCode, 400, body)
+
+  const error = JSON.parse(body)
+  assert.deepStrictEqual(error, {
+    statusCode: 400,
+    code: 'PLT_CONTROL_PLANE_APPLICATION_NAME_NOT_FOUND',
+    error: 'Bad Request',
+    message: `Application name not found for pod "${podId}"`
+  })
+})
+
+test('should throw ApplicationNameNotFound when controller name is empty string', async (t) => {
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      controller: {
+        name: '' // Empty name
+      }
+    })
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'false'
+  })
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: {} // No applicationName in body
+  })
+
+  assert.strictEqual(statusCode, 400, body)
+
+  const error = JSON.parse(body)
+  assert.deepStrictEqual(error, {
+    statusCode: 400,
+    code: 'PLT_CONTROL_PLANE_APPLICATION_NAME_NOT_FOUND',
+    error: 'Bad Request',
+    message: `Application name not found for pod "${podId}"`
+  })
+})
+
+test('should accept controller name without dashes', async (t) => {
+  const controllerName = 'nodasheshere'
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      controller: {
+        name: controllerName
+      }
+    })
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'false'
+  })
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: {} // No applicationName in body
+  })
+
+  assert.strictEqual(statusCode, 200, body)
+
+  const {
+    applicationId,
+    applicationName: responseApplicationName
+  } = JSON.parse(body)
+
+  assert.strictEqual(responseApplicationName, controllerName)
+
+  const { entities } = controlPlane.platformatic
+  const applications = await entities.application.find()
+  assert.strictEqual(applications.length, 1)
+
+  const application = applications[0]
+  assert.strictEqual(application.name, controllerName)
+  assert.strictEqual(application.id, applicationId)
+})
+
+test('should accept controller regardless of type', async (t) => {
+  const controllerName = 'my-app-deployment'
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      controller: {
+        name: controllerName,
+        kind: 'Deployment' // Not a ReplicaSet, but that's OK
+      }
+    })
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'false'
+  })
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: {} // No applicationName in body
+  })
+
+  assert.strictEqual(statusCode, 200, body)
+
+  const {
+    applicationId,
+    applicationName: responseApplicationName
+  } = JSON.parse(body)
+
+  assert.strictEqual(responseApplicationName, controllerName)
+
+  const { entities } = controlPlane.platformatic
+  const applications = await entities.application.find()
+  assert.strictEqual(applications.length, 1)
+
+  const application = applications[0]
+  assert.strictEqual(application.name, controllerName)
+  assert.strictEqual(application.id, applicationId)
+})
+
+test('should use existing pod data without fetching application name from Kubernetes', async (t) => {
+  const applicationName = 'existing-app'
+  const podId = 'existing-pod-1'
+  const imageId = 'existing-image-1'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  let kubernetesCallCount = 0
+  await startMachinist(t, {
+    getPodDetails: (podId) => {
+      kubernetesCallCount++
+      return {
+        image: imageId,
+        controller: { name: 'should-not-be-used' }
+      }
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'false'
+  })
+
+  // Pre-populate the database with an existing pod
+  await controlPlane.testApi.saveInstance(
+    applicationName,
+    imageId,
+    podId
+  )
+
+  // Reset the call count after initial setup
+  kubernetesCallCount = 0
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: {} // No applicationName in body
+  })
+
+  assert.strictEqual(statusCode, 200, body)
+
+  const { applicationName: responseApplicationName } = JSON.parse(body)
+  assert.strictEqual(responseApplicationName, applicationName)
+
+  // Verify that Kubernetes was called only once (for image consistency check)
+  // and NOT for application name resolution
+  assert.strictEqual(kubernetesCallCount, 1, 'Should only call Kubernetes once for image check')
+})
+
+test('should use existing pod data when applicationName in request matches database', async (t) => {
+  const applicationName = 'matching-app'
+  const podId = 'matching-pod-1'
+  const imageId = 'matching-image-1'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  let kubernetesCallCount = 0
+  await startMachinist(t, {
+    getPodDetails: (podId) => {
+      kubernetesCallCount++
+      return {
+        image: imageId,
+        controller: { name: 'should-not-be-used' }
+      }
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'false'
+  })
+
+  // Pre-populate the database with an existing pod
+  await controlPlane.testApi.saveInstance(
+    applicationName,
+    imageId,
+    podId
+  )
+
+  // Reset the call count after initial setup
+  kubernetesCallCount = 0
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: { applicationName } // Provide matching applicationName
+  })
+
+  assert.strictEqual(statusCode, 200, body)
+
+  const { applicationName: responseApplicationName } = JSON.parse(body)
+  assert.strictEqual(responseApplicationName, applicationName)
+
+  // Verify that Kubernetes was called only once (for image consistency check)
+  // and NOT for application name resolution
+  assert.strictEqual(kubernetesCallCount, 1, 'Should only call Kubernetes once for image check')
+})
+
+test('should throw error when applicationName in request does not match database', async (t) => {
+  const dbApplicationName = 'db-app'
+  const requestApplicationName = 'different-app'
+  const podId = 'mismatched-pod-1'
+  const imageId = 'mismatched-image-1'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  let kubernetesCallCount = 0
+  await startMachinist(t, {
+    getPodDetails: (podId) => {
+      kubernetesCallCount++
+      return {
+        image: imageId,
+        controller: { name: 'should-not-be-used' }
+      }
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'false'
+  })
+
+  // Pre-populate the database with an existing pod
+  await controlPlane.testApi.saveInstance(
+    dbApplicationName,
+    imageId,
+    podId
+  )
+
+  // Reset the call count after initial setup
+  kubernetesCallCount = 0
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: { applicationName: requestApplicationName } // Provide non-matching applicationName
+  })
+
+  assert.strictEqual(statusCode, 400, body)
+
+  const error = JSON.parse(body)
+  assert.deepStrictEqual(error, {
+    statusCode: 400,
+    code: 'PLT_CONTROL_PLANE_POD_ASSIGNED_TO_DIFFERENT_APPLICATION',
+    error: 'Bad Request',
+    message: `Pod "${podId}" is assigned to a different application "${dbApplicationName}"`
+  })
+
+  // Verify that Kubernetes was NOT called for application name resolution
+  // since we failed validation before getting to image check
+  assert.strictEqual(kubernetesCallCount, 0, 'Should not call Kubernetes when validation fails early')
 })
