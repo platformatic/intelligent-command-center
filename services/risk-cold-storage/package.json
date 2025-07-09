@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0-RC.2",
+  "version": "2.0.0",
   "scripts": {
     "start": "platformatic start",
     "migrate": "platformatic db migrations apply",

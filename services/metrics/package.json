@@ -1,6 +1,6 @@
 {
   "name": "metrics",
-  "version": "1.0.0-RC.2",
+  "version": "2.0.0",
   "scripts": {
     "start": "platformatic start",
     "test": "NODE_OPTIONS=--trace-deprecation npm run lint | borp --concurrency 1",
