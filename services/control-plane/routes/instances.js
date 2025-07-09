@@ -53,14 +53,14 @@ module.exports = fp(async function (app) {
         type: 'object',
         properties: {
           applicationName: { type: 'string' }
-        },
-        required: ['applicationName']
+        }
       },
       response: {
         200: {
           type: 'object',
           properties: {
             applicationId: { type: 'string' },
+            applicationName: { type: 'string' },
             config: { $ref: 'applicationInstanceConfig' },
             enableOpenTelemetry: { type: 'boolean' },
             enableSlicerInterceptor: { type: 'boolean' },
@@ -102,6 +102,7 @@ module.exports = fp(async function (app) {
           },
           required: [
             'applicationId',
+            'applicationName',
             'config',
             'httpCache',
             'iccServices'
@@ -114,7 +115,7 @@ module.exports = fp(async function (app) {
       const { podId, namespace } = authK8sPodRequest(req.params.podId, req.k8s)
       const { applicationName } = req.body
 
-      const logger = req.log.child({ applicationName, podId })
+      const logger = req.log.child({ podId })
       const ctx = { req, logger }
 
       const { application, ...instanceConfig } = await app.initApplicationInstance(
@@ -124,7 +125,7 @@ module.exports = fp(async function (app) {
         ctx
       )
 
-      return { applicationId: application.id, ...instanceConfig }
+      return { applicationId: application.id, applicationName: application.name, ...instanceConfig }
     }
   })
 
