@@ -278,7 +278,7 @@ importers:
         version: 2.71.0
       cron-validator:
         specifier: ^1.3.1
-        version: 1.3.1
+        version: 1.4.0
       cronstrue:
         specifier: ^3.0.0
         version: 3.0.0
@@ -3418,8 +3418,8 @@ packages:
     resolution: {integrity: sha512-IS4mnFu6n3CFgEmXjr+B2zzGHsjJmHEdN+BViKvYSiEn3KWss9ICRDETDX/VZldiW82B94OyAZm4LIT4vcKK0g==}
     engines: {node: '>=18'}
 
-  cron-validator@1.3.1:
-    resolution: {integrity: sha512-C1HsxuPCY/5opR55G5/WNzyEGDWFVG+6GLrA+fW/sCTcP6A6NTjUP2AK7B8n2PyFs90kDG2qzwm8LMheADku6A==}
+  cron-validator@1.4.0:
+    resolution: {integrity: sha512-wGcJ9FCy65iaU6egSH8b5dZYJF7GU/3Jh06wzaT9lsa5dbqExjljmu+0cJ8cpKn+vUyZa/EM4WAxeLR6SypJXw==}
 
   cron@4.3.1:
     resolution: {integrity: sha512-7x7DoEOxV11t3OPWWMjj1xrL1PGkTV5RV+/54IJTZD7gStiaMploY43EkeBSkDZTLRbUwk+OISbQ0TR133oXyA==}
@@ -10497,7 +10497,7 @@ snapshots:
     dependencies:
       luxon: 3.6.1
 
-  cron-validator@1.3.1: {}
+  cron-validator@1.4.0: {}
 
   cron@4.3.1:
     dependencies:
