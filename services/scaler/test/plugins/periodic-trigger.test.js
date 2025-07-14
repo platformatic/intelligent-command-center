@@ -13,10 +13,8 @@ test('should periodically trigger scaling check on leader instance', async (t) =
   let checkMetricsCalls = 0
 
   const server = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: '12345',
-      PLT_SCALER_LEADER_POLL: '50'
-    }
+    PLT_SCALER_LOCK: '12345',
+    PLT_SCALER_LEADER_POLL: '50'
   })
 
   const originalExecute = server.scalerExecutor.checkScalingOnMetrics
@@ -46,11 +44,9 @@ test('should not trigger on non-leader instance', async (t) => {
   const lockId = Math.floor(Math.random() * 10000).toString()
 
   const server1 = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: lockId,
-      PLT_SCALER_LEADER_POLL: '50',
-      PLT_SCALER_PERIODIC_TRIGGER: '0.1'
-    }
+    PLT_SCALER_LOCK: lockId,
+    PLT_SCALER_LEADER_POLL: '50',
+    PLT_SCALER_PERIODIC_TRIGGER: '0.1'
   })
 
   const server1Executions = []
@@ -63,11 +59,9 @@ test('should not trigger on non-leader instance', async (t) => {
   await sleep(200)
 
   const server2 = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: lockId,
-      PLT_SCALER_LEADER_POLL: '50',
-      PLT_SCALER_PERIODIC_TRIGGER: '0.1'
-    }
+    PLT_SCALER_LOCK: lockId,
+    PLT_SCALER_LEADER_POLL: '50',
+    PLT_SCALER_PERIODIC_TRIGGER: '0.1'
   })
 
   const server2Executions = []
@@ -93,11 +87,9 @@ test('leadership transfer should start/stop periodic triggers', async (t) => {
   const lockId = Math.floor(Math.random() * 10000).toString()
 
   const server1 = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: lockId,
-      PLT_SCALER_LEADER_POLL: '50',
-      PLT_SCALER_PERIODIC_TRIGGER: '0.1'
-    }
+    PLT_SCALER_LOCK: lockId,
+    PLT_SCALER_LEADER_POLL: '50',
+    PLT_SCALER_PERIODIC_TRIGGER: '0.1'
   })
 
   const server1Executions = []
@@ -108,11 +100,9 @@ test('leadership transfer should start/stop periodic triggers', async (t) => {
   }
 
   const server2 = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: lockId,
-      PLT_SCALER_LEADER_POLL: '50',
-      PLT_SCALER_PERIODIC_TRIGGER: '0.1'
-    }
+    PLT_SCALER_LOCK: lockId,
+    PLT_SCALER_LEADER_POLL: '50',
+    PLT_SCALER_PERIODIC_TRIGGER: '0.1'
   })
 
   const server2Executions = []
