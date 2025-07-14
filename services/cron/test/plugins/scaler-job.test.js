@@ -6,6 +6,7 @@ const { buildServer } = require('../helper')
 
 test('scaler job is created with correct configuration', async (t) => {
   const app = await buildServer(t, {
+    PLT_FEATURE_SCALER_TRENDS_LEARNING: true,
     PLT_CRON_ICC_JOBS: 'SCALER',
     PLT_CRON_ICC_JOB_SCALER_NAME: 'scaler',
     PLT_CRON_ICC_JOB_SCALER_CRON: '0 */12 * * *',
@@ -48,6 +49,7 @@ test('scaler job is created with correct configuration', async (t) => {
 
 test('scaler job is included in getICCJob', async (t) => {
   const app = await buildServer(t, {
+    PLT_FEATURE_SCALER_TRENDS_LEARNING: true,
     PLT_CRON_ICC_JOBS: 'SCALER',
     PLT_CRON_ICC_JOB_SCALER_NAME: 'scaler',
     PLT_CRON_ICC_JOB_SCALER_CRON: '0 */12 * * *',
@@ -71,6 +73,7 @@ test('scaler job is included in getICCJob', async (t) => {
 
 test('multiple jobs including scaler are created', async (t) => {
   const app = await buildServer(t, {
+    PLT_FEATURE_SCALER_TRENDS_LEARNING: true,
     PLT_FEATURE_RISK_SERVICE_DUMP: true
   })
 

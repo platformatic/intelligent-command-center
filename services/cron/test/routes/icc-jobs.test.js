@@ -70,6 +70,7 @@ test('GET job by name', async (t) => {
 
 test('GET all jobs', async (t) => {
   const server = await buildServer(t, {
+    PLT_FEATURE_SCALER_TRENDS_LEARNING: true,
     PLT_FEATURE_CACHE_RECOMMENDATIONS: true,
     PLT_FEATURE_RISK_SERVICE_DUMP: true,
     PLT_FEATURE_FFC: true

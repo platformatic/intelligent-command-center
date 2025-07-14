@@ -100,17 +100,13 @@ test('if one instance is shut down, the other is elected', async (t) => {
   const lockId = (Math.floor(Math.random() * 1000) + 5000).toString()
 
   const server2 = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: lockId,
-      PLT_SCALER_LEADER_POLL: '200'
-    }
+    PLT_SCALER_LOCK: lockId,
+    PLT_SCALER_LEADER_POLL: '200'
   })
 
   const server1 = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: lockId,
-      PLT_SCALER_LEADER_POLL: '200'
-    }
+    PLT_SCALER_LOCK: lockId,
+    PLT_SCALER_LEADER_POLL: '200'
   })
 
   t.after(async () => {
@@ -130,11 +126,9 @@ test('if one instance is shut down, the other is elected', async (t) => {
 
 test('should stop prediction scheduling when losing leadership', async (t) => {
   const server = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6000).toString(),
-      PLT_SCALER_LEADER_POLL: '100',
-      PLT_SCALER_PERIODIC_TRIGGER: '1'
-    }
+    PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6000).toString(),
+    PLT_SCALER_LEADER_POLL: '100',
+    PLT_SCALER_PERIODIC_TRIGGER: '1'
   })
 
   server.stopPredictionScheduling = async () => {}
@@ -151,11 +145,9 @@ test('should stop prediction scheduling when losing leadership', async (t) => {
 
 test('should handle periodic trigger already running scenario', async (t) => {
   const server = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6100).toString(),
-      PLT_SCALER_LEADER_POLL: '100',
-      PLT_SCALER_PERIODIC_TRIGGER: '1'
-    }
+    PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6100).toString(),
+    PLT_SCALER_LEADER_POLL: '100',
+    PLT_SCALER_PERIODIC_TRIGGER: '1'
   })
 
   server.scalerExecutor = {
@@ -173,11 +165,9 @@ test('should handle periodic trigger already running scenario', async (t) => {
 
 test('should execute periodic metrics check when leader', async (t) => {
   const server = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6200).toString(),
-      PLT_SCALER_LEADER_POLL: '100',
-      PLT_SCALER_PERIODIC_TRIGGER: '1'
-    }
+    PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6200).toString(),
+    PLT_SCALER_LEADER_POLL: '100',
+    PLT_SCALER_PERIODIC_TRIGGER: '1'
   })
 
   server.scalerExecutor = {
@@ -195,11 +185,9 @@ test('should execute periodic metrics check when leader', async (t) => {
 
 test('should handle error in periodic trigger execution', async (t) => {
   const server = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6300).toString(),
-      PLT_SCALER_LEADER_POLL: '100',
-      PLT_SCALER_PERIODIC_TRIGGER: '1'
-    }
+    PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6300).toString(),
+    PLT_SCALER_LEADER_POLL: '100',
+    PLT_SCALER_PERIODIC_TRIGGER: '1'
   })
 
   const originalError = server.log.error
@@ -223,11 +211,9 @@ test('should handle error in periodic trigger execution', async (t) => {
 
 test('should handle error in periodic trigger loop with restart logic', async (t) => {
   const server = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6400).toString(),
-      PLT_SCALER_LEADER_POLL: '100',
-      PLT_SCALER_PERIODIC_TRIGGER: '1'
-    }
+    PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6400).toString(),
+    PLT_SCALER_LEADER_POLL: '100',
+    PLT_SCALER_PERIODIC_TRIGGER: '1'
   })
 
   const originalError = server.log.error
@@ -247,11 +233,9 @@ test('should trigger leadership change and stop periodic trigger when losing lea
   const lockId = (Math.floor(Math.random() * 1000) + 6500).toString()
 
   const server1 = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: lockId,
-      PLT_SCALER_LEADER_POLL: '100',
-      PLT_SCALER_PERIODIC_TRIGGER: '1'
-    }
+    PLT_SCALER_LOCK: lockId,
+    PLT_SCALER_LEADER_POLL: '100',
+    PLT_SCALER_PERIODIC_TRIGGER: '1'
   })
 
   server1.stopPredictionScheduling = async () => {}
@@ -260,11 +244,9 @@ test('should trigger leadership change and stop periodic trigger when losing lea
   assert.ok(server1.isScalerLeader(), 'Server 1 should be the leader')
 
   const server2 = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: lockId,
-      PLT_SCALER_LEADER_POLL: '50',
-      PLT_SCALER_PERIODIC_TRIGGER: '1'
-    }
+    PLT_SCALER_LOCK: lockId,
+    PLT_SCALER_LEADER_POLL: '50',
+    PLT_SCALER_PERIODIC_TRIGGER: '1'
   })
 
   await sleep(200)
@@ -281,11 +263,9 @@ test('should trigger leadership change and stop periodic trigger when losing lea
 
 test('should prevent starting periodic trigger when already running', async (t) => {
   const server = await buildServer(t, {
-    env: {
-      PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6600).toString(),
-      PLT_SCALER_LEADER_POLL: '100',
-      PLT_SCALER_PERIODIC_TRIGGER: '2'
-    }
+    PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6600).toString(),
+    PLT_SCALER_LEADER_POLL: '100',
+    PLT_SCALER_PERIODIC_TRIGGER: '2'
   })
 
   t.after(async () => {

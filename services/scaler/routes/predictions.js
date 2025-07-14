@@ -2,10 +2,19 @@
 'use strict'
 
 const fp = require('fastify-plugin')
+const createError = require('@fastify/error')
+
+const TrendsLearningDisabledError = createError('FST_TRENDS_LEARNING_DISABLED', 'Trends learning is disabled', 503)
 
 /** @param {import('fastify').FastifyInstance} app */
 async function plugin (app) {
   const trendsAlgorithm = app.trendsLearningAlgorithm
+
+  function checkTrendsLearningEnabled () {
+    if (!app.env.PLT_FEATURE_SCALER_TRENDS_LEARNING) {
+      throw new TrendsLearningDisabledError()
+    }
+  }
 
   app.get('/predictions/:applicationId', {
     schema: {
@@ -46,6 +55,8 @@ async function plugin (app) {
       }
     },
     handler: async (req, reply) => {
+      checkTrendsLearningEnabled()
+
       const { applicationId } = req.params
 
       try {
@@ -119,6 +130,8 @@ async function plugin (app) {
       }
     },
     handler: async (req, reply) => {
+      checkTrendsLearningEnabled()
+
       try {
         const predictions = await app.store.getPredictions()
         const nextPrediction = await app.store.getNextPrediction()
@@ -166,6 +179,8 @@ async function plugin (app) {
       }
     },
     handler: async (req, reply) => {
+      checkTrendsLearningEnabled()
+
       try {
         const result = await app.platformatic.db.query(app.platformatic.sql`
           SELECT DISTINCT application_id FROM performance_history

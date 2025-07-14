@@ -23,7 +23,8 @@ const Settings = React.forwardRef(({ _ }, ref) => {
     const fetchSyncConfig = async () => {
       const response = await callApiGetSyncConfig()
       setSyncConfig(response)
-      setSyncEnabled(true)
+      const syncEnabled = response?.enabled || false
+      setSyncEnabled(syncEnabled)
     }
     fetchSyncConfig()
   }, [])

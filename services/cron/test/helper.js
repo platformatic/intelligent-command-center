@@ -42,7 +42,7 @@ async function getConfig (enableMetrics) {
 
 function setUpEnvironment (env = {}) {
   // No ICC internal jobs as default for tests
-  Object.assign(process.env, { PLT_CRON_ICC_JOBS: '' }, env)
+  Object.assign(process.env, { PLT_CRON_ICC_JOBS: '', PLT_FEATURE_SCALER_TRENDS_LEARNING: false }, env)
 }
 
 async function buildServer (t, env = {}) {
