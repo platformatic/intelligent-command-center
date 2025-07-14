@@ -30,6 +30,27 @@ async function plugin (app) {
   }
 
   app.addHook('onReady', async function () {
+    // Handle scaler job based on trends learning setting
+    let scalerJob
+    try {
+      scalerJob = await app.iccJobAPIs.getICCJob('scaler')
+    } catch (e) {
+      if (e.code !== 'NOT_FOUND') {
+        app.log.error({ err: e }, 'Error fetching scaler job')
+        throw e
+      }
+    }
+
+    if (scalerJob) {
+      if (!app.env.PLT_FEATURE_SCALER_TRENDS_LEARNING && !scalerJob.paused) {
+        app.log.info('Pausing scaler job because trends learning is disabled')
+        await app.iccJobAPIs.changeICCJobSchedule('scaler', null)
+      } else if (app.env.PLT_FEATURE_SCALER_TRENDS_LEARNING && scalerJob.paused) {
+        app.log.info('Unpausing scaler job because trends learning is enabled')
+        await app.iccJobAPIs.changeICCJobSchedule('scaler', scalerJob.schedule)
+      }
+    }
+
     if (!app.env.PLT_CRON_ICC_JOBS) {
       app.log.info('No jobs to set up')
       return

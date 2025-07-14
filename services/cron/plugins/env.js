@@ -13,6 +13,7 @@ const schema = {
     PLT_FEATURE_CACHE_RECOMMENDATIONS: { type: 'boolean', default: false },
     PLT_FEATURE_RISK_SERVICE_DUMP: { type: 'boolean', default: false },
     PLT_FEATURE_FFC: { type: 'boolean', default: false },
+    PLT_FEATURE_SCALER_TRENDS_LEARNING: { type: 'boolean', default: false },
 
     // Useful for tests
     PLT_CRON_DISABLE_ICC_JOBS: { type: 'boolean', default: false },
@@ -71,7 +72,11 @@ async function envPlugin (fastify) {
   }
 
   // Build the list of jobs based on features
-  const jobs = ['SCALER', 'SYNC'] // Always enabled
+  const jobs = ['SYNC'] // Always enabled
+
+  if (fastify.env.PLT_FEATURE_SCALER_TRENDS_LEARNING) {
+    jobs.push('SCALER')
+  }
 
   if (fastify.env.PLT_FEATURE_CACHE_RECOMMENDATIONS) {
     jobs.push('TRAFFICANTE')

@@ -55,7 +55,7 @@ function SystemJobs () {
         slug: 'ffc-recommender'
       },
       {
-        name: 'Scaler Prediciton',
+        name: 'Scaler Prediction',
         slug: 'scaler',
         label: 'How often you want the ICC to check for Scaler predictions.'
       }]

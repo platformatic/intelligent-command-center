@@ -61,27 +61,17 @@ const defaultEnv = {
   PLT_SCALER_DATABASE_URL: connectionString,
   PLT_ICC_VALKEY_CONNECTION_STRING: valkeyConnectionString,
   PLT_SCALER_PROMETHEUS_URL: 'http://localhost:9090',
-  PLT_SCALER_DEBOUNCE: 10000
+  PLT_SCALER_DEBOUNCE: 10000,
+  PLT_FEATURE_SCALER_TRENDS_LEARNING: true
 }
 
 function setUpEnvironment (env = {}) {
-  Object.assign(process.env, defaultEnv, env)
+  const finalEnv = { ...defaultEnv, ...env }
+  Object.assign(process.env, finalEnv)
 }
 
-async function buildServer (envOrTest, options = {}) {
-  // If first param is a test object
-  let env = {}
-  let t = null
-
-  if (typeof envOrTest === 'object' && envOrTest !== null && typeof envOrTest.after === 'function') {
-    t = envOrTest
-    env = options.env || {}
-  } else {
-    // First param is environment variables
-    env = envOrTest || {}
-  }
-
-  setUpEnvironment(env)
+async function buildServer (t, options = {}) {
+  setUpEnvironment(options)
   const { config } = await getConfig()
   const server = await buildDbServer(config)
 
@@ -95,8 +85,7 @@ async function buildServer (envOrTest, options = {}) {
 }
 
 async function buildServerWithPlugins (t, options = {}, plugins = []) {
-  const env = options.env || {}
-  setUpEnvironment(env)
+  setUpEnvironment(options)
   const { config } = await getConfig()
   config.plugins = {
     paths: []

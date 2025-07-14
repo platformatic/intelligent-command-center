@@ -24,6 +24,7 @@ const schema = {
     PLT_SCALER_MAX_PODS_DEFAULT: { type: 'number', default: 10 },
     PLT_SCALER_PERIODIC_TRIGGER: { type: 'number', default: 60 }, // in seconds
     PLT_SCALER_SYNC_K8S: { type: 'number', default: 60 }, // in seconds
+    PLT_FEATURE_SCALER_TRENDS_LEARNING: { type: 'boolean', default: false },
     PLT_MACHINIST_URL: { type: 'string' }
   }
 }

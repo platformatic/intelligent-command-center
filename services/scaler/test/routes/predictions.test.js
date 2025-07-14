@@ -747,3 +747,97 @@ test('POST /predictions/calculate should handle database result format without .
   assert.strictEqual(result.totalPredictions, 0)
   assert.deepStrictEqual(result.errors, [])
 })
+
+test('GET /predictions/:applicationId should return 503 when trends learning is disabled', async (t) => {
+  const server = await buildServer(t, {
+    PLT_FEATURE_SCALER_TRENDS_LEARNING: false
+  })
+  const applicationId = randomUUID()
+
+  const response = await server.inject({
+    method: 'GET',
+    url: `/predictions/${applicationId}`
+  })
+
+  assert.strictEqual(response.statusCode, 503)
+  const result = JSON.parse(response.body)
+  assert.strictEqual(result.message, 'Trends learning is disabled')
+  assert.strictEqual(result.code, 'FST_TRENDS_LEARNING_DISABLED')
+  assert.strictEqual(result.error, 'Service Unavailable')
+  assert.strictEqual(result.statusCode, 503)
+})
+
+test('GET /predictions should return 503 when trends learning is disabled', async (t) => {
+  const server = await buildServer(t, {
+    PLT_FEATURE_SCALER_TRENDS_LEARNING: false
+  })
+
+  const response = await server.inject({
+    method: 'GET',
+    url: '/predictions'
+  })
+
+  assert.strictEqual(response.statusCode, 503)
+  const result = JSON.parse(response.body)
+  assert.strictEqual(result.message, 'Trends learning is disabled')
+  assert.strictEqual(result.code, 'FST_TRENDS_LEARNING_DISABLED')
+  assert.strictEqual(result.error, 'Service Unavailable')
+  assert.strictEqual(result.statusCode, 503)
+})
+
+test('POST /predictions/calculate should return 503 when trends learning is disabled', async (t) => {
+  const server = await buildServer(t, {
+    PLT_FEATURE_SCALER_TRENDS_LEARNING: false
+  })
+
+  const response = await server.inject({
+    method: 'POST',
+    url: '/predictions/calculate'
+  })
+
+  assert.strictEqual(response.statusCode, 503)
+  const result = JSON.parse(response.body)
+  assert.strictEqual(result.message, 'Trends learning is disabled')
+  assert.strictEqual(result.code, 'FST_TRENDS_LEARNING_DISABLED')
+  assert.strictEqual(result.error, 'Service Unavailable')
+  assert.strictEqual(result.statusCode, 503)
+})
+
+test('All prediction routes work normally when trends learning is enabled', async (t) => {
+  const server = await buildServer(t, {
+    PLT_FEATURE_SCALER_TRENDS_LEARNING: true
+  })
+  const applicationId = randomUUID()
+
+  // Test GET /predictions/:applicationId
+  const getAppResponse = await server.inject({
+    method: 'GET',
+    url: `/predictions/${applicationId}`
+  })
+  assert.strictEqual(getAppResponse.statusCode, 200)
+  const appResult = JSON.parse(getAppResponse.body)
+  assert.strictEqual(appResult.applicationId, applicationId)
+  assert.ok(Array.isArray(appResult.predictions))
+
+  // Test GET /predictions
+  const getAllResponse = await server.inject({
+    method: 'GET',
+    url: '/predictions'
+  })
+  assert.strictEqual(getAllResponse.statusCode, 200)
+  const allResult = JSON.parse(getAllResponse.body)
+  assert.ok(Array.isArray(allResult.predictions))
+  assert.strictEqual(typeof allResult.totalPredictions, 'number')
+
+  // Test POST /predictions/calculate
+  const calculateResponse = await server.inject({
+    method: 'POST',
+    url: '/predictions/calculate'
+  })
+  assert.strictEqual(calculateResponse.statusCode, 200)
+  const calculateResult = JSON.parse(calculateResponse.body)
+  assert.strictEqual(calculateResult.success, true)
+  assert.strictEqual(typeof calculateResult.processedApplications, 'number')
+  assert.strictEqual(typeof calculateResult.totalPredictions, 'number')
+  assert.ok(Array.isArray(calculateResult.errors))
+})
