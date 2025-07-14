@@ -23,9 +23,15 @@ export default function ApplicationCard ({
   }
 
   function handleApplicationClick () {
-    navigate(`/applications/${id}`)
+    if (hasValidState()) {
+      navigate(`/applications/${id}`)
+    } else {
+      window.alert(`Application ${name} is loading...`)
+    }
   }
-
+  function hasValidState () {
+    return state?.services?.length > 0
+  }
   return (
     <BorderedBox
       color={TRANSPARENT}
@@ -38,7 +44,7 @@ export default function ApplicationCard ({
       clickable
       internalOverHandling
     >
-      <p className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter} ${commonStyles.fullWidth}`}>
+      <p className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter} ${commonStyles.fullWidth} ${hasValidState() ? '' : styles.loading}`}>
         <Icons.AppIcon color={WHITE} size={MEDIUM} />
         <span className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite}`} title={name}>{name}</span>
         {!isDeployed && (<Icons.AlertIcon size={SMALL} color={WARNING_YELLOW} />)}
@@ -52,15 +58,22 @@ export default function ApplicationCard ({
                 <PlatformaticIcon iconName='ExpandIcon' color={WHITE} size={SMALL} onClick={handleOpenUrl} internalOverHandling />
               </div>
             )}
-            <div className={`${commonStyles.smallFlexRow} ${commonStyles.itemsCenter} ${commonStyles.fullWidth} ${styles.smallLeftPadding}`}>
-              <p>
-                <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}  ${typographyStyles.opacity70}`}>Latest change: </span><span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{getFormattedDate(createdAt)}</span>
-              </p>
-              <VerticalSeparator color={WHITE} backgroundColorOpacity={OPACITY_30} />
-              <p>
-                <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}  ${typographyStyles.opacity70}`}>Services: </span><span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{state?.services?.length ?? '-'}</span>
-              </p>
-            </div>
+            {hasValidState() && (
+              <div className={`${commonStyles.smallFlexRow} ${commonStyles.itemsCenter} ${commonStyles.fullWidth} ${styles.smallLeftPadding}`}>
+                <p>
+                  <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}  ${typographyStyles.opacity70}`}>Latest change: </span><span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{getFormattedDate(createdAt)}</span>
+                </p>
+                <VerticalSeparator color={WHITE} backgroundColorOpacity={OPACITY_30} />
+                <p>
+                  <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}  ${typographyStyles.opacity70}`}>Services: </span><span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{state?.services?.length ?? '-'}</span>
+                </p>
+              </div>
+            )}
+            {(!hasValidState()) && (
+              <div className={`${commonStyles.smallFlexRow} ${commonStyles.itemsCenter} ${commonStyles.fullWidth} ${styles.smallLeftPadding}`}>
+                <p className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}  ${typographyStyles.opacity70}`}>Loading...</p>
+              </div>
+            )}
           </>
           )
         : (

@@ -332,6 +332,18 @@ module.exports = fp(async function (app) {
         },
         tx
       })
+
+      await app.emitUpdate('icc', {
+        topic: 'ui-updates/applications',
+        type: 'application-state-created',
+        data: {
+          applicationStateId: applicationState.id,
+          state: applicationState.state,
+          applicationId: deployment.applicationId
+        }
+      }).catch((err) => {
+        ctx.logger.error({ err }, 'Failed to send notification to ui')
+      })
     })
   })
 

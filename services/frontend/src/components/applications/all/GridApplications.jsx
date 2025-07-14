@@ -24,6 +24,10 @@ function GridApplications () {
       if (message.type === 'application-created') {
         loadApplications()
       }
+
+      if (message.type === 'application-state-created') {
+        loadApplications()
+      }
     }
   }, [lastMessage, readyState])
 
