@@ -7,3 +7,7 @@
 .noDeploymentContainer {
   @apply grow flex flex-col gap-y-0 items-center justify-center w-full
 }
+
+.loading {
+  @apply opacity-50;
+}
