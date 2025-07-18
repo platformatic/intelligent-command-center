@@ -674,6 +674,67 @@ test('should save an app instance with a different image', async (t) => {
   assert.deepStrictEqual(deployAppActivity.data, { applicationName, imageId })
 })
 
+test('should save an instance of a new application without httpCache', async (t) => {
+  const applicationName = 'test-app'
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
+  const activities = []
+  await startActivities(t, {
+    saveEvent: (activity) => activities.push(activity)
+  })
+
+  const complianceRules = []
+  await startCompliance(t, {
+    saveRule: (ruleName, rule) => {
+      complianceRules.push({ ruleName, rule })
+    }
+  })
+
+  await startMetrics(t)
+
+  const controllers = []
+  await startScaler(t, {
+    savePodController: (controller) => {
+      controllers.push(controller)
+    }
+  })
+
+  const iccUpdates = []
+  await startMainService(t, {
+    saveIccUpdate: (update) => {
+      iccUpdates.push(update)
+    }
+  })
+
+  const podsLabels = []
+  await startMachinist(t, {
+    getPodDetails: () => ({ image: imageId }),
+    setPodLabels: (podId, labels) => {
+      podsLabels.push({ podId, labels })
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_CACHE: false
+  })
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: { applicationName }
+  })
+
+  assert.strictEqual(statusCode, 200, body)
+
+  const { httpCache } = JSON.parse(body)
+  assert.strictEqual(httpCache.clientOpts, null)
+})
+
 test('should save a lot of simultaneous instances of different applications', async (t) => {
   const activities = []
   await startActivities(t, {

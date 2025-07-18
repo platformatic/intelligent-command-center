@@ -1,6 +1,11 @@
 'use strict'
 
-module.exports = async function (app) {
+const fp = require('fastify-plugin')
+const errors = require('../plugins/errors')
+
+module.exports = fp(async function (app) {
+  const isCacheEnabled = app.env.PLT_FEATURE_CACHE
+
   app.addSchema({
     $id: 'client-cache-entry',
     type: 'object',
@@ -78,6 +83,10 @@ module.exports = async function (app) {
       }
     },
     handler: async (req, reply) => {
+      if (!isCacheEnabled) {
+        throw errors.CacheNotEnabled()
+      }
+
       const { applicationId } = req.params
       const { search, limit, offset } = req.query
 
@@ -111,6 +120,10 @@ module.exports = async function (app) {
       }
     },
     handler: async (req, reply) => {
+      if (!isCacheEnabled) {
+        throw errors.CacheNotEnabled()
+      }
+
       const { applicationId, id: entryId } = req.params
       const { kind } = req.query
 
@@ -153,6 +166,10 @@ module.exports = async function (app) {
       }
     },
     handler: async (req) => {
+      if (!isCacheEnabled) {
+        throw errors.CacheNotEnabled()
+      }
+
       const { applicationId, id: entryId } = req.params
 
       const logger = req.log.child({ applicationId, id: entryId })
@@ -192,6 +209,10 @@ module.exports = async function (app) {
       }
     },
     handler: async (req, reply) => {
+      if (!isCacheEnabled) {
+        throw errors.CacheNotEnabled()
+      }
+
       const { applicationId } = req.params
       const { httpCacheIds, nextCacheIds } = req.body
       const logger = req.log.child({ applicationId })
@@ -207,4 +228,7 @@ module.exports = async function (app) {
       return entryValue
     }
   })
-}
+}, {
+  name: 'cache-routes',
+  dependencies: ['env']
+})
