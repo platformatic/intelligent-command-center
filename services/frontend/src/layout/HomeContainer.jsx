@@ -19,7 +19,7 @@ import typographyStyles from '~/styles/Typography.module.css'
 export default function HomeContainer () {
   const navigation = useNavigation()
   const globalState = useICCStore()
-  const { enableSidebarFirstLevel } = globalState
+  const { enableSidebarFirstLevel, config } = globalState
 
   const defaultTopItems = [{
     link: '/recommendations-history',
@@ -49,6 +49,9 @@ export default function HomeContainer () {
   const [topItems, setTopItems] = useState([])
 
   useEffect(() => {
+    if (!config.cache) {
+      defaultTopItems.splice(3, 1)
+    }
     setTopItems(defaultTopItems)
   }, [])
 
