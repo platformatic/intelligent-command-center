@@ -52,11 +52,6 @@ module.exports = fp(async function (app) {
       tx
     })
 
-    await app.createValkeyUser(application.id, { ...ctx, tx })
-      .catch((err) => {
-        ctx.logger.error({ err }, 'Failed to create valkey user')
-      })
-
     ctx.logger.info({ defaultConfig }, 'Saved default application config')
 
     return application

@@ -78,3 +78,24 @@ test('should get a nextjs page cache entry', async (t) => {
   assert.strictEqual(statusCode, 200, body)
   assert.strictEqual(typeof body, 'string')
 })
+
+test('should return 400 if cache is not enabled', async (t) => {
+  const applicationId = randomUUID()
+  const cacheManager = await startCacheManager(t, {
+    PLT_FEATURE_CACHE: false
+  })
+
+  const { statusCode, body } = await cacheManager.inject({
+    url: `/applications/${applicationId}/http-cache/foo`,
+    query: { kind: 'NEXT_CACHE_FETCH' }
+  })
+  assert.deepStrictEqual(statusCode, 400)
+
+  const error = JSON.parse(body)
+  assert.deepStrictEqual(error, {
+    code: 'PLT_CACHE_MANAGER_CACHE_NOT_ENABLED',
+    error: 'Bad Request',
+    message: 'Cache is not enabled',
+    statusCode: 400
+  })
+})

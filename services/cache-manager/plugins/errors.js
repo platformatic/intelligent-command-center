@@ -10,5 +10,8 @@ module.exports = {
   ),
   InvalidCacheKind: createError(
     `${ERROR_PREFIX}_INVALID_CACHE_KIND`, 'Invalid cache kind "%s"', 400
+  ),
+  CacheNotEnabled: createError(
+    `${ERROR_PREFIX}_CACHE_NOT_ENABLED`, 'Cache is not enabled', 400
   )
 }
