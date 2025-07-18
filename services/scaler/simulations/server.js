@@ -58,6 +58,7 @@ async function start () {
   async function getScaleEventsChartData () {
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000)
     const scaleEvents = await simulation.server.platformatic.entities.scaleEvent.find({
+      limit: 100000,
       where: { createdAt: { gte: fiveMinAgo.toISOString() } },
       orderBy: [{ field: 'createdAt', direction: 'asc' }]
     })
@@ -105,51 +106,127 @@ async function start () {
     }
   }
 
-  async function getPredictionsChartData () {
-    const predictions = await simulation.server.store.getPredictions()
+  async function getPerfHistoryChartsData () {
+    const perfHistory = await simulation.server.platformatic.entities.performanceHistory.find({
+      limit: 100000,
+      orderBy: [{ field: 'eventTimestamp', direction: 'asc' }]
+    })
 
-    const timestamps = []
-    const values = []
-
-    for (const prediction of predictions) {
-      const timestamp = new Date(prediction.absoluteTime).toLocaleTimeString()
-      timestamps.push(timestamp)
-      values.push(prediction.pods)
+    const perfHistoryByDay = {}
+    for (const perfEvent of perfHistory) {
+      const day = new Date(perfEvent.eventTimestamp).toISOString().substring(0, 10).replace(/-/g, '/')
+      if (!perfHistoryByDay[day]) {
+        perfHistoryByDay[day] = []
+      }
+      perfHistoryByDay[day].push(perfEvent)
     }
 
-    return {
-      type: 'line',
-      data: {
-        labels: timestamps,
-        datasets: [{
-          label: 'Replicas',
-          data: values,
-          borderColor: 'rgb(75, 192, 192)',
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          tension: 0.1
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Predictions'
-          }
-        },
-        scales: {
-          x: { display: true },
-          y: {
-            beginAtZero: true,
-            suggestedMin: 0,
-            suggestedMax: 10,
-            ticks: {
-              stepSize: 1
+    const chartsByDay = {}
+    for (const day in perfHistoryByDay) {
+      const perfHistoryChartData = getPerfHistoryChartData(perfHistoryByDay[day])
+
+      const predictionsChartData = await getPredictionsChartData(day)
+      const predictionsDatasets = predictionsChartData.data?.datasets
+      if (predictionsDatasets) {
+        perfHistoryChartData.data.datasets.push(...predictionsDatasets)
+      }
+
+      chartsByDay[day] = perfHistoryChartData
+    }
+
+    return chartsByDay
+  }
+
+  function getPerfHistoryChartData (dayPerfHistory) {
+    const data = []
+
+    for (const perfEvent of dayPerfHistory) {
+      const timestamp = new Date(perfEvent.eventTimestamp).toISOString()
+      data.push({ x: timestamp, y: perfEvent.totalPods })
+    }
+
+    return generatePodChart({
+      data,
+      label: 'Replicas',
+      title: ''
+    })
+  }
+
+  async function getPredictionsChartData (date) {
+    const chartDate = new Date(date ?? Date.now())
+
+    let predictions = await simulation.server.store.getPredictions()
+    predictions = predictions.sort((a, b) => a.absoluteTime - b.absoluteTime)
+
+    let data = []
+
+    for (const prediction of predictions) {
+      const predictionTimestamp = new Date(prediction.absoluteTime)
+      chartDate.setHours(predictionTimestamp.getHours())
+      chartDate.setMinutes(predictionTimestamp.getMinutes())
+      chartDate.setSeconds(predictionTimestamp.getSeconds())
+      chartDate.setMilliseconds(predictionTimestamp.getMilliseconds())
+
+      data.push({ x: chartDate.toISOString(), y: prediction.pods })
+    }
+
+    data = data.sort((a, b) => new Date(a.x) - new Date(b.x))
+
+    return generatePodChart({
+      data,
+      label: 'Predicted replicas',
+      title: 'Predictions',
+      color: 'rgb(255, 140, 0)'
+    })
+  }
+
+  function generatePodChart (options = {}) {
+    let { data, label, title, chart, color, backgroundColor } = options
+    color = color ?? 'rgb(75, 192, 192)'
+    backgroundColor = color ?? 'rgba(75, 192, 192, 0.2)'
+
+    if (chart === undefined) {
+      chart = {
+        type: 'line',
+        data: { datasets: [] },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: title
+            }
+          },
+          scales: {
+            x: {
+              display: true,
+              type: 'time',
+              time: {
+                unit: 'hour'
+              }
+            },
+            y: {
+              beginAtZero: true,
+              suggestedMin: 0,
+              suggestedMax: 10,
+              ticks: {
+                stepSize: 1
+              }
             }
           }
         }
       }
     }
+
+    chart.data.datasets.push({
+      label,
+      data,
+      borderColor: color,
+      backgroundColor,
+      tension: 0.1
+    })
+
+    return chart
   }
 
   async function calculatePredictions () {
@@ -201,6 +278,7 @@ async function start () {
       const scaleEventsChart = await getScaleEventsChartData()
       return { scaleEventsChart }
     } catch (error) {
+      console.error(error)
       reply.code(500).send({ error: 'Failed to generate chart data' })
     }
   })
@@ -210,6 +288,7 @@ async function start () {
       const predictionsChart = await getPredictionsChartData()
       return { predictionsChart }
     } catch (error) {
+      console.error(error)
       reply.code(500).send({ error: 'Failed to get predictions chart data' })
     }
   })
@@ -219,7 +298,28 @@ async function start () {
       await calculatePredictions()
       return { ok: true }
     } catch (err) {
+      console.error(err)
       reply.code(400).send(err && err.message ? err.message : 'Failed to calculate predictions')
+    }
+  })
+
+  app.get('/api/perf-history-charts', async (request, reply) => {
+    try {
+      const chartsByDay = await getPerfHistoryChartsData()
+      return chartsByDay
+    } catch (error) {
+      console.error(error)
+      reply.code(500).send({ error: 'Failed to get performance history charts' })
+    }
+  })
+
+  app.post('/api/perf-history/generate', async (request, reply) => {
+    try {
+      const { scheduleDescription, durationMins, amount } = request.body
+      await simulation.generatePerformanceHistory({ scheduleDescription, durationMins, amount })
+      return { ok: true }
+    } catch (err) {
+      reply.code(400).send(err && err.message ? err.message : 'Failed to generate performance history')
     }
   })
 

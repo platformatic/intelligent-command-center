@@ -3,6 +3,7 @@
 const assert = require('node:assert/strict')
 const { randomUUID } = require('node:crypto')
 const { request } = require('undici')
+const later = require('@breejs/later')
 const {
   buildServer,
   generateK8sHeader,
@@ -324,7 +325,66 @@ async function run () {
 
   await saveController(server, applicationId)
 
-  return { replicaSet, server }
+  return {
+    replicaSet,
+    server,
+    generatePerformanceHistory: async (options = {}) => {
+      await cleandb(server)
+      await cleanValkeyData()
+      await saveController(server, applicationId)
+
+      const performanceHistory = await generatePerformanceHistory(applicationId, {
+        days: 50,
+        pods: 5,
+        ...options
+      })
+      await server.platformatic.entities.performanceHistory.insert({
+        inputs: performanceHistory
+      })
+    }
+  }
+}
+
+async function generatePerformanceHistory (applicationId, options = {}) {
+  const { days, pods, durationMins, scheduleDescription } = options
+
+  const scaleEvents = generateScaleEvents(scheduleDescription, {
+    days,
+    pods,
+    durationMins
+  })
+
+  const events = []
+  let previousEvent = null
+
+  for (const { time, pods } of scaleEvents) {
+    const eventTimestamp = new Date(time)
+    const totalPods = pods
+
+    const previousEventPods = previousEvent?.totalPods || 0
+    const podsAdded = totalPods - previousEventPods
+
+    const event = {
+      applicationId,
+      eventTimestamp,
+      podsAdded,
+      totalPods,
+      preEluMean: 0,
+      preHeapMean: 0,
+      preEluTrend: 0,
+      preHeapTrend: 0,
+      deltaElu: 0,
+      deltaHeap: 0,
+      sigmaElu: 0,
+      sigmaHeap: 0,
+      successScore: 1.0
+    }
+    events.push(event)
+
+    previousEvent = event
+  }
+
+  return events
 }
 
 async function saveController (server, applicationId) {
@@ -341,6 +401,42 @@ async function saveController (server, applicationId) {
       replicas: 1
     }
   })
+}
+
+function generateScaleEvents (text, options = {}) {
+  const { durationMins, pods: avgPods } = options
+
+  const timestamps = generateLoadStartTimestamps(text, options)
+  const scaleEvents = []
+
+  for (let i = 0; i < timestamps.length - 1; i++) {
+    const scaleUpStart = new Date(timestamps[i])
+    const scaleUpEnd = new Date(scaleUpStart.getTime() + (durationMins * 60000))
+
+    // Acttual pods should be +- 20% of avgPods
+    // with min of 1
+    const scaleUpPods = Math.round(avgPods * 1.2 + Math.random() * 0.4 * avgPods)
+
+    scaleEvents.push({ time: scaleUpStart, pods: scaleUpPods })
+    scaleEvents.push({ time: scaleUpEnd, pods: 1 })
+  }
+
+  return scaleEvents
+}
+
+function generateLoadStartTimestamps (text, options = {}) {
+  const { days } = options
+
+  const start = new Date(Date.now() - (days * 86400000))
+  const end = new Date()
+
+  const schedule = later.parse.text(text)
+  if (schedule.error > 0) {
+    throw new Error(`Invalid schedule: ${text}`)
+  }
+
+  const timestamps = later.schedule(schedule).prev(10000, end, start)
+  return timestamps
 }
 
 if (require.main === module) {

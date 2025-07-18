@@ -8,8 +8,9 @@
     "lint": "standard ."
   },
   "devDependencies": {
-    "@fastify/websocket": "^11.1.0",
+    "@breejs/later": "^4.2.0",
     "@fastify/static": "^8.2.0",
+    "@fastify/websocket": "^11.1.0",
     "borp": "^0.20.0",
     "fastify": "^5.4.0",
     "platformatic": "^2.70.1",
