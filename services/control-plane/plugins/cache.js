@@ -48,22 +48,28 @@ module.exports = fp(async function (app) {
 
     const { hostname: host, port } = new URL(cacheProviderUrl)
 
-    const valkeyUsers = await app.platformatic.entities.valkeyUser.find({
-      where: { applicationId: { eq: applicationId } },
-      orderBy: [{ field: 'createdAt', direction: 'desc' }],
-      limit: 1,
-      tx: ctx?.tx
-    })
+    let valkeyUser = await getValkeyUser(applicationId, ctx)
+    if (valkeyUser === null) {
+      try {
+        const { username, password, keyPrefix } = await createValkeyUser(
+          applicationId,
+          ctx
+        )
+        return { host, port, username, password, keyPrefix }
+      } catch (err) {
+        // A valkey user is already created by another instance
+        if (!err.message.includes('duplicate key value violates unique constraint "valkey_users_unique"')) {
+          throw err
+        }
 
-    if (valkeyUsers.length === 0) {
-      const { username, password, keyPrefix } = await createValkeyUser(
-        applicationId,
-        ctx
-      )
-      return { host, port, username, password, keyPrefix }
+        valkeyUser = await getValkeyUser(applicationId, ctx)
+        if (valkeyUser === null) {
+          throw err
+        }
+      }
     }
 
-    const { id, username, encryptedPassword, keyPrefix } = valkeyUsers[0]
+    const { id, username, encryptedPassword, keyPrefix } = valkeyUser
     const { password, needReencrypting } = decryptPassword(
       applicationId,
       encryptedPassword
@@ -81,6 +87,17 @@ module.exports = fp(async function (app) {
 
     return { host, port, username, password, keyPrefix }
   })
+
+  async function getValkeyUser (applicationId, ctx) {
+    const valkeyUsers = await app.platformatic.entities.valkeyUser.find({
+      where: { applicationId: { eq: applicationId } },
+      orderBy: [{ field: 'createdAt', direction: 'desc' }],
+      limit: 1,
+      tx: ctx?.tx
+    })
+
+    return valkeyUsers.length > 0 ? valkeyUsers[0] : null
+  }
 
   async function createValkeyUser (applicationId, ctx) {
     if (!provider) return
