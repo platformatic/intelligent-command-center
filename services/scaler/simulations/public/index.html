@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ICC Scaler Simulation</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
     .container { max-width: 2800px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px; }
@@ -34,11 +35,7 @@
         <canvas id="metricsChart" width="440" height="260"></canvas>
       </div>
     </div>
-    <div style="margin: 40px auto 0 auto; max-width: 900px; display: flex; align-items: center;">
-      <canvas id="predictionsChart" width="900" height="260"></canvas>
-      <button id="generatePredictionsBtn" style="margin-left: 24px; height: 40px; padding: 0 18px;">Generate Predictions</button>
-    </div>
-    <h2 style="text-align:center;margin-top:40px;">Pods Metrics</h2>
+    <h2 style="text-align:center;margin-top:0;">Pods Metrics</h2>
     <table id="podsTable" style="margin: 30px auto 0 auto; border-collapse: collapse; width: 80%; max-width: 700px;">
       <thead>
         <tr style="background:#f0f0f0;">
@@ -50,6 +47,22 @@
       </thead>
       <tbody></tbody>
     </table>
+    <div style="margin: 40px auto 0 auto; max-width: 900px; display: flex; align-items: center;">
+      <canvas id="predictionsChart" width="900" height="260"></canvas>
+      <button id="generatePredictionsBtn" style="margin-left: 24px; height: 40px; padding: 0 18px;">Generate Predictions</button>
+    </div>
+    <div id="perfHistoryGenForm" style="margin: 40px auto 0 auto; max-width: 1400px; padding: 16px; background: #f8f9fa; border-radius: 6px; border: 1px solid #bcd0c7;">
+      <label for="scheduleDescriptionInput" style="margin-right: 12px;">Schedule Description:</label>
+      <input id="scheduleDescriptionInput" type="text" style="padding: 6px; width: 220px; margin-right: 18px;" value="every 2 hours" />
+      <a href="https://bunkat.github.io/later/parsers.html#text" target="_blank" style="font-size: 0.95em; color: #007bff; text-decoration: underline; margin-right: 18px;">How to write a schedule?</a>
+      <label for="durationMinsInput" style="margin-right: 12px;">Duration (mins):</label>
+      <input id="durationMinsInput" type="number" min="1" style="padding: 6px; width: 80px; margin-right: 18px;" value="20" />
+      <label for="amountInput" style="margin-right: 12px;">Amount of Pods:</label>
+      <input id="amountInput" type="number" min="1" style="padding: 6px; width: 80px; margin-right: 18px;" value="8" />
+      <button id="generatePerfHistoryBtn" style="padding: 6px 18px;">Generate Perf History</button>
+      <span id="perfHistoryGenStatus" style="margin-left: 18px; color: #007bff; font-weight: bold;"></span>
+    </div>
+    <div id="perfHistorySection" style="margin: 40px auto 0 auto; max-width: 900px;"></div>
   </div>
   <script>
     let scaleEventsChart, metricsChart, predictionsChart;
@@ -138,17 +151,11 @@
         if (!predictionsChart) {
           predictionsChart = new Chart(document.getElementById('predictionsChart').getContext('2d'), predChartData);
           lastPredictionsLen = predChartData.data.labels.length;
-        } else if (predChartData.data.labels.length > lastPredictionsLen) {
-          // Append new data point
-          const newLabel = predChartData.data.labels[predChartData.data.labels.length - 1];
-          const newValue = predChartData.data.datasets[0].data[predChartData.data.datasets[0].data.length - 1];
-          predictionsChart.data.labels.push(newLabel);
-          predictionsChart.data.datasets[0].data.push(newValue);
-          if (predictionsChart.data.labels.length > 100) {
-            predictionsChart.data.labels.shift();
-            predictionsChart.data.datasets[0].data.shift();
-          }
-          predictionsChart.update('none');
+        } else {
+          // Always refresh the chart with the latest data
+          predictionsChart.data.labels = predChartData.data.labels;
+          predictionsChart.data.datasets[0].data = predChartData.data.datasets[0].data;
+          predictionsChart.update();
           lastPredictionsLen = predChartData.data.labels.length;
         }
 
@@ -185,6 +192,40 @@
       populatePodsSelect();
       updateChartsAndPods();
       setInterval(updateChartsAndPods, 5000);
+      renderPerfHistoryCharts();
+      // Perf history generation form handler
+      document.getElementById('generatePerfHistoryBtn').onclick = async function(e) {
+        e.preventDefault();
+        const scheduleDescription = document.getElementById('scheduleDescriptionInput').value.trim();
+        const durationMins = parseInt(document.getElementById('durationMinsInput').value, 10);
+        const amount = parseInt(document.getElementById('amountInput').value, 10);
+        const statusEl = document.getElementById('perfHistoryGenStatus');
+        statusEl.textContent = '';
+        if (!scheduleDescription || !durationMins || !amount) {
+          statusEl.textContent = 'Please enter schedule description, duration, and amount.';
+          statusEl.style.color = 'red';
+          return;
+        }
+        try {
+          const res = await fetch('/api/perf-history/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scheduleDescription, durationMins, amount })
+          });
+          if (res.ok) {
+            statusEl.textContent = 'Perf history generated!';
+            statusEl.style.color = '#007bff';
+            renderPerfHistoryCharts();
+          } else {
+            const err = await res.text();
+            statusEl.textContent = 'Error: ' + err;
+            statusEl.style.color = 'red';
+          }
+        } catch (e) {
+          statusEl.textContent = 'Error: ' + e.message;
+          statusEl.style.color = 'red';
+        }
+      };
     });
 
     document.getElementById('autocannonBtn').onclick = async function() {
@@ -234,13 +275,106 @@
       try {
         const res = await fetch('/api/predictions/calculate', { method: 'POST' });
         if (res.ok) {
-          alert('Predictions generated');
+          // Immediately update the predictions chart and perf history after generation
+          updateChartsAndPods();
+          renderPerfHistoryCharts();
         } else {
           const err = await res.text();
           alert('Error: ' + err);
         }
       } catch (e) {
         alert('Error: ' + e.message);
+      }
+    }
+
+    async function renderPerfHistoryCharts() {
+      const sectionContainer = document.getElementById('perfHistorySection');
+      sectionContainer.innerHTML = '';
+      try {
+        const res = await fetch('/api/perf-history-charts');
+        const chartsByDay = await res.json();
+        // Parent accordion
+        const parentSection = document.createElement('div');
+        parentSection.style.marginBottom = '16px';
+        const parentHeader = document.createElement('button');
+        parentHeader.textContent = 'Performance History (all days)';
+        parentHeader.style.width = '100%';
+        parentHeader.style.textAlign = 'left';
+        parentHeader.style.padding = '12px';
+        parentHeader.style.fontWeight = 'bold';
+        parentHeader.style.background = '#d1e7dd';
+        parentHeader.style.border = '2px solid #bcd0c7';
+        parentHeader.style.cursor = 'pointer';
+        parentHeader.style.borderRadius = '6px';
+        parentHeader.style.marginBottom = '4px';
+        parentHeader.style.fontSize = '1.1em';
+
+        const parentContent = document.createElement('div');
+        parentContent.style.display = 'none';
+        parentContent.style.background = '#f8f9fa';
+        parentContent.style.border = '1px solid #bcd0c7';
+        parentContent.style.borderTop = 'none';
+        parentContent.style.padding = '10px 0 0 0';
+        parentContent.style.borderRadius = '0 0 6px 6px';
+
+        parentHeader.onclick = () => {
+          parentContent.style.display = parentContent.style.display === 'none' ? 'block' : 'none';
+        };
+
+        let chartIdx = 0;
+        for (const day in chartsByDay) {
+          // Accordion header for each day
+          const section = document.createElement('div');
+          section.style.marginBottom = '10px';
+          const header = document.createElement('button');
+          header.textContent = `Performance History: ${day}`;
+          header.style.width = '100%';
+          header.style.textAlign = 'left';
+          header.style.padding = '10px';
+          header.style.fontWeight = 'bold';
+          header.style.background = '#e9ecef';
+          header.style.border = '1px solid #ccc';
+          header.style.cursor = 'pointer';
+          header.style.borderRadius = '4px';
+          header.style.marginBottom = '2px';
+
+          // Accordion content for each day
+          const content = document.createElement('div');
+          content.style.display = 'none';
+          content.style.background = '#fff';
+          content.style.border = '1px solid #ccc';
+          content.style.borderTop = 'none';
+          content.style.padding = '10px';
+          content.style.borderRadius = '0 0 4px 4px';
+
+          // Chart canvas
+          const canvas = document.createElement('canvas');
+          canvas.width = 900;
+          canvas.height = 260;
+          canvas.id = `perfHistoryChart_${chartIdx}`;
+          content.appendChild(canvas);
+
+          // Only render chart when unfolded for the first time
+          let chartRendered = false;
+          header.onclick = () => {
+            const isOpen = content.style.display === 'block';
+            content.style.display = isOpen ? 'none' : 'block';
+            if (!chartRendered && !isOpen) {
+              new Chart(canvas.getContext('2d'), chartsByDay[day]);
+              chartRendered = true;
+            }
+          };
+
+          section.appendChild(header);
+          section.appendChild(content);
+          parentContent.appendChild(section);
+          chartIdx++;
+        }
+        parentSection.appendChild(parentHeader);
+        parentSection.appendChild(parentContent);
+        sectionContainer.appendChild(parentSection);
+      } catch (e) {
+        sectionContainer.innerHTML = '<div style="color:red;">Failed to load performance history charts.</div>';
       }
     }
   </script>

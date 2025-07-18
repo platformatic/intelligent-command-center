@@ -35,7 +35,7 @@ async function getConfig () {
     },
     limit: {
       default: 100,
-      max: 1000
+      max: 100000
     }
   }
 
@@ -141,7 +141,10 @@ async function cleandb () {
   const sql = createConnectionPool.sql
 
   try {
-    await pool.query(sql`DELETE FROM HEALTH;`)
+    await pool.query(sql`DELETE FROM application_scale_configs;`)
+    await pool.query(sql`DELETE FROM controllers;`)
+    await pool.query(sql`DELETE FROM scale_events;`)
+    await pool.query(sql`DELETE FROM performance_history;`)
   } catch {}
 }
 
