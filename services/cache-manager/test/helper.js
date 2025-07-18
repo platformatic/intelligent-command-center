@@ -12,6 +12,7 @@ const { loadConfig, buildServer: buildRuntimeServer } = require('@platformatic/r
 const RedisCacheStore = require('@platformatic/undici-cache-redis')
 
 const defaultEnv = {
+  PLT_FEATURE_CACHE: true,
   PLT_APPLICATIONS_VALKEY_CONNECTION_STRING: 'redis://127.0.0.1:6342'
 }
 

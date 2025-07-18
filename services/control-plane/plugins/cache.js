@@ -9,6 +9,7 @@ const { ElastiCacheProvider } = require('./elasticache')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
+  const isCacheEnabled = app.env.PLT_FEATURE_CACHE
   const cacheProvider = app.env.PLT_CONTROL_PLANE_CACHE_PROVIDER
   const cacheProviderUrl = app.env.PLT_APPLICATIONS_VALKEY_CONNECTION_STRING
 
@@ -16,50 +17,37 @@ module.exports = fp(async function (app) {
 
   let provider = null
 
-  if (cacheProvider === 'valkey-oss') {
-    provider = new ValkeyCacheProvider(cacheProviderUrl)
-  }
-
-  if (cacheProvider === 'elasticache') {
-    const clusterPrefix = app.env.PLT_CONTROL_PLANE_ELASTICACHE_CLUSTERID_PREFIX
-    const opts = {
-      region: app.env.PLT_CONTROL_PLANE_ELASTICACHE_REGION,
-      credentials: {
-        accessKeyId: app.env.PLT_CONTROL_PLANE_ELASTICACHE_ACCESS_KEY,
-        secretAccessKey: app.env.PLT_CONTROL_PLANE_ELASTICACHE_SECRET_KEY
-      }
+  if (isCacheEnabled && cacheProvider) {
+    if (cacheProvider === 'valkey-oss') {
+      provider = new ValkeyCacheProvider(cacheProviderUrl)
     }
-    provider = new ElastiCacheProvider(clusterPrefix, opts)
+
+    if (cacheProvider === 'elasticache') {
+      const clusterPrefix = app.env.PLT_CONTROL_PLANE_ELASTICACHE_CLUSTERID_PREFIX
+      const opts = {
+        region: app.env.PLT_CONTROL_PLANE_ELASTICACHE_REGION,
+        credentials: {
+          accessKeyId: app.env.PLT_CONTROL_PLANE_ELASTICACHE_ACCESS_KEY,
+          secretAccessKey: app.env.PLT_CONTROL_PLANE_ELASTICACHE_SECRET_KEY
+        }
+      }
+      provider = new ElastiCacheProvider(clusterPrefix, opts)
+    }
+
+    if (!provider) {
+      throw new errors.UnsupportedCacheProvider(cacheProvider)
+    }
+
+    await provider.setup()
+
+    app.addHook('onClose', async () => provider.destructor())
   }
-
-  if (!provider) {
-    throw new errors.UnsupportedCacheProvider(cacheProvider)
-  }
-
-  await provider.setup()
-
-  const { hostname: host, port } = new URL(cacheProviderUrl)
-
-  app.decorate('createValkeyUser', async (applicationId, ctx) => {
-    const username = generateUsername(applicationId)
-    const password = generatePassword()
-    const keyPrefix = `${applicationId}:`
-    const encryptedPassword = encryptPassword(applicationId, password)
-
-    await provider.createNewUser(username, password, keyPrefix, ctx)
-
-    await app.platformatic.entities.valkeyUser.save({
-      input: {
-        applicationId,
-        username,
-        keyPrefix,
-        encryptedPassword
-      },
-      tx: ctx?.tx
-    })
-  })
 
   app.decorate('getValkeyClientOpts', async (applicationId, ctx) => {
+    if (!provider) return null
+
+    const { hostname: host, port } = new URL(cacheProviderUrl)
+
     const valkeyUsers = await app.platformatic.entities.valkeyUser.find({
       where: { applicationId: { eq: applicationId } },
       orderBy: [{ field: 'createdAt', direction: 'desc' }],
@@ -68,7 +56,11 @@ module.exports = fp(async function (app) {
     })
 
     if (valkeyUsers.length === 0) {
-      return null
+      const { username, password, keyPrefix } = await createValkeyUser(
+        applicationId,
+        ctx
+      )
+      return { host, port, username, password, keyPrefix }
     }
 
     const { id, username, encryptedPassword, keyPrefix } = valkeyUsers[0]
@@ -89,6 +81,29 @@ module.exports = fp(async function (app) {
 
     return { host, port, username, password, keyPrefix }
   })
+
+  async function createValkeyUser (applicationId, ctx) {
+    if (!provider) return
+
+    const username = generateUsername(applicationId)
+    const password = generatePassword()
+    const keyPrefix = `${applicationId}:`
+    const encryptedPassword = encryptPassword(applicationId, password)
+
+    await provider.createNewUser(username, password, keyPrefix, ctx)
+
+    await app.platformatic.entities.valkeyUser.save({
+      input: {
+        applicationId,
+        username,
+        keyPrefix,
+        encryptedPassword
+      },
+      tx: ctx?.tx
+    })
+
+    return { username, password, keyPrefix }
+  }
 
   function generateUsername (applicationId) {
     return `plt-application-${applicationId}`
@@ -124,18 +139,6 @@ module.exports = fp(async function (app) {
 
     throw new errors.FailedToDecryptValkeyPassword(applicationId)
   }
-
-  app.decorate('getControlPlaneSecretKey', (offset = 1) => {
-    const secretKeys = app.env.PLT_CONTROL_PLANE_SECRET_KEYS.split(',')
-
-    if (offset < 1 || offset > secretKeys.length) {
-      return null
-    }
-
-    return secretKeys.at(-offset)
-  })
-
-  app.addHook('onClose', async () => provider.destructor())
 }, {
   name: 'cache',
   dependencies: ['env']

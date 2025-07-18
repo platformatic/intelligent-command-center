@@ -7,7 +7,11 @@ const { NextCacheManager } = require('../lib/next-cache-manager')
 const errors = require('./errors')
 
 module.exports = fp(async function (app) {
+  const isCacheEnabled = app.env.PLT_FEATURE_CACHE
   const connectionString = app.env.PLT_APPLICATIONS_VALKEY_CONNECTION_STRING
+
+  if (!isCacheEnabled || !connectionString) return
+
   const valkeyUrl = new URL(connectionString)
 
   const oramaDBs = new Map()

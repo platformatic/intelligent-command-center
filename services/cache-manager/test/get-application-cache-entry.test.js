@@ -51,3 +51,23 @@ test('should return 404 if there are not such key', async (t) => {
     statusCode: 404
   })
 })
+
+test('should return 400 if cache is not enabled', async (t) => {
+  const applicationId = randomUUID()
+  const cacheManager = await startCacheManager(t, {
+    PLT_FEATURE_CACHE: false
+  })
+
+  const { statusCode, body } = await cacheManager.inject({
+    url: `/applications/${applicationId}/http-cache/foo`
+  })
+  assert.deepStrictEqual(statusCode, 400)
+
+  const error = JSON.parse(body)
+  assert.deepStrictEqual(error, {
+    code: 'PLT_CACHE_MANAGER_CACHE_NOT_ENABLED',
+    error: 'Bad Request',
+    message: 'Cache is not enabled',
+    statusCode: 400
+  })
+})

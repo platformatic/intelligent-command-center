@@ -70,6 +70,7 @@ module.exports = fp(async function (app) {
               properties: {
                 clientOpts: {
                   type: 'object',
+                  nullable: true,
                   properties: {
                     host: { type: 'string' },
                     port: { type: 'number' },
