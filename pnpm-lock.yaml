@@ -29,7 +29,7 @@ importers:
     devDependencies:
       '@platformatic/config':
         specifier: ^2.70.1
-        version: 2.71.0
+        version: 2.72.0
       '@platformatic/runtime':
         specifier: ^2.70.1
         version: 2.72.0
@@ -235,7 +235,7 @@ importers:
         version: 4.2.0
       '@platformatic/config':
         specifier: ^2.70.1
-        version: 2.71.0
+        version: 2.72.0
       '@platformatic/db':
         specifier: ^2.70.1
         version: 2.71.0
@@ -6433,6 +6433,10 @@ packages:
     resolution: {integrity: sha512-heTSIac3iLhsmZhUCjyS3JQEkZELateufzZuBaVM5RHXdSBMb1LPMQf5x+FH7qjsZYDP0ttAc3nnVpUB+wYbOg==}
     engines: {node: '>=20.18.1'}
 
+  undici@7.12.0:
+    resolution: {integrity: sha512-GrKEsc3ughskmGA9jevVlIOPMiiAHJ4OFUtaAH+NhfTUSiZ1wMPIQqQvAJUrJspFXJt3EBWgpAeoHEDVT1IBug==}
+    engines: {node: '>=20.18.1'}
+
   unicorn-magic@0.1.0:
     resolution: {integrity: sha512-lRfVq8fE8gz6QMBuDM6a+LO3IAzTi05H6gCVaUpir2E1Rwpo4ZUog45KpNXKC/Mn3Yb9UDuHumeFTo9iV/D9FQ==}
     engines: {node: '>=18'}
@@ -8684,7 +8688,7 @@ snapshots:
       minimist: 1.2.8
       pupa: 3.1.0
       semver: 7.7.2
-      undici: 7.11.0
+      undici: 7.12.0
 
   '@platformatic/control@2.71.0':
     dependencies:
@@ -14211,6 +14215,8 @@ snapshots:
   undici@6.21.3: {}
 
   undici@7.11.0: {}
+
+  undici@7.12.0: {}
 
   unicorn-magic@0.1.0: {}
 
