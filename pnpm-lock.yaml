@@ -399,7 +399,7 @@ importers:
         version: 8.1.2
       '@fastify/websocket':
         specifier: ^11.0.2
-        version: 11.1.0
+        version: 11.2.0
       '@platformatic/composer':
         specifier: ^2.70.1
         version: 2.71.0(chokidar@3.6.0)
@@ -620,7 +620,7 @@ importers:
         version: 8.2.0
       '@fastify/websocket':
         specifier: ^11.1.0
-        version: 11.1.0
+        version: 11.2.0
       borp:
         specifier: ^0.20.0
         version: 0.20.0
@@ -12464,7 +12464,7 @@ snapshots:
     dependencies:
       '@fastify/error': 4.2.0
       '@fastify/static': 8.2.0
-      '@fastify/websocket': 11.1.0
+      '@fastify/websocket': 11.2.0
       fastify-plugin: 5.0.1
       graphql: 16.11.0
       graphql-jit: 0.8.6(graphql@16.11.0)
