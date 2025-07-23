@@ -1,5 +1,6 @@
 'use strict'
 
+const { randomUUID } = require('crypto')
 // Define Redis key prefix for triggered pods
 const TRIGGERED_PODS_PREFIX = 'scaler:triggered-pods:'
 
@@ -61,7 +62,16 @@ class AlertsManager {
   }
 
   async processAlert (alert) {
-    const { applicationId, serviceId, podId, elu, heapUsed, heapTotal, unhealthy, healthHistory } = alert
+    const {
+      applicationId,
+      serviceId,
+      podId,
+      elu,
+      heapUsed,
+      heapTotal,
+      unhealthy,
+      healthHistory
+    } = alert
 
     this.app.log.debug({
       applicationId,
@@ -73,7 +83,11 @@ class AlertsManager {
       unhealthy
     }, 'Processing alert')
 
+    const id = randomUUID()
+    const now = Date.now()
+
     await this.app.store.saveAlert({
+      id,
       applicationId,
       serviceId,
       podId,
@@ -84,7 +98,21 @@ class AlertsManager {
       healthHistory
     })
 
-    const now = Date.now()
+    const alertEntity = await this.app.platformatic.entities.alert.save({
+      input: {
+        id,
+        applicationId,
+        serviceId,
+        podId,
+        elu,
+        heapUsed,
+        heapTotal,
+        unhealthy,
+        healthHistory: JSON.stringify(healthHistory),
+        createdAt: new Date(now)
+      }
+    })
+
     const lastTriggered = await this.getLastTriggeredTime(podId)
 
     if (!lastTriggered || (now - lastTriggered) > this.debounceWindow) {
@@ -98,6 +126,8 @@ class AlertsManager {
         debounceWindow: this.debounceWindow
       }, 'Skipping scaler trigger for recently triggered pod')
     }
+
+    return alertEntity
   }
 }
 
