@@ -63,8 +63,16 @@ test('receive and save alert successfully', async (t) => {
   })
 
   assert.strictEqual(response.statusCode, 200)
-  const responseBody = JSON.parse(response.body)
-  assert.deepStrictEqual(responseBody, { success: true })
+
+  const alertEntity = JSON.parse(response.body)
+  assert.ok(alertEntity.id)
+  assert.ok(alertEntity.createdAt)
+  assert.strictEqual(alertEntity.applicationId, applicationId)
+  assert.strictEqual(alertEntity.serviceId, serviceId)
+  assert.strictEqual(alertEntity.podId, podId)
+  assert.strictEqual(alertEntity.elu, alert.currentHealth.elu)
+  assert.strictEqual(alertEntity.heapUsed, alert.currentHealth.heapUsed)
+  assert.strictEqual(alertEntity.heapTotal, alert.currentHealth.heapTotal)
 
   // Verify alert was saved by applicationId
   const savedAlertsByApp = await server.store.getAlertsByApplicationId(applicationId)
@@ -87,6 +95,35 @@ test('receive and save alert successfully', async (t) => {
   assert.strictEqual(savedAlertByPod.elu, alert.currentHealth.elu)
   assert.strictEqual(savedAlertByPod.heapUsed, alert.currentHealth.heapUsed)
   assert.strictEqual(savedAlertByPod.heapTotal, alert.currentHealth.heapTotal)
+
+  const foundAlertEntitities = await server.platformatic.entities.alert.find()
+  assert.strictEqual(foundAlertEntitities.length, 1)
+
+  {
+    const flamegraph = 'test-flamegraph'
+    const flamegraphBuf = Buffer.from(flamegraph)
+
+    const response = await server.inject({
+      method: 'POST',
+      url: `/alerts/${savedAlertByPod.id}/flamegraph`,
+      headers: {
+        'content-type': 'application/octet-stream',
+        'x-k8s': generateK8sHeader(podId)
+      },
+      payload: flamegraphBuf
+    })
+    assert.strictEqual(response.statusCode, 200, response.body)
+
+    const foundFlamegraphEntitities = await server.platformatic.entities.flamegraph.find()
+    assert.strictEqual(foundFlamegraphEntitities.length, 1)
+
+    const foundFlamegraphEntity = foundFlamegraphEntitities[0]
+    assert.strictEqual(foundFlamegraphEntity.alertId, savedAlertByPod.id)
+
+    const foundFlamegraphBuf = foundFlamegraphEntity.flamegraph
+    const foundFlamegraphStr = foundFlamegraphBuf.toString()
+    assert.strictEqual(foundFlamegraphStr, flamegraph)
+  }
 })
 
 test('receive multiple alerts for the same pod', async (t) => {
