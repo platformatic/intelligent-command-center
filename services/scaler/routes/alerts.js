@@ -46,13 +46,22 @@ module.exports = async function (app) {
       /* c8 ignore next */
       const serviceId = alert.service || alert.id
       const { elu, heapUsed, heapTotal } = currentHealth
-      app.log.debug({ serviceId, applicationId, currentHealth, unhealthy, healthConfig, podId, healthHistoryLength: healthHistory?.length }, 'received alert')
+
+      app.log.debug({
+        serviceId,
+        applicationId,
+        currentHealth,
+        unhealthy,
+        healthConfig,
+        podId,
+        healthHistoryLength: healthHistory?.length
+      }, 'received alert')
 
       if (unhealthy) {
         app.log.info({ podId, serviceId, applicationId, unhealthy }, 'Received unhealthy alert')
       }
 
-      await app.processAlert({
+      return app.processAlert({
         applicationId,
         serviceId,
         podId,
@@ -62,8 +71,43 @@ module.exports = async function (app) {
         unhealthy,
         healthHistory
       })
+    }
+  })
 
-      return { success: true }
+  app.addContentTypeParser(
+    'application/octet-stream',
+    function (request, payload, done) {
+      const chunks = []
+      payload.on('data', chunk => chunks.push(chunk))
+      payload.on('end', () => {
+        done(null, Buffer.concat(chunks))
+      })
+      payload.on('error', done)
+    })
+
+  app.post('/alerts/:id/flamegraph', {
+    schema: {
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      }
+    },
+    handler: async (req) => {
+      const k8sContext = req.k8s
+      if (!k8sContext) {
+        throw new Error('Missing k8s context')
+      }
+
+      const alertId = req.params.id
+      const flamegraph = req.body
+
+      await app.platformatic.entities.flamegraph.save({
+        input: { alertId, flamegraph },
+        fields: ['id']
+      })
     }
   })
 }

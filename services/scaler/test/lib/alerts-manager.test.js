@@ -16,6 +16,7 @@ test('AlertsManager clearRecentTriggers', async (t) => {
     log: { debug: () => {}, info: () => {} },
     store: mockStore
   }
+
   const manager = new AlertsManager(mockApp)
 
   await mockValkey.set('scaler:triggered-pods:pod1', Date.now(), 'EX', 30)
@@ -77,6 +78,7 @@ test('AlertsManager processAlert - unhealthy alert triggers scaler', async (t) =
 
   const notifyScalerCalled = []
   const savedAlerts = []
+  const savedAlertsEntities = []
   const mockValkey = new Redis(valkeyConnectionString)
 
   const mockApp = {
@@ -92,6 +94,15 @@ test('AlertsManager processAlert - unhealthy alert triggers scaler', async (t) =
     },
     notifyScaler: async (podId) => {
       notifyScalerCalled.push(podId)
+    },
+    platformatic: {
+      entities: {
+        alert: {
+          save: (alert) => {
+            savedAlertsEntities.push(alert)
+          }
+        }
+      }
     }
   }
 
@@ -118,6 +129,8 @@ test('AlertsManager processAlert - unhealthy alert triggers scaler', async (t) =
   const exists = await mockValkey.exists(key)
   assert.strictEqual(exists, 1, 'Should have a Redis key for the triggered pod')
 
+  assert.strictEqual(savedAlertsEntities.length, 1)
+
   await mockValkey.quit()
 })
 
@@ -141,6 +154,13 @@ test('AlertsManager processAlert - debounces subsequent unhealthy alerts', async
     },
     notifyScaler: async (podId) => {
       notifyScalerCalled.push(podId)
+    },
+    platformatic: {
+      entities: {
+        alert: {
+          save: (alert) => {}
+        }
+      }
     }
   }
 
@@ -204,6 +224,11 @@ test('AlertsManager processAlert - allows trigger after debounce window', async 
     },
     notifyScaler: async (podId) => {
       notifyScalerCalled.push(podId)
+    },
+    platformatic: {
+      entities: {
+        alert: { save: () => {} }
+      }
     }
   }
 
@@ -256,7 +281,12 @@ test('AlertsManager handles Redis errors gracefully', async (t) => {
       redis: errorRedis,
       saveAlert: async () => {}
     },
-    notifyScaler: async () => {}
+    notifyScaler: async () => {},
+    platformatic: {
+      entities: {
+        alert: { save: () => {} }
+      }
+    }
   }
 
   const manager = new AlertsManager(mockApp)

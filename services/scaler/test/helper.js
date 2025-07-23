@@ -21,7 +21,7 @@ async function getConfig () {
   const config = {}
   config.server = {
     port: 5555,
-    logger: { level: 'silent' }
+    logger: { level: 'warn' }
   }
   config.db = {
     connectionString,
@@ -30,6 +30,10 @@ async function getConfig () {
         {
           method: 'POST',
           path: '/controllers'
+        },
+        {
+          method: 'POST',
+          path: '/alerts'
         }
       ]
     },
@@ -116,6 +120,12 @@ async function cleanDb (app) {
   } catch (err) {}
   try {
     await db.query(sql`DELETE FROM "application_scale_configs"`)
+  } catch (err) {}
+  try {
+    await db.query(sql`DELETE FROM "flamegraphs"`)
+  } catch (err) {}
+  try {
+    await db.query(sql`DELETE FROM "alerts"`)
   } catch (err) {}
 
   if (app.store) {
