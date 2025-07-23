@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS flamegraphs;
+DROP TABLE IF EXISTS alerts;

@@ -234,7 +234,7 @@ test('should trigger scaler when alert is unhealthy', async (t) => {
     await cleanValkeyData()
   })
 
-  const applicationId = 'test:' + randomUUID()
+  const applicationId = randomUUID()
   const serviceId = randomUUID()
   const podId = randomUUID()
 
@@ -293,7 +293,7 @@ test('should debounce multiple unhealthy alerts for the same pod', async (t) => 
     await cleanValkeyData()
   })
 
-  const applicationId = 'test:' + randomUUID()
+  const applicationId = randomUUID()
   const serviceId = randomUUID()
   const podId = randomUUID()
 

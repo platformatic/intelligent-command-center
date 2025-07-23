@@ -16,6 +16,10 @@
         {
           "method": "POST",
           "path": "/controllers"
+        },
+        {
+          "method": "POST",
+          "path": "/alerts"
         }
       ]
     },
