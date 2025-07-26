@@ -294,7 +294,7 @@ importers:
     devDependencies:
       '@platformatic/ui-components':
         specifier: ^0.17.0
-        version: 0.17.0(storybook@8.6.14(prettier@3.6.2))
+        version: 0.17.3(storybook@8.6.14(prettier@3.6.2))
       '@types/react':
         specifier: ^19.0.1
         version: 19.1.8
@@ -959,6 +959,10 @@ packages:
 
   '@babel/runtime@7.27.6':
     resolution: {integrity: sha512-vbavdySgbTTrmFE+EsiqUTzlOr5bzlnJtUv9PynGCAKvfQqjIXbvFdumPM/GxMDfyuGMJaJAU6TO4zc1Jf1i8Q==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/runtime@7.28.2':
+    resolution: {integrity: sha512-KHp2IflsnGywDjBWDkR9iEqiWSpc8GIi0lgTT3mOElT0PP1tG26P4tmFI2YvAdzgq9RGyoHZQEIEdZy6Ec5xCA==}
     engines: {node: '>=6.9.0'}
 
   '@babel/template@7.27.2':
@@ -2189,8 +2193,8 @@ packages:
   '@platformatic/ts-compiler@2.72.0':
     resolution: {integrity: sha512-v+ARO9VZcpZousGXhvfpVDUZ6KVfIQScXFi+mU0ibwsnB3pDaCWdz5c+P3WX8+z8uWw0Qy1rGOOEsTpemEe/jg==}
 
-  '@platformatic/ui-components@0.17.0':
-    resolution: {integrity: sha512-sDb1oGCmX1iZZ8cH8DDXv6ejHOs5EFb0zmAItQo2XP/2B9wIQ6TYnJAjmIdZ/lPlm/ILYbFEZ73Z1ryivvd+Bg==}
+  '@platformatic/ui-components@0.17.3':
+    resolution: {integrity: sha512-00AM/LWV2Zx6tBCy0dezAxXnhotdZ9gTEGhS2Pp7XbVcE35NvF/Cu/7lbPWj0Ofe2DTkYE2qCfqtUuKcnpFK1g==}
 
   '@platformatic/undici-cache-memory@0.8.4':
     resolution: {integrity: sha512-/JVfPhyUW0GQkmr5lGAGOgh0lpJbTcLG8VB2uNqgNgH1fhPPFAM0l4pLSyeDzpTj2r/GJPLqhzvCgangnSHfoQ==}
@@ -4964,6 +4968,9 @@ packages:
   loupe@3.1.4:
     resolution: {integrity: sha512-wJzkKwJrheKtknCOKNEtDK4iqg/MxmZheEMtSTYvnzRdEYaZzmgH976nenp8WdJRdx5Vc1X/9MO0Oszl6ezeXg==}
 
+  loupe@3.2.0:
+    resolution: {integrity: sha512-2NCfZcT5VGVNX9mSZIxLRkEAegDGBpuQZBy13desuHeVORmBDyAET4TkJr4SjqQy3A8JDofMN6LpkK8Xcm/dlw==}
+
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
 
@@ -7434,6 +7441,8 @@ snapshots:
 
   '@babel/runtime@7.27.6': {}
 
+  '@babel/runtime@7.28.2': {}
+
   '@babel/template@7.27.2':
     dependencies:
       '@babel/code-frame': 7.27.1
@@ -9257,10 +9266,11 @@ snapshots:
       pino-pretty: 13.0.0
       resolve: 1.22.10
 
-  '@platformatic/ui-components@0.17.0(storybook@8.6.14(prettier@3.6.2))':
+  '@platformatic/ui-components@0.17.3(storybook@8.6.14(prettier@3.6.2))':
     dependencies:
       '@storybook/test': 8.6.14(storybook@8.6.14(prettier@3.6.2))
       autoprefixer: 10.4.21(postcss@8.5.6)
+      d3: 7.9.0
       postcss: 8.5.6
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
@@ -9887,7 +9897,7 @@ snapshots:
   '@testing-library/dom@10.4.0':
     dependencies:
       '@babel/code-frame': 7.27.1
-      '@babel/runtime': 7.27.6
+      '@babel/runtime': 7.28.2
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
       chalk: 4.1.2
@@ -10181,13 +10191,13 @@ snapshots:
     dependencies:
       '@vitest/pretty-format': 2.0.5
       estree-walker: 3.0.3
-      loupe: 3.1.4
+      loupe: 3.2.0
       tinyrainbow: 1.2.0
 
   '@vitest/utils@2.1.9':
     dependencies:
       '@vitest/pretty-format': 2.1.9
-      loupe: 3.1.4
+      loupe: 3.2.0
       tinyrainbow: 1.2.0
 
   '@vitest/utils@3.2.4':
@@ -12569,6 +12579,8 @@ snapshots:
       js-tokens: 4.0.0
 
   loupe@3.1.4: {}
+
+  loupe@3.2.0: {}
 
   lru-cache@10.4.3: {}
 
