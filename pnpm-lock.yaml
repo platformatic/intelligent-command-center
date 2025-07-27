@@ -19,7 +19,7 @@ importers:
         version: 5.0.1
       platformatic:
         specifier: ^2.70.1
-        version: 2.71.0
+        version: 2.72.0
       unique-names-generator:
         specifier: ^4.7.1
         version: 4.7.1
@@ -93,7 +93,7 @@ importers:
         version: 1.11.5
       platformatic:
         specifier: ^2.70.1
-        version: 2.71.0
+        version: 2.72.0
       undici:
         specifier: ^7.1.0
         version: 7.11.0
@@ -263,7 +263,7 @@ importers:
         version: 5.4.0
       platformatic:
         specifier: ^2.70.1
-        version: 2.71.0
+        version: 2.72.0
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -414,7 +414,7 @@ importers:
         version: 7.1.0
       platformatic:
         specifier: ^2.70.1
-        version: 2.71.0
+        version: 2.72.0
       undici:
         specifier: ^7.1.0
         version: 7.11.0
@@ -515,7 +515,7 @@ importers:
         version: 0.1.1
       platformatic:
         specifier: ^2.70.1
-        version: 2.71.0
+        version: 2.72.0
       unzipper:
         specifier: ^0.12.3
         version: 0.12.3
@@ -629,7 +629,7 @@ importers:
         version: 5.4.0
       platformatic:
         specifier: ^2.70.1
-        version: 2.71.0
+        version: 2.72.0
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -1675,8 +1675,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@inquirer/figures@1.0.12':
-    resolution: {integrity: sha512-MJttijd8rMFcKJC8NYmprWr6hD3r9Gd9qUC0XwPNwoEPWSMVJwA2MlXxF+nhZZNMY+HXsWa+o7KY2emWYIn0jQ==}
+  '@inquirer/figures@1.0.13':
+    resolution: {integrity: sha512-lGPVU3yO9ZNqA7vTYz26jny41lE7yoQansmqdMLBEfqaGsmdg7V3W9mK9Pvb5IL4EVZ9GnSDGMO/cJXud5dMaw==}
     engines: {node: '>=18'}
 
   '@ioredis/commands@1.2.0':
@@ -2066,12 +2066,9 @@ packages:
   '@platformatic/basic@2.72.0':
     resolution: {integrity: sha512-P2Y9/v3Yv19Ya7FdaOb8DKJ4AGqxv0qh+LrFcBezg0DP1uJNn4aXQPqyOiuoiqaHF5QElRWtHgVItOHJPCjIuQ==}
 
-  '@platformatic/client-cli@2.71.0':
-    resolution: {integrity: sha512-+SDj7E2Dd2Unz4Qc0uJQVuLe9fGIvqGgTRMMvgc4pRnbmxXamxfMYj6JBNbpThi8uH8EGPYocQcG0kGAGdsayQ==}
+  '@platformatic/client-cli@2.72.0':
+    resolution: {integrity: sha512-MjINoZsLQT+fU4P7Z/QgJLBTS7ASUHfkYp11Yv1N5NLbYDZmc/VEg9Q7cH7U4WFSXhftpL4cK3zUnBkucLGmKQ==}
     hasBin: true
-
-  '@platformatic/client@2.71.0':
-    resolution: {integrity: sha512-XKodpYDKqafAiIL2VXY4kcWaSMuQTR9SgP0Ku27SIgW31cK0UN27IrEJGX8HSstfvchmnLnZ//rQFVdHkSTUDg==}
 
   '@platformatic/client@2.72.0':
     resolution: {integrity: sha512-lXPwZX75Iu0sIiR518wQBFOCanNLhFmqq3XE0Wiy60i1jTQW/vYAawl2EIbgNXBhahIU+MyVuA+ncunnCwdQaQ==}
@@ -2088,6 +2085,10 @@ packages:
 
   '@platformatic/control@2.71.0':
     resolution: {integrity: sha512-Kv+Rqu9sSxqoNXzwDba5e9WeozSwvgHf6b+eXGB+ltvvjH+xY92y1q2zzHScQky8Rl9J6hPP9u2r/ZDG769WYA==}
+    hasBin: true
+
+  '@platformatic/control@2.72.0':
+    resolution: {integrity: sha512-Zi7RJnD7IN7SUmxttN2UJEYI8D2qg9J4X1VOV1OKskexdLWr9m5R/a6aXHFXJ2Ey8y1PF/NkW88a/3OPXASyQQ==}
     hasBin: true
 
   '@platformatic/db-authorization@2.72.0':
@@ -3490,6 +3491,10 @@ packages:
 
   create-platformatic@2.71.0:
     resolution: {integrity: sha512-nNsPI3/GnMlxx7WA9B6gpS0m4RL8gwVowZrVPqgZDK2OnjdMS6HzGZ4XguKi+vCwVyAWG2b8veCFPqq5BDROzQ==}
+    hasBin: true
+
+  create-platformatic@2.72.0:
+    resolution: {integrity: sha512-y9rgs7WjwGNvxcTRObJEaRyd7kl2Fujo+1XGJYAeST3tA+2WxQqeXDNa9AjYyi+aC86e8TF8LyjeZcUayuRCcg==}
     hasBin: true
 
   cron-parser@5.3.0:
@@ -5546,8 +5551,8 @@ packages:
   pkg-types@2.2.0:
     resolution: {integrity: sha512-2SM/GZGAEkPp3KWORxQZns4M+WSeXbC2HEvmOIJe3Cmiv6ieAJvdVhDldtHqM5J1Y7MrR1XhkBT/rMlhh9FdqQ==}
 
-  platformatic@2.71.0:
-    resolution: {integrity: sha512-FQ1Dktg9VvCUuKwW/tk1mNLpE/CMYxQsz6CTlDBrriyPXLBWCrPo10A0TZ0Q6/Z9xxv0JiC0gMLgWfnNA7322Q==}
+  platformatic@2.72.0:
+    resolution: {integrity: sha512-N10nS99XAj9uKDrnYVQs7ZOMQP96HimKUM9YwR9jP8ULQwNM3y5l8gnqnwRvIhNYON3ma8P0zqQSZHZUgynf9Q==}
     hasBin: true
 
   points-on-curve@0.2.0:
@@ -6641,6 +6646,10 @@ packages:
 
   wattpm@2.71.0:
     resolution: {integrity: sha512-Tludvud0Jdxa2b0oqSuh5OLMq6YV+dlh5NBOlncqE3xKxJAhLiNe787w9al1YgNxJ35BNfVlGveGt4O9943YOA==}
+    hasBin: true
+
+  wattpm@2.72.0:
+    resolution: {integrity: sha512-Nqqywx31VDRgwj/ouCuLBZ7CEaX2CpH/7vggDkgbj2AyoZlHHFwVKQqnkg9iX7C5A3FYkQXO1/CmYCxLCpNxZg==}
     hasBin: true
 
   wcwidth@1.0.1:
@@ -8142,7 +8151,7 @@ snapshots:
   '@img/sharp-win32-x64@0.34.3':
     optional: true
 
-  '@inquirer/figures@1.0.12': {}
+  '@inquirer/figures@1.0.13': {}
 
   '@ioredis/commands@1.2.0': {}
 
@@ -8619,12 +8628,12 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@platformatic/client-cli@2.71.0':
+  '@platformatic/client-cli@2.72.0':
     dependencies:
       '@fastify/error': 4.2.0
-      '@platformatic/client': 2.71.0
-      '@platformatic/config': 2.71.0
-      '@platformatic/utils': 2.71.0
+      '@platformatic/client': 2.72.0
+      '@platformatic/config': 2.72.0
+      '@platformatic/utils': 2.72.0
       abstract-logging: 2.0.1
       camelcase: 6.3.0
       code-block-writer: 13.0.3
@@ -8638,17 +8647,6 @@ snapshots:
       pino-pretty: 13.0.0
       undici: 7.11.0
       yaml: 2.8.0
-
-  '@platformatic/client@2.71.0':
-    dependencies:
-      '@apidevtools/json-schema-ref-parser': 11.9.3
-      '@fastify/error': 4.2.0
-      abstract-logging: 2.0.1
-      ajv: 8.17.1
-      camelcase: 6.3.0
-      desm: 1.3.1
-      jsonpointer: 5.0.1
-      undici: 7.11.0
 
   '@platformatic/client@2.72.0':
     dependencies:
@@ -8738,6 +8736,21 @@ snapshots:
     dependencies:
       '@fastify/error': 4.2.0
       '@platformatic/utils': 2.71.0
+      commist: 3.2.0
+      help-me: 5.0.0
+      pino: 9.7.0
+      pino-pretty: 13.0.0
+      table: 6.9.0
+      undici: 7.11.0
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@platformatic/control@2.72.0':
+    dependencies:
+      '@fastify/error': 4.2.0
+      '@platformatic/utils': 2.72.0
       commist: 3.2.0
       help-me: 5.0.0
       pino: 9.7.0
@@ -10830,6 +10843,28 @@ snapshots:
       undici: 7.11.0
       which: 3.0.1
 
+  create-platformatic@2.72.0:
+    dependencies:
+      '@platformatic/config': 2.72.0
+      '@platformatic/generators': 2.72.0
+      '@platformatic/utils': 2.72.0
+      columnify: 1.6.0
+      commist: 3.2.0
+      desm: 1.3.1
+      es-main: 1.3.0
+      execa: 9.6.0
+      help-me: 5.0.0
+      inquirer: 9.3.7
+      minimist: 1.2.8
+      ora: 6.3.1
+      pino: 9.7.0
+      pino-pretty: 13.0.0
+      resolve: 1.22.10
+      semver: 7.7.2
+      strip-ansi: 7.1.0
+      undici: 7.11.0
+      which: 3.0.1
+
   cron-parser@5.3.0:
     dependencies:
       luxon: 3.7.1
@@ -12080,7 +12115,7 @@ snapshots:
 
   inquirer@9.3.7:
     dependencies:
-      '@inquirer/figures': 1.0.12
+      '@inquirer/figures': 1.0.13
       ansi-escapes: 4.3.2
       cli-width: 4.1.0
       external-editor: 3.1.0
@@ -13226,18 +13261,18 @@ snapshots:
       exsolve: 1.0.7
       pathe: 2.0.3
 
-  platformatic@2.71.0:
+  platformatic@2.72.0:
     dependencies:
       '@fastify/error': 4.2.0
-      '@platformatic/basic': 2.71.0
-      '@platformatic/client-cli': 2.71.0
-      '@platformatic/config': 2.71.0
-      '@platformatic/control': 2.71.0
-      '@platformatic/runtime': 2.71.0
-      '@platformatic/utils': 2.71.0
+      '@platformatic/basic': 2.72.0
+      '@platformatic/client-cli': 2.72.0
+      '@platformatic/config': 2.72.0
+      '@platformatic/control': 2.72.0
+      '@platformatic/runtime': 2.72.0
+      '@platformatic/utils': 2.72.0
       colorette: 2.0.20
       commist: 3.2.0
-      create-platformatic: 2.71.0
+      create-platformatic: 2.72.0
       desm: 1.3.1
       dotenv: 16.6.1
       execa: 9.6.0
@@ -13248,7 +13283,7 @@ snapshots:
       pino-pretty: 13.0.0
       split2: 4.2.0
       undici: 7.11.0
-      wattpm: 2.71.0
+      wattpm: 2.72.0
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -14497,6 +14532,29 @@ snapshots:
       colorette: 2.0.20
       commist: 3.2.0
       create-platformatic: 2.71.0
+      dotenv: 16.6.1
+      execa: 9.6.0
+      help-me: 5.0.0
+      minimist: 1.2.8
+      pino: 9.7.0
+      pino-pretty: 13.0.0
+      semver: 7.7.2
+      split2: 4.2.0
+      table: 6.9.0
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
+  wattpm@2.72.0:
+    dependencies:
+      '@platformatic/config': 2.72.0
+      '@platformatic/control': 2.72.0
+      '@platformatic/runtime': 2.72.0
+      '@platformatic/utils': 2.72.0
+      colorette: 2.0.20
+      commist: 3.2.0
+      create-platformatic: 2.72.0
       dotenv: 16.6.1
       execa: 9.6.0
       help-me: 5.0.0
