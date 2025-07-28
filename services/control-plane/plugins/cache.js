@@ -10,7 +10,7 @@ const { ElastiCacheProvider } = require('./elasticache')
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
   const isCacheEnabled = app.env.PLT_FEATURE_CACHE
-  const cacheProvider = app.env.PLT_CONTROL_PLANE_CACHE_PROVIDER
+  const cacheProvider = app.env.PLT_APPLICATIONS_CACHE_PROVIDER
   const cacheProviderUrl = app.env.PLT_APPLICATIONS_VALKEY_CONNECTION_STRING
 
   const CACHE_PASSORDS_SUFFIX = '-plt-passwords'
@@ -23,14 +23,17 @@ module.exports = fp(async function (app) {
     }
 
     if (cacheProvider === 'elasticache') {
-      const clusterPrefix = app.env.PLT_CONTROL_PLANE_ELASTICACHE_CLUSTERID_PREFIX
+      const clusterPrefix = app.env.PLT_APPLICATIONS_ELASTICACHE_CLUSTERID_PREFIX
       const opts = {
-        region: app.env.PLT_CONTROL_PLANE_ELASTICACHE_REGION,
-        credentials: {
-          accessKeyId: app.env.PLT_CONTROL_PLANE_ELASTICACHE_ACCESS_KEY,
-          secretAccessKey: app.env.PLT_CONTROL_PLANE_ELASTICACHE_SECRET_KEY
+        region: app.env.PLT_APPLICATIONS_ELASTICACHE_REGION
+      }
+      if (app.env.PLT_APPLICATIONS_ELASTICACHE_ACCESS_KEY && app.env.PLT_APPLICATIONS_ELASTICACHE_SECRET_KEY) {
+        opts.credentials = {
+          accessKeyId: app.env.PLT_APPLICATIONS_ELASTICACHE_ACCESS_KEY,
+          secretAccessKey: app.env.PLT_APPLICATIONS_ELASTICACHE_SECRET_KEY
         }
       }
+
       provider = new ElastiCacheProvider(clusterPrefix, opts)
     }
 
