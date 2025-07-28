@@ -30,7 +30,7 @@ const defaultEnv = {
   PLT_COMPLIANCE_URL: 'http://localhost:3022',
   PLT_TRAFFICANTE_URL: 'http://localhost:3033',
 
-  PLT_CONTROL_PLANE_CACHE_PROVIDER: 'valkey-oss',
+  PLT_APPLICATIONS_CACHE_PROVIDER: 'valkey-oss',
   PLT_CONTROL_PLANE_SECRET_KEYS: 'secret',
 
   PLT_CONTROL_PLANE_DB_LOCK_MIN_TIMEOUT: 300,
