@@ -98,23 +98,34 @@ function calculateHeapScore (podMetrics, performanceScore, heapThreshold) {
  * Processes pod metrics from raw data and calculates derived metrics
  */
 function processPodMetrics (podMetrics, clusters, eluThreshold, heapThreshold) {
-  const eluValues = []
-  const heapValues = []
+  const maxEluByTimestamp = {}
+  const maxHeapByTimestamp = {}
 
-  // Extract all ELU and HEAP values
+  // Calculate the max ELU for a given timestamp
   for (const data of podMetrics.eventLoopUtilization) {
-    for (const [, value] of data.values) {
-      eluValues.push(parseFloat(value))
+    for (const [timestamp, value] of data.values) {
+      if (!maxEluByTimestamp[timestamp]) {
+        maxEluByTimestamp[timestamp] = 0
+      }
+      const elu = parseFloat(value)
+      maxEluByTimestamp[timestamp] = Math.max(maxEluByTimestamp[timestamp], elu)
     }
   }
 
+  // Calculate the max HEAP for a given timestamp
   for (const data of podMetrics.heapSize) {
-    for (const [, value] of data.values) {
+    for (const [timestamp, value] of data.values) {
+      if (!maxHeapByTimestamp[timestamp]) {
+        maxHeapByTimestamp[timestamp] = 0
+      }
       // Normalize heap data to [0, 1] range assuming max heap of 8GB
-      const normalizedHeap = parseFloat(value) / (8 * 1024 * 1024 * 1024)
-      heapValues.push(Math.min(1, normalizedHeap))
+      const heap = Math.min(1, parseFloat(value) / (8 * 1024 * 1024 * 1024))
+      maxHeapByTimestamp[timestamp] = Math.max(maxHeapByTimestamp[timestamp], heap)
     }
   }
+
+  const eluValues = Object.values(maxEluByTimestamp)
+  const heapValues = Object.values(maxHeapByTimestamp)
 
   // Calculate pod-level metrics
   const result = {

@@ -117,7 +117,7 @@ class AlertsManager {
 
     if (!lastTriggered || (now - lastTriggered) > this.debounceWindow) {
       this.app.log.info({ podId, unhealthy }, 'Triggering scaler for unhealthy pod')
-      await this.app.notifyScaler(podId)
+      await this.app.notifyScaler(podId, serviceId)
       await this.setLastTriggeredTime(podId, now)
     } else {
       this.app.log.debug({

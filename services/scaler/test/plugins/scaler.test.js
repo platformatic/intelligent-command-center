@@ -50,12 +50,13 @@ test('should pass podId through PostgreSQL notification', async (t) => {
   server1.scalerExecutor = executor1
 
   const podId = 'test-pod-123'
-  await server1.notifyScaler(podId)
+  const serviceId = 'test-service-123'
+  await server1.notifyScaler(podId, serviceId)
 
   await sleep(500)
 
   assert.strictEqual(server1ExecutionCount, 1, 'Executor should have been called once')
-  assert.deepStrictEqual(receivedPayload, podId, 'Payload should be passed through notification')
+  assert.deepStrictEqual(receivedPayload, { podId, serviceId })
 })
 
 test('only one instance processes notifications with real scaler', async (t) => {

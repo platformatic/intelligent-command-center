@@ -55,7 +55,7 @@ class ReactiveScalingAlgorithm {
 
     // First, merge metrics from alerts into podsMetrics
     for (const alert of alerts) {
-      if (!alert.podId) continue
+      if (!alert.podId || !alert.serviceId) continue
 
       // If we don't have metrics for this pod yet, initialize them
       if (!podsMetrics[alert.podId]) {
@@ -68,20 +68,36 @@ class ReactiveScalingAlgorithm {
       // alert format: {elu, heapUsed, heapTotal, healthHistory}
       if (alert.elu !== undefined) {
         podsMetrics[alert.podId].eventLoopUtilization.push({
-          metric: { podId: alert.podId },
+          metric: { podId: alert.podId, serviceId: alert.serviceId },
           values: [[alert.timestamp || now, alert.elu.toString()]]
         })
-        this.log.debug({ podId: alert.podId, metric: 'elu', value: alert.elu },
-          'Added current ELU metric from alert')
+
+        this.log.debug(
+          {
+            podId: alert.podId,
+            serviceId: alert.service,
+            metric: 'elu',
+            value: alert.elu
+          },
+          'Added current ELU metric from alert'
+        )
       }
 
       if (alert.heapUsed !== undefined && alert.heapTotal !== undefined) {
         podsMetrics[alert.podId].heapSize.push({
-          metric: { podId: alert.podId },
+          metric: { podId: alert.podId, serviceId: alert.serviceId },
           values: [[alert.timestamp || now, alert.heapTotal.toString()]]
         })
-        this.log.debug({ podId: alert.podId, metric: 'heap', value: alert.heapTotal },
-          'Added current heap metric from alert')
+
+        this.log.debug(
+          {
+            podId: alert.podId,
+            serviceId: alert.service,
+            metric: 'heap',
+            value: alert.heapTotal
+          },
+          'Added current heap metric from alert'
+        )
       }
 
       // Process healthHistory to add time-series data for better trend analysis
@@ -115,7 +131,7 @@ class ReactiveScalingAlgorithm {
         // Add history data as separate metric entries for richer analysis
         if (eluHistoryValues.length > 0) {
           podsMetrics[alert.podId].eventLoopUtilization.push({
-            metric: { podId: alert.podId },
+            metric: { podId: alert.podId, serviceId: alert.service },
             values: eluHistoryValues
           })
           this.log.debug({ podId: alert.podId, count: eluHistoryValues.length, total: sortedHistory.length },
@@ -124,7 +140,7 @@ class ReactiveScalingAlgorithm {
 
         if (heapHistoryValues.length > 0) {
           podsMetrics[alert.podId].heapSize.push({
-            metric: { podId: alert.podId },
+            metric: { podId: alert.podId, serviceId: alert.service },
             values: heapHistoryValues
           })
           this.log.debug({ podId: alert.podId, count: heapHistoryValues.length, total: sortedHistory.length },
