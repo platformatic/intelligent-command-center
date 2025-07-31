@@ -79,7 +79,23 @@ class ScalerExecutor {
     }, logMessage)
 
     if (result.nfinal !== currentPodCount) {
-      await this.executeScaling(applicationId, result.nfinal, result.reason)
+      const { scaleEvent } = await this.executeScaling(
+        applicationId,
+        result.nfinal,
+        result.reason
+      )
+
+      if (scaleEvent && alerts.length > 0) {
+        await this.app.platformatic.entities.alert.updateMany({
+          where: {
+            id: { in: alerts.map(a => a.id) },
+            scaleEventId: { eq: null }
+          },
+          input: { scaleEventId: scaleEvent.id }
+        }).catch(err => {
+          this.app.log.error({ err, alerts, scaleEvent }, 'Failed to set scale event id on alerts')
+        })
+      }
     }
 
     return {
@@ -146,11 +162,17 @@ class ScalerExecutor {
   async executeScaling (applicationId, podsNumber, reason = null) {
     this.app.log.info({ applicationId, podsNumber, reason }, 'Executing scaling operation')
     try {
-      await this.app.updateControllerReplicas(applicationId, podsNumber, reason)
+      const { scaleEvent } = await this.app.updateControllerReplicas(
+        applicationId,
+        podsNumber,
+        reason
+      )
+
       return {
         success: true,
         applicationId,
         podsNumber,
+        scaleEvent,
         timestamp: Date.now()
       }
     } catch (err) {
@@ -159,6 +181,7 @@ class ScalerExecutor {
         success: false,
         applicationId,
         podsNumber,
+        scaleEvent: null,
         timestamp: Date.now(),
         error: err.message
       }
