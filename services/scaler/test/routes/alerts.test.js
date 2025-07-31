@@ -99,6 +99,15 @@ test('receive and save alert successfully', async (t) => {
   const foundAlertEntitities = await server.platformatic.entities.alert.find()
   assert.strictEqual(foundAlertEntitities.length, 1)
 
+  const savedAlertEntitity = foundAlertEntitities[0]
+  assert.strictEqual(savedAlertEntitity.id, alertEntity.id)
+  assert.strictEqual(savedAlertEntitity.applicationId, applicationId)
+  assert.strictEqual(savedAlertEntitity.serviceId, serviceId)
+  assert.strictEqual(savedAlertEntitity.podId, podId)
+  assert.strictEqual(savedAlertEntitity.elu, alert.currentHealth.elu)
+  assert.strictEqual(savedAlertEntitity.heapUsed, alert.currentHealth.heapUsed)
+  assert.strictEqual(savedAlertEntitity.heapTotal, alert.currentHealth.heapTotal)
+
   {
     const flamegraph = 'test-flamegraph'
     const flamegraphBuf = Buffer.from(flamegraph)
