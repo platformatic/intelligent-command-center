@@ -62,7 +62,7 @@ function createLeaderElector (options) {
               log.debug({ notification }, 'Received notification')
               try {
                 const msg = notification[0]
-                const payload = msg.payload
+                const payload = JSON.parse(msg.payload)
                 await onNotification(payload)
               } catch (err) {
                 log.warn({ err }, 'error while processing notification')
@@ -114,6 +114,8 @@ function createLeaderElector (options) {
   }
 
   async function notify (payload) {
+    payload = JSON.stringify(payload)
+
     const sql = db.sql
     // Use direct SQL string for NOTIFY since it doesn't support parameters
     await db.query(sql.__dangerous__rawValue(`NOTIFY "${channel}", '${payload}';`))

@@ -105,11 +105,11 @@ class ScalerExecutor {
     }
   }
 
-  async checkScalingOnAlert (podId) {
-    this.app.log.info({ podId }, 'Calculating scaling after alert from pod')
+  async checkScalingOnAlert ({ podId, serviceId } = {}) {
+    this.app.log.info({ podId, serviceId }, 'Calculating scaling after alert from pod')
 
-    if (!podId) {
-      this.app.log.error('Pod ID is required for scaling decision')
+    if (!podId || !serviceId) {
+      this.app.log.error('Pod ID and service ID are required for scaling decision')
       return { success: false, timestamp: Date.now(), error: 'Pod ID is required' }
     }
 
@@ -136,7 +136,7 @@ class ScalerExecutor {
         applicationId,
         podsMetrics,
         alerts,
-        { podId }
+        { podId, serviceId }
       )
 
       return {

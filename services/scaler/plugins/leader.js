@@ -73,8 +73,8 @@ async function plugin (app) {
     await leaderElector.stop()
   })
 
-  app.decorate('notifyScaler', async function (podId) {
-    await leaderElector.notify(podId)
+  app.decorate('notifyScaler', async function (podId, serviceId) {
+    await leaderElector.notify({ podId, serviceId })
   })
 
   app.decorate('isScalerLeader', function () {

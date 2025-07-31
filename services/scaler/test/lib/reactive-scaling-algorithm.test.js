@@ -487,6 +487,7 @@ test('calculateScalingDecision scales up with alerts', async (t) => {
   const alerts = [
     {
       podId: 'pod-alert',
+      serviceId: 'service-1',
       elu: 0.95, // 95% ELU
       heapUsed: 6000000000,
       heapTotal: 8000000000,
