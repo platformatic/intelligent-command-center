@@ -627,6 +627,12 @@ importers:
       fastify:
         specifier: ^5.4.0
         version: 5.4.0
+      node-cron:
+        specifier: ^4.2.1
+        version: 4.2.1
+      pg:
+        specifier: ^8.16.3
+        version: 8.16.3
       platformatic:
         specifier: ^2.70.1
         version: 2.72.0
@@ -5238,6 +5244,10 @@ packages:
   node-addon-api@8.5.0:
     resolution: {integrity: sha512-/bRZty2mXUIFY/xU5HLvveNHlswNJej+RnxBjOMkidWfwZzgTbPG1E3K5TOxRLOR+5hX7bSofy8yf1hZevMS8A==}
     engines: {node: ^18 || ^20 || >= 21}
+
+  node-cron@4.2.1:
+    resolution: {integrity: sha512-lgimEHPE/QDgFlywTd8yTR61ptugX3Qer29efeyWw2rv259HtGBNn1vZVmp8lB9uo9wC0t/AT4iGqXxia+CJFg==}
+    engines: {node: '>=6.0.0'}
 
   node-gyp-build-optional-packages@5.2.2:
     resolution: {integrity: sha512-s+w+rBWnpTMwSFbaE0UXsRlg7hU4FjekKU4eyAih5T8nJuNZT1nNsskXpxmeqSK9UzkBl6UgRlnKc8hz8IEqOw==}
@@ -12923,6 +12933,8 @@ snapshots:
 
   node-addon-api@8.5.0:
     optional: true
+
+  node-cron@4.2.1: {}
 
   node-gyp-build-optional-packages@5.2.2:
     dependencies:

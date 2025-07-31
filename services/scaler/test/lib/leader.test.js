@@ -57,7 +57,57 @@ test('should notify through PostgreSQL notification', async (t) => {
   await pool.dispose()
 
   assert.ok(notificationReceived)
-  assert.strictEqual(receivedPayload, testPayload)
+  assert.strictEqual(JSON.parse(receivedPayload), testPayload)
+})
+
+test('leaderElector notifies through PostgreSQL notification with an object', async (t) => {
+  const listenClient = new pg.Client(connectionString)
+  await listenClient.connect()
+
+  const pool = createConnectionPool({
+    connectionString,
+    bigIntMode: 'bigint'
+  })
+
+  const sql = createConnectionPool.sql
+
+  let notificationReceived = false
+  let receivedPayload = null
+
+  listenClient.on('notification', (msg) => {
+    if (msg.channel === 'test_channel') {
+      notificationReceived = true
+      receivedPayload = msg.payload
+    }
+  })
+
+  await listenClient.query('LISTEN "test_channel"')
+
+  // Create a leader elector instance
+  const leaderElection = createLeaderElector({
+    db: pool,
+    sql,
+    lock: 9999,
+    channel: 'test_channel',
+    log: {
+      info: () => {},
+      debug: () => {},
+      warn: () => {},
+      error: () => {}
+    },
+    onNotification: () => {}
+  })
+
+  const testPayload = { test: 'payload-123' }
+  await leaderElection.notify(testPayload)
+
+  await sleep(1000)
+
+  await listenClient.end()
+  await pool.dispose()
+
+  assert.ok(notificationReceived)
+  assert.deepStrictEqual(JSON.parse(receivedPayload), testPayload)
 })
 
 test('leadedElector properly passes payload to callback', async (t) => {

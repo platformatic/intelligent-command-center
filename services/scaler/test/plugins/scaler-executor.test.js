@@ -38,7 +38,10 @@ test('checkScalingOnAlert should return error when pod has no alerts', async (t)
 
   server.store.getAlertsByPodId = async () => []
 
-  const result = await server.scalerExecutor.checkScalingOnAlert('test-pod-1')
+  const result = await server.scalerExecutor.checkScalingOnAlert({
+    podId: 'test-pod-1',
+    serviceId: 'test-service-1'
+  })
 
   assert.strictEqual(result.success, true)
   assert.strictEqual(result.nfinal, 0)
@@ -80,7 +83,10 @@ test('checkScalingOnAlert should return error when application has no metrics', 
     getApplicationMetrics: async () => ({})
   }
 
-  const result = await server.scalerExecutor.checkScalingOnAlert('test-pod-1')
+  const result = await server.scalerExecutor.checkScalingOnAlert({
+    podId: 'test-pod-1',
+    serviceId: 'test-service-1'
+  })
 
   assert.strictEqual(result.success, false, 'checkScalingOnAlert should fail with no metrics')
   assert.strictEqual(result.podId, 'test-pod-1', 'podId should match input')
@@ -197,7 +203,10 @@ test('checkScalingOnAlert should call scaling algorithm and return result', asyn
     return { nfinal: 3 }
   }
 
-  const result = await server.scalerExecutor.checkScalingOnAlert('test-pod-1')
+  const result = await server.scalerExecutor.checkScalingOnAlert({
+    podId: 'test-pod-1',
+    serviceId: 'test-service-1'
+  })
 
   assert.strictEqual(result.success, true, 'checkScalingOnAlert should succeed')
   assert.strictEqual(result.applicationId, testAppId, 'applicationId should be from alert')
@@ -314,7 +323,10 @@ test('checkScalingOnAlert should merge metrics from alerts with pod metrics for 
     return { nfinal: currentPodCount + 1, source: 'combined' }
   }
 
-  const result = await server.scalerExecutor.checkScalingOnAlert('test-pod-1')
+  const result = await server.scalerExecutor.checkScalingOnAlert({
+    podId: 'test-pod-1',
+    serviceId: 'test-service-1'
+  })
 
   assert.strictEqual(result.success, true, 'checkScalingOnAlert should succeed')
   assert.strictEqual(result.applicationId, testAppId, 'applicationId should be from alert')
@@ -348,7 +360,10 @@ test('checkScalingOnAlert should handle unexpected errors', async (t) => {
     throw new Error('Test error')
   }
 
-  const result = await server.scalerExecutor.checkScalingOnAlert('test-pod-1')
+  const result = await server.scalerExecutor.checkScalingOnAlert({
+    podId: 'test-pod-1',
+    serviceId: 'test-service-1'
+  })
 
   assert.strictEqual(result.success, false, 'checkScalingOnAlert should fail')
   assert.strictEqual(result.error, 'Test error', 'error message should match thrown error')
@@ -409,7 +424,10 @@ test('checkScalingOnAlert should handle missing applicationId in alerts', async 
     elu: 0.90
   }]
 
-  const result = await server.scalerExecutor.checkScalingOnAlert('test-pod-1')
+  const result = await server.scalerExecutor.checkScalingOnAlert({
+    podId: 'test-pod-1',
+    serviceId: 'test-service-1'
+  })
 
   assert.strictEqual(result.success, false)
   assert.strictEqual(result.error, 'Missing applicationId')
