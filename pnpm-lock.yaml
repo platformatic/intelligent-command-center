@@ -327,7 +327,7 @@ importers:
         version: 11.9.0
       nock:
         specifier: ^14.0.0
-        version: 14.0.6
+        version: 14.0.8
       prop-types:
         specifier: ^15.8.1
         version: 15.8.1
@@ -439,7 +439,7 @@ importers:
         version: 16.2.0(graphql@16.11.0)
       nock:
         specifier: ^14.0.0
-        version: 14.0.6
+        version: 14.0.8
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -1772,8 +1772,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@mswjs/interceptors@0.39.4':
-    resolution: {integrity: sha512-B82DbrGVCIBrNEfRJbqUFB0eNz0wVzqbenEpmbE71XLVU4yKZbDnRBuxz+7udc/uM7LDWDD4sRJ5tISzHf2QkQ==}
+  '@mswjs/interceptors@0.39.5':
+    resolution: {integrity: sha512-B9nHSJYtsv79uo7QdkZ/b/WoKm20IkVSmTc/WCKarmDtFwM0dRx2ouEniqwNkzCSLn3fydzKmnMzjtfdOWt3VQ==}
     engines: {node: '>=18'}
 
   '@next/env@15.3.5':
@@ -5233,8 +5233,8 @@ packages:
   nise@6.1.1:
     resolution: {integrity: sha512-aMSAzLVY7LyeM60gvBS423nBmIPP+Wy7St7hsb+8/fc1HmeoHJfLO8CKse4u3BtOZvQLJghYPI2i/1WZrEj5/g==}
 
-  nock@14.0.6:
-    resolution: {integrity: sha512-67n1OfusL/ON57fwFJ6ZurSJa/msYVQmqlz9rCel2HJYj4Zeb8v9TcmRdEW+PV2i9Fm2358umSvzZukhw/E8DA==}
+  nock@14.0.8:
+    resolution: {integrity: sha512-5DCGrkwK1f8kxUvqvzLWb97XuDUY4/t5M3ZcogPfLGvC2wO8wjRQsIDSXj2L6e1J0Dv8xscf9wWSvGnS3OL29Q==}
     engines: {node: '>=18.20.0 <20 || >=20.12.1'}
 
   node-abi@3.75.0:
@@ -8244,7 +8244,7 @@ snapshots:
   '@msgpackr-extract/msgpackr-extract-win32-x64@3.0.3':
     optional: true
 
-  '@mswjs/interceptors@0.39.4':
+  '@mswjs/interceptors@0.39.5':
     dependencies:
       '@open-draft/deferred-promise': 2.2.0
       '@open-draft/logger': 0.3.0
@@ -12921,9 +12921,9 @@ snapshots:
       just-extend: 6.2.0
       path-to-regexp: 8.2.0
 
-  nock@14.0.6:
+  nock@14.0.8:
     dependencies:
-      '@mswjs/interceptors': 0.39.4
+      '@mswjs/interceptors': 0.39.5
       json-stringify-safe: 5.0.1
       propagate: 2.0.1
 
