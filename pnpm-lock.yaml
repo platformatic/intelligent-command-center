@@ -100,7 +100,7 @@ importers:
     devDependencies:
       '@platformatic/next':
         specifier: ^2.70.1
-        version: 2.72.0
+        version: 2.73.1
       '@platformatic/runtime':
         specifier: ^2.70.1
         version: 2.72.0
@@ -979,8 +979,8 @@ packages:
     resolution: {integrity: sha512-mGe7UK5wWyh0bKRfupsUchrQGqvDbZDbKJw+kcRGSmdHVYrv+ltd0pnpDTVpiTqnaBru9iEvA8pz8W46v0Amwg==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/types@7.28.1':
-    resolution: {integrity: sha512-x0LvFTekgSX+83TI28Y9wYPUfzrnl2aT5+5QLnO6v7mSJYtEEevuDRN0F0uSHRk1G1IWZC43o00Y0xDDrpBGPQ==}
+  '@babel/types@7.28.2':
+    resolution: {integrity: sha512-ruv7Ae4J5dUYULmeXw1gmb7rYRz57OWCPM57pHojnLq/3Z1CK2lNSLTCVjxVk1F/TZHwOZZrOWi0ur95BbLxNQ==}
     engines: {node: '>=6.9.0'}
 
   '@bcoe/v8-coverage@1.0.2':
@@ -2072,6 +2072,9 @@ packages:
   '@platformatic/basic@2.72.0':
     resolution: {integrity: sha512-P2Y9/v3Yv19Ya7FdaOb8DKJ4AGqxv0qh+LrFcBezg0DP1uJNn4aXQPqyOiuoiqaHF5QElRWtHgVItOHJPCjIuQ==}
 
+  '@platformatic/basic@2.73.1':
+    resolution: {integrity: sha512-TwRrUAYkwohOy0deWbBTxVLgBNbnY9YPvq95Mdlp7N5792wESCsjkUNxbab6xyYAspCn63uu3CZJP/VPbI6ajQ==}
+
   '@platformatic/client-cli@2.72.0':
     resolution: {integrity: sha512-MjINoZsLQT+fU4P7Z/QgJLBTS7ASUHfkYp11Yv1N5NLbYDZmc/VEg9Q7cH7U4WFSXhftpL4cK3zUnBkucLGmKQ==}
     hasBin: true
@@ -2088,6 +2091,9 @@ packages:
 
   '@platformatic/config@2.72.0':
     resolution: {integrity: sha512-E2YabfwUb/BaehtZSS2zzopVsvzLIwVygWBW2JmgCbRQPBByWp3TZElwIBwiHDzT1t3qOgXrqsapLhMKNMtiaQ==}
+
+  '@platformatic/config@2.73.1':
+    resolution: {integrity: sha512-cM0iaN3KtCaomls14ANJN51Q5+KcVuVqVDL74DWam2OgDBbe0mAk+Y/wflmBSA+eoi6kV7DOmkG0O9ML93fG8w==}
 
   '@platformatic/control@2.71.0':
     resolution: {integrity: sha512-Kv+Rqu9sSxqoNXzwDba5e9WeozSwvgHf6b+eXGB+ltvvjH+xY92y1q2zzHScQky8Rl9J6hPP9u2r/ZDG769WYA==}
@@ -2128,14 +2134,20 @@ packages:
   '@platformatic/itc@2.72.0':
     resolution: {integrity: sha512-f6H7Po6Rc7a9XcJWKhLHeFjMD008TTu7KDZMrcu5mLz+0T/+QKO2tzpI/kDzjHFsTT+ffuyd520EQCIy6+etVg==}
 
+  '@platformatic/itc@2.73.1':
+    resolution: {integrity: sha512-ShANUk9ZIWyGRJD6e/2LZmmsLpoo5SSen4zsoznqWrZJKkL2jbfjviUaGif82hb199KbDlpHXBrLYjdROWcp1A==}
+
   '@platformatic/metrics@2.71.0':
     resolution: {integrity: sha512-arC24NgDxzDx0l19sJRpzv+kqWgPhmSnI0lCEQnLpN0vzIjIP5eIdVG1DZ9J/ufy9pa4rpjoowLeQ2vfxwJCpg==}
 
   '@platformatic/metrics@2.72.0':
     resolution: {integrity: sha512-bTaJQsdtWPg4NfWQ+pVg/nnjvSp/lnbLqneL+liRF94lWTJEexkcmlSS/QEcZaFkFBD20GkYNKmCixMAD08B+Q==}
 
-  '@platformatic/next@2.72.0':
-    resolution: {integrity: sha512-HhkToqUu8XTn6Yk7FvEwJsR7pya6tGicMqiUOVd2Anvbr33bv+9qzcu5iI96tj+/4tdPcOLo12H2Md3fsbrKmg==}
+  '@platformatic/metrics@2.73.1':
+    resolution: {integrity: sha512-XI5MQqeiB+u0+RTbtiFOmTJrQi60c3BHL8OAO10wxNje/gvrJpqX/wgd17nFscdIuZrG8AMUatfxDQJ635fauQ==}
+
+  '@platformatic/next@2.73.1':
+    resolution: {integrity: sha512-xjtYk2EW1rPOw2fYZn5i1JsYV9Lp6sxFmTI+P6H6eA/+2cKMW7kddI0lEOMpOHhFHGRvuIiNjIPml2nc7YQoiQ==}
 
   '@platformatic/node@2.72.0':
     resolution: {integrity: sha512-opa/8vL3iX0zV014nHE00rKAoD0LrATTnKc6TvKR/Cl+Vnnn2NOZyFqcOc2LS9N6x3R3Sb7x3HMctc2XZUBvQA==}
@@ -2187,6 +2199,9 @@ packages:
   '@platformatic/telemetry@2.72.0':
     resolution: {integrity: sha512-lOD6stlAquEmKEZM/WXJoXBoEFjS6TMGVAQGU1jOCtU/P6oV6no0NRvovpI0j4kGKovFopzGPUcFtAN3lNTtUg==}
 
+  '@platformatic/telemetry@2.73.1':
+    resolution: {integrity: sha512-xGNNu7yBOkA0F/6a97qtIWvbKcjhMOPi8MFuPJ0Gto/SnPPNekA9OLCG4Wiiilh5dQge/6yM2jKkepNhzZD2xQ==}
+
   '@platformatic/ts-compiler@2.71.0':
     resolution: {integrity: sha512-Z/HedQiqkeqzjHJo1IxX88gBHooBQR1VygYXRR3myerS6kpnD6napJfdZiylO9IvmAfexsSWDqaMg2KSccaolg==}
 
@@ -2207,6 +2222,9 @@ packages:
 
   '@platformatic/utils@2.72.0':
     resolution: {integrity: sha512-Cqho2gir7IBzXmRO9UsIx8SnUJqqqMwbiKDyfW9iqF/yM1sbFPcXK5KCDNW+KdLHNl+WvnkQPeX51Q5vvdlpww==}
+
+  '@platformatic/utils@2.73.1':
+    resolution: {integrity: sha512-SDBq5d2g+4LWyCcVjB65C3KBlHqploScGPlGzFVxjQVeDu0Xodgz8ZFU830IyakTW+i8nvdNl622hIqGptamOw==}
 
   '@platformatic/vite@2.72.0':
     resolution: {integrity: sha512-2v4V5LMQk44BFx3tYVTLuDz4qN9rbXXftdOYEq1Pdry53VL2otsynvR56PDr0QlMMf1oL1fvnjnX8kUBPiIUPg==}
@@ -7389,7 +7407,7 @@ snapshots:
       '@babel/parser': 7.28.0
       '@babel/template': 7.27.2
       '@babel/traverse': 7.28.0
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.2
       convert-source-map: 2.0.0
       debug: 4.4.1
       gensync: 1.0.0-beta.2
@@ -7401,7 +7419,7 @@ snapshots:
   '@babel/generator@7.28.0':
     dependencies:
       '@babel/parser': 7.28.0
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.2
       '@jridgewell/gen-mapping': 0.3.12
       '@jridgewell/trace-mapping': 0.3.29
       jsesc: 3.1.0
@@ -7419,7 +7437,7 @@ snapshots:
   '@babel/helper-module-imports@7.27.1':
     dependencies:
       '@babel/traverse': 7.28.0
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.2
     transitivePeerDependencies:
       - supports-color
 
@@ -7443,11 +7461,11 @@ snapshots:
   '@babel/helpers@7.27.6':
     dependencies:
       '@babel/template': 7.27.2
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.2
 
   '@babel/parser@7.28.0':
     dependencies:
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.2
 
   '@babel/plugin-transform-react-jsx-self@7.27.1(@babel/core@7.28.0)':
     dependencies:
@@ -7467,7 +7485,7 @@ snapshots:
     dependencies:
       '@babel/code-frame': 7.27.1
       '@babel/parser': 7.28.0
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.2
 
   '@babel/traverse@7.28.0':
     dependencies:
@@ -7476,12 +7494,12 @@ snapshots:
       '@babel/helper-globals': 7.28.0
       '@babel/parser': 7.28.0
       '@babel/template': 7.27.2
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.2
       debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/types@7.28.1':
+  '@babel/types@7.28.2':
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
@@ -8638,6 +8656,27 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@platformatic/basic@2.73.1':
+    dependencies:
+      '@fastify/error': 4.2.0
+      '@platformatic/config': 2.73.1
+      '@platformatic/itc': 2.73.1
+      '@platformatic/metrics': 2.73.1
+      '@platformatic/telemetry': 2.73.1
+      '@platformatic/utils': 2.73.1
+      execa: 9.6.0
+      fast-json-patch: 3.1.1
+      pino: 9.7.0
+      pino-abstract-transport: 2.0.0
+      semver: 7.7.2
+      split2: 4.2.0
+      undici: 7.11.0
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   '@platformatic/client-cli@2.72.0':
     dependencies:
       '@fastify/error': 4.2.0
@@ -8741,6 +8780,20 @@ snapshots:
       pupa: 3.1.0
       semver: 7.7.2
       undici: 7.12.0
+
+  '@platformatic/config@2.73.1':
+    dependencies:
+      '@fastify/deepmerge': 2.0.2
+      '@fastify/error': 4.2.0
+      '@platformatic/utils': 2.73.1
+      abstract-logging: 2.0.1
+      ajv: 8.17.1
+      dotenv: 16.6.1
+      jsonpath: 1.1.1
+      minimist: 1.2.8
+      pupa: 3.1.0
+      semver: 7.7.2
+      undici: 7.11.0
 
   '@platformatic/control@2.71.0':
     dependencies:
@@ -8905,6 +8958,11 @@ snapshots:
       '@fastify/error': 4.2.0
       '@watchable/unpromise': 1.0.2
 
+  '@platformatic/itc@2.73.1':
+    dependencies:
+      '@fastify/error': 4.2.0
+      '@watchable/unpromise': 1.0.2
+
   '@platformatic/metrics@2.71.0':
     dependencies:
       '@platformatic/http-metrics': 0.2.1
@@ -8919,15 +8977,22 @@ snapshots:
     optionalDependencies:
       thread-cpu-usage: 0.2.0
 
-  '@platformatic/next@2.72.0':
+  '@platformatic/metrics@2.73.1':
+    dependencies:
+      '@platformatic/http-metrics': 0.2.1
+      prom-client: 15.1.3
+    optionalDependencies:
+      thread-cpu-usage: 0.2.0
+
+  '@platformatic/next@2.73.1':
     dependencies:
       '@babel/generator': 7.28.0
       '@babel/parser': 7.28.0
       '@babel/traverse': 7.28.0
-      '@babel/types': 7.28.1
-      '@platformatic/basic': 2.72.0
-      '@platformatic/config': 2.72.0
-      '@platformatic/utils': 2.72.0
+      '@babel/types': 7.28.2
+      '@platformatic/basic': 2.73.1
+      '@platformatic/config': 2.73.1
+      '@platformatic/utils': 2.73.1
       amaro: 0.3.2
       iovalkey: 0.3.3
       msgpackr: 1.11.5
@@ -9219,6 +9284,28 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@platformatic/telemetry@2.73.1':
+    dependencies:
+      '@fastify/swagger': 9.5.1
+      '@opentelemetry/api': 1.9.0
+      '@opentelemetry/core': 1.30.1(@opentelemetry/api@1.9.0)
+      '@opentelemetry/exporter-trace-otlp-proto': 0.57.2(@opentelemetry/api@1.9.0)
+      '@opentelemetry/exporter-zipkin': 1.30.1(@opentelemetry/api@1.9.0)
+      '@opentelemetry/instrumentation': 0.57.2(@opentelemetry/api@1.9.0)
+      '@opentelemetry/instrumentation-http': 0.56.0(@opentelemetry/api@1.9.0)
+      '@opentelemetry/instrumentation-undici': 0.13.2(@opentelemetry/api@1.9.0)
+      '@opentelemetry/resources': 1.30.1(@opentelemetry/api@1.9.0)
+      '@opentelemetry/sdk-node': 0.57.2(@opentelemetry/api@1.9.0)
+      '@opentelemetry/sdk-trace-base': 1.30.1(@opentelemetry/api@1.9.0)
+      '@opentelemetry/semantic-conventions': 1.30.0
+      '@platformatic/config': 2.73.1
+      '@platformatic/utils': 2.73.1
+      abstract-logging: 2.0.1
+      fast-uri: 3.0.6
+      fastify-plugin: 5.0.1
+    transitivePeerDependencies:
+      - supports-color
+
   '@platformatic/ts-compiler@2.71.0':
     dependencies:
       '@platformatic/utils': 2.71.0
@@ -9269,6 +9356,18 @@ snapshots:
       undici: 7.11.0
 
   '@platformatic/utils@2.72.0':
+    dependencies:
+      '@fastify/deepmerge': 2.0.2
+      '@fastify/error': 4.2.0
+      '@watchable/unpromise': 1.0.2
+      boring-name-generator: 1.0.3
+      glob: 11.0.3
+      leven: 3.1.0
+      minimatch: 10.0.3
+      semver: 7.7.2
+      undici: 7.11.0
+
+  '@platformatic/utils@2.73.1':
     dependencies:
       '@fastify/deepmerge': 2.0.2
       '@fastify/error': 4.2.0
@@ -9925,23 +10024,23 @@ snapshots:
   '@types/babel__core@7.20.5':
     dependencies:
       '@babel/parser': 7.28.0
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.2
       '@types/babel__generator': 7.27.0
       '@types/babel__template': 7.4.4
       '@types/babel__traverse': 7.20.7
 
   '@types/babel__generator@7.27.0':
     dependencies:
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.2
 
   '@types/babel__template@7.4.4':
     dependencies:
       '@babel/parser': 7.28.0
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.2
 
   '@types/babel__traverse@7.20.7':
     dependencies:
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.2
 
   '@types/better-sqlite3@7.6.13':
     dependencies:
