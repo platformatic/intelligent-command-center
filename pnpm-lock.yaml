@@ -106,7 +106,7 @@ importers:
         version: 2.73.1
       '@platformatic/service':
         specifier: ^2.70.1
-        version: 2.72.0
+        version: 2.73.1
       borp:
         specifier: ^0.20.0
         version: 0.20.1
@@ -457,7 +457,7 @@ importers:
         version: 8.0.2
       '@platformatic/service':
         specifier: ^2.70.1
-        version: 2.72.0
+        version: 2.73.1
       dayjs:
         specifier: ^1.11.13
         version: 1.11.13
@@ -552,7 +552,7 @@ importers:
         version: 7.0.2
       '@platformatic/service':
         specifier: ^2.70.1
-        version: 2.72.0
+        version: 2.73.1
       '@platformatic/sql-inspector':
         specifier: ^0.1.0
         version: 0.1.0
@@ -8932,7 +8932,7 @@ snapshots:
       fastify: 5.4.0
       glob: 11.0.3
       pino: 9.7.0
-      undici: 7.11.0
+      undici: 7.13.0
 
   '@platformatic/graphql-composer@0.10.0':
     dependencies:
