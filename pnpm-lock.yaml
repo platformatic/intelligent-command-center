@@ -294,7 +294,7 @@ importers:
     devDependencies:
       '@platformatic/ui-components':
         specifier: ^0.17.0
-        version: 0.17.3(storybook@8.6.14(prettier@3.6.2))
+        version: 0.17.4(storybook@8.6.14(prettier@3.6.2))
       '@types/react':
         specifier: ^19.0.1
         version: 19.1.8
@@ -2208,8 +2208,8 @@ packages:
   '@platformatic/ts-compiler@2.72.0':
     resolution: {integrity: sha512-v+ARO9VZcpZousGXhvfpVDUZ6KVfIQScXFi+mU0ibwsnB3pDaCWdz5c+P3WX8+z8uWw0Qy1rGOOEsTpemEe/jg==}
 
-  '@platformatic/ui-components@0.17.3':
-    resolution: {integrity: sha512-00AM/LWV2Zx6tBCy0dezAxXnhotdZ9gTEGhS2Pp7XbVcE35NvF/Cu/7lbPWj0Ofe2DTkYE2qCfqtUuKcnpFK1g==}
+  '@platformatic/ui-components@0.17.4':
+    resolution: {integrity: sha512-dPzYenpchB2G/L76IzVLRj5t1tbwKc/BoMKUo8lXaAol0E1d+oQ3LaXjeXiYsGMie8egbn/wHmThISBFeEWcFQ==}
 
   '@platformatic/undici-cache-memory@0.8.4':
     resolution: {integrity: sha512-/JVfPhyUW0GQkmr5lGAGOgh0lpJbTcLG8VB2uNqgNgH1fhPPFAM0l4pLSyeDzpTj2r/GJPLqhzvCgangnSHfoQ==}
@@ -9322,7 +9322,7 @@ snapshots:
       pino-pretty: 13.0.0
       resolve: 1.22.10
 
-  '@platformatic/ui-components@0.17.3(storybook@8.6.14(prettier@3.6.2))':
+  '@platformatic/ui-components@0.17.4(storybook@8.6.14(prettier@3.6.2))':
     dependencies:
       '@storybook/test': 8.6.14(storybook@8.6.14(prettier@3.6.2))
       autoprefixer: 10.4.21(postcss@8.5.6)
