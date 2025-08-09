@@ -29,7 +29,7 @@ importers:
     devDependencies:
       '@platformatic/config':
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       '@platformatic/runtime':
         specifier: ^2.70.1
         version: 2.73.1
@@ -235,7 +235,7 @@ importers:
         version: 4.2.0
       '@platformatic/config':
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       '@platformatic/db':
         specifier: ^2.70.1
         version: 2.72.0
@@ -2092,6 +2092,9 @@ packages:
   '@platformatic/config@2.73.1':
     resolution: {integrity: sha512-cM0iaN3KtCaomls14ANJN51Q5+KcVuVqVDL74DWam2OgDBbe0mAk+Y/wflmBSA+eoi6kV7DOmkG0O9ML93fG8w==}
 
+  '@platformatic/config@2.74.1':
+    resolution: {integrity: sha512-0wifOPBcpoEzH9MB0ZuepFKdSxxUjw8JrMuq+aOtrzWFytXhh19QGOa/49rP1Ob4FVcAASjD/22ybnluCuVMcw==}
+
   '@platformatic/control@2.73.1':
     resolution: {integrity: sha512-pcvF7n2ytVY4gpoC+3bcO9yqJkyuNcSbHFxDecv9SmZifMhnhVqBA4nBFp3SZk9sECWoVwBXjwdN3pbTDxYFbA==}
     hasBin: true
@@ -2206,6 +2209,9 @@ packages:
 
   '@platformatic/utils@2.73.1':
     resolution: {integrity: sha512-SDBq5d2g+4LWyCcVjB65C3KBlHqploScGPlGzFVxjQVeDu0Xodgz8ZFU830IyakTW+i8nvdNl622hIqGptamOw==}
+
+  '@platformatic/utils@2.74.1':
+    resolution: {integrity: sha512-OTrmqpXNCJ+9zbh3YZtzhp+i0HFtbhAkhHRskPJWjggCN7qVeUqU0IwhdD+NAohL9Mar+B6Dm1DdkKNWaX0l3Q==}
 
   '@platformatic/vite@2.73.1':
     resolution: {integrity: sha512-hLW9/76IdML2bYdO8OWbNI0iVRD/6d3+gMmc9/+2NQ0i+c5atqyYecD/dZxAX1e1sL+u323yEvXSXlB6lxemoA==}
@@ -8738,6 +8744,20 @@ snapshots:
       semver: 7.7.2
       undici: 7.13.0
 
+  '@platformatic/config@2.74.1':
+    dependencies:
+      '@fastify/deepmerge': 2.0.2
+      '@fastify/error': 4.2.0
+      '@platformatic/utils': 2.74.1
+      abstract-logging: 2.0.1
+      ajv: 8.17.1
+      dotenv: 16.6.1
+      jsonpath: 1.1.1
+      minimist: 1.2.8
+      pupa: 3.1.0
+      semver: 7.7.2
+      undici: 7.13.0
+
   '@platformatic/control@2.73.1':
     dependencies:
       '@fastify/error': 4.2.0
@@ -9254,6 +9274,18 @@ snapshots:
       undici: 7.11.0
 
   '@platformatic/utils@2.73.1':
+    dependencies:
+      '@fastify/deepmerge': 2.0.2
+      '@fastify/error': 4.2.0
+      '@watchable/unpromise': 1.0.2
+      boring-name-generator: 1.0.3
+      glob: 11.0.3
+      leven: 3.1.0
+      minimatch: 10.0.3
+      semver: 7.7.2
+      undici: 7.11.0
+
+  '@platformatic/utils@2.74.1':
     dependencies:
       '@fastify/deepmerge': 2.0.2
       '@fastify/error': 4.2.0
