@@ -327,7 +327,7 @@ importers:
         version: 11.9.0
       nock:
         specifier: ^14.0.0
-        version: 14.0.8
+        version: 14.0.9
       prop-types:
         specifier: ^15.8.1
         version: 15.8.1
@@ -439,7 +439,7 @@ importers:
         version: 16.2.0(graphql@16.11.0)
       nock:
         specifier: ^14.0.0
-        version: 14.0.8
+        version: 14.0.9
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -5245,8 +5245,8 @@ packages:
   nise@6.1.1:
     resolution: {integrity: sha512-aMSAzLVY7LyeM60gvBS423nBmIPP+Wy7St7hsb+8/fc1HmeoHJfLO8CKse4u3BtOZvQLJghYPI2i/1WZrEj5/g==}
 
-  nock@14.0.8:
-    resolution: {integrity: sha512-5DCGrkwK1f8kxUvqvzLWb97XuDUY4/t5M3ZcogPfLGvC2wO8wjRQsIDSXj2L6e1J0Dv8xscf9wWSvGnS3OL29Q==}
+  nock@14.0.9:
+    resolution: {integrity: sha512-aVIPgW9WVyb3XPCqfrwETc+hazxzgt8/QvARHAhC6BYHtTsZONUjlXoIB8EGmwqUBkKvOew4yqkGRBmwctdCrw==}
     engines: {node: '>=18.20.0 <20 || >=20.12.1'}
 
   node-abi@3.75.0:
@@ -12926,7 +12926,7 @@ snapshots:
       just-extend: 6.2.0
       path-to-regexp: 8.2.0
 
-  nock@14.0.8:
+  nock@14.0.9:
     dependencies:
       '@mswjs/interceptors': 0.39.5
       json-stringify-safe: 5.0.1
