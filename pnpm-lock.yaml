@@ -275,7 +275,7 @@ importers:
     dependencies:
       '@platformatic/vite':
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       cron-validator:
         specifier: ^1.3.1
         version: 1.4.0
@@ -2139,8 +2139,8 @@ packages:
   '@platformatic/next@2.74.1':
     resolution: {integrity: sha512-6drEvth911/nQMyDTUXg9AjOnD2nQb4sN5FitWHwR/+wXe0ejaUCoidDjv6CDbZlWw0/LfCaHV49gbSuJ+uNoA==}
 
-  '@platformatic/node@2.73.1':
-    resolution: {integrity: sha512-eKFmOLU9m7+ghxQ1bz6CwNERD7iNb0gNUhSyitHbi8m/aopuYkzalUjQH+8U9ckvZxFtCSJDaaZrTUFC+vlZDg==}
+  '@platformatic/node@2.74.1':
+    resolution: {integrity: sha512-EUCfm8lZ8fcWWJt3UUpoGU/0vwvS9VcPkfNrRmNqUOwbVIMwIkutUWgg5n4L0w2ATJFf+Rka/cTaRt/iqw17Jw==}
     hasBin: true
 
   '@platformatic/openapi-schema-validator@3.0.0':
@@ -2210,8 +2210,8 @@ packages:
   '@platformatic/utils@2.74.1':
     resolution: {integrity: sha512-OTrmqpXNCJ+9zbh3YZtzhp+i0HFtbhAkhHRskPJWjggCN7qVeUqU0IwhdD+NAohL9Mar+B6Dm1DdkKNWaX0l3Q==}
 
-  '@platformatic/vite@2.73.1':
-    resolution: {integrity: sha512-hLW9/76IdML2bYdO8OWbNI0iVRD/6d3+gMmc9/+2NQ0i+c5atqyYecD/dZxAX1e1sL+u323yEvXSXlB6lxemoA==}
+  '@platformatic/vite@2.74.1':
+    resolution: {integrity: sha512-Rpu+rtVxkfDWP7EnhxVmuPTklpzYtS/cDl79SA/TrXKPkBk1ocGO73gEJALKzNQZ5bBPW3DrU6t137wYV5LJnA==}
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -8948,12 +8948,12 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@platformatic/node@2.73.1':
+  '@platformatic/node@2.74.1':
     dependencies:
-      '@platformatic/basic': 2.73.1
-      '@platformatic/config': 2.73.1
-      '@platformatic/generators': 2.73.1
-      '@platformatic/utils': 2.73.1
+      '@platformatic/basic': 2.74.1
+      '@platformatic/config': 2.74.1
+      '@platformatic/generators': 2.74.1
+      '@platformatic/utils': 2.74.1
       json5: 2.2.3
       light-my-request: 6.6.0
     transitivePeerDependencies:
@@ -9291,13 +9291,13 @@ snapshots:
       semver: 7.7.2
       undici: 7.11.0
 
-  '@platformatic/vite@2.73.1':
+  '@platformatic/vite@2.74.1':
     dependencies:
       '@fastify/static': 8.2.0
-      '@platformatic/basic': 2.73.1
-      '@platformatic/config': 2.73.1
-      '@platformatic/node': 2.73.1
-      '@platformatic/utils': 2.73.1
+      '@platformatic/basic': 2.74.1
+      '@platformatic/config': 2.74.1
+      '@platformatic/node': 2.74.1
+      '@platformatic/utils': 2.74.1
       fastify: 5.4.0
       semver: 7.7.2
     transitivePeerDependencies:
