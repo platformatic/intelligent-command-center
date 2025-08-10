@@ -106,7 +106,7 @@ importers:
         version: 2.74.1
       '@platformatic/service':
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       borp:
         specifier: ^0.20.0
         version: 0.20.1
@@ -457,7 +457,7 @@ importers:
         version: 8.0.2
       '@platformatic/service':
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       dayjs:
         specifier: ^1.11.13
         version: 1.11.13
@@ -552,7 +552,7 @@ importers:
         version: 7.0.2
       '@platformatic/service':
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       '@platformatic/sql-inspector':
         specifier: ^0.1.0
         version: 0.1.0
@@ -2154,18 +2154,11 @@ packages:
     resolution: {integrity: sha512-yQ+iJb4jY+rVxgFh4fr+KhsXBJx/v9AYrpxopqtcnxIU9aVKX5n8MktqCPTr1gKRAriUgvF6uoqWnkRcO569QQ==}
     hasBin: true
 
-  '@platformatic/scalar-theme@2.73.1':
-    resolution: {integrity: sha512-TjFSoOvd3Ct2QQpKhJVgyxb9mvmtCZO5UsJlmfFrA8QRljpXunIejPNTAM4drAyioqVAJUltfsyilCnVMBgH9Q==}
-
   '@platformatic/scalar-theme@2.74.1':
     resolution: {integrity: sha512-wUDCCwIedQAfF8v/LzcsFAJMMRRNCmjmDfqD3ukENbpJN4NjHZlllmJGG9QCkWGvFc8iYer+/YCQW86hP1HwHg==}
 
   '@platformatic/service-grouping@3.0.4':
     resolution: {integrity: sha512-6GkHU0Jc5xB/G6ssMmc9aW/oYZjcH1s4++oX3Mw1fWRir1UR5GZGlEOcOks1QuAASDzPnp8anSJDQnjmVgAknw==}
-    hasBin: true
-
-  '@platformatic/service@2.73.1':
-    resolution: {integrity: sha512-ig54gC0RmFTHXeTVEDdafums+IdPFKVurHUgO1OnlAXdq6eNmTHVOj7f7Km8MdWT9aNtKgqKuQNBpU+kMOEI3Q==}
     hasBin: true
 
   '@platformatic/service@2.74.1':
@@ -2828,9 +2821,6 @@ packages:
 
   '@types/node@24.0.13':
     resolution: {integrity: sha512-Qm9OYVOFHFYg3wJoTSrz80hoec5Lia/dPp84do3X7dZvLikQvM1YpmvTBEdIr/e+U8HTkFjLHLnl78K/qjf+jQ==}
-
-  '@types/node@24.1.0':
-    resolution: {integrity: sha512-ut5FthK5moxFKH2T1CUOC6ctR67rQRvvHdFLCD2Ql6KXmMuCrjsSsRI9UsLCm9M18BMwClv4pn327UvB7eeO1w==}
 
   '@types/node@24.2.1':
     resolution: {integrity: sha512-DRh5K+ka5eJic8CjH7td8QpYEV6Zo10gfRkjHCO3weqZHWDtAaSTFtl4+VMqOJ4N5jcuhZ9/l+yy8rVgw7BQeQ==}
@@ -3887,6 +3877,9 @@ packages:
 
   es-main@1.3.0:
     resolution: {integrity: sha512-AzORKdz1Zt97TzbYQnIrI3ZiibWpRXUfpo/w0xOJ20GpNYd2bd3MU9m31zS/aJ1TJl6JfLTok83Y8HjNunYT0A==}
+
+  es-main@1.4.0:
+    resolution: {integrity: sha512-/rYhbfGK/1E6L7TcoUqmrWbSnOlMoxahiZInSYKbhIZ4/dbclHtXEcrViu4Az9IzYNBT8LcXpPszfS47zbGpwA==}
 
   es-module-lexer@1.7.0:
     resolution: {integrity: sha512-jEQoCwk8hyb2AZziIOLhDqpm5+2ww5uIE6lkO/6jcOCusfk6LhMHpXXfBLXTZ7Ydyt0j4VoUQv6uGNYbdW+kBA==}
@@ -8628,7 +8621,7 @@ snapshots:
       '@platformatic/utils': 2.73.1
       execa: 9.6.0
       fast-json-patch: 3.1.1
-      pino: 9.8.0
+      pino: 9.7.0
       pino-abstract-transport: 2.0.0
       semver: 7.7.2
       split2: 4.2.0
@@ -8670,7 +8663,7 @@ snapshots:
       camelcase: 6.3.0
       code-block-writer: 13.0.3
       desm: 1.3.1
-      es-main: 1.3.0
+      es-main: 1.4.0
       graphql: 16.11.0
       help-me: 5.0.0
       jsonpointer: 5.0.1
@@ -8689,7 +8682,7 @@ snapshots:
       camelcase: 6.3.0
       desm: 1.3.1
       jsonpointer: 5.0.1
-      undici: 7.11.0
+      undici: 7.13.0
 
   '@platformatic/client@2.74.1':
     dependencies:
@@ -9000,7 +8993,7 @@ snapshots:
       desm: 1.3.1
       dotenv: 16.6.1
       dotenv-tool: 0.1.1
-      es-main: 1.3.0
+      es-main: 1.4.0
       fastest-levenshtein: 1.0.16
       fastify: 5.4.0
       graphql: 16.11.0
@@ -9013,7 +9006,7 @@ snapshots:
       semgrator: 0.3.0
       sonic-boom: 4.2.0
       tail-file-stream: 0.2.0
-      undici: 7.11.0
+      undici: 7.13.0
       undici-thread-interceptor: 0.14.1
       ws: 8.18.3
     transitivePeerDependencies:
@@ -9067,66 +9060,11 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@platformatic/scalar-theme@2.73.1': {}
-
   '@platformatic/scalar-theme@2.74.1': {}
 
   '@platformatic/service-grouping@3.0.4':
     dependencies:
       pino: 9.7.0
-
-  '@platformatic/service@2.73.1':
-    dependencies:
-      '@fastify/accepts': 5.0.2
-      '@fastify/autoload': 6.3.1
-      '@fastify/basic-auth': 6.2.0
-      '@fastify/cors': 10.1.0
-      '@fastify/deepmerge': 2.0.2
-      '@fastify/error': 4.2.0
-      '@fastify/static': 8.2.0
-      '@fastify/swagger': 9.5.1
-      '@fastify/under-pressure': 9.0.3
-      '@platformatic/client': 2.73.1
-      '@platformatic/config': 2.73.1
-      '@platformatic/generators': 2.73.1
-      '@platformatic/metrics': 2.73.1
-      '@platformatic/scalar-theme': 2.73.1
-      '@platformatic/telemetry': 2.73.1
-      '@platformatic/ts-compiler': 2.73.1
-      '@platformatic/utils': 2.73.1
-      '@scalar/fastify-api-reference': 1.33.0
-      '@types/ws': 8.18.1
-      ajv: 8.17.1
-      cli-progress: 3.12.0
-      close-with-grace: 2.2.0
-      code-block-writer: 13.0.3
-      colorette: 2.0.20
-      commist: 3.2.0
-      console-table-printer: 2.14.6
-      desm: 1.3.1
-      env-schema: 6.0.1
-      es-main: 1.3.0
-      execa: 9.6.0
-      fast-json-patch: 3.1.1
-      fastify: 5.4.0
-      fastify-metrics: 12.1.0(fastify@5.4.0)
-      fastify-plugin: 5.0.1
-      graphql: 16.11.0
-      help-me: 5.0.0
-      mercurius: 16.2.0(graphql@16.11.0)
-      minimist: 1.2.8
-      my-ua-parser: 2.0.4
-      ora: 6.3.1
-      pino: 9.7.0
-      pino-pretty: 13.1.1
-      prom-client: 15.1.3
-      rfdc: 1.4.1
-      semgrator: 0.3.0
-      undici: 7.13.0
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
 
   '@platformatic/service@2.74.1':
     dependencies:
@@ -9158,7 +9096,7 @@ snapshots:
       console-table-printer: 2.14.6
       desm: 1.3.1
       env-schema: 6.0.1
-      es-main: 1.3.0
+      es-main: 1.4.0
       execa: 9.6.0
       fast-json-patch: 3.1.1
       fastify: 5.4.0
@@ -10133,10 +10071,6 @@ snapshots:
     dependencies:
       undici-types: 7.8.0
 
-  '@types/node@24.1.0':
-    dependencies:
-      undici-types: 7.8.0
-
   '@types/node@24.2.1':
     dependencies:
       undici-types: 7.10.0
@@ -10166,7 +10100,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.1.0
+      '@types/node': 24.2.1
 
   '@ungap/structured-clone@1.3.0': {}
 
@@ -10888,7 +10822,7 @@ snapshots:
       columnify: 1.6.0
       commist: 3.2.0
       desm: 1.3.1
-      es-main: 1.3.0
+      es-main: 1.4.0
       execa: 9.6.0
       help-me: 5.0.0
       inquirer: 9.3.7
@@ -11356,6 +11290,8 @@ snapshots:
       safe-array-concat: 1.1.3
 
   es-main@1.3.0: {}
+
+  es-main@1.4.0: {}
 
   es-module-lexer@1.7.0: {}
 
