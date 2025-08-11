@@ -104,8 +104,23 @@ module.exports = async function (app) {
       const alertId = req.params.id
       const flamegraph = req.body
 
+      // Get the alert to duplicate service_id and pod_id
+      const alert = await app.platformatic.entities.alert.find({
+        where: { id: { eq: alertId } },
+        fields: ['serviceId', 'podId']
+      })
+
+      if (!alert || alert.length === 0) {
+        throw new Error('Alert not found')
+      }
+
       await app.platformatic.entities.flamegraph.save({
-        input: { alertId, flamegraph },
+        input: {
+          alertId,
+          flamegraph,
+          serviceId: alert[0].serviceId,
+          podId: alert[0].podId
+        },
         fields: ['id']
       })
     }

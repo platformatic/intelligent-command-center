@@ -128,6 +128,8 @@ test('receive and save alert successfully', async (t) => {
 
     const foundFlamegraphEntity = foundFlamegraphEntitities[0]
     assert.strictEqual(foundFlamegraphEntity.alertId, savedAlertByPod.id)
+    assert.strictEqual(foundFlamegraphEntity.serviceId, serviceId)
+    assert.strictEqual(foundFlamegraphEntity.podId, podId)
 
     const foundFlamegraphBuf = foundFlamegraphEntity.flamegraph
     const foundFlamegraphStr = foundFlamegraphBuf.toString()
