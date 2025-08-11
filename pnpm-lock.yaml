@@ -19,7 +19,7 @@ importers:
         version: 5.0.1
       platformatic:
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       unique-names-generator:
         specifier: ^4.7.1
         version: 4.7.1
@@ -93,7 +93,7 @@ importers:
         version: 1.11.5
       platformatic:
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       undici:
         specifier: ^7.1.0
         version: 7.13.0
@@ -263,7 +263,7 @@ importers:
         version: 5.4.0
       platformatic:
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -414,7 +414,7 @@ importers:
         version: 7.1.0
       platformatic:
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       undici:
         specifier: ^7.1.0
         version: 7.13.0
@@ -515,7 +515,7 @@ importers:
         version: 0.1.1
       platformatic:
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       unzipper:
         specifier: ^0.12.3
         version: 0.12.3
@@ -635,7 +635,7 @@ importers:
         version: 8.16.3
       platformatic:
         specifier: ^2.70.1
-        version: 2.73.1
+        version: 2.74.1
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -2075,12 +2075,9 @@ packages:
   '@platformatic/basic@2.74.1':
     resolution: {integrity: sha512-cU2KGxjzMP0kOaFQ9FO3Mq+xt1L3c5lnF9dugGbPKlcx7NIiIXqcYXGvRjig24l8efjfwpWt3ad7Ze0nJ+VuJw==}
 
-  '@platformatic/client-cli@2.73.1':
-    resolution: {integrity: sha512-YGRJ6XlJsYUzolKH/6U/rfM7D9Utn01MQ7FCDwX/sziR7uMHc2p95ViMM6DFE1GA3mUENEyAIsY5jd+oBh5Heg==}
+  '@platformatic/client-cli@2.74.1':
+    resolution: {integrity: sha512-g+BloYcFLlid2t3Z6dBhGWA93I4gO+Q+TuvB7oK7Pd1wpOWOGVlxvfA+7FMnOMeF2b+8bcEOS52/SxeruHnqcg==}
     hasBin: true
-
-  '@platformatic/client@2.73.1':
-    resolution: {integrity: sha512-yJnaORQEsOp6VaZKonRt7cxGtt4jYivAOJe45bmovLe4bTqrj8xe/z4S5X5N37hy0GTQXdOgctaMO7BBNMP7HA==}
 
   '@platformatic/client@2.74.1':
     resolution: {integrity: sha512-iXEx/d5U04x7byKrJ97S/u8XLnzDpXqHI5fcer3wDrjrZq0W0KB3cTeoL6WW05pm2VEHGoWLj9ReOigqS8H1LA==}
@@ -2097,6 +2094,10 @@ packages:
 
   '@platformatic/control@2.73.1':
     resolution: {integrity: sha512-pcvF7n2ytVY4gpoC+3bcO9yqJkyuNcSbHFxDecv9SmZifMhnhVqBA4nBFp3SZk9sECWoVwBXjwdN3pbTDxYFbA==}
+    hasBin: true
+
+  '@platformatic/control@2.74.1':
+    resolution: {integrity: sha512-CI6FhWILiumC6Rireer0C7Apy0i40UM7auzo0jWQULdssuKnXHYZYZu6InDW9BkGQvGCrqSqeF9XfANkVF7myA==}
     hasBin: true
 
   '@platformatic/db-authorization@2.74.1':
@@ -3495,6 +3496,10 @@ packages:
 
   create-platformatic@2.73.1:
     resolution: {integrity: sha512-62tM8uWX8PIE7Z3mGSySxZzz6MS6QF+McinqAH5am6gqJbpJFXDsXJ2vPLeJ9ZmJQpTBsnTTuw45ENymQNCV5w==}
+    hasBin: true
+
+  create-platformatic@2.74.1:
+    resolution: {integrity: sha512-wuQprZytiTuEYxtLLgPwb7unKcLVlUrzpjfwiLPM3xPMXCUnUrkZ8swQdIv+3zggD8pNliOWG7brq7tLrsmAQg==}
     hasBin: true
 
   cron-parser@5.3.0:
@@ -5566,8 +5571,8 @@ packages:
   pkg-types@2.2.0:
     resolution: {integrity: sha512-2SM/GZGAEkPp3KWORxQZns4M+WSeXbC2HEvmOIJe3Cmiv6ieAJvdVhDldtHqM5J1Y7MrR1XhkBT/rMlhh9FdqQ==}
 
-  platformatic@2.73.1:
-    resolution: {integrity: sha512-4+o7kaz4O8VodwDohm86xrAufMI5ZVieKXK05PFLbTIhSdMhZg77Gpb9MpJIZjZ6Zosa6M6o+UvO7pGDBi00ow==}
+  platformatic@2.74.1:
+    resolution: {integrity: sha512-T8j3uycHncY7R0OsTzvxZy4r3F11kVks8NxrDLLf/e/W5VPcDEHI/wAtuAbTYv756ATvfE9tQOYK18gzbHZmjQ==}
     hasBin: true
 
   points-on-curve@0.2.0:
@@ -6668,6 +6673,10 @@ packages:
 
   wattpm@2.73.1:
     resolution: {integrity: sha512-2UROoSKWH3X0p7MRwfiUiH5mZl2suMuQB2C1tUKiSpJQl5vDS/luCDrFjpM98c7MbQ4bpt7bYmjJ3zm0eNe9tQ==}
+    hasBin: true
+
+  wattpm@2.74.1:
+    resolution: {integrity: sha512-ZIqwWtZBVeeYn2lLlKIcMAQ9jKXkzP0hogb1bR0TCwNOjNngoy7Kq/0RixGPuJw3QtDLN8RWEncLAgR/J7etgQ==}
     hasBin: true
 
   wcwidth@1.0.1:
@@ -8653,12 +8662,12 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@platformatic/client-cli@2.73.1':
+  '@platformatic/client-cli@2.74.1':
     dependencies:
       '@fastify/error': 4.2.0
-      '@platformatic/client': 2.73.1
-      '@platformatic/config': 2.73.1
-      '@platformatic/utils': 2.73.1
+      '@platformatic/client': 2.74.1
+      '@platformatic/config': 2.74.1
+      '@platformatic/utils': 2.74.1
       abstract-logging: 2.0.1
       camelcase: 6.3.0
       code-block-writer: 13.0.3
@@ -8668,21 +8677,10 @@ snapshots:
       help-me: 5.0.0
       jsonpointer: 5.0.1
       minimist: 1.2.8
-      pino: 9.7.0
+      pino: 9.8.0
       pino-pretty: 13.1.1
       undici: 7.13.0
-      yaml: 2.8.0
-
-  '@platformatic/client@2.73.1':
-    dependencies:
-      '@apidevtools/json-schema-ref-parser': 11.9.3
-      '@fastify/error': 4.2.0
-      abstract-logging: 2.0.1
-      ajv: 8.17.1
-      camelcase: 6.3.0
-      desm: 1.3.1
-      jsonpointer: 5.0.1
-      undici: 7.13.0
+      yaml: 2.8.1
 
   '@platformatic/client@2.74.1':
     dependencies:
@@ -8775,6 +8773,21 @@ snapshots:
       commist: 3.2.0
       help-me: 5.0.0
       pino: 9.7.0
+      pino-pretty: 13.1.1
+      table: 6.9.0
+      undici: 7.13.0
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@platformatic/control@2.74.1':
+    dependencies:
+      '@fastify/error': 4.2.0
+      '@platformatic/utils': 2.74.1
+      commist: 3.2.0
+      help-me: 5.0.0
+      pino: 9.8.0
       pino-pretty: 13.1.1
       table: 6.9.0
       undici: 7.13.0
@@ -10829,6 +10842,28 @@ snapshots:
       minimist: 1.2.8
       ora: 6.3.1
       pino: 9.7.0
+      pino-pretty: 13.1.1
+      resolve: 1.22.10
+      semver: 7.7.2
+      strip-ansi: 7.1.0
+      undici: 7.13.0
+      which: 3.0.1
+
+  create-platformatic@2.74.1:
+    dependencies:
+      '@platformatic/config': 2.74.1
+      '@platformatic/generators': 2.74.1
+      '@platformatic/utils': 2.74.1
+      columnify: 1.6.0
+      commist: 3.2.0
+      desm: 1.3.1
+      es-main: 1.4.0
+      execa: 9.6.0
+      help-me: 5.0.0
+      inquirer: 9.3.7
+      minimist: 1.2.8
+      ora: 6.3.1
+      pino: 9.8.0
       pino-pretty: 13.1.1
       resolve: 1.22.10
       semver: 7.7.2
@@ -13264,29 +13299,29 @@ snapshots:
       exsolve: 1.0.7
       pathe: 2.0.3
 
-  platformatic@2.73.1:
+  platformatic@2.74.1:
     dependencies:
       '@fastify/error': 4.2.0
-      '@platformatic/basic': 2.73.1
-      '@platformatic/client-cli': 2.73.1
-      '@platformatic/config': 2.73.1
-      '@platformatic/control': 2.73.1
-      '@platformatic/runtime': 2.73.1
-      '@platformatic/utils': 2.73.1
+      '@platformatic/basic': 2.74.1
+      '@platformatic/client-cli': 2.74.1
+      '@platformatic/config': 2.74.1
+      '@platformatic/control': 2.74.1
+      '@platformatic/runtime': 2.74.1
+      '@platformatic/utils': 2.74.1
       colorette: 2.0.20
       commist: 3.2.0
-      create-platformatic: 2.73.1
+      create-platformatic: 2.74.1
       desm: 1.3.1
       dotenv: 16.6.1
       execa: 9.6.0
       fast-json-stringify: 6.0.1
       help-me: 5.0.0
       minimist: 1.2.8
-      pino: 9.7.0
+      pino: 9.8.0
       pino-pretty: 13.1.1
       split2: 4.2.0
       undici: 7.13.0
-      wattpm: 2.73.1
+      wattpm: 2.74.1
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -14544,6 +14579,29 @@ snapshots:
       help-me: 5.0.0
       minimist: 1.2.8
       pino: 9.7.0
+      pino-pretty: 13.1.1
+      semver: 7.7.2
+      split2: 4.2.0
+      table: 6.9.0
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
+  wattpm@2.74.1:
+    dependencies:
+      '@platformatic/config': 2.74.1
+      '@platformatic/control': 2.74.1
+      '@platformatic/runtime': 2.74.1
+      '@platformatic/utils': 2.74.1
+      colorette: 2.0.20
+      commist: 3.2.0
+      create-platformatic: 2.74.1
+      dotenv: 16.6.1
+      execa: 9.6.0
+      help-me: 5.0.0
+      minimist: 1.2.8
+      pino: 9.8.0
       pino-pretty: 13.1.1
       semver: 7.7.2
       split2: 4.2.0
