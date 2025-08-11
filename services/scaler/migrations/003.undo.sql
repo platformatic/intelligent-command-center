@@ -1,0 +1,1 @@
+ALTER TABLE alerts DROP COLUMN scale_event_id;
