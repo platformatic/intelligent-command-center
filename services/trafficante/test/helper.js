@@ -5,7 +5,6 @@ const { randomUUID } = require('node:crypto')
 const { buildServer: buildDbServer } = require('@platformatic/db')
 
 const defaultEnv = {
-  PLT_TRAFFICANTE_LOGGER_LEVEL: 'warn',
   PLT_TRAFFICANTE_DATABASE_URL: 'postgres://postgres:postgres@127.0.0.1:5433/trafficante',
   PLT_ICC_VALKEY_CONNECTION_STRING: 'redis://localhost:6343',
   PLT_CONTROL_PLANE: 'http://127.0.0.1:3042'

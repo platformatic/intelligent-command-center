@@ -1,10 +1,5 @@
 {
   "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.45.0.json",
-  "server": {
-    "logger": {
-      "level": "{PLT_CRON_LOGGER_LEVEL}"
-    }
-  },
   "watch": {
     "enabled": "{DEV_K8S}"
   },
