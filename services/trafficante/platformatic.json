@@ -1,9 +1,6 @@
 {
   "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.50.0.json",
   "server": {
-    "logger": {
-      "level": "{PLT_TRAFFICANTE_LOGGER_LEVEL}"
-    },
     "pluginTimeout": 60000
   },
   "db": {

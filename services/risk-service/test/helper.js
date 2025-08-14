@@ -158,7 +158,7 @@ async function serviceConfig (overrides) {
     port: 0,
     hostname: '127.0.0.1'
   }
-  config.server.logger.level = 'silent'
+  config.server.logger = { level: 'silent' }
 
   return config
 }
