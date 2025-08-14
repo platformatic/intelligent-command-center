@@ -9,7 +9,7 @@
     "port": "{PORT}"
   },
   "logger": {
-    "level": "info"
+    "level": "{PLT_ICC_LOGGER_LEVEL}"
   },
   "metrics": {
     "port": 9090

@@ -1,9 +1,6 @@
 {
   "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.59.0.json",
   "server": {
-    "logger": {
-      "level": "{PLT_CONTROL_PLANE_LOG_LEVEL}"
-    },
     "pluginTimeout": 60000
   },
   "db": {

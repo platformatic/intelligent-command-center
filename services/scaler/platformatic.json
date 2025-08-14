@@ -1,10 +1,5 @@
 {
   "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.62.0.json",
-  "server": {
-    "logger": {
-      "level": "{PLT_SCALER_LOGGER_LEVEL}"
-    }
-  },
   "watch": {
     "enabled": "{DEV_K8S}"
   },
