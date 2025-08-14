@@ -8,7 +8,6 @@ const fastify = require('fastify')
 
 const defaultEnv = {
   PLT_CONTROL_PLANE_DATABASE_URL: 'postgres://postgres:postgres@127.0.0.1:5433/control_plane',
-  PLT_CONTROL_PLANE_LOG_LEVEL: 'info',
 
   PLT_APPLICATIONS_VALKEY_CONNECTION_STRING: 'redis://localhost:6342',
 
