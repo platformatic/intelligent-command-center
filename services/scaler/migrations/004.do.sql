@@ -8,3 +8,5 @@ ALTER TABLE flamegraphs ADD COLUMN pod_id VARCHAR(255);
 -- Add indexes for the new columns
 CREATE INDEX idx_flamegraphs_service_id ON flamegraphs(service_id);
 CREATE INDEX idx_flamegraphs_pod_id ON flamegraphs(pod_id);
+CREATE INDEX idx_flamegraphs_alert_id ON flamegraphs(alert_id);
+

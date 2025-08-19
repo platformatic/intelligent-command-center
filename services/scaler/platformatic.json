@@ -15,6 +15,10 @@
         {
           "method": "POST",
           "path": "/alerts"
+        },
+        {
+          "method": "POST",
+          "path": "/flamegraphs"
         }
       ]
     },
