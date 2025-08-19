@@ -554,8 +554,8 @@ importers:
         specifier: ^2.70.1
         version: 2.74.1
       '@platformatic/sql-inspector':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       dotenv:
         specifier: ^17.0.0
         version: 17.2.1
@@ -2172,8 +2172,8 @@ packages:
   '@platformatic/sql-graphql@2.74.1':
     resolution: {integrity: sha512-IpIpVrIISUO+kziq91p0onTwjgQJNpT8vYAwMIj7L9kkKFy7nyz05V8kPLlV7r/V2QzNPxOAtvaC+XJmwWHY2A==}
 
-  '@platformatic/sql-inspector@0.1.0':
-    resolution: {integrity: sha512-F0YK29xirteWxmHh9D2Z52PrTLtultCDK0UugXick706Hz+vaw0eVr/iLOK7XUj5/tIV/WGsNj0H18lIXpEtTQ==}
+  '@platformatic/sql-inspector@0.2.0':
+    resolution: {integrity: sha512-2HzNqYbYMXycaZdnsobDMpilgPBdxUZ+LGt9yiD+k4HOyxvxWrSYAhCRKlT0FbKMjB12m4ZR6GjdzKH+oYtboQ==}
 
   '@platformatic/sql-json-schema-mapper@2.74.1':
     resolution: {integrity: sha512-2ewgM9xSW1tRm8i/M0jOITsS4mLh/k5swEucGfoSJ5RCMdnSbJG1nlPTPZo7SyafbcC7AWUDJeaM6i8adFvn0Q==}
@@ -9158,7 +9158,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@platformatic/sql-inspector@0.1.0': {}
+  '@platformatic/sql-inspector@0.2.0': {}
 
   '@platformatic/sql-json-schema-mapper@2.74.1':
     dependencies:
