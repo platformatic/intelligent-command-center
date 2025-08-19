@@ -26,6 +26,7 @@
     "@platformatic/db": "^2.70.1",
     "fastify-plugin": "^5.0.1",
     "iovalkey": "^0.3.1",
+    "mqemitter-redis": "^7.1.0",
     "undici": "^7.8.0"
   }
 }
