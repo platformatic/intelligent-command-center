@@ -107,34 +107,6 @@ test('receive and save alert successfully', async (t) => {
   assert.strictEqual(savedAlertEntitity.elu, alert.currentHealth.elu)
   assert.strictEqual(savedAlertEntitity.heapUsed, alert.currentHealth.heapUsed)
   assert.strictEqual(savedAlertEntitity.heapTotal, alert.currentHealth.heapTotal)
-
-  {
-    const flamegraph = 'test-flamegraph'
-    const flamegraphBuf = Buffer.from(flamegraph)
-
-    const response = await server.inject({
-      method: 'POST',
-      url: `/alerts/${savedAlertByPod.id}/flamegraph`,
-      headers: {
-        'content-type': 'application/octet-stream',
-        'x-k8s': generateK8sHeader(podId)
-      },
-      payload: flamegraphBuf
-    })
-    assert.strictEqual(response.statusCode, 200, response.body)
-
-    const foundFlamegraphEntitities = await server.platformatic.entities.flamegraph.find()
-    assert.strictEqual(foundFlamegraphEntitities.length, 1)
-
-    const foundFlamegraphEntity = foundFlamegraphEntitities[0]
-    assert.strictEqual(foundFlamegraphEntity.alertId, savedAlertByPod.id)
-    assert.strictEqual(foundFlamegraphEntity.serviceId, serviceId)
-    assert.strictEqual(foundFlamegraphEntity.podId, podId)
-
-    const foundFlamegraphBuf = foundFlamegraphEntity.flamegraph
-    const foundFlamegraphStr = foundFlamegraphBuf.toString()
-    assert.strictEqual(foundFlamegraphStr, flamegraph)
-  }
 })
 
 test('receive multiple alerts for the same pod', async (t) => {

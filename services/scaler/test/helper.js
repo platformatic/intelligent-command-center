@@ -21,7 +21,7 @@ async function getConfig () {
   const config = {}
   config.server = {
     port: 5555,
-    logger: { level: 'warn' }
+    logger: { level: 'silent' }
   }
   config.db = {
     connectionString,
@@ -34,6 +34,10 @@ async function getConfig () {
         {
           method: 'POST',
           path: '/alerts'
+        },
+        {
+          method: 'POST',
+          path: '/flamegraphs'
         }
       ]
     },

@@ -60,6 +60,9 @@ module.exports = fp(async function (fastify, opts) {
         await fastify.registerUpdates(connection, {
           namespace: `applications/${applicationId}`
         })
+        // Register the same WebSocket connection for requests TO watt too(e.g., flamegraph generation)
+        fastify.registerClientHandler(connection, podId)
+
         await saveApplicationInstanceStatus(podId, k8sContext, 'running')
       }
     })
@@ -114,5 +117,5 @@ module.exports = fp(async function (fastify, opts) {
   }
 }, {
   name: 'websocket',
-  dependencies: ['config']
+  dependencies: ['config', 'watt-requests']
 })
