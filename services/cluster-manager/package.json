@@ -3,20 +3,30 @@
   "version": "2.0.2",
   "scripts": {
     "start": "platformatic start",
-    "test": "npm run lint && borp --concurrency 1 --timeout=60000",
-    "lint": "standard ."
+    "build": "rm -rf dist && tsc",
+    "test": "npm run lint && npm run test:all",
+    "test:all": "borp \"test/**/*.test.ts\" --concurrency 1 --timeout=60000",
+    "test:service-grouping": "borp test/lib/service-grouping/*.test.ts --timeout=60000",
+    "test:routes": "borp test/routes/*.test.ts --concurrency 1 --timeout=60000",
+    "lint": "eslint \"**/*.ts\""
   },
   "devDependencies": {
-    "borp": "^0.20.0",
-    "fastify": "^5.2.1",
-    "standard": "^17.1.2"
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.33.0",
+    "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.40.0",
+    "@typescript-eslint/parser": "^8.40.0",
+    "borp": "^0.20.1",
+    "eslint": "^9.33.0",
+    "fastify": "^5.5.0",
+    "typescript": "^5.9.2"
   },
   "dependencies": {
-    "@fastify/error": "^4.0.0",
-    "@platformatic/db": "^2.70.1",
-    "@platformatic/service-grouping": "^3.0.4",
+    "@fastify/error": "^4.2.0",
+    "@platformatic/db": "^2.74.3",
     "fastify-plugin": "^5.0.1",
-    "undici": "^7.1.0"
+    "pino": "^9.9.0",
+    "undici": "^7.14.0"
   },
   "engines": {
     "node": "^18.8.0 || >=20.6.0"

@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "outDir": "dist",
+    "moduleResolution": "NodeNext",
+    "declaration": true,
+    "noImplicitAny": false,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "strict": false
+  },
+  "include": ["lib/**/*", "plugins/**/*", "routes/**/*", "test/**/*"]
+}
