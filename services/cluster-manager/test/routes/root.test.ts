@@ -15,7 +15,7 @@ test('optimize taxonomy', async (t) => {
   const applicationId2 = randomUUID()
 
   const applicationName1 = 'test-app-1'
-  const applicationName2 = 'test-app-2'
+  const applicationName2 = 'test-app-2' 
 
   const graph = {
     applications: [
@@ -101,7 +101,7 @@ test('optimize taxonomy', async (t) => {
 
   await startMetrics(t, {
     postServices: () => {
-      const metrics = {
+      const metrics: any = {
         averageCallsCount: 1000,
         overall50pLatency: 200,
         overall95pLatency: 300

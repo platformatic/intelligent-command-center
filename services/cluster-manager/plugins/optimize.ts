@@ -3,12 +3,13 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const { Cluster } = require('@platformatic/service-grouping')
-const { OptimizeError, RecommendationCalculating } = require('../lib/errors')
+const { OptimizeError, RecommendationCalculating } = require('../lib/errors.js')
 
-/** @param {import('fastify').FastifyInstance} app */
-module.exports = fp(async function (app) {
-  app.decorate('optimizeAndRecommend', async (metricsData = {}, ctx) => {
+
+
+module.exports = fp(async function (app: any) {
+  const { Cluster } = await import('../lib/service-grouping/cluster.js')
+  app.decorate('optimizeAndRecommend', async (metricsData: any = {}, ctx: any) => {
     const { composerCosts, podBudget } = metricsData
     let calculatingRecommendation
     try {
@@ -171,7 +172,7 @@ module.exports = fp(async function (app) {
         applications: Object.fromEntries(
           Object.entries(appServices).map(([appId, serviceSet]) => {
             const app = appNames[appId]
-            const found = serviceSet.map(({ id, type }) => {
+            const found = (serviceSet as any[]).map(({ id, type }) => {
               const service = services.find(({ appName, serviceName }) => appName === app && serviceName === id)
               if (!service) return undefined
               return {
