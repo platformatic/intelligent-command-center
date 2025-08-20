@@ -1,7 +1,7 @@
 /// <reference path="../global.d.ts" />
 'use strict'
 
-const { InvalidStatus, InvalidStatusFlow } = require('../lib/errors')
+const { InvalidStatus, InvalidStatusFlow } = require('../lib/errors.js')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = async function (app, opts) {

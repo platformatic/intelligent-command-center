@@ -1,11 +1,12 @@
 'use strict'
 
-const { join } = require('node:path')
+const { join, resolve } = require('node:path')
 const { readFile } = require('node:fs/promises')
+const { existsSync } = require('node:fs')
 const { buildServer } = require('@platformatic/db')
 const fastify = require('fastify')
 
-function setUpEnvironment (env = {}) {
+function setUpEnvironment(env = {}) {
   const defaultEnv = {
     PLT_CLIENTS_ROLE: 'clients',
     PLT_TOKEN_SVC_HOST: '',
@@ -18,12 +19,27 @@ function setUpEnvironment (env = {}) {
   Object.assign(process.env, defaultEnv, env)
 }
 
-async function serviceConfig (overrides) {
-  const clientsDir = join(__dirname, '..', '..', '..', 'clients')
+async function serviceConfig(overrides: { logLevel?: string }) {
+  // Find package.json by traversing up from current directory.
+  // We need this because we have a relative path to the clients folder which is in ICC root
+  let currentDir = __dirname
+  let packageRoot
+  while (currentDir !== '/') {
+    if (existsSync(join(currentDir, 'package.json'))) {
+      packageRoot = currentDir
+      break
+    }
+    currentDir = resolve(currentDir, '..')
+  }
 
-  const config = JSON.parse(await readFile(join(__dirname, '..', 'platformatic.json'), 'utf8'))
+  if (!packageRoot) {
+    throw new Error('Could not find package.json')
+  }
+
+  const clientsDir = join(packageRoot, '..', '..', 'clients')
+  const config = JSON.parse(await readFile(join(packageRoot, 'platformatic.json'), 'utf8'))
   config.server = {
-    ...config.server || { logger: { level: 'silent' } },
+    logger: { level: 'silent' },
     port: 0,
     hostname: '127.0.0.1'
   }
@@ -32,8 +48,8 @@ async function serviceConfig (overrides) {
   }
   config.plugins = {
     paths: [
-      join(__dirname, '..', 'plugins'),
-      join(__dirname, '..', 'routes')
+      join(packageRoot, 'plugins'),
+      join(packageRoot, 'routes')
     ]
   }
   config.clients = [
@@ -60,12 +76,23 @@ async function serviceConfig (overrides) {
   return config
 }
 
-const bootstrap = async function bootstrap (t, serverOverrides = {}, env = {}) {
+const bootstrap = async function bootstrap(t: any, serverOverrides: { logLevel?: string } = {}, env: any = {}) {
   setUpEnvironment(env)
   const options = await serviceConfig(serverOverrides)
 
+  // Find package root for migrations path
+  let currentDir = __dirname
+  let packageRoot
+  while (currentDir !== '/') {
+    if (existsSync(join(currentDir, 'package.json'))) {
+      packageRoot = currentDir
+      break
+    }
+    currentDir = resolve(currentDir, '..')
+  }
+
   // this is needed to run the seeds/recommendations.js script from root directory
-  options.migrations.dir = join(__dirname, '..', 'migrations')
+  options.migrations.dir = join(packageRoot, 'migrations')
 
   const server = await buildServer(options)
   t.after(() => server.close())
@@ -78,7 +105,7 @@ const bootstrap = async function bootstrap (t, serverOverrides = {}, env = {}) {
   return server
 }
 
-async function startRiskService (t, opts = {}) {
+async function startRiskService(t: any, opts: any = {}) {
   const risk = fastify({ keepAliveTimeout: 1 })
 
   risk.get('/latencies', async (req) => {
@@ -93,7 +120,7 @@ async function startRiskService (t, opts = {}) {
   return risk
 }
 
-async function startControlPlane (t, opts = {}) {
+async function startControlPlane(t: any, opts: any = {}) {
   const controlPlane = fastify({ keepAliveTimeout: 1 })
 
   controlPlane.get('/graph', async () => {
@@ -109,7 +136,7 @@ async function startControlPlane (t, opts = {}) {
   return controlPlane
 }
 
-async function startMetrics (t, opts = {}) {
+async function startMetrics(t: any, opts: any = {}) {
   const metrics = fastify({ keepAliveTimeout: 1 })
 
   metrics.post('/services', async (req) => {
@@ -128,7 +155,7 @@ async function startMetrics (t, opts = {}) {
   return metrics
 }
 
-function getRandomElementFromArray (array) {
+function getRandomElementFromArray(array: any[]) {
   return array[Math.floor(Math.random() * array.length)]
 }
 

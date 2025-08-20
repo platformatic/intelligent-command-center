@@ -4,7 +4,7 @@
 
 const fp = require('fastify-plugin')
 const { randomUUID } = require('node:crypto')
-const { RecommendationCalculating, RecommendationNotFound } = require('../lib/errors')
+const { RecommendationCalculating, RecommendationNotFound } = require('../lib/errors.js')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
