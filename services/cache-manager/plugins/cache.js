@@ -2,7 +2,7 @@
 
 const fp = require('fastify-plugin')
 const orama = require('@orama/orama')
-const { RedisCacheManager } = require('@platformatic/undici-cache-redis')
+const { RedisCacheManager } = require('undici-cache-redis')
 const { NextCacheManager } = require('../lib/next-cache-manager')
 const errors = require('./errors')
 
