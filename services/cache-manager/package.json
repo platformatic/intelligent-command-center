@@ -21,7 +21,7 @@
     "@fastify/error": "^4.0.0",
     "@fastify/redis": "^7.0.1",
     "@orama/orama": "^3.0.1",
-    "@platformatic/undici-cache-redis": "^0.7.1",
+    "undici-cache-redis": "^1.0.0",
     "fastify-plugin": "^5.0.1",
     "iovalkey": "^0.3.0",
     "msgpackr": "^1.11.2",

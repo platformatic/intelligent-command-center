@@ -9,7 +9,7 @@ const { setTimeout: sleep } = require('node:timers/promises')
 const { Client, interceptors } = require('undici')
 const { buildServer } = require('@platformatic/service')
 const { loadConfig, buildServer: buildRuntimeServer } = require('@platformatic/runtime')
-const RedisCacheStore = require('@platformatic/undici-cache-redis')
+const RedisCacheStore = require('undici-cache-redis')
 
 const defaultEnv = {
   PLT_FEATURE_CACHE: true,
