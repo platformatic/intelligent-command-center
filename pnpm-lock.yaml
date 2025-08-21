@@ -79,9 +79,6 @@ importers:
       '@orama/orama':
         specifier: ^3.0.1
         version: 3.1.11
-      '@platformatic/undici-cache-redis':
-        specifier: ^0.7.1
-        version: 0.7.1
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.0.1
@@ -97,6 +94,9 @@ importers:
       undici:
         specifier: ^7.1.0
         version: 7.13.0
+      undici-cache-redis:
+        specifier: ^1.0.0
+        version: 1.0.0
     devDependencies:
       '@platformatic/next':
         specifier: ^2.70.1
@@ -569,8 +569,8 @@ importers:
         specifier: ^7.0.1
         version: 7.0.2
       '@platformatic/service':
-        specifier: ^2.70.1
-        version: 2.74.1
+        specifier: ^2.74.3
+        version: 2.74.3
       '@platformatic/sql-inspector':
         specifier: ^0.2.0
         version: 0.2.0
@@ -2283,9 +2283,6 @@ packages:
 
   '@platformatic/undici-cache-memory@0.8.4':
     resolution: {integrity: sha512-/JVfPhyUW0GQkmr5lGAGOgh0lpJbTcLG8VB2uNqgNgH1fhPPFAM0l4pLSyeDzpTj2r/GJPLqhzvCgangnSHfoQ==}
-
-  '@platformatic/undici-cache-redis@0.7.1':
-    resolution: {integrity: sha512-fhPD8yDJX/AgTzhXgt9B/acPNEBfKf2GA2oZlHNPBgFyJJq8dOKsq5PYAyg9FyoDHuv0fVxZAc/+U+8j6rOAsw==}
 
   '@platformatic/utils@2.74.1':
     resolution: {integrity: sha512-OTrmqpXNCJ+9zbh3YZtzhp+i0HFtbhAkhHRskPJWjggCN7qVeUqU0IwhdD+NAohL9Mar+B6Dm1DdkKNWaX0l3Q==}
@@ -4724,10 +4721,6 @@ packages:
     resolution: {integrity: sha512-NUcA93i1lukyXU+riqEyPtSEkyFq8tX90uL659J+qpCZ3rEdViB/APC58oAhIh3+bJln2hzdlZbBZsGNrlsR8g==}
     engines: {node: '>=12.22.0'}
 
-  iovalkey@0.1.0:
-    resolution: {integrity: sha512-a1RA4X99qIXSQW1AhxbOwPOvttyEzLmweVD2j6qn7SaxcF2FJ3qDbgP7fibBhLw5IQE0UZOX7+gpWRT3asOMxw==}
-    engines: {node: '>=12.22.0'}
-
   iovalkey@0.3.3:
     resolution: {integrity: sha512-4rTJX6Q5wTYEvxboXi8DsEiUo+OvqJGtLYOSGm37KpdRXsG5XJjbVtYKGJpPSWP+QT7rWscA4vsrdmzbEbenpw==}
     engines: {node: '>=18.12.0'}
@@ -6672,6 +6665,9 @@ packages:
 
   underscore@1.12.1:
     resolution: {integrity: sha512-hEQt0+ZLDVUMhebKxL4x1BTtDY7bavVofhZ9KZ4aI26X9SRaE+Y3m83XUL1UP2jn8ynjndwCCpEHdUG+9pP1Tw==}
+
+  undici-cache-redis@1.0.0:
+    resolution: {integrity: sha512-pzbCpQCwHRzsPKNITOqPNim/HsdlHT3WjbTksMD++OwMgcsQYQR8QZkc+i+0c+JDMz92hmioio/r4qwxqXVajA==}
 
   undici-oidc-interceptor@0.6.0:
     resolution: {integrity: sha512-9Cddcqv9kLsvsYlGd5wuC9CywgontjyKmhvOC0JUj0HOUzr6nr3zfJZG4NfAEtutLzlyMAiGRq5gNhMqbmxqIw==}
@@ -9628,13 +9624,6 @@ snapshots:
       - storybook
 
   '@platformatic/undici-cache-memory@0.8.4': {}
-
-  '@platformatic/undici-cache-redis@0.7.1':
-    dependencies:
-      iovalkey: 0.1.0
-      lru_map: 0.4.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@platformatic/utils@2.74.1':
     dependencies:
@@ -12693,20 +12682,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  iovalkey@0.1.0:
-    dependencies:
-      '@ioredis/commands': 1.2.0
-      cluster-key-slot: 1.1.2
-      debug: 4.4.1
-      denque: 2.1.0
-      lodash.defaults: 4.2.0
-      lodash.isarguments: 3.1.0
-      redis-errors: 1.2.0
-      redis-parser: 3.0.0
-      standard-as-callback: 2.1.0
-    transitivePeerDependencies:
-      - supports-color
-
   iovalkey@0.3.3:
     dependencies:
       '@iovalkey/commands': 0.1.0
@@ -14927,6 +14902,14 @@ snapshots:
       which-boxed-primitive: 1.1.1
 
   underscore@1.12.1: {}
+
+  undici-cache-redis@1.0.0:
+    dependencies:
+      atomic-sleep: 1.0.0
+      iovalkey: 0.3.3
+      lru_map: 0.4.1
+    transitivePeerDependencies:
+      - supports-color
 
   undici-oidc-interceptor@0.6.0:
     dependencies:
