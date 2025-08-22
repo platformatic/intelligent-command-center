@@ -32,9 +32,14 @@ export default async function callApi (service, url, method, body, headers) {
   }
 
   if (response.status !== 200) {
-    console.error(`Failed to call ${method} ${service}/${url}: ${output.message || output.error}`)
-    throw new Error(`Failed to call ${method} ${service}/${url}: ${output.message || output.error}`)
+    console.error(`Failed to call ${method} ${service}${url}: ${output.message || output.error}`)
+    throw new Error(`Failed to call ${method} ${service}${url}: ${output.message || output.error}`)
   }
+  // if output is an array return it
+  if (Array.isArray(output)) {
+    return output
+  }
+
   if (output.length === 0) {
     return true
   }

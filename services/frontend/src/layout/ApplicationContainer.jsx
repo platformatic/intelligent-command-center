@@ -56,6 +56,17 @@ function ApplicationContainer ({ children }) {
 
           disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
         }, {
+          link: generatePath('flamegraphs', { applicationId: application.id }),
+          label: 'Flamegraphs',
+          iconName: 'FlamegraphsIcon',
+
+          disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+        }, {
+          link: generatePath('activities', { applicationId: application.id }),
+          label: 'Activities',
+          iconName: 'CheckListIcon',
+          disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+        }, {
           link: generatePath('scheduled-jobs', { applicationId: application.id }),
           label: 'Scheduled Jobs',
           iconName: 'ScheduledJobsIcon',

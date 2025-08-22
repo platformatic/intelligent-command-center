@@ -60,7 +60,7 @@ module.exports = async function (app) {
         topic: 'ui-updates/flamegraphs',
         type: 'flamegraph-created',
         data: {
-          flamegraphId: result.id,
+          id: result.id,
           serviceId,
           podId
         }

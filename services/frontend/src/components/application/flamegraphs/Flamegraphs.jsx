@@ -1,0 +1,204 @@
+import React, { useEffect, useState } from 'react'
+import { useLoaderData, useNavigate, generatePath, useRouteLoaderData } from 'react-router-dom'
+import { DULLS_BACKGROUND_COLOR, MEDIUM, RICH_BLACK, SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
+import { Button } from '@platformatic/ui-components'
+import Icons from '@platformatic/ui-components/src/components/icons'
+
+import styles from './Flamegraphs.module.css'
+import typographyStyles from '~/styles/Typography.module.css'
+import commonStyles from '~/styles/CommonStyles.module.css'
+import { getFormattedTimeAndDate } from '~/utilities/dates'
+import dayjs from 'dayjs'
+import callApi from '~/api/common'
+import useSubscribeToUpdates from '~/hooks/useSubscribeToUpdates'
+
+export default function Flamegraphs () {
+  const { flamegraphs, pods } = useLoaderData()
+  const [currentFlamegraphs, setCurrentFlamegraphs] = useState(flamegraphs)
+  const { application } = useRouteLoaderData('appRoot')
+  const [collecting, setCollecting] = useState(false)
+  const [rows, setRows] = useState([])
+
+  const { readyState, lastMessage } = useSubscribeToUpdates('flamegraphs')
+
+  useEffect(() => {
+    if (lastMessage !== null) {
+      const message = JSON.parse(lastMessage.data)
+      if (message.type === 'flamegraph-created') {
+        const newFlamegraphs = [...currentFlamegraphs, message.data]
+        setCurrentFlamegraphs(newFlamegraphs)
+      }
+    }
+  }, [lastMessage, readyState])
+
+  function getFlamegraphsForRow (row) {
+    const [date, alertId] = row.split('|')
+    return currentFlamegraphs.filter((flamegraph) => {
+      if (alertId) {
+        return flamegraph.alertId === alertId && dayjs(flamegraph.createdAt).format('YYYY-MM-DD HH:mm:ss') === date
+      }
+      return dayjs(flamegraph.createdAt).format('YYYY-MM-DD HH:mm:ss') === date
+    })
+  }
+
+  useEffect(() => {
+    if (currentFlamegraphs.length === 0) {
+      return
+    }
+    const tempRows = []
+    currentFlamegraphs.forEach((fg) => {
+      const fgDate = dayjs(fg.createdAt).format('YYYY-MM-DD HH:mm:ss')
+      if (fg.alertId) {
+        const id = `${fgDate}|${fg.alertId}`
+        if (!tempRows.includes(id)) {
+          tempRows.push(id)
+        }
+      } else {
+        if (!tempRows.includes(fgDate)) {
+          tempRows.push(fgDate)
+        }
+      }
+    })
+    // order temprows by date, newest first
+    tempRows.sort().reverse()
+    setRows(tempRows)
+  }, [currentFlamegraphs])
+
+  async function refreshFlamegraphs () {
+    const flamegraphs = await callApi('scaler', `flamegraphs?where.applicationId.eq=${application.id}`, 'GET')
+    setCurrentFlamegraphs(flamegraphs)
+  }
+
+  function renderRow (row) {
+    const [date, alertId] = row.split('|')
+    const flamegraphs = getFlamegraphsForRow(row)
+    return (
+      <div key={row} className={styles.flamegraphItem}>
+        <FlamegraphRow
+          key={row}
+          date={date}
+          flamegraphs={flamegraphs}
+          application={application}
+          alertId={alertId}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
+          <Icons.FlamegraphsIcon color={WHITE} size={MEDIUM} />
+          <h1 className={typographyStyles.desktopBodyLargeSemibold}>Flamegraphs</h1>
+        </div>
+
+        <Button
+          textClass={typographyStyles.desktopButtonSmall}
+          paddingClass={commonStyles.mediumButtonPadding}
+          label={collecting ? 'Collecting flamegraphs...' : 'Get latest flamegraphs'}
+          onClick={async () => {
+            let collected = false
+            setCollecting(true)
+            // call this api for each pod until we get a 200 response
+            // we do this because it may happen that a pod is 'running' in our db
+            // but it's not actually running in k8s
+            for (const pod of pods) {
+              try {
+                const res = await callApi('', `/api/pods/${pod.podId}/command`, 'POST', {
+                  command: 'trigger-flamegraph'
+                })
+                if (res.success) {
+                  collected = true
+                  break
+                }
+              } catch (error) {
+                // do nothing
+              }
+            }
+            setCollecting(false)
+            if (!collected) {
+              window.alert('No flamegraphs collected')
+            } else {
+              refreshFlamegraphs()
+            }
+          }}
+          disabled={collecting}
+          color={RICH_BLACK}
+          backgroundColor={WHITE}
+          hoverEffect={DULLS_BACKGROUND_COLOR}
+        />
+      </div>
+      <div className={styles.flamegraphsContainer}>
+        {rows.map((row) => renderRow(row))}
+      </div>
+    </div>
+  )
+}
+
+function FlamegraphRow ({ date, flamegraphs, application, alertId = null }) {
+  const [expanded, setExpanded] = useState(false)
+  const navigate = useNavigate()
+
+  const rowIcon = alertId
+    ? <Icons.GearAlertIcon color={WHITE} size={MEDIUM} />
+    : <Icons.GearUserIcon color={WHITE} size={MEDIUM} />
+
+  return (
+    <div className={styles.row} onClick={() => setExpanded(!expanded)}>
+      <div className={styles.rowHeader}>
+        <div>
+          {rowIcon}
+          <div className={styles.date}>{getFormattedTimeAndDate(date)}</div>
+          {alertId && (
+            <div className={styles.link}>View Scaling Event</div>
+          )}
+        </div>
+        <div>
+          {expanded && (
+            <Icons.ArrowDownIcon color={WHITE} size={MEDIUM} />
+          )}
+          {!expanded && (
+            <Icons.ArrowRightIcon color={WHITE} size={MEDIUM} />
+          )}
+        </div>
+      </div>
+      {expanded && (
+        <div className={styles.expandedContent}>
+          <div>
+            {flamegraphs.map((fg) => (
+              <div key={fg.id} className={styles.flamegraph}>
+                <div key={fg.id} className={styles.flamegraphDetails}>
+                  <div>
+                    <span className={styles.label}>Service:</span>
+                    <div className={styles.value}>{fg.serviceId}</div>
+                  </div>
+                  <div className={styles.separator}>|</div>
+                  <div>
+                    <span className={styles.label}>Pod ID:</span>
+                    <div className={styles.value}>{fg.podId}</div>
+                  </div>
+                </div>
+                <div
+                  className={styles.flamegraphLink} onClick={(e) => {
+                    e.stopPropagation()
+                    const newPath = generatePath('/applications/:applicationId/flamegraphs/:flamegraphId', {
+                      applicationId: application.id,
+                      flamegraphId: fg.id
+                    })
+                    navigate(newPath)
+                  }}
+                >
+                  View Flamegraph <Icons.InternalLinkIcon
+                    color={WHITE} size={SMALL}
+                                  />
+                </div>
+              </div>
+
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

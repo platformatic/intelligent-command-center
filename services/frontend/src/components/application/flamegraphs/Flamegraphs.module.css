@@ -1,0 +1,61 @@
+.container {
+  @apply p-4 w-full;
+}
+
+.header {
+  @apply flex justify-between items-center mb-4;
+}
+.flamegraphsContainer {
+  @apply flex flex-col gap-4;
+}
+
+.flamegraphItem {
+  @apply text-white/70;
+}
+.row {
+  @apply flex flex-col gap-2 p-4 bg-black-russian;
+}
+
+/* Flamegraph Row */
+.rowHeader {
+  @apply flex justify-between items-center  cursor-pointer;
+}
+.rowHeader > div {
+  @apply flex items-center gap-2;
+}
+
+.flamegraph {
+  @apply flex justify-between items-center p-1 text-[14px];
+}
+
+.flamegraphDetails {
+  @apply flex items-center gap-4;
+}
+
+.flamegraphDetails > div {
+  @apply flex items-center gap-2;
+}
+
+.flamegraphLink {
+  @apply flex items-center gap-2 text-[13px] cursor-pointer;
+}
+
+.expandedContent > div {
+  @apply flex flex-col gap-2;
+}
+
+.link {
+  @apply text-white/70 text-sm;
+}
+
+.date {
+  @apply text-white text-sm;
+}
+
+.value {
+  @apply text-white text-sm;
+}
+
+.label {
+  @apply text-white/70 text-sm;
+}

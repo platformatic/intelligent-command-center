@@ -4,6 +4,7 @@ import { PlatformaticIcon } from '@platformatic/ui-components'
 import { TINY, WHITE } from '@platformatic/ui-components/src/components/constants'
 import typographyStyles from '~/styles/Typography.module.css'
 import { useLocation, useNavigate, useRouteLoaderData, useMatches, generatePath, useNavigation } from 'react-router-dom'
+import dayjs from 'dayjs'
 
 function getRootPageBreadcrumbs (routeId) {
   const output = []
@@ -51,7 +52,7 @@ function getApplicationPageBreadcrumbs (routeId, application, otherParams) {
     label: application.name,
     link: generatePath('/applications/:applicationId', { applicationId: application.id })
   })
-
+  const flamegraphDate = dayjs(otherParams?.flamegraph?.createdAt).format('DD-MM-YYYY')
   switch (routeId) {
     case 'application/details':
       break
@@ -89,6 +90,15 @@ function getApplicationPageBreadcrumbs (routeId, application, otherParams) {
       output.push({ label: 'Autoscaler', link: generatePath('/applications/:applicationId/autoscaler', { applicationId: application.id }) })
       output.push({ label: otherParams.pod.id })
       output.push({ label: 'Services' })
+      break
+
+    case 'application/flamegraphs':
+      output.push({ label: 'Flamegraphs', link: generatePath('/applications/:applicationId/flamegraphs', { applicationId: application.id }) })
+      break
+
+    case 'application/flamegraphs-detail':
+      output.push({ label: 'Flamegraphs', link: generatePath('/applications/:applicationId/flamegraphs', { applicationId: application.id }) })
+      output.push({ label: `[${flamegraphDate}] - ${otherParams.flamegraph.serviceId}` })
       break
   }
   return output
