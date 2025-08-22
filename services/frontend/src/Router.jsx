@@ -7,7 +7,11 @@ import AllApplications from './components/applications/all/AllApplications'
 import RecommendationsHistory from './components/recommendations/RecommendationHistory'
 import Settings from './components/settings/Settings'
 import Profile from './components/profile/Profile'
-import { getApiDeploymentsHistory, getApiApplication, getApplicationsRaw, getApiPod } from './api'
+
+import { getApiActivities, getApiActivitiesUsers, getApiDeploymentsHistory, getApiApplication, getApiActivitiesTypes, getApplicationsRaw, getApiPod } from './api'
+import callApi from './api/common'
+
+import Activities from '~/components/application/activities/Activities'
 import DeploymentHistory from '~/components/application/deployment_history/DeploymentHistory'
 import AppDetails from '~/components/application/detail/AppDetails'
 import ApplicationContainer from '~/layout/ApplicationContainer'
@@ -17,6 +21,7 @@ import AutoscalerPodDetailContainer from '~/layout/AutoscalerPodDetailContainer'
 import Taxonomy from './components/taxonomy/Taxonomy'
 import Caching from './components/caching/Caching'
 import AllDeployments from './components/deployments/AllDeployments'
+import AllActivities from './components/activities/Activities'
 import Services from './components/application/services/Services'
 import ErrorPage from './pages/ErrorPage'
 
@@ -27,11 +32,12 @@ import Autoscaler from './components/application/autoscaler/Autoscaler'
 import ApplicationSettings from './components/application/settings/Settings'
 import NotFound from './pages/NotFound'
 import ServiceDetails from './components/application/services/ServiceDetails'
-import callApi from './api/common'
+import Flamegraphs from './components/application/flamegraphs/Flamegraphs'
 
 // Import Autoscaler Pod Detail Pages
 import PodOverview from './components/pods/detail/PodOverview'
 import PodServicesCharts from './components/pods/detail/PodServicesCharts'
+import FlamegraphDetail from './components/application/flamegraphs/FlamegraphDetail'
 
 export function getRouter () {
   // TODO: check if this is needed
@@ -177,6 +183,15 @@ export function getRouter () {
             return { totalCount, deployments: d, applications }
           },
           element: <AllDeployments />
+        },
+        {
+          loader: async () => {
+            const applications = await getApplicationsRaw()
+            return { applications }
+          },
+          id: 'activities',
+          path: '/activities',
+          element: <AllActivities />
         }
       ]
     },
@@ -202,6 +217,25 @@ export function getRouter () {
           path: '',
           id: 'application/details',
           element: <AppDetails />
+        },
+        {
+          path: 'activities',
+          id: 'application/activities',
+          loader: async (loaderObject) => {
+            const { applicationId } = loaderObject.params
+            const [activities, users, types] = await Promise.all([
+              getApiActivities(applicationId),
+              getApiActivitiesUsers(),
+              getApiActivitiesTypes()
+            ])
+            return {
+              applicationId,
+              activities,
+              users,
+              types
+            }
+          },
+          element: <Activities />
         },
         {
           path: 'deployment-history',
@@ -261,6 +295,40 @@ export function getRouter () {
           },
           path: 'settings',
           element: <ApplicationSettings />
+        },
+        {
+          id: 'application/flamegraphs',
+          loader: async ({ params }) => {
+            const query = new URLSearchParams({
+              'where.applicationId.eq': params.applicationId
+            })
+            const flamegraphs = await callApi('scaler', `flamegraphs?${query.toString()}`, 'GET')
+
+            query.set('where.status.eq', 'running')
+            const pods = await callApi('control-plane', `/instances?${query.toString()}`, 'GET')
+            return { flamegraphs, pods }
+          },
+          path: 'flamegraphs',
+          element: <Flamegraphs />
+        },
+        {
+          id: 'application/flamegraphs-detail',
+          loader: async ({ params }) => {
+            try {
+              const flamegraph = await callApi('scaler', `flamegraphs/${params.id}`, 'GET')
+              return { flamegraph }
+            } catch (error) {
+              console.error(error)
+              return {
+                flamegraph: {
+                  id: params.id,
+                  data: null
+                }
+              }
+            }
+          },
+          path: 'flamegraphs/:id',
+          element: <FlamegraphDetail />
         }
       ]
     },

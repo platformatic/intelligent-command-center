@@ -62,7 +62,7 @@ test('receive and save flamegraph successfully', async (t) => {
   assert.strictEqual(update.message.topic, 'ui-updates/flamegraphs')
   assert.strictEqual(update.message.type, 'flamegraph-created')
   assert.deepStrictEqual(update.message.data, {
-    flamegraphId: flamegraphEntity.id,
+    id: flamegraphEntity.id,
     serviceId,
     podId
   })
@@ -221,7 +221,7 @@ test('receive and save flamegraph with alertId successfully', async (t) => {
   assert.strictEqual(update.message.topic, 'ui-updates/flamegraphs')
   assert.strictEqual(update.message.type, 'flamegraph-created')
   assert.deepStrictEqual(update.message.data, {
-    flamegraphId: flamegraphEntity.id,
+    id: flamegraphEntity.id,
     serviceId,
     podId
   })
