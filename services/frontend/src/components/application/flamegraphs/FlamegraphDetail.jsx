@@ -3,29 +3,59 @@
 /* eslint-disable react/no-children-prop */
 import React, { useEffect, useState } from 'react'
 import { useLoaderData } from 'react-router-dom'
-import { FlameGraph, StackDetails } from '@platformatic/react-pprof'
+import { FullFlameGraph, fetchProfile } from '@platformatic/react-pprof'
 import styles from './FlamegraphDetail.module.css'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import { MEDIUM, WHITE } from '@platformatic/ui-components/src/components/constants'
 import dayjs from 'dayjs'
+import ErrorComponent from '../../errors/ErrorComponent'
 export default function FlamegraphDetail () {
   const { flamegraph } = useLoaderData()
 
   const [profile, setProfile] = useState(null)
-  const [selectedFrame, setSelectedFrame] = useState(null)
-  const [stackTrace, setStackTrace] = useState(null)
-  const [children, setChildren] = useState(null)
+  const [fetchError, setFetchError] = useState(null)
 
+  function getProfileUrl () {
+    return `${import.meta.env.VITE_API_BASE_URL}/scaler/flamegraphs/${flamegraph.id}/download`
+  }
+  async function loadProfile () {
+    try {
+      const url = getProfileUrl()
+      const profile = await fetchProfile(url)
+      return profile
+    } catch (error) {
+      setFetchError(error)
+    }
+  }
   useEffect(() => {
     // Load the pprof profile
-    setProfile(flamegraph.flamegraph)
+    loadProfile().then((decodedProfile) => {
+      setProfile(decodedProfile)
+    })
   }, [])
 
   function renderFlamegraphDate () {
     return flamegraph.createdAt ? `[${dayjs(flamegraph.createdAt).format('YYYY-MM-DD HH:mm:ss')}]` : 'Unknown'
   }
   if (!profile) {
-    return <div>Loading profile...</div>
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <Icons.FlamegraphsIcon size={MEDIUM} color={WHITE} />
+          <h1 className={styles.title}>Flamegraph {renderFlamegraphDate()}</h1>
+        </div>
+        <div className={styles.content}>
+          <div style={{ flex: 1 }}>
+            <ErrorComponent
+              title={`Error fetching profile from ${getProfileUrl()}`}
+              error={fetchError}
+              message={fetchError?.message || 'Unknown error'}
+              containerClassName={styles.errorContainer}
+            />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -37,24 +67,11 @@ export default function FlamegraphDetail () {
       </div>
       <div className={styles.content}>
         <div style={{ flex: 1 }}>
-          <FlameGraph
+          <FullFlameGraph
+            backgroundColor='#090E17'
             profile={profile}
-            onFrameClick={(frame, stack, frameChildren) => {
-              setSelectedFrame(frame)
-              setStackTrace(stack)
-              setChildren(frameChildren)
-            }}
           />
         </div>
-        {children && (
-          <div style={{ width: '400px' }}>
-            <StackDetails
-              selectedFrame={selectedFrame}
-              stackTrace={stackTrace}
-              children={children}
-            />
-          </div>
-        )}
       </div>
     </div>
   )
