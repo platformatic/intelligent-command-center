@@ -18,7 +18,7 @@ export default function Flamegraphs () {
   const { application } = useRouteLoaderData('appRoot')
   const [collecting, setCollecting] = useState(false)
   const [rows, setRows] = useState([])
-
+  const [scaleEventId] = useState(null) // TODO: add setScaleEventId function when needed.
   const { readyState, lastMessage } = useSubscribeToUpdates('flamegraphs')
 
   useEffect(() => {
@@ -30,6 +30,13 @@ export default function Flamegraphs () {
       }
     }
   }, [lastMessage, readyState])
+
+  useEffect(() => {
+    if (currentFlamegraphs.length > 0) {
+      // TODO:  get all the scale events id for the current flamegraphs
+      // setScaleEventId(currentFlamegraphs[0].alertId)
+    }
+  }, [currentFlamegraphs])
 
   function getFlamegraphsForRow (row) {
     const [date, alertId] = row.split('|')
@@ -80,6 +87,7 @@ export default function Flamegraphs () {
           flamegraphs={flamegraphs}
           application={application}
           alertId={alertId}
+          scaleEventId={scaleEventId}
         />
       </div>
     )
@@ -136,7 +144,7 @@ export default function Flamegraphs () {
   )
 }
 
-function FlamegraphRow ({ date, flamegraphs, application, alertId = null }) {
+function FlamegraphRow ({ date, flamegraphs, application, alertId = null, scaleEventId = null }) {
   const [expanded, setExpanded] = useState(false)
   const navigate = useNavigate()
 
@@ -150,7 +158,7 @@ function FlamegraphRow ({ date, flamegraphs, application, alertId = null }) {
         <div>
           {rowIcon}
           <div className={styles.date}>{getFormattedTimeAndDate(date)}</div>
-          {alertId && (
+          {scaleEventId && (
             <div className={styles.link}>View Scaling Event</div>
           )}
         </div>

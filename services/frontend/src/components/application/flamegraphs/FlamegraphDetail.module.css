@@ -1,5 +1,5 @@
 .container {
-  @apply flex flex-col p-4 text-white gap-4;
+  @apply flex flex-col p-4 text-white gap-4 w-full;
 }
 .header {
   @apply flex items-center gap-2;
