@@ -1,5 +1,4 @@
 'use strict'
-
 module.exports = async function (app) {
   app.addContentTypeParser(
     'application/octet-stream',
@@ -69,6 +68,22 @@ module.exports = async function (app) {
       })
 
       return result
+    }
+  })
+
+  app.get('/flamegraphs/:id/download', async (req) => {
+    const { id } = req.params
+    try {
+      const flamegraph = await app.platformatic.entities.flamegraph.find({
+        where: { id: { eq: id } },
+        fields: ['id', 'flamegraph']
+      })
+      console.log('flamegraph', flamegraph, '#####################')
+      // return binary data as a buffer
+      return Buffer.from(flamegraph[0].flamegraph)
+    } catch (err) {
+      app.log.error({ err }, 'Failed to decode flamegraph')
+      return { error: 'Failed to decode flamegraph:' + err.message }
     }
   })
 }
