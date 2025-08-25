@@ -41,7 +41,7 @@ importers:
         version: 17.1.2
       undici:
         specifier: ^7.3.0
-        version: 7.14.0
+        version: 7.15.0
 
   services/activities:
     dependencies:
@@ -93,7 +93,7 @@ importers:
         version: 2.74.3
       undici:
         specifier: ^7.1.0
-        version: 7.14.0
+        version: 7.15.0
       undici-cache-redis:
         specifier: ^1.0.0
         version: 1.0.0
@@ -142,7 +142,7 @@ importers:
         version: 9.9.0
       undici:
         specifier: ^7.14.0
-        version: 7.14.0
+        version: 7.15.0
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
@@ -191,7 +191,7 @@ importers:
         version: 7.7.2
       undici:
         specifier: ^7.1.0
-        version: 7.14.0
+        version: 7.15.0
     devDependencies:
       borp:
         specifier: ^0.20.0
@@ -435,7 +435,7 @@ importers:
         version: 2.74.3
       undici:
         specifier: ^7.1.0
-        version: 7.14.0
+        version: 7.15.0
       ws:
         specifier: ^8.18.1
         version: 8.18.3
@@ -487,7 +487,7 @@ importers:
         version: 15.1.3
       undici:
         specifier: ^7.8.0
-        version: 7.14.0
+        version: 7.15.0
     devDependencies:
       borp:
         specifier: ^0.20.0
@@ -604,7 +604,7 @@ importers:
         version: 17.1.2
       undici:
         specifier: ^7.1.0
-        version: 7.14.0
+        version: 7.15.0
 
   services/scaler:
     dependencies:
@@ -631,7 +631,7 @@ importers:
         version: 7.1.0
       undici:
         specifier: ^7.8.0
-        version: 7.14.0
+        version: 7.15.0
     devDependencies:
       '@breejs/later':
         specifier: ^4.2.0
@@ -6942,8 +6942,8 @@ packages:
     resolution: {integrity: sha512-heTSIac3iLhsmZhUCjyS3JQEkZELateufzZuBaVM5RHXdSBMb1LPMQf5x+FH7qjsZYDP0ttAc3nnVpUB+wYbOg==}
     engines: {node: '>=20.18.1'}
 
-  undici@7.14.0:
-    resolution: {integrity: sha512-Vqs8HTzjpQXZeXdpsfChQTlafcMQaaIwnGwLam1wudSSjlJeQ3bw1j+TLPePgrCnCpUXx7Ba5Pdpf5OBih62NQ==}
+  undici@7.15.0:
+    resolution: {integrity: sha512-7oZJCPvvMvTd0OlqWsIxTuItTpJBpU1tcbVl24FMn3xt3+VSunwUasmfPJRE57oNO1KsZ4PgA1xTdAX4hq8NyQ==}
     engines: {node: '>=20.18.1'}
 
   unicorn-magic@0.1.0:
@@ -8417,7 +8417,7 @@ snapshots:
       fast-querystring: 1.1.2
       fastify-plugin: 5.0.1
       toad-cache: 3.7.0
-      undici: 7.14.0
+      undici: 7.15.0
 
   '@fastify/secure-session@8.2.0':
     dependencies:
@@ -9089,7 +9089,7 @@ snapshots:
       pino-abstract-transport: 2.0.0
       semver: 7.7.2
       split2: 4.2.0
-      undici: 7.14.0
+      undici: 7.15.0
       ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
@@ -9113,7 +9113,7 @@ snapshots:
       minimist: 1.2.8
       pino: 9.9.0
       pino-pretty: 13.1.1
-      undici: 7.14.0
+      undici: 7.15.0
       yaml: 2.8.1
 
   '@platformatic/client@2.74.3':
@@ -9125,7 +9125,7 @@ snapshots:
       camelcase: 6.3.0
       desm: 1.3.1
       jsonpointer: 5.0.1
-      undici: 7.14.0
+      undici: 7.15.0
 
   '@platformatic/composer@2.74.3(chokidar@3.6.0)':
     dependencies:
@@ -9165,7 +9165,7 @@ snapshots:
       pino-pretty: 13.1.1
       rfdc: 1.4.1
       semgrator: 0.3.0
-      undici: 7.14.0
+      undici: 7.15.0
     transitivePeerDependencies:
       - bufferutil
       - chokidar
@@ -9184,7 +9184,7 @@ snapshots:
       minimist: 1.2.8
       pupa: 3.1.0
       semver: 7.7.2
-      undici: 7.14.0
+      undici: 7.15.0
 
   '@platformatic/control@2.74.3':
     dependencies:
@@ -9195,7 +9195,7 @@ snapshots:
       pino: 9.9.0
       pino-pretty: 13.1.1
       table: 6.9.0
-      undici: 7.14.0
+      undici: 7.15.0
       ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
@@ -9208,7 +9208,7 @@ snapshots:
       fastify-plugin: 5.0.1
       fastify-user: 1.4.0
       leven: 3.1.0
-      undici: 7.14.0
+      undici: 7.15.0
 
   '@platformatic/db-core@2.74.3(typescript@5.9.2)':
     dependencies:
@@ -9293,7 +9293,7 @@ snapshots:
       fastify: 5.5.0
       glob: 11.0.3
       pino: 9.9.0
-      undici: 7.14.0
+      undici: 7.15.0
 
   '@platformatic/graphql-composer@0.10.0':
     dependencies:
@@ -9303,7 +9303,7 @@ snapshots:
       mercurius: 15.1.0(graphql@16.11.0)
       metaline: 1.1.0
       pino: 9.9.0
-      undici: 7.14.0
+      undici: 7.15.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -9418,7 +9418,7 @@ snapshots:
       semgrator: 0.3.0
       sonic-boom: 4.2.0
       tail-file-stream: 0.2.0
-      undici: 7.14.0
+      undici: 7.15.0
       undici-thread-interceptor: 0.14.1
       ws: 8.18.3
     transitivePeerDependencies:
@@ -9475,7 +9475,7 @@ snapshots:
       prom-client: 15.1.3
       rfdc: 1.4.1
       semgrator: 0.3.0
-      undici: 7.14.0
+      undici: 7.15.0
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -11375,7 +11375,7 @@ snapshots:
       resolve: 1.22.10
       semver: 7.7.2
       strip-ansi: 7.1.0
-      undici: 7.14.0
+      undici: 7.15.0
       which: 3.0.1
 
   cron-parser@5.3.0:
@@ -14037,7 +14037,7 @@ snapshots:
       pino: 9.9.0
       pino-pretty: 13.1.1
       split2: 4.2.0
-      undici: 7.14.0
+      undici: 7.15.0
       wattpm: 2.74.3
     transitivePeerDependencies:
       - bufferutil
@@ -15238,13 +15238,13 @@ snapshots:
   undici-oidc-interceptor@0.6.0:
     dependencies:
       fast-jwt: 5.0.6
-      undici: 7.14.0
+      undici: 7.15.0
 
   undici-thread-interceptor@0.14.1:
     dependencies:
       hyperid: 3.3.0
       light-my-request: 6.6.0
-      undici: 7.14.0
+      undici: 7.15.0
 
   undici-types@7.10.0: {}
 
@@ -15256,7 +15256,7 @@ snapshots:
 
   undici@7.11.0: {}
 
-  undici@7.14.0: {}
+  undici@7.15.0: {}
 
   unicorn-magic@0.1.0: {}
 
