@@ -17,7 +17,7 @@
     "@platformatic/ui-components": "^0.19.0",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
-    "@vitejs/plugin-react": "^4.3.3",
+    "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.20",
     "borp": "^0.20.0",
     "d3": "~7.9.0",
