@@ -3,10 +3,13 @@
 /* eslint-disable react/no-children-prop */
 import React, { useEffect, useState } from 'react'
 import { useLoaderData } from 'react-router-dom'
-import { FullFlameGraph, fetchProfile } from '@platformatic/react-pprof'
+import { FullFlameGraph, fetchProfile } from 'react-pprof'
 import styles from './FlamegraphDetail.module.css'
 import Icons from '@platformatic/ui-components/src/components/icons'
-import { MEDIUM, WHITE } from '@platformatic/ui-components/src/components/constants'
+import {
+  MEDIUM,
+  WHITE
+} from '@platformatic/ui-components/src/components/constants'
 import dayjs from 'dayjs'
 import ErrorComponent from '../../errors/ErrorComponent'
 export default function FlamegraphDetail () {
@@ -35,7 +38,9 @@ export default function FlamegraphDetail () {
   }, [])
 
   function renderFlamegraphDate () {
-    return flamegraph.createdAt ? `[${dayjs(flamegraph.createdAt).format('YYYY-MM-DD HH:mm:ss')}]` : 'Unknown'
+    return flamegraph.createdAt
+      ? `[${dayjs(flamegraph.createdAt).format('YYYY-MM-DD HH:mm:ss')}]`
+      : 'Unknown'
   }
   if (!profile) {
     return (
@@ -67,10 +72,7 @@ export default function FlamegraphDetail () {
       </div>
       <div className={styles.content}>
         <div style={{ flex: 1 }}>
-          <FullFlameGraph
-            backgroundColor='#090E17'
-            profile={profile}
-          />
+          <FullFlameGraph backgroundColor='#090E17' profile={profile} />
         </div>
       </div>
     </div>
