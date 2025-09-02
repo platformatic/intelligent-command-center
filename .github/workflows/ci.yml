@@ -59,6 +59,32 @@ jobs:
       - name: Run lint
         run: pnpm lint
 
+  ci-scripts:
+    needs: setup-node_modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4.1.0
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: "https://registry.npmjs.org"
+          node-version: 20
+          cache: "pnpm"
+      - name: pnpm install
+        uses: nick-fields/retry@v3.0.2
+        with:
+          max_attempts: 10
+          timeout_minutes: 5
+          retry_on: error
+          command: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Execute tests
+        run: pnpm test:scripts
+
   ci-main:
     needs: setup-node_modules
     runs-on: ubuntu-latest
