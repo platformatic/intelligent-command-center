@@ -8,7 +8,7 @@ ICC (Intelligent Command Center) is a cloud control plane application built on P
 
 ## Architecture
 
-This is a microservices application with 11 services orchestrated through Platformatic Runtime:
+This is a microservices application with 12 services orchestrated through Platformatic Runtime:
 
 - **main** - API gateway/composer that routes to all services
 - **frontend** - React SPA 
@@ -21,10 +21,12 @@ This is a microservices application with 11 services orchestrated through Platfo
 - **compliance** - Rule-based compliance checking system
 - **cache-manager** - Cache dependency management for Next.js apps
 - **risk-service** - OpenTelemetry traces & risk assessment
+- **risk-cold-storage** - Long-term storage and archival of risk data
+- **trafficante** - Traffic analysis and routing optimization
 
 ## Tech Stack
 
-- **Backend**: Node.js ≥18.8.0, Fastify, Platformatic Runtime
+- **Backend**: Node.js ≥20.18.0, Fastify, Platformatic Runtime
 - **Frontend**: React 19, Vite, TailwindCSS, Zustand, D3.js
 - **Database**: PostgreSQL (6 databases), Valkey (Redis-compatible)
 - **Package Manager**: pnpm (workspace configuration)
