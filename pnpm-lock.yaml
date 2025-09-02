@@ -33,6 +33,9 @@ importers:
       '@platformatic/runtime':
         specifier: ^2.70.1
         version: 2.74.3
+      bats:
+        specifier: ^1.12.0
+        version: 1.12.0
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -3327,6 +3330,10 @@ packages:
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
+
+  bats@1.12.0:
+    resolution: {integrity: sha512-1HTv2n+fjn3bmY9SNDgmzS6bjoKtVlSK2pIHON5aSA2xaqGkZFoCCWP46/G6jm9zZ7MCi84mD+3Byw4t3KGwBg==}
+    hasBin: true
 
   better-opn@3.0.2:
     resolution: {integrity: sha512-aVNobHnJqLiUelTaHat9DZ1qM2w0C0Eym4LPI/3JxOnSokGVdsl1T1kN7TFvsEAD8G47A6VKQ0TVHqbBnYMJlQ==}
@@ -10992,6 +10999,8 @@ snapshots:
       bare-path: 3.0.0
 
   base64-js@1.5.1: {}
+
+  bats@1.12.0: {}
 
   better-opn@3.0.2:
     dependencies:
