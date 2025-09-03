@@ -65,29 +65,29 @@ function KubernetesResources ({
           <KubernetesResourcePercentage
             key='cpu_usage'
             title='CPU usage'
-            value={values?.cpu?.cpuAppUsage ?? 0}
+            value={Math.min(100, values?.cpu?.cpuAppUsage ?? 0)}
             valuesLoading={initialLoading}
             unit='%'
             values={[{
               key_value: 'memory_usage',
               label: 'App usage:',
               className: 'boxAppUsage',
-              value: values?.cpu?.cpuAppUsage ?? 0,
-              value_perc: values?.cpu?.cpuAppUsage ?? 0,
+              value: Math.min(100, values?.cpu?.cpuAppUsage ?? 0),
+              value_perc: Math.min(100, values?.cpu?.cpuAppUsage ?? 0),
               unit: '%'
             }, {
               key_value: 'other_memory_usage',
               label: 'Other Apps usage:',
               className: 'boxOtherAppUsage',
-              value: values?.cpu?.cpuAllAppsUsageButApp ?? 0,
-              value_perc: values?.cpu?.cpuAllAppsUsageButApp ?? 0,
+              value: Math.min(100, values?.cpu?.cpuAllAppsUsageButApp ?? 0),
+              value_perc: Math.min(100, values?.cpu?.cpuAllAppsUsageButApp ?? 0),
               unit: '%'
             }, {
               key_value: 'remaining_memory',
               label: 'Remaining:',
               className: 'boxFree',
-              value: 100 - (values?.cpu?.cpuAllAppsUsage ?? 0),
-              value_perc: 100 - (values?.cpu?.cpuAllAppsUsage ?? 0),
+              value: 100 - Math.min(100, values?.cpu?.cpuAllAppsUsage ?? 0),
+              value_perc: 100 - Math.min(100, values?.cpu?.cpuAllAppsUsage ?? 0),
               unit: '%'
             }]}
             backgroundColor={RICH_BLACK}
