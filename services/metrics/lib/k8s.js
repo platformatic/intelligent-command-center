@@ -2,7 +2,10 @@
 'use strict'
 
 const { queryPrometheus } = require('./prom')
-const { createRequestPerSecondQuery, createRequestLatencyQuery } = require('./queries')
+const {
+  createRequestPerSecondQuery,
+  createRequestLatencyQuery
+} = require('./queries')
 const { toGB } = require('./utils')
 
 const memAllQuery = `
@@ -19,45 +22,79 @@ const cpuAllQuery = `
     kube_pod_labels{label_platformatic_dev_monitor="prometheus"}
   )`
 
-const totalMemQuery = 'kube_node_status_allocatable{resource="memory",unit="byte"}'
+const totalMemQuery =
+  'sum(kube_node_status_allocatable{resource="memory",unit="byte"})'
 // const podsAllQuery = 'count(kube_pod_labels{label_app_kubernetes_io_name="wattpro"})'
 
 const getAppCPUMetrics = async (applicationId) => {
-  const coresQuery = 'kube_node_status_allocatable{resource="cpu",unit="core"}'
   const cpuAppQuery = `
-    sum(
-      delta(container_cpu_usage_seconds_total{container!=""}[1m])
-      * on(pod) group_left()
-      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
-    )`
-  const cpuAllAppsButAppQuery = `
-    sum(
-      delta(container_cpu_usage_seconds_total{container!=""}[1m])
-      * on(pod) group_left()
-      kube_pod_labels{
-        label_platformatic_dev_application_id!="${applicationId}",
-        label_platformatic_dev_monitor="prometheus"
-      }
-    )`
+    sum(rate(container_cpu_usage_seconds_total{pod=~".*", container!="POD"}[1m])) by (pod) 
+    * on(pod) group_left() 
+    kube_pod_labels{
+      label_platformatic_dev_application_id="${applicationId}",
+      label_platformatic_dev_monitor="prometheus"
+    }
+    /
+    (
+      sum(kube_pod_container_resource_limits{resource="cpu", unit="core"}) by (pod)
+      or 
+      sum(kube_pod_container_resource_requests{resource="cpu", unit="core"}) by (pod)
+    )
+    * on(pod) group_left()
+    kube_pod_labels{
+      label_platformatic_dev_application_id="${applicationId}",
+      label_platformatic_dev_monitor="prometheus"
+    }
+    * 100`
 
-  const [coresRes, cpuAppRes, cpuAllAppsRes, cpuButAppSecondsRes] = await Promise.all([
-    queryPrometheus(coresQuery),
+  const cpuAllAppsQuery = `
+    sum(rate(container_cpu_usage_seconds_total{pod=~".*", container!="POD"}[1m])) by (pod) 
+    * on(pod) group_left() 
+    kube_pod_labels{
+      label_platformatic_dev_monitor="prometheus"
+    }
+    /
+    (
+      sum(kube_pod_container_resource_limits{resource="cpu", unit="core"}) by (pod)
+      or 
+      sum(kube_pod_container_resource_requests{resource="cpu", unit="core"}) by (pod)
+    )
+    * on(pod) group_left()
+    kube_pod_labels{
+      label_platformatic_dev_monitor="prometheus"
+    }
+    * 100`
+
+  const cpuAllAppsButAppQuery = `
+    sum(rate(container_cpu_usage_seconds_total{pod=~".*", container!="POD"}[1m])) by (pod) 
+    * on(pod) group_left() 
+    kube_pod_labels{
+      label_platformatic_dev_application_id!="${applicationId}",
+      label_platformatic_dev_monitor="prometheus"
+    }
+    /
+    (
+      sum(kube_pod_container_resource_limits{resource="cpu", unit="core"}) by (pod)
+      or 
+      sum(kube_pod_container_resource_requests{resource="cpu", unit="core"}) by (pod)
+    )
+    * on(pod) group_left()
+    kube_pod_labels{
+      label_platformatic_dev_application_id!="${applicationId}",
+      label_platformatic_dev_monitor="prometheus"
+    }
+    * 100`
+
+  const [cpuAppRes, cpuAllAppsRes, cpuButAppSecondsRes] = await Promise.all([
     queryPrometheus(cpuAppQuery),
-    queryPrometheus(cpuAllQuery),
+    queryPrometheus(cpuAllAppsQuery),
     queryPrometheus(cpuAllAppsButAppQuery)
   ])
 
-  const cores = parseFloat(coresRes?.data?.result[0]?.value[1]) || 0
-  const cpuAppSeconds = parseFloat(cpuAppRes?.data?.result[0]?.value[1]) || 0
-  const cpuAllAppsSeconds = parseFloat(cpuAllAppsRes?.data?.result[0]?.value[1]) || 0
-  const cpuButAppSeconds = parseFloat(cpuButAppSecondsRes?.data?.result[0]?.value[1]) || 0
-
-  const totalCPUtimeSeconds = cores * 60 // in seconds
-
-  // We calculate the % of CPU usage agains the totalCPUtimeSeconds
-  const cpuApp = (cpuAppSeconds / totalCPUtimeSeconds) * 100
-  const cpuAllApps = (cpuAllAppsSeconds / totalCPUtimeSeconds) * 100
-  const cpuButApp = (cpuButAppSeconds / totalCPUtimeSeconds) * 100
+  const cpuApp = parseFloat(cpuAppRes?.data?.result[0]?.value[1]) || 0
+  const cpuAllApps = parseFloat(cpuAllAppsRes?.data?.result[0]?.value[1]) || 0
+  const cpuButApp =
+    parseFloat(cpuButAppSecondsRes?.data?.result[0]?.value[1]) || 0
 
   return {
     cpuAppUsage: cpuApp,
@@ -91,25 +128,28 @@ const getAppMemMetrics = async (applicationId) => {
       }
     )`
 
-  const [
-    avgMemAppRes,
-    sumMemAppRes,
-    memAllRes,
-    memAllAppsButAppRes,
-    totalRes
-  ] = await Promise.all([
-    queryPrometheus(avgMemAppQuery),
-    queryPrometheus(sumMemAppQuery),
-    queryPrometheus(memAllQuery),
-    queryPrometheus(memAllButAppQuery),
-    queryPrometheus(totalMemQuery)
-  ])
+  const [avgMemAppRes, sumMemAppRes, memAllRes, memAllAppsButAppRes, totalRes] =
+    await Promise.all([
+      queryPrometheus(avgMemAppQuery),
+      queryPrometheus(sumMemAppQuery),
+      queryPrometheus(memAllQuery),
+      queryPrometheus(memAllButAppQuery),
+      queryPrometheus(totalMemQuery)
+    ])
 
-  const avgMemApp = toGB(parseFloat(avgMemAppRes?.data?.result[0]?.value[1] ?? 0))
-  const sumMemApp = toGB(parseFloat(sumMemAppRes?.data?.result[0]?.value[1] ?? 0))
+  const avgMemApp = toGB(
+    parseFloat(avgMemAppRes?.data?.result[0]?.value[1] ?? 0)
+  )
+  const sumMemApp = toGB(
+    parseFloat(sumMemAppRes?.data?.result[0]?.value[1] ?? 0)
+  )
   const memAll = toGB(parseFloat(memAllRes?.data?.result[0]?.value[1] ?? 0))
-  const memAllAppsButApp = toGB(parseFloat(memAllAppsButAppRes?.data?.result[0]?.value[1] ?? 0))
-  const totalMemory = toGB(parseFloat(totalRes?.data?.result[0]?.value[1] ?? 0))
+  const memAllAppsButApp = toGB(
+    parseFloat(memAllAppsButAppRes?.data?.result[0]?.value[1] ?? 0)
+  )
+  const totalMemory = toGB(
+    parseFloat(totalRes?.data?.result[0]?.value[1] ?? 0)
+  )
 
   return {
     avgMemoryAppUsage: avgMemApp,
@@ -122,7 +162,8 @@ const getAppMemMetrics = async (applicationId) => {
 
 const getAppPodsMetrics = async (applicationId) => {
   const podsAppQuery = `count(kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"})`
-  const podsAllQuery = 'count(kube_pod_labels{label_platformatic_dev_monitor="prometheus"})'
+  const podsAllQuery =
+    'count(kube_pod_labels{label_platformatic_dev_monitor="prometheus"})'
 
   const [podsAppRes, podsAllRes] = await Promise.all([
     queryPrometheus(podsAppQuery),
@@ -141,7 +182,8 @@ const getAppPodsMetrics = async (applicationId) => {
 const getAppRequestMetrics = async (applicationId) => {
   const query = createRequestLatencyQuery({ applicationId, timeWindow: '1m' })
   const requestLatencyRes = await queryPrometheus(query)
-  const latency = (parseFloat(requestLatencyRes?.data?.result[0]?.value[1]) || 0) * 1000
+  const latency =
+    (parseFloat(requestLatencyRes?.data?.result[0]?.value[1]) || 0) * 1000
   return { latency }
 }
 
@@ -161,13 +203,14 @@ const getAppK8SMetrics = async (applicationId) => {
   const requests = await getAppRequestMetrics(applicationId)
   const elu = await getAppEventLoopUtilization(applicationId)
 
-  return {
+  const res = {
     cpu,
     memory,
     pods,
     requests,
     elu
   }
+  return res
 }
 
 const getInfraK8SMetrics = async () => {
@@ -189,7 +232,10 @@ const getInfraK8SMetrics = async () => {
 }
 
 const getAppRPSMetrics = async (applicationId) => {
-  const query = createRequestPerSecondQuery({ applicationId, timeWindow: '5m' })
+  const query = createRequestPerSecondQuery({
+    applicationId,
+    timeWindow: '5m'
+  })
   const rpsRes = await queryPrometheus(query)
   const rps = parseFloat(rpsRes?.data?.result[0]?.value[1])
   return rps

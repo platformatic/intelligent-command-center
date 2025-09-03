@@ -46,22 +46,45 @@ async function startPrometheusK8s (t, applicationId) {
       kube_pod_labels{label_platformatic_dev_monitor="prometheus"}
     )`)
 
-  const totalMemQuery = 'kube_node_status_allocatable{resource="memory",unit="byte"}'
+  const totalMemQuery = 'sum(kube_node_status_allocatable{resource="memory",unit="byte"})'
   const cpuAppQuery = sanitizePromQuery(`
-    sum(
-      delta(container_cpu_usage_seconds_total{container!=""}[1m])
-      * on(pod) group_left()
-      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
-    )`)
+    sum(rate(container_cpu_usage_seconds_total{pod=~".*", container!="POD"}[1m])) by (pod) 
+    * on(pod) group_left() 
+    kube_pod_labels{
+      label_platformatic_dev_application_id="${applicationId}",
+      label_platformatic_dev_monitor="prometheus"
+    }
+    /
+    (
+      sum(kube_pod_container_resource_limits{resource="cpu", unit="core"}) by (pod)
+      or 
+      sum(kube_pod_container_resource_requests{resource="cpu", unit="core"}) by (pod)
+    )
+    * on(pod) group_left()
+    kube_pod_labels{
+      label_platformatic_dev_application_id="${applicationId}",
+      label_platformatic_dev_monitor="prometheus"
+    }
+    * 100`)
   const cpuAllAppsButAppQuery = sanitizePromQuery(`
-    sum(
-      delta(container_cpu_usage_seconds_total{container!=""}[1m])
-      * on(pod) group_left()
-      kube_pod_labels{
-        label_platformatic_dev_application_id!="${applicationId}",
-        label_platformatic_dev_monitor="prometheus"
-      }
-    )`)
+    sum(rate(container_cpu_usage_seconds_total{pod=~".*", container!="POD"}[1m])) by (pod) 
+    * on(pod) group_left() 
+    kube_pod_labels{
+      label_platformatic_dev_application_id!="${applicationId}",
+      label_platformatic_dev_monitor="prometheus"
+    }
+    /
+    (
+      sum(kube_pod_container_resource_limits{resource="cpu", unit="core"}) by (pod)
+      or 
+      sum(kube_pod_container_resource_requests{resource="cpu", unit="core"}) by (pod)
+    )
+    * on(pod) group_left()
+    kube_pod_labels{
+      label_platformatic_dev_application_id!="${applicationId}",
+      label_platformatic_dev_monitor="prometheus"
+    }
+    * 100`)
 
   const sumMemAppQuery = sanitizePromQuery(`
     sum(
@@ -87,7 +110,23 @@ async function startPrometheusK8s (t, applicationId) {
       }
     )`)
 
-  const cpuAllAppsQuery = cpuAllQuery
+  const cpuAllAppsQuery = sanitizePromQuery(`
+    sum(rate(container_cpu_usage_seconds_total{pod=~".*", container!="POD"}[1m])) by (pod) 
+    * on(pod) group_left() 
+    kube_pod_labels{
+      label_platformatic_dev_monitor="prometheus"
+    }
+    /
+    (
+      sum(kube_pod_container_resource_limits{resource="cpu", unit="core"}) by (pod)
+      or 
+      sum(kube_pod_container_resource_requests{resource="cpu", unit="core"}) by (pod)
+    )
+    * on(pod) group_left()
+    kube_pod_labels{
+      label_platformatic_dev_monitor="prometheus"
+    }
+    * 100`)
   const podsAppQuery = `count(kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"})`
   const podsAllQuery = 'count(kube_pod_labels{label_platformatic_dev_monitor="prometheus"})'
 
@@ -128,11 +167,11 @@ async function startPrometheusK8s (t, applicationId) {
     } else if (query === totalMemQuery) {
       value = 2721122686
     } else if (query === cpuAppQuery) {
-      value = 40
+      value = 6.666666666666667
     } else if (query === cpuAllAppsQuery) {
-      value = 50
+      value = 0.5235983333333333
     } else if (query === cpuAllAppsButAppQuery) {
-      value = 10
+      value = 1.6666666666666667
     } else if (query === avgMemAppQuery) {
       value = 1721122686
     } else if (query === sumMemAppQuery) {
