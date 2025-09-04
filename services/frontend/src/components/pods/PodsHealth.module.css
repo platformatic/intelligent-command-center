@@ -1,3 +1,6 @@
+.podsContainer {
+  @apply flex flex-wrap gap-x-4;
+}
 .borderexBoxContainer {
   @apply p-4 relative min-h-[150px];
 }

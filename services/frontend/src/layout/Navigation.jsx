@@ -3,7 +3,7 @@ import styles from './Navigation.module.css'
 import { PlatformaticIcon } from '@platformatic/ui-components'
 import { TINY, WHITE } from '@platformatic/ui-components/src/components/constants'
 import typographyStyles from '~/styles/Typography.module.css'
-import { useLocation, useNavigate, useRouteLoaderData, useMatches, generatePath, useNavigation } from 'react-router-dom'
+import { useLocation, useNavigate, useRouteLoaderData, useMatches, generatePath, useNavigation, useParams } from 'react-router-dom'
 import dayjs from 'dayjs'
 
 function getRootPageBreadcrumbs (routeId) {
@@ -95,7 +95,11 @@ function getApplicationPageBreadcrumbs (routeId, application, otherParams) {
     case 'application/flamegraphs':
       output.push({ label: 'Flamegraphs', link: generatePath('/applications/:applicationId/flamegraphs', { applicationId: application.id }) })
       break
-
+    case 'autoscalerPodDetail/signalsHistory':
+      output.push({ label: 'Autoscaler', link: generatePath('/applications/:applicationId/autoscaler', { applicationId: application.id }) })
+      output.push({ label: otherParams.pod.id })
+      output.push({ label: 'Signals History' })
+      break
     case 'application/flamegraphs-detail':
       output.push({ label: 'Flamegraphs', link: generatePath('/applications/:applicationId/flamegraphs', { applicationId: application.id }) })
       output.push({ label: `[${flamegraphDate}] - ${otherParams.flamegraph.serviceId}` })
@@ -105,13 +109,6 @@ function getApplicationPageBreadcrumbs (routeId, application, otherParams) {
 }
 
 export default function Navigation () {
-  /** @typedef {Object} BreadCrumb
-   * @property {string} label - The display text for the breadcrumb
-   * @property {string} [page] - The route/path for the breadcrumb
-   * @property {string} [originalPage] - The original page name before path substitution
-   */
-
-  /** @type {[BreadCrumb[], React.Dispatch<React.SetStateAction<BreadCrumb[]>>]} */
   const [breadCrumbs, setBreadCrumbs] = useState([])
 
   const appRootLoaderData = useRouteLoaderData('appRoot')
@@ -120,8 +117,13 @@ export default function Navigation () {
   const routes = useMatches()
   const navigation = useNavigation()
   const routeId = routes[routes.length - 1].id
-  const params = useRouteLoaderData(routeId)
-  useEffect(() => {
+  const params = useRouteLoaderData(routeId) || {}
+  // Add podId to params if it exists in the query params
+  const queryParams = useParams()
+  if (queryParams.podId) {
+    params.pod = { id: queryParams.podId }
+  }
+  function getBreadCrumbs () {
     if (autoscalerPodDetailRootLoaderData) {
       const { application } = autoscalerPodDetailRootLoaderData
       const breadCrumbs = getApplicationPageBreadcrumbs(routeId, application, params)
@@ -135,6 +137,9 @@ export default function Navigation () {
       const breadCrumbs = getApplicationPageBreadcrumbs(routeId, application, params)
       setBreadCrumbs(breadCrumbs)
     }
+  }
+  useEffect(() => {
+    getBreadCrumbs()
   }, [location.pathname])
 
   useEffect(() => {
@@ -143,6 +148,8 @@ export default function Navigation () {
         label: 'Loading...',
         page: '#'
       }])
+    } else {
+      getBreadCrumbs()
     }
   }, [navigation.state])
 

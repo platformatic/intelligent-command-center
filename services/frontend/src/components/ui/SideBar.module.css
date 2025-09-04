@@ -6,7 +6,7 @@
   border-color: rgba(255, 255, 255, .15);
 }
 .content {
-  @apply flex flex-col gap-y-8 ;
+  @apply flex flex-col gap-y-4 ;
 }
 .item {
   @apply relative z-20;
@@ -14,4 +14,8 @@
 .tooltipSidebar {
   @apply font-inter font-light text-[0.75rem] leading-[1.125rem] text-rich-black p-1 border-0 z-20 w-max;
   background-color: white !important;
+}
+
+.separator {
+  @apply w-full h-[1px] bg-white/15;
 }

@@ -1,0 +1,26 @@
+.container {
+  @apply flex flex-row gap-4 justify-between p-2;
+}
+
+.label {
+  @apply flex flex-row gap-2 items-center;
+}
+
+.right {
+  @apply items-end;
+}
+.value {
+  @apply text-xl text-white;
+}
+
+.delta {
+  @apply text-sm text-error-red;
+}
+
+.left, .right {
+  @apply flex flex-col gap-2;
+}
+
+.time {
+  @apply text-sm text-white/70;
+}

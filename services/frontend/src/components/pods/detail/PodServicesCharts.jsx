@@ -20,22 +20,24 @@ export default function PodServicesCharts () {
   const { pod } = useLoaderData()
 
   useEffect(() => {
-    const { score } = getPodPerformances(pod.dataValues)
-    let color = WHITE
-    switch (score) {
-      case UNKNOWN_PERFORMANCE:
-        break
-      case GREAT_PERFORMANCE:
-        color = MAIN_GREEN
-        break
-      case GOOD_PERFORMANCE:
-        color = WARNING_YELLOW
-        break
-      default:
-        color = ERROR_RED
-        break
+    if (pod.dataValues) {
+      const { score } = getPodPerformances(pod.dataValues)
+      let color = WHITE
+      switch (score) {
+        case UNKNOWN_PERFORMANCE:
+          break
+        case GREAT_PERFORMANCE:
+          color = MAIN_GREEN
+          break
+        case GOOD_PERFORMANCE:
+          color = WARNING_YELLOW
+          break
+        default:
+          color = ERROR_RED
+          break
+      }
+      setColorPod(color)
     }
-    setColorPod(color)
   }, [])
 
   useEffect(() => {

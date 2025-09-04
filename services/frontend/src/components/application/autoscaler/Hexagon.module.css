@@ -1,0 +1,17 @@
+.hexagonContainer {
+  @apply inline-block;
+}
+
+.hexagonSvg {
+  @apply w-full h-auto;
+}
+
+.hexagonText {
+  @apply select-none;
+}
+
+.color--tertiary-blue {
+  fill: #2588e4;
+  stroke: #2588e4;
+}
+
