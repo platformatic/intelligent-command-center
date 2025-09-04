@@ -70,7 +70,7 @@ module.exports = async function (app) {
       const { appId, podId } = req.params
       const { controlPlane } = req
       const entrypoint = await getEntrypoint(controlPlane, appId, app.log)
-      const chart = await getPodChartsMetrics({ podId, serviceId: entrypoint })
+      const chart = await getPodChartsMetrics({ podId, serviceId: null })
       const latency = await getPodLatencyMetrics({ podId, serviceId: entrypoint })
       return { chart, latency }
     }

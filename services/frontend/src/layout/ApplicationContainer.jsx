@@ -34,44 +34,55 @@ function ApplicationContainer ({ children }) {
   return (
     <div className={styles.content}>
       <SideBar
-        topItems={[{
-          link: generatePath('', { applicationId: application.id }),
-          label: 'App Details',
-          iconName: 'AppDetailsIcon',
-          disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
-        }, {
-          link: generatePath('services', { applicationId: application.id }),
-          label: 'Services',
-          iconName: 'PlatformaticServiceIcon',
-          disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
-        }, {
-          link: generatePath('deployment-history', { applicationId: application.id }),
-          label: 'Deployment History',
-          iconName: 'DeploymentHistoryIcon',
-          disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
-        }, {
-          link: generatePath('autoscaler', { applicationId: application.id }),
-          label: 'Autoscaler',
-          iconName: 'HorizontalPodAutoscalerIcon',
-
-          disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
-        }, {
-          link: generatePath('flamegraphs', { applicationId: application.id }),
-          label: 'Flamegraphs',
-          iconName: 'FlamegraphsIcon',
-
-          disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
-        }, {
-          link: generatePath('activities', { applicationId: application.id }),
-          label: 'Activities',
-          iconName: 'CheckListIcon',
-          disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
-        }, {
-          link: generatePath('scheduled-jobs', { applicationId: application.id }),
-          label: 'Scheduled Jobs',
-          iconName: 'ScheduledJobsIcon',
-          disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
-        }]}
+        topItems={[
+          {
+            link: generatePath('/'),
+            label: 'All Applications',
+            iconName: 'AllAppsIcon',
+            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+          },
+          {
+            separator: true
+          },
+          {
+            link: generatePath('', { applicationId: application.id }),
+            label: 'App Details',
+            iconName: 'AppDetailsIcon',
+            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+          },
+          {
+            link: generatePath('services', { applicationId: application.id }),
+            label: 'Services',
+            iconName: 'PlatformaticServiceIcon',
+            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+          },
+          {
+            link: generatePath('deployment-history', { applicationId: application.id }),
+            label: 'Deployment History',
+            iconName: 'DeploymentHistoryIcon',
+            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+          },
+          {
+            link: generatePath('autoscaler', { applicationId: application.id }),
+            label: 'Autoscaler',
+            iconName: 'HorizontalPodAutoscalerIcon',
+            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+          }, {
+            link: generatePath('flamegraphs', { applicationId: application.id }),
+            label: 'Flamegraphs',
+            iconName: 'FlamegraphsIcon',
+            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+          }, {
+            link: generatePath('activities', { applicationId: application.id }),
+            label: 'Activities',
+            iconName: 'CheckListIcon',
+            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+          }, {
+            link: generatePath('scheduled-jobs', { applicationId: application.id }),
+            label: 'Scheduled Jobs',
+            iconName: 'ScheduledJobsIcon',
+            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+          }]}
         bottomItems={[{
           link: generatePath('settings', { applicationId: application.id }),
           label: 'Settings',

@@ -18,7 +18,7 @@ function NodeJSMetrics ({
   const [allData, setAllData] = useState({})
   const [timer, setTimer] = useState(REFRESH_INTERVAL_METRICS / 1000)
   const [timerInterval, setTimerInterval] = useState(null)
-  const [latestRefreshDate, setLatestRefresDate] = useState(new Date())
+  const [latestRefreshDate, setLatestRefreshDate] = useState(new Date())
 
   useEffect(() => {
     return () => {
@@ -42,7 +42,7 @@ function NodeJSMetrics ({
         if (initialLoading) {
           setInitialLoading(false)
         }
-        setLatestRefresDate(new Date())
+        setLatestRefreshDate(new Date())
       }
       loadMetrics()
     }

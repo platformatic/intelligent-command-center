@@ -122,7 +122,7 @@ test('pod chart metrics', async (t) => {
   const expected = {
     chart: [{
       date: '2024-07-16T09:38:06.143Z',
-      cpu: 3.71828,
+      cpu: 2.71828,
       elu: 0.461803,
       rss: 2721122686,
       usedHeapSize: 3721122686,
@@ -132,7 +132,7 @@ test('pod chart metrics', async (t) => {
     },
     {
       date: '2024-07-16T09:54:46.143Z',
-      cpu: 3.71828,
+      cpu: 2.71828,
       elu: 0.461803,
       rss: 2721122686,
       usedHeapSize: 3721122686,
@@ -142,7 +142,7 @@ test('pod chart metrics', async (t) => {
     },
     {
       date: '2024-07-16T10:11:26.143Z',
-      cpu: 3.71828,
+      cpu: 2.71828,
       elu: 0.461803,
       rss: 2721122686,
       usedHeapSize: 3721122686,

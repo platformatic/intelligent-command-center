@@ -26,3 +26,6 @@
   @apply p-4 w-full lg:overflow-x-hidden;
   box-sizing: border-box;
 }
+.podSummaryContainer {
+  @apply flex flex-row gap-4 flex-wrap mb-4;
+}

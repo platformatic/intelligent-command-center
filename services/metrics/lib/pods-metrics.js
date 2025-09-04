@@ -56,9 +56,8 @@ const getPodCpuEventMetrics = async ({ podId, timeWindow }) => {
     queryPrometheus(eventLoopQuery),
     queryPrometheus(podCoresQuery)
   ])
-  const cpuCores = parseFloat(cpuRes?.data?.result[0]?.value[1]) || 0 // in cores
+  const cpu = parseFloat(cpuRes?.data?.result[0]?.value[1]) || 0 // already in percentage
   const podCores = parseFloat(podCoresRes?.data?.result[0]?.value[1]) || 1
-  const cpu = (cpuCores / podCores) * 100 // in percentage of available cores
   const eventLoop = (parseFloat(eventLoopRes?.data?.result[0]?.value[1]) || 0) * 100
   return { cpu, eventLoop, podCores }
 }

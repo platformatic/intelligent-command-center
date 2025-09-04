@@ -1,122 +1,141 @@
 import React, { useEffect, useState } from 'react'
 import styles from './AutoscalerEventsTable.module.css'
-import { FLUORESCENT_CYAN, TERTIARY_BLUE } from '@platformatic/ui-components/src/components/constants'
 import { getScalingHistory } from '../../../api/autoscaler'
-import { getFormattedTimeAndDate } from '../../../utilities/dates'
-import StatusPill from '../../common/StatusPill'
+import { getFormattedTime } from '../../../utilities/dates'
 import Paginator from '../../ui/Paginator'
 import { REFRESH_INTERVAL_METRICS } from '~/ui-constants'
+import ScalerPill from './ScalerPill'
+import dayjs from 'dayjs'
 
-const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10, limit = 10 }) {
-  const [events, setEvents] = useState([])
+const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10, limit = 10, onSelectEvent, selectedEventId, onEventLoaded }) {
+  // const [events, setEvents] = useState([])
+  const [selectedEvent, setSelectedEvent] = useState(null)
   const [totalCount, setTotalCount] = useState(null)
   const [page, setPage] = useState(0)
-  const [startPolling, setStartPolling] = useState(false)
+  const [startPolling/*, setStartPolling */] = useState(false)
+  const [groupedEvents, setGroupedEvents] = useState({})
+  function groupEventsByDate (events) {
+    return events.reduce((acc, event) => {
+      const djs = dayjs(event.time)
+      let date = djs.format('YYYY-MM-DD')
+      // if date is today, use 'Today' string
+      if (djs.isSame(dayjs(), 'day')) {
+        date = 'Today'
+      }
 
-  async function loadActivities () {
+      // if date is yesterday, use 'Yesterday' string
+      if (djs.isSame(dayjs().subtract(1, 'day'), 'day')) {
+        date = 'Yesterday'
+      }
+
+      acc[date] = acc[date] || []
+      acc[date].push(event)
+      return acc
+    }, {})
+  }
+  async function loadScalerEvents () {
     const response = await getScalingHistory(applicationId, limit)
     if (response.length > 0) {
-      setEvents(response.slice(page * rows, (page + 1) * rows))
+      const visibleEvents = response.slice(page * rows, (page + 1) * rows)
+      // setEvents(visibleEvents)
+      const groupedEvents = groupEventsByDate(visibleEvents)
+      setGroupedEvents(groupedEvents)
       setTotalCount(response.length)
+
+      // Auto-select event if selectedEventId is provided
+      if (selectedEventId && onEventLoaded) {
+        const eventToSelect = response.find(event => event.id === selectedEventId)
+        if (eventToSelect) {
+          setSelectedEvent(eventToSelect)
+          onSelectEvent(eventToSelect)
+          onEventLoaded(eventToSelect)
+        }
+      }
     }
   }
 
   useEffect(() => {
-    loadActivities().then(() => {
-      setStartPolling(true)
+    loadScalerEvents().then(() => {
+      // setStartPolling(true)
     })
   }, [page])
 
   useEffect(() => {
     let intervalId
     if (startPolling) {
-      intervalId = setInterval(async () => await loadActivities(), REFRESH_INTERVAL_METRICS)
+      intervalId = setInterval(async () => await loadScalerEvents(), REFRESH_INTERVAL_METRICS)
     }
     return () => {
       return clearInterval(intervalId)
     }
   }, [startPolling])
 
-  function renderCell (row, column) {
-    let content
-
-    const direction = row.direction
-    const replicas = row.values[0]
-
-    switch (column.key) {
-      case 'time':
-        content = getFormattedTimeAndDate(row[column.key])
-        break
-      case 'activity':
-        // get random direction, up or down
-        if (direction === 'up') {
-          content = <StatusPill backgroundColor={TERTIARY_BLUE} status='New pod' />
-        } else {
-          content = <StatusPill backgroundColor={FLUORESCENT_CYAN} status='Pod Removed' />
-        }
-        break
-      case 'description':
-        if (direction === 'up') {
-          content = `Scaled up to ${replicas} replicas`
-        } else {
-          content = `Scaled down to ${replicas} replicas`
-        }
-        break
+  function handleSelectEvent (event) {
+    if (selectedEvent?.id === event.id) {
+      setSelectedEvent(null)
+      onSelectEvent(null)
+    } else {
+      setSelectedEvent(event)
+      onSelectEvent(event)
     }
-    return <td key={column.key}>{content}</td>
   }
 
-  const columns = [
-    {
-      label: 'Date & Time (GMT)',
-      key: 'time'
-    },
-    {
-      label: 'Activity',
-      key: 'activity'
-    },
-    {
-      label: 'Description',
-      key: 'description'
+  function renderPill (event) {
+    const direction = event.direction
+    return <ScalerPill direction={direction} />
+  }
+
+  function renderDescription (event) {
+    const direction = event.direction
+    const replicas = event.values[0]
+    if (direction === 'up') {
+      return `+${replicas} Pods`
     }
-  ]
+    return `-${replicas} Pods`
+  }
+
+  function renderTotals (event) {
+    const totalPods = event.values[0]
+    return <span className={styles.totals}>(Totals: {totalPods})</span>
+  }
+
   return (
     <div className={styles.container}>
-      <table>
-        <thead>
-          <tr>
-            {columns.map(column => (
-              <th key={column.key}>{column.label}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {events.map(activity => (
-            <tr key={activity.id}>
-              {columns.map(column => (
-                renderCell(activity, column)
-              ))}
-              <td>
-                {/* <Button
-                  label='View Details'
-                  type='button'
-                  color={WHITE}
-                  backgroundColor={TRANSPARENT}
-                  hoverEffect={ACTIVE_AND_INACTIVE_STATUS}
-                  paddingClass={commonStyles.smallButtonPadding}
-                  textClass={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite}`}
-                  onClick={() => {
-                    alert('ok')
-                  }}
-                  bordered={false}
-                  platformaticIconAfter={{ iconName: 'InternalLinkIcon', color: WHITE, size: SMALL }}
-                /> */}
-              </td>
-            </tr>
+      {Object.entries(groupedEvents).map(([date, events]) => (
+        <div key={date} className={styles.date}>
+          <span className={styles.dateText}>{date}</span>
+          {events.map(event => (
+            <div
+              key={event.id}
+              onClick={() => handleSelectEvent(event)}
+              className={`${styles.row} ${selectedEvent?.id === event.id ? styles.selected : ''}`}
+            >
+              <div className={styles.leftPane}>
+                <span className={styles.timestamp}>{getFormattedTime(event.time)}</span>
+                {renderPill(event)}
+              </div>
+              <div className={styles.rightPane}>
+                {renderDescription(event)}
+                <span className={styles.timestamp}>{renderTotals(event)}</span>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      ))}
+      {/* {events.map(activity => (
+        <div key={activity.id} onClick={() => handleSelectEvent(activity)} className={`${styles.row} ${selectedEvent?.id === activity.id ? styles.selected : ''}`}>
+          <div className={styles.leftPane}>
+            <span className={styles.timestamp}>{getFormattedTime(activity.time)}</span>
+            {renderPill(activity)}
 
+          </div>
+          <div className={styles.rightPane}>
+            {renderDescription(activity)}
+            <span className={styles.timestamp}>{renderTotals(activity)}</span>
+          </div>
+
+        </div>
+      ))} */}
       {totalCount > rows && (
         <Paginator
           pagesNumber={Math.ceil(totalCount / rows)}

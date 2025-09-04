@@ -1,26 +1,55 @@
 import React from 'react'
-import { AUTOSCALER_POD_DETAIL_PATH, AUTOSCALER_POD_DETAIL_SERVICES_PATH } from '~/paths'
 import styles from './HomeContainer.module.css'
 import SideBar from '~/components/ui/SideBar'
-import { generatePath, Outlet, useParams } from 'react-router-dom'
+import { generatePath, Outlet, useParams, useLoaderData } from 'react-router-dom'
 
 function AutoscalerPodDetailContainer () {
   const params = useParams()
-
+  const { application } = useLoaderData()
   return (
     <div className={styles.content}>
       <SideBar
-        topItems={[{
-          link: generatePath(AUTOSCALER_POD_DETAIL_PATH, { applicationId: params.applicationId, podId: params.podId }),
-          label: 'Overview',
-          iconName: 'PodDetailsIcon',
-          disabled: false
-        }, {
-          link: generatePath(AUTOSCALER_POD_DETAIL_SERVICES_PATH, { applicationId: params.applicationId, podId: params.podId }),
-          label: 'Services',
-          iconName: 'PodServicesIcon',
-          disabled: false
-        }]}
+        topItems={[
+          {
+            link: generatePath('/'),
+            label: 'All Applications',
+            iconName: 'AllAppsIcon'
+          },
+          {
+            separator: true
+          },
+          {
+            link: generatePath('/applications/:applicationId/autoscaler', { applicationId: application.id }),
+            label: 'Overview',
+            iconName: 'HorizontalPodAutoscalerIcon',
+            disabled: false
+          },
+          // {
+          //   link: generatePath('autoscaler', { applicationId: application.id }),
+          //   label: 'Autoscaler',
+          //   iconName: 'HorizontalPodAutoscalerIcon'
+          // },
+          {
+            separator: true
+          },
+          {
+            link: generatePath('/applications/:applicationId/autoscaler/:podId', { applicationId: application.id, podId: params.podId }),
+            label: 'Overview',
+            iconName: 'PodDetailsIcon',
+            disabled: false
+          },
+          {
+            link: generatePath('/applications/:applicationId/autoscaler/:podId/signals-history', { applicationId: application.id, podId: params.podId }),
+            label: 'Signals History',
+            iconName: 'PodSignalsIcon',
+            disabled: false
+          },
+          {
+            link: generatePath('/applications/:applicationId/autoscaler/:podId/services', { applicationId: application.id, podId: params.podId }),
+            label: 'Services',
+            iconName: 'PodServicesIcon',
+            disabled: false
+          }]}
         bottomItems={[{
           link: generatePath('settings', { applicationId: params.applicationId }),
           label: 'Settings',

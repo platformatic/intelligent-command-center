@@ -1,3 +1,15 @@
+.detailContent {
+  @apply flex gap-x-4 items-stretch justify-stretch;
+}
+
+.leftColumn {
+  @apply flex flex-col gap-y-4 w-1/3;
+}
+
+.rightColumn {
+  @apply w-2/3;
+}
+
 .borderedBoxContainerPodOverview {
   @apply p-4 relative;
 }
@@ -19,5 +31,25 @@
   box-sizing: border-box;
 }
 .podOverviewContentScrollable {
-  @apply flex flex-col gap-y-4 overflow-y-auto max-h-[calc(100vH-10rem)];
+  @apply flex flex-col gap-y-4 overflow-y-auto h-full;
+}
+
+.boxHeader {
+  @apply flex items-center gap-x-2;
+}
+
+.boxHeader > .title {
+  @apply text-[24px] font-semibold text-white;
+}
+
+.boxHeader > .helper {
+  @apply text-[14px] text-white/70;
+}
+
+.signalsContainer {
+  @apply flex flex-col gap-y-4 mt-4;
+}
+
+.signal {
+  @apply bg-rich-black p-1;
 }

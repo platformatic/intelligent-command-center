@@ -1,0 +1,64 @@
+.container {
+  @apply flex flex-col gap-4 bg-black-russian p-4;
+}
+.eventsTableContainer {
+  @apply flex flex-row gap-4;
+}
+.scalerEventsContainer {
+  @apply flex flex-col gap-4;
+}
+
+.scalerEventsTableDetails {
+  @apply flex flex-col gap-4 w-1/2;
+}
+
+.title {
+  @apply text-lg font-semibold;
+}
+
+.eventDetailsContainer {
+  @apply flex flex-col gap-4 w-1/2 bg-black-russian;
+}
+
+.eventDetailsHeader {
+  @apply flex flex-row gap-4 justify-between;
+}
+
+.eventDetailsHeaderLeft {
+  @apply flex flex-row gap-2 items-center;
+}
+
+.eventDetailsHeaderTime {
+  @apply text-[#E5E6E7]
+}
+.at {
+  @apply text-white/70;
+}
+.math {
+  @apply flex flex-row gap-2 items-center;
+}
+/* Pod Details */
+
+.podDetails {
+  @apply flex flex-col gap-2 bg-rich-black p-2;
+}
+
+.podDetailsHeader {
+  @apply flex flex-row gap-2 items-center;
+}
+
+.podDetailsTitle {
+  @apply text-lg font-bold;
+}
+
+.podDetailsId {
+  @apply text-white/70 font-normal text-sm;
+}
+
+.metrics {
+  @apply flex flex-col gap-2;
+}
+
+.metrics > div {
+  @apply bg-black-russian p-2;
+}

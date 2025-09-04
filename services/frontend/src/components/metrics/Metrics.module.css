@@ -1,5 +1,9 @@
 .container {
-  @apply grow relative w-full;
+  @apply flex flex-col grow relative w-full h-full items-stretch;
+}
+
+.metricsContainer {
+  @apply h-full w-full;
 }
 .content {
   @apply p-0 flex flex-col gap-y-10 h-full min-h-[20rem];

@@ -1,0 +1,93 @@
+.container {
+  @apply flex flex-col gap-4 p-4 w-full;
+}
+
+.title {
+  @apply flex flex-row gap-2 items-center text-[18px] font-semibold ;
+}
+
+.signals {
+  @apply flex flex-row gap-4 w-full ;
+}
+
+.header {
+  @apply flex flex-row gap-4;
+}
+
+.signalBox {
+  @apply bg-black-russian p-4 rounded-md w-full flex flex-col gap-2;
+}
+
+.signalBoxTitle {
+  @apply text-[18px] font-semibold;
+}
+
+.signalBoxCount {
+  @apply text-[20px] font-semibold;
+}
+
+.signalsList {
+  @apply flex flex-col gap-2 bg-black-russian p-4 w-full;
+}
+
+.signal {
+  @apply p-4 cursor-pointer bg-rich-black flex flex-row justify-between items-center rounded-md;
+}
+
+.selectedSignal {
+  @apply bg-white/15;
+}
+
+.signalInfo {
+  @apply flex flex-row gap-2;
+}
+
+.signalValue {
+  @apply flex flex-col gap-2 text-right;
+}
+
+.delta {
+  @apply text-error-red;
+}
+
+.signalDetail {
+  @apply w-1/2 bg-black-russian p-4 rounded-md grow;
+}
+
+/** Signal Detail */
+
+.signalDetail > .title {
+  @apply flex flex-row justify-between items-center;
+}
+
+.loadingMessage {
+  @apply text-white/70 p-4 text-center;
+}
+
+.errorMessage {
+  @apply text-error-red p-4 text-center;
+}
+
+.noEventMessage {
+  @apply text-white/70 p-4 text-center;
+}
+
+.metricsCharts {
+  @apply flex flex-col gap-4 mt-4;
+}
+
+.chartInfo {
+  @apply flex flex-row items-center gap-2 p-2;
+}
+
+.infoText {
+  @apply text-white/80 text-sm;
+}
+
+.chartsContainer {
+  @apply flex flex-col gap-4;
+}
+
+.chartBox {
+  @apply min-h-[250px];
+}

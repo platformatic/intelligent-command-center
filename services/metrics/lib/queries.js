@@ -39,9 +39,9 @@ const createUsedHEAPMemoryPodQuery = ({ podId, timeWindow }) =>
 const createMemoryLimitPodQuery = (podId) =>
   `kube_pod_container_resource_limits{resource="memory", pod="${podId}"}`
 
-// in cores
+// CPU usage percentage from Node.js process
 const createCPUPodQuery = ({ podId }) =>
-  `sum(rate(container_cpu_usage_seconds_total{container!="", pod="${podId}"}[1m]))`
+  `avg(process_cpu_percent_usage{instanceId="${podId}"})`
 
 // number of cores
 const createAllocatedCPUPodQuery = ({ podId }) =>

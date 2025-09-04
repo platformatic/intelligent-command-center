@@ -5,10 +5,11 @@ import React from 'react'
 
 export default function StatusPill ({
   status,
-  backgroundColor = MAIN_GREEN
+  backgroundColor = MAIN_GREEN,
+  platformaticIcon = null
 
 }) {
-  function renderStatusPill (status) {
+  function renderStatusPill (status, platformaticIcon) {
     return (
       <Tag
         backgroundColor={backgroundColor}
@@ -18,8 +19,10 @@ export default function StatusPill ({
         opaque={OPACITY_30}
         paddingClass={styles.padding}
         fullRounded
+        platformaticIcon={platformaticIcon}
       />
     )
   }
-  return renderStatusPill(status)
+
+  return renderStatusPill(status, platformaticIcon)
 }

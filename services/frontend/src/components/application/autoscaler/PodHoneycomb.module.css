@@ -1,0 +1,40 @@
+.container {
+  @apply bg-black-russian p-4 flex flex-col gap-4 justify-between;
+}
+
+.title {
+  @apply text-[18px] font-semibold text-white;
+}
+
+.footer {
+  @apply flex flex-col gap-2 items-center;
+}
+
+.footer > .firstRow {
+  @apply flex flex-row gap-2 items-center;
+}
+
+.helperText {
+  @apply text-[14px] font-normal text-white/70;
+}
+
+.currentPods {
+  @apply text-[20px] font-semibold;
+}
+
+.footer > .secondRow {
+  @apply flex flex-row gap-2 items-center;
+}
+
+.footer > .secondRow > .label {
+  @apply text-[14px] text-white/70;
+}
+
+.footer > .secondRow > .value {
+  @apply text-[14px] font-semibold;
+}
+
+.footer > .secondRow > .separator {
+  @apply text-[14px] font-semibold;
+}
+

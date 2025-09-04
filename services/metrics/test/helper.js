@@ -256,6 +256,8 @@ async function startPrometheus (t, machineId) {
       value = 4721122686
     } else if (query.includes('kube_pod_container_resource_limits{resource="cpu"')) {
       value = 2
+    } else if (query.includes('process_cpu_percent_usage')) {
+      value = 25
     }
 
     return {
