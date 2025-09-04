@@ -1,3 +1,7 @@
 .borderexBoxContainer {
   @apply p-4 relative;
 }
+
+.chartContainer {
+  @apply w-full h-full;
+}

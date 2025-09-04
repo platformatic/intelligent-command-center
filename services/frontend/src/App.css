@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@source inline("underline");
+
 html, body {
   @apply bg-rich-black;
   /* -webkit-box-sizing: border-box;

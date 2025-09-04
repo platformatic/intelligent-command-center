@@ -28,6 +28,7 @@ const AllApplications = React.forwardRef(({ _ }, ref) => {
     //   return <RecommendationBanner cache={false} />
     // }
   }
+
   return (
     <>
       <div className={styles.container} ref={ref}>
@@ -39,6 +40,7 @@ const AllApplications = React.forwardRef(({ _ }, ref) => {
             </div>
           </div>
           {renderRecommendationBanner()}
+
           <GridApplications />
         </div>
       </div>

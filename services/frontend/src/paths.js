@@ -5,4 +5,3 @@ export const APPLICATION_DETAILS_SCHEDULED_JOBS = '/applications/:applicationId/
 export const APPLICATION_DETAILS_SCHEDULED_JOB_DETAIL = '/applications/:applicationId/scheduled-jobs/:id'
 
 export const AUTOSCALER_POD_DETAIL_PATH = '/applications/:applicationId/autoscaler/:podId'
-export const AUTOSCALER_POD_DETAIL_SERVICES_PATH = '/applications/:applicationId/autoscaler/:podId/services'

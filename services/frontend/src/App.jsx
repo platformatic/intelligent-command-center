@@ -26,7 +26,15 @@ export default function App () {
       setInnerLoading(true)
       try {
         const response = await getUser()
-        if (response.status === 401 && isAuthenticated) {
+        if (response.status === 401) {
+          if (!isAuthenticated) {
+            setInnerLoading(false)
+            if (window.location.pathname !== '/' || window.location.hash !== '') {
+              window.location.href = '/'
+              return
+            }
+            return
+          }
           // logout user
           setUser({})
           setIsAuthenticated(false)

@@ -1,5 +1,13 @@
 .container {
-  @apply py-4 w-full;
+  @apply py-4 flex-grow flex flex-col gap-2;
+}
+
+.date {
+  @apply flex flex-col gap-2;
+}
+
+.dateText {
+  @apply text-white/50;
 }
 
 thead > tr {
@@ -7,4 +15,24 @@ thead > tr {
 }
 tr {
   @apply border-b border-white/10 border-solid;
+}
+.row {
+  @apply hover:cursor-pointer flex flex-row justify-between items-center py-4 bg-rich-black p-2;
+  @apply hover:bg-white/10 transition-colors duration-200;
+}
+
+.leftPane {
+  @apply flex flex-row items-center gap-2;
+}
+
+.rightPane {
+  @apply flex flex-row items-center gap-2;
+}
+
+.timestamp {
+  @apply text-sm text-white/50;
+}
+
+.selected {
+  @apply bg-white/10;
 }

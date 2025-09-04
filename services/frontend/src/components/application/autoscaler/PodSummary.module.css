@@ -1,0 +1,81 @@
+.container {
+  @apply w-[240px] p-4 bg-black-russian cursor-pointer;
+}
+.svgContainer {
+  @apply relative w-[210px];
+}
+.svg {
+  @apply cursor-pointer;
+}
+.svgUnknownPerformance > path {
+  @apply stroke-white;
+}
+.svgLowPerformance > path {
+  @apply stroke-error-red;
+}
+.svgGoodPerformance > path {
+  @apply stroke-warning-yellow;
+}
+.svgGreatPerformance > path {
+  @apply stroke-main-green;
+}
+/* Pod content */
+.podContent {
+  @apply absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2;
+}
+.signalsCount {
+  @apply flex flex-col gap-y-2 items-center text-center;
+}
+
+.signalsCount > span {
+  @apply text-white/70;
+}
+.signalsCountValue {
+  @apply text-white;
+}
+
+.signalsCountTimeWindow {
+  @apply text-white/50;
+}
+
+
+/* Metrics */
+.metric {
+  @apply flex flex-col gap-2;
+}
+.firstRow {
+  @apply flex flex-row justify-between;
+}
+.secondRow {
+  @apply flex flex-row justify-end gap-x-1;
+}
+
+hr {
+  @apply my-2 border-white/10;
+}
+.valueContainer {
+  @apply flex flex-row gap-x-1;
+}
+
+.valueContainer > span:last-child {
+  @apply text-white/50;
+}
+
+.deltaPositive {
+  @apply text-error-red;
+}
+.deltaNegative {
+  @apply text-main-green;
+}
+
+.thresholdRow {
+  @apply flex flex-row justify-end text-xs text-white/50 mt-1;
+}
+
+.thresholdLabel {
+  @apply text-white/50;
+}
+
+.excess {
+  @apply text-xs ml-1;
+}

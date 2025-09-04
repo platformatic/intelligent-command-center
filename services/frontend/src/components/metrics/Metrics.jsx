@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { TRANSPARENT, RICH_BLACK } from '@platformatic/ui-components/src/components/constants'
+import { TRANSPARENT, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
 import styles from './Metrics.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -146,45 +146,43 @@ export default function Metrics ({
       )
     }
     return (
-      <div className={`${commonStyles.smallFlexBlock} ${commonStyles.fullWidth} ${styles.flexGrow}`}>
-        <div className={`${commonStyles.smallFlexBlock} ${commonStyles.fullWidth}`}>
-          <BorderedBox color={TRANSPARENT} backgroundColor={RICH_BLACK} classes={styles.boxMetricContainer}>
-            <LineChart
-              key={getKey('memory')}
-              data={memory}
-              title='Memory'
-              unit='MB'
-              labels={['RSS', 'Total Heap', 'Heap Used', 'New Space', 'Old Space']}
-              paused={paused}
-              setPaused={setPaused}
-            />
-          </BorderedBox>
+      <div className={`${commonStyles.smallFlexBlock} ${commonStyles.fullWidth} ${styles.metricsContainer}`}>
+        <BorderedBox color={TRANSPARENT} backgroundColor={BLACK_RUSSIAN} classes={styles.boxMetricContainer}>
+          <LineChart
+            key={getKey('memory')}
+            data={memory}
+            title='Memory'
+            unit='MB'
+            labels={['RSS', 'Total Heap', 'Heap Used', 'New Space', 'Old Space']}
+            paused={paused}
+            setPaused={setPaused}
+          />
+        </BorderedBox>
 
-          <BorderedBox color={TRANSPARENT} backgroundColor={RICH_BLACK} classes={styles.boxMetricContainer}>
-            <LineChart
-              data={cpuEL}
-              key={getKey('cpu')}
-              title='CPU & ELU'
-              unit='%'
-              lowerMaxY={100}
-              labels={['CPU', 'ELU']}
-              colorSet='cpu'
-              paused={paused}
-              setPaused={setPaused}
-            />
-          </BorderedBox>
+        <BorderedBox color={TRANSPARENT} backgroundColor={BLACK_RUSSIAN} classes={styles.boxMetricContainer}>
+          <LineChart
+            data={cpuEL}
+            key={getKey('cpu')}
+            title='CPU & ELU'
+            unit='%'
+            lowerMaxY={100}
+            labels={['CPU', 'ELU']}
+            colorSet='cpu'
+            paused={paused}
+            setPaused={setPaused}
+          />
+        </BorderedBox>
 
-          <BorderedBox color={TRANSPARENT} backgroundColor={RICH_BLACK} classes={styles.boxMetricContainer}>
-            <StackedBarsChart
-              key={getKey('latency')}
-              data={latency}
-              title='Latency'
-              unit='ms'
-              paused={paused}
-              setPaused={setPaused}
-            />
-          </BorderedBox>
-        </div>
+        <BorderedBox color={TRANSPARENT} backgroundColor={BLACK_RUSSIAN} classes={styles.boxMetricContainer}>
+          <StackedBarsChart
+            key={getKey('latency')}
+            data={latency}
+            title='Latency'
+            unit='ms'
+            paused={paused}
+            setPaused={setPaused}
+          />
+        </BorderedBox>
       </div>
     )
   }

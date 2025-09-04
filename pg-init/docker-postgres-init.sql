@@ -7,3 +7,4 @@ CREATE DATABASE compliance;
 CREATE DATABASE scaler;
 CREATE DATABASE trafficante;
 CREATE DATABASE cluster_manager;
+CREATE DATABASE risk_cold_storage;

@@ -8,7 +8,8 @@ import RecommendationsHistory from './components/recommendations/RecommendationH
 import Settings from './components/settings/Settings'
 import Profile from './components/profile/Profile'
 
-import { getApiActivities, getApiActivitiesUsers, getApiDeploymentsHistory, getApiApplication, getApiActivitiesTypes, getApplicationsRaw, getApiPod } from './api'
+import { getApiActivities, getApiActivitiesUsers, getApiDeploymentsHistory, getApiApplication, getApiActivitiesTypes, getApplicationsRaw, getApiPod, getKubernetesResources } from './api'
+import { getPodSignals } from './api/autoscaler'
 import callApi from './api/common'
 
 import Activities from '~/components/application/activities/Activities'
@@ -38,6 +39,7 @@ import Flamegraphs from './components/application/flamegraphs/Flamegraphs'
 import PodOverview from './components/pods/detail/PodOverview'
 import PodServicesCharts from './components/pods/detail/PodServicesCharts'
 import FlamegraphDetail from './components/application/flamegraphs/FlamegraphDetail'
+import PodSignalsHistory from './components/application/autoscaler/PodSignalsHistory'
 
 export function getRouter () {
   // TODO: check if this is needed
@@ -284,6 +286,26 @@ export function getRouter () {
         },
         {
           id: 'application/autoscaler',
+          loader: async ({ params }) => {
+            const query = `where.applicationId.eq=${params.applicationId}`
+            const signals = await callApi('scaler', `scaleEvents?${query}`, 'GET')
+            const scaleConfigs = await callApi('scaler', `applicationScaleConfigs?${query}`, 'GET')
+
+            // get metrics
+            const memory = await callApi('metrics', `apps/${params.applicationId}/mem`, 'GET')
+            const rps = await callApi('metrics', `kubernetes/apps/${params.applicationId}/rps`, 'GET')
+
+            // get kubernetes resources
+            const kubernetesResources = await getKubernetesResources(params.applicationId)
+            return {
+              signals,
+              scaleConfigs,
+              applicationId: params.applicationId,
+              memory,
+              k8s: kubernetesResources,
+              rps
+            }
+          },
           path: 'autoscaler',
           element: <Autoscaler />
         },
@@ -359,6 +381,14 @@ export function getRouter () {
           },
           id: 'autoscalerPodDetail/overview',
           element: <PodOverview />
+        },
+        {
+          path: 'signals-history',
+          id: 'autoscalerPodDetail/signalsHistory',
+          loader: async ({ params }) => {
+            return getPodSignals(params.applicationId, params.podId)
+          },
+          element: <PodSignalsHistory />
         },
         {
           path: 'services',

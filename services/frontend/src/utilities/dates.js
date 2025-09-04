@@ -14,6 +14,12 @@ export const getFormattedTimeAndDate = (date) => {
   return dateObject.format('YYYY-MM-DD [[]HH:mm:ss]')
 }
 
+export const getFormattedTime = (date) => {
+  const dateObject = getDateObjectIfValid(date)
+  if (dateObject === false) return '-'
+  return dateObject.format('[[]HH:mm:ss]')
+}
+
 export const getFormattedLogTimestamp = (date, includeMilliseconds = false) => {
   const dateObject = getDateObjectIfValid(date)
   if (dateObject === false) return '-'

@@ -1,6 +1,5 @@
 .autoscalerContainer {
-  @apply grow relative flex flex-col;
-  flex-basis: 1rem;
+  @apply w-full flex flex-col;
 }
 .autoscalerContent {
   @apply p-4 flex flex-col gap-y-4; 

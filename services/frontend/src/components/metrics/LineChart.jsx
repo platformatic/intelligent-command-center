@@ -220,7 +220,8 @@ const LineChart = ({
         const tooltipWidth = 160
         const tooltipHeight = 60 + (valuesData.length * 15)
         const tx = xPos + tooltipWidth < w ? xPos : w - tooltipWidth
-        const ty = maxY - tooltipHeight
+        // Ensure tooltip doesn't go above the chart container
+        const ty = Math.max(10, maxY - tooltipHeight)
         tooltip.style('left', tx + 'px').style('top', ty + 'px')
         if (xPos < xMargin || xPos > (w - xMargin)) {
           tooltip.style('opacity', 0)

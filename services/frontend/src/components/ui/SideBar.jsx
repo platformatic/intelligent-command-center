@@ -50,6 +50,10 @@ function SideBar ({
       )
     }
 
+    if (item.separator) {
+      return <div className={styles.separator} />
+    }
+
     return (
       <TooltipAbsolute
         tooltipClassName={styles.tooltipSidebar}
