@@ -142,7 +142,7 @@ importers:
         version: 5.0.1
       pino:
         specifier: ^9.9.0
-        version: 9.9.0
+        version: 9.9.4
       undici:
         specifier: ^7.14.0
         version: 7.15.0
@@ -5907,6 +5907,10 @@ packages:
     resolution: {integrity: sha512-zxsRIQG9HzG+jEljmvmZupOMDUQ0Jpj0yAgE28jQvvrdYTlEaiGwelJpdndMl/MBuRr70heIj83QyqJUWaU8mQ==}
     hasBin: true
 
+  pino@9.9.4:
+    resolution: {integrity: sha512-d1XorUQ7sSKqVcYdXuEYs2h1LKxejSorMEJ76XoZ0pPDf8VzJMe7GlPXpMBZeQ9gE4ZPIp5uGD+5Nw7scxiigg==}
+    hasBin: true
+
   pirates@4.0.7:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
@@ -9102,7 +9106,7 @@ snapshots:
       '@platformatic/utils': 2.74.3
       execa: 9.6.0
       fast-json-patch: 3.1.1
-      pino: 9.9.0
+      pino: 9.9.4
       pino-abstract-transport: 2.0.0
       semver: 7.7.2
       split2: 4.2.0
@@ -9178,7 +9182,7 @@ snapshots:
       my-ua-parser: 2.0.4
       nunjucks: 3.2.4(chokidar@3.6.0)
       ora: 6.3.1
-      pino: 9.9.0
+      pino: 9.9.4
       pino-pretty: 13.1.1
       rfdc: 1.4.1
       semgrator: 0.3.0
@@ -9319,7 +9323,7 @@ snapshots:
       graphql: 16.11.0
       mercurius: 15.1.0(graphql@16.11.0)
       metaline: 1.1.0
-      pino: 9.9.0
+      pino: 9.9.4
       undici: 7.15.0
     transitivePeerDependencies:
       - bufferutil
@@ -13997,6 +14001,20 @@ snapshots:
       sonic-boom: 4.2.0
       thread-stream: 3.1.0
 
+  pino@9.9.4:
+    dependencies:
+      atomic-sleep: 1.0.0
+      fast-redact: 3.5.0
+      on-exit-leak-free: 2.1.2
+      pino-abstract-transport: 2.0.0
+      pino-std-serializers: 7.0.0
+      process-warning: 5.0.0
+      quick-format-unescaped: 4.0.4
+      real-require: 0.2.0
+      safe-stable-stringify: 2.5.0
+      sonic-boom: 4.2.0
+      thread-stream: 3.1.0
+
   pirates@4.0.7: {}
 
   pkg-conf@3.1.0:
@@ -15443,7 +15461,7 @@ snapshots:
       execa: 9.6.0
       help-me: 5.0.0
       minimist: 1.2.8
-      pino: 9.9.0
+      pino: 9.9.4
       pino-pretty: 13.1.1
       semver: 7.7.2
       split2: 4.2.0
