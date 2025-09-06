@@ -1,9 +1,6 @@
 name: Pull requests
 on: [pull_request, workflow_call, workflow_dispatch]
 
-env:
-  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
 # This allows a subsequently queued workflow run to interrupt previous runs
 concurrency:
   group: "${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
@@ -30,8 +27,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm fetch --ignore-scripts
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   lint:
     needs: setup-node_modules
@@ -54,8 +49,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Run lint
         run: pnpm lint
 
@@ -80,8 +73,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Execute tests
         run: pnpm test:scripts
 
@@ -130,8 +121,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create session-key
         run: node ./services/main/node_modules/@fastify/secure-session/genkey.js > .session-key
       - name: Run test suite
@@ -174,8 +163,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Run test suite
         run: cd services/user-manager && pnpm run test
 
@@ -220,8 +207,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Run test suite
         run: cd services/trafficante && pnpm run test
 
@@ -262,8 +247,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Run test suite
         run: cd services/activities && pnpm run test
 
@@ -308,8 +291,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Run test suite
         run: cd services/control-plane && pnpm test
 
@@ -355,8 +336,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: cd services/risk-service && pnpm run test
 
   ci-risk-cold-storage:
@@ -401,8 +380,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: cd services/risk-cold-storage && pnpm run test
 
   ci-cache-manager:
@@ -430,8 +407,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: cd services/cache-manager && pnpm run test
 
   ci-cluster-manager:
@@ -474,8 +449,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: cd services/cluster-manager && pnpm run test
 
   ci-compliance:
@@ -516,8 +489,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Run test suite
         run: cd services/compliance && pnpm run test
 
@@ -543,8 +514,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Run test suite
         run: cd services/metrics && pnpm run test
 
@@ -569,8 +538,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Run test suite
         run: cd services/frontend && pnpm run test
       - name: Build App
@@ -612,8 +579,6 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: cd services/cron && pnpm run test
 
   ci-scaler:
@@ -656,6 +621,4 @@ jobs:
           timeout_minutes: 5
           retry_on: error
           command: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: cd services/scaler && pnpm run test
