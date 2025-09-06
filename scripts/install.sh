@@ -1129,7 +1129,7 @@ main() {
 	fi
 
 	if ! helm upgrade --install platformatic oci://ghcr.io/platformatic/helm \
-		--version "4.0.0-alpha.4" \
+		--version "4.0.0-alpha.8" \
 		--create-namespace \
 		--namespace platformatic \
 		-f ../infra/helm.yaml \
