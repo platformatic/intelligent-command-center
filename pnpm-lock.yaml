@@ -423,7 +423,7 @@ importers:
         version: 11.2.0
       '@platformatic/composer':
         specifier: ^2.70.1
-        version: 2.74.3(chokidar@3.6.0)
+        version: 2.75.0(chokidar@3.6.0)(typescript@5.9.2)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.0.1
@@ -2132,8 +2132,8 @@ packages:
   '@platformatic/client@2.75.0':
     resolution: {integrity: sha512-HMUVj2iomhCuTg+GUyjD8hss/mxgCAWGGyPz4IqaCsX8g0pmb742BR4fYUCHwx77z7ww/xnw3N+LsuioYBFQ6g==}
 
-  '@platformatic/composer@2.74.3':
-    resolution: {integrity: sha512-lo4EcQ6ca9wjTNbcFYlqbmDTgS1CMms2Vpbho67kRwFS7I0sRhtdYoXm4wSfs3i11ib+nsG7FYwBabcfG7RoUw==}
+  '@platformatic/composer@2.75.0':
+    resolution: {integrity: sha512-zsHEHcwYJQ7gJ9PL7g9bXimt+MWxctGhLwGtgQQL57Iwj+oLqSmL7FUa6XtWk88yy1DRsHxEfd0u3pHletwHuQ==}
     hasBin: true
 
   '@platformatic/config@2.74.3':
@@ -9313,7 +9313,7 @@ snapshots:
       jsonpointer: 5.0.1
       undici: 7.15.0
 
-  '@platformatic/composer@2.74.3(chokidar@3.6.0)':
+  '@platformatic/composer@2.75.0(chokidar@3.6.0)(typescript@5.9.2)':
     dependencies:
       '@fastify/error': 4.2.0
       '@fastify/http-proxy': 11.3.0
@@ -9321,15 +9321,15 @@ snapshots:
       '@fastify/static': 8.2.0
       '@fastify/swagger': 9.5.1
       '@fastify/view': 10.0.2
-      '@platformatic/config': 2.74.3
+      '@platformatic/config': 2.75.0
       '@platformatic/fastify-openapi-glue': 5.1.0
-      '@platformatic/generators': 2.74.3
+      '@platformatic/generators': 2.75.0
       '@platformatic/graphql-composer': 0.10.0
-      '@platformatic/scalar-theme': 2.74.3
-      '@platformatic/service': 2.74.3
-      '@platformatic/telemetry': 2.74.3
-      '@platformatic/utils': 2.74.3
-      '@scalar/fastify-api-reference': 1.33.0
+      '@platformatic/scalar-theme': 2.75.0
+      '@platformatic/service': 2.75.0(typescript@5.9.2)
+      '@platformatic/telemetry': 2.75.0
+      '@platformatic/utils': 2.75.0
+      '@scalar/fastify-api-reference': 1.34.4(typescript@5.9.2)
       ajv: 8.17.1
       commist: 3.2.0
       console-table-printer: 2.14.6
@@ -9356,6 +9356,7 @@ snapshots:
       - bufferutil
       - chokidar
       - supports-color
+      - typescript
       - utf-8-validate
 
   '@platformatic/config@2.74.3':
