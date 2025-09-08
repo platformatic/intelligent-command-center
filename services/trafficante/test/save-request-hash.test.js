@@ -35,7 +35,7 @@ test('should save application requests hashes', async (t) => {
       method: 'POST',
       url: '/requests/hash',
       headers: {
-        'x-trafficante-labels': JSON.stringify({ applicationId })
+        'x-labels': JSON.stringify({ applicationId })
       },
       body: {
         timestamp: Date.now(),
@@ -59,7 +59,7 @@ test('should save application requests hashes', async (t) => {
       method: 'POST',
       url: '/requests/hash',
       headers: {
-        'x-trafficante-labels': JSON.stringify({ applicationId })
+        'x-labels': JSON.stringify({ applicationId })
       },
       body: {
         applicationId,
@@ -126,7 +126,7 @@ test('should save application requests hashes (with a saved recommendation)', as
       method: 'POST',
       url: '/requests/hash',
       headers: {
-        'x-trafficante-labels': JSON.stringify({ applicationId })
+        'x-labels': JSON.stringify({ applicationId })
       },
       body: {
         applicationId,
@@ -151,7 +151,7 @@ test('should save application requests hashes (with a saved recommendation)', as
       method: 'POST',
       url: '/requests/hash',
       headers: {
-        'x-trafficante-labels': JSON.stringify({ applicationId })
+        'x-labels': JSON.stringify({ applicationId })
       },
       body: {
         applicationId,

@@ -165,7 +165,7 @@ module.exports = fp(async function (app) {
 
     const enableOpenTelemetry = enableCacheRecommendations ?? false
     const enableSlicerInterceptor = enableCacheRecommendations ?? false
-    const enableTrafficanteInterceptor = enableCacheRecommendations ?? false
+    const enableTrafficInterceptor = enableCacheRecommendations ?? false
 
     return {
       application,
@@ -174,7 +174,7 @@ module.exports = fp(async function (app) {
       iccServices,
       enableOpenTelemetry,
       enableSlicerInterceptor,
-      enableTrafficanteInterceptor
+      enableTrafficInterceptor
     }
   })
 
