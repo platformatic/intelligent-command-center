@@ -41,6 +41,8 @@ import PodServicesCharts from './components/pods/detail/PodServicesCharts'
 import FlamegraphDetail from './components/application/flamegraphs/FlamegraphDetail'
 import PodSignalsHistory from './components/application/autoscaler/PodSignalsHistory'
 
+// Import Flamegraph utils
+import { fetchProfile } from 'react-pprof'
 export function getRouter () {
   // TODO: check if this is needed
   // import useErrorBoundary from 'use-error-boundary'
@@ -338,7 +340,9 @@ export function getRouter () {
           loader: async ({ params }) => {
             try {
               const flamegraph = await callApi('scaler', `flamegraphs/${params.id}`, 'GET')
-              return { flamegraph }
+              const profileUrl = `${import.meta.env.VITE_API_BASE_URL}/scaler/flamegraphs/${flamegraph.id}/download`
+              const profile = await fetchProfile(profileUrl)
+              return { flamegraph, profile }
             } catch (error) {
               console.error(error)
               return {

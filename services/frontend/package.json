@@ -48,7 +48,7 @@
     "cronstrue": "^3.0.0",
     "fgh": "^2.4.0",
     "react-error-boundary": "^6.0.0",
-    "react-pprof": "^0.1.9",
+    "react-pprof": "^1.0.0",
     "source-map-support": "^0.5.21"
   },
   "standard": {
