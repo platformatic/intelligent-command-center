@@ -1830,7 +1830,7 @@ declare namespace trafficante {
     FullResponse<ChangeRecommendationRouteResponseOK, 200>
 
   export type SaveRequestHashRequest = {
-    'x-trafficante-labels': string;
+    'x-labels': string;
     'applicationId'?: string;
     'timestamp': number;
     'request': { 'url': string };
@@ -1842,7 +1842,7 @@ declare namespace trafficante {
     FullResponse<SaveRequestHashResponseOK, 200>
 
   export type SaveRequestRequest = {
-    'x-trafficante-labels': string;
+    'x-labels': string;
     'x-request-data': string;
     'x-response-data': string;
   }

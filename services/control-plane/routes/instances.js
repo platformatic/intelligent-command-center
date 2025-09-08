@@ -64,7 +64,7 @@ module.exports = fp(async function (app) {
             config: { $ref: 'applicationInstanceConfig' },
             enableOpenTelemetry: { type: 'boolean' },
             enableSlicerInterceptor: { type: 'boolean' },
-            enableTrafficanteInterceptor: { type: 'boolean' },
+            enableTrafficInterceptor: { type: 'boolean' },
             httpCache: {
               type: 'object',
               properties: {
