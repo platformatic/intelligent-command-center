@@ -12,9 +12,9 @@ module.exports = async function (app) {
       headers: {
         type: 'object',
         properties: {
-          'x-trafficante-labels': { type: 'string' }
+          'x-labels': { type: 'string' }
         },
-        required: ['x-trafficante-labels']
+        required: ['x-labels']
       },
       body: {
         type: 'object',
@@ -41,7 +41,7 @@ module.exports = async function (app) {
       }
     },
     handler: async (req) => {
-      const labels = req.headers['x-trafficante-labels']
+      const labels = req.headers['x-labels']
       const { timestamp, request, response } = req.body
 
       let applicationId = null
@@ -70,16 +70,16 @@ module.exports = async function (app) {
       headers: {
         type: 'object',
         properties: {
-          'x-trafficante-labels': { type: 'string' },
+          'x-labels': { type: 'string' },
           'x-request-data': { type: 'string' },
           'x-response-data': { type: 'string' }
         },
-        required: ['x-trafficante-labels', 'x-request-data', 'x-response-data']
+        required: ['x-labels', 'x-request-data', 'x-response-data']
       }
     },
     handler: async (req) => {
       const {
-        'x-trafficante-labels': labels,
+        'x-labels': labels,
         'x-request-data': requestData,
         'x-response-data': responseData
       } = req.headers

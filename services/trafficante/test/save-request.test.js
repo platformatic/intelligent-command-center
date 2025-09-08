@@ -46,7 +46,7 @@ test('should save an example of the request (route info is already cached)', asy
     url: '/requests',
     headers: {
       'content-type': 'application/json',
-      'x-trafficante-labels': JSON.stringify({ applicationId }),
+      'x-labels': JSON.stringify({ applicationId }),
       'x-request-data': JSON.stringify({ url: reqUrl, headers: reqHeaders }),
       'x-response-data': JSON.stringify({ headers: resHeaders })
     },
@@ -116,7 +116,7 @@ test('should save an example of the request (route info is not in the cache)', a
       url: '/requests',
       headers: {
         'content-type': 'application/json',
-        'x-trafficante-labels': JSON.stringify({ applicationId }),
+        'x-labels': JSON.stringify({ applicationId }),
         'x-request-data': JSON.stringify({ url: reqUrl, headers: reqHeaders }),
         'x-response-data': JSON.stringify({ headers: resHeaders })
       },
@@ -250,7 +250,7 @@ test('should update an existing route example', async (t) => {
     url: '/requests',
     headers: {
       'content-type': 'application/json',
-      'x-trafficante-labels': JSON.stringify({ applicationId }),
+      'x-labels': JSON.stringify({ applicationId }),
       'x-request-data': JSON.stringify({ url: reqUrl, headers: reqHeaders }),
       'x-response-data': JSON.stringify({ headers: resHeaders })
     },
@@ -335,7 +335,7 @@ test('should not update an existing request if it is cached by redis', async (t)
     url: '/requests',
     headers: {
       'content-type': 'application/json',
-      'x-trafficante-labels': JSON.stringify({ applicationId }),
+      'x-labels': JSON.stringify({ applicationId }),
       'x-request-data': JSON.stringify({ url: reqUrl, headers: reqHeaders }),
       'x-response-data': JSON.stringify({ headers: resHeaders })
     },
@@ -438,7 +438,7 @@ test('should not update an existing route example if it is cached by redis', asy
     url: '/requests',
     headers: {
       'content-type': 'application/json',
-      'x-trafficante-labels': JSON.stringify({ applicationId }),
+      'x-labels': JSON.stringify({ applicationId }),
       'x-request-data': JSON.stringify({ url: newUrl, headers: reqHeaders }),
       'x-response-data': JSON.stringify({ headers: resHeaders })
     },

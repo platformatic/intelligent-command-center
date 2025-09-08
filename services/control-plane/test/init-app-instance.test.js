@@ -78,13 +78,13 @@ test('should save an instance of a new application', async (t) => {
     iccServices,
     enableOpenTelemetry,
     enableSlicerInterceptor,
-    enableTrafficanteInterceptor
+    enableTrafficInterceptor
   } = JSON.parse(body)
 
   assert.strictEqual(responseApplicationName, applicationName)
   assert.strictEqual(enableOpenTelemetry, false)
   assert.strictEqual(enableSlicerInterceptor, false)
-  assert.strictEqual(enableTrafficanteInterceptor, false)
+  assert.strictEqual(enableTrafficInterceptor, false)
 
   const { resources, httpCacheConfig } = config
   assert.strictEqual(resources.threads, 1)
@@ -319,13 +319,13 @@ test('should save a new app instance with the same image', async (t) => {
     config,
     enableOpenTelemetry,
     enableSlicerInterceptor,
-    enableTrafficanteInterceptor
+    enableTrafficInterceptor
   } = JSON.parse(body)
 
   assert.strictEqual(responseApplicationName, applicationName)
   assert.strictEqual(enableOpenTelemetry, true)
   assert.strictEqual(enableSlicerInterceptor, true)
-  assert.strictEqual(enableTrafficanteInterceptor, true)
+  assert.strictEqual(enableTrafficInterceptor, true)
 
   const { resources, httpCacheConfig } = config
   assert.strictEqual(resources.threads, 1)
@@ -1073,13 +1073,13 @@ test('should get applicationName from controller name when missing from request 
     iccServices,
     enableOpenTelemetry,
     enableSlicerInterceptor,
-    enableTrafficanteInterceptor
+    enableTrafficInterceptor
   } = JSON.parse(body)
 
   assert.strictEqual(responseApplicationName, controllerName)
   assert.strictEqual(enableOpenTelemetry, false)
   assert.strictEqual(enableSlicerInterceptor, false)
-  assert.strictEqual(enableTrafficanteInterceptor, false)
+  assert.strictEqual(enableTrafficInterceptor, false)
 
   const { resources, httpCacheConfig } = config
   assert.strictEqual(resources.threads, 1)
