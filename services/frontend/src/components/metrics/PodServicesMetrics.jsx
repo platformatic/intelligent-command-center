@@ -81,9 +81,6 @@ export default function PodServicesMetrics ({
         values: [cpu, eluPercentage]
       })
     })
-    if (latencyData.length > 0) {
-      console.log('latencyData', latencyData)
-    }
     if (service) {
       setDataService({
         memory,
