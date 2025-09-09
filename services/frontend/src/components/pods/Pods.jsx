@@ -28,6 +28,10 @@ const Pods = React.forwardRef(({
   const [timerInterval, setTimerInterval] = useState(null)
   const { scaleConfigs } = useLoaderData()
 
+  function getLatestScaleConfig () {
+    return scaleConfigs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
+  }
+
   useEffect(() => {
     if (applicationId && optionsApplications.length === 0) {
       async function loadApplications () {
@@ -123,7 +127,7 @@ const Pods = React.forwardRef(({
     <div className={styles.podsContainer} ref={ref}>
       <div className={styles.podSummaryContainer}>
 
-        <PodHoneycomb pods={pods} scaleConfig={scaleConfigs[0]} />
+        <PodHoneycomb pods={pods} scaleConfig={getLatestScaleConfig()} />
         {pods.map((pod, idx) => (
           <PodSummary key={`${pod.id}-${idx}`} pod={pod} />
         ))}
