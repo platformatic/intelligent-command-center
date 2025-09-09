@@ -8,6 +8,7 @@ import Pods from '~/components/pods/Pods'
 import { TabbedWindow } from '@platformatic/ui-components'
 import ScalerEvents from './ScalerEvents'
 import { useRouteLoaderData, useSearchParams } from 'react-router-dom'
+import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
 
 const Autoscaler = React.forwardRef(({ _ }, ref) => {
   const { application } = useRouteLoaderData('appRoot')
@@ -37,6 +38,7 @@ const Autoscaler = React.forwardRef(({ _ }, ref) => {
           <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
             <Icons.HorizontalPodAutoscalerIcon color={WHITE} size={MEDIUM} />
             <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Autoscaler</p>
+            <ExperimentalTag />
           </div>
         </div>
 
