@@ -4,20 +4,15 @@ import Hexagon from './honeycomb/Hexagon'
 import styles from './PodHoneycomb.module.css'
 import { calculateHexagonPerformance } from '../../../utils/podPerformance'
 
-// const colors = {
-//   good: '#00FF00',
-//   normal: '#FFA500',
-//   bad: '#FF0000'
-// }
-
 export default function PodHoneyComb ({
   pods,
   scaleConfig
 }) {
   const backgrounds = {
-    good: 'linear-gradient(180deg,rgba(254, 185, 40, 1) 0%, rgba(102, 74, 16, 1) 100%)', // Yellow/gold
+    unknown: 'linear-gradient(180deg,rgba(254, 185, 40, 1) 0%, rgba(102, 74, 16, 1) 100%)', // Yellow/gold
     great: 'linear-gradient(180deg,rgba(33, 250, 144, 1) 0%, rgba(9, 71, 41, 1) 100%)', // Green
-    low: 'linear-gradient(180deg,rgba(250, 33, 33, 1) 0%, rgba(66, 9, 9, 1) 100%)' // Red
+    low: 'linear-gradient(180deg,rgba(250, 33, 33, 1) 0%, rgba(66, 9, 9, 1) 100%)', // Red
+    good: 'linear-gradient(180deg,rgba(33, 250, 144, 1) 0%, rgba(9, 71, 41, 1) 100%)' // Green
   }
 
   // Create array for all possible pod slots (up to maxPods)
