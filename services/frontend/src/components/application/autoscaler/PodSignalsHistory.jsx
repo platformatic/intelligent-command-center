@@ -8,6 +8,7 @@ import commonStyles from '../../../styles/CommonStyles.module.css'
 import typographyStyles from '../../../styles/Typography.module.css'
 import { getScaleEventMetrics, getAlertMetrics } from '../../../api/autoscaler'
 import LineChart from '../../metrics/LineChart'
+import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
 
 function SignalBox ({ title, count }) {
   return (
@@ -26,6 +27,8 @@ export default function PodSignalsHistory () {
       <div className={styles.title}>
         <Icons.PodSignalsIcon color={WHITE} />
         <span>Pod Signals History</span>
+        <ExperimentalTag />
+
       </div>
       <div className={styles.header}>
         <SignalBox title='Total Signals' count={signals.length} />
@@ -44,13 +47,14 @@ export default function PodSignalsHistory () {
 function SignalRow ({ signal }) {
   const unit = signal.type === 'elu' ? '%' : 'MB'
   const displayType = signal.type === 'elu' ? 'ELU' : 'Heap'
-  const label = `${displayType} (${signal.serviceId || 'unknown'})`
 
   return (
     <>
       <div className={styles.signalInfo}>
         <span className={styles.time}>{getFormattedTime(signal.createdAt)}</span>
-        <span className={styles.type}>{label}</span>
+        <span className={styles.type}>{displayType}</span>
+        <span className={styles.infoText}>from:</span>
+        <span className={styles.serviceId}>{signal.serviceId || 'unknown'}</span>
       </div>
       <div className={styles.signalValue}>
         <span className={styles.value}>{signal.value} {unit}</span>

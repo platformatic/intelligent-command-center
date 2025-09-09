@@ -39,7 +39,7 @@
 }
 
 .signalInfo {
-  @apply flex flex-row gap-2;
+  @apply flex flex-row gap-2 items-center justify-between;
 }
 
 .signalValue {
