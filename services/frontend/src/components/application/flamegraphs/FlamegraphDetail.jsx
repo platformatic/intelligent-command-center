@@ -11,6 +11,8 @@ import {
   WHITE
 } from '@platformatic/ui-components/src/components/constants'
 import dayjs from 'dayjs'
+import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
+
 export default function FlamegraphDetail () {
   const { flamegraph, profile } = useLoaderData()
   function renderFlamegraphDate () {
@@ -24,6 +26,7 @@ export default function FlamegraphDetail () {
         <Icons.FlamegraphsIcon size={MEDIUM} color={WHITE} />
         <h1 className={styles.title}>Flamegraph {renderFlamegraphDate()}</h1>
         <span className={styles.serviceName}>{flamegraph.serviceId}</span>
+        <ExperimentalTag />
       </div>
       <div className={styles.content}>
         <div style={{ flex: 1 }}>

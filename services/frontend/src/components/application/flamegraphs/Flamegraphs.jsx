@@ -11,6 +11,7 @@ import { getFormattedTimeAndDate } from '~/utilities/dates'
 import dayjs from 'dayjs'
 import callApi from '~/api/common'
 import useSubscribeToUpdates from '~/hooks/useSubscribeToUpdates'
+import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
 
 export default function Flamegraphs () {
   const { flamegraphs, pods } = useLoaderData()
@@ -99,6 +100,7 @@ export default function Flamegraphs () {
         <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
           <Icons.FlamegraphsIcon color={WHITE} size={MEDIUM} />
           <h1 className={typographyStyles.desktopBodyLargeSemibold}>Flamegraphs</h1>
+          <ExperimentalTag />
         </div>
 
         <Button
