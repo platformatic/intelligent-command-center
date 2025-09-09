@@ -8,13 +8,14 @@
   @apply cursor-pointer;
 }
 .svgUnknownPerformance > path {
-  @apply stroke-white;
+  /* @apply stroke-white; */
+  @apply stroke-warning-yellow;
 }
 .svgLowPerformance > path {
   @apply stroke-error-red;
 }
 .svgGoodPerformance > path {
-  @apply stroke-warning-yellow;
+  @apply stroke-main-green;
 }
 .svgGreatPerformance > path {
   @apply stroke-main-green;
