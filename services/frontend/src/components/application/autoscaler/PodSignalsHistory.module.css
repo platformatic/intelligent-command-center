@@ -31,7 +31,7 @@
 }
 
 .signal {
-  @apply p-4 cursor-pointer bg-rich-black flex flex-row justify-between items-center rounded-md;
+  @apply py-4 px-2 cursor-pointer bg-rich-black flex flex-row justify-between items-center rounded-md;
 }
 
 .selectedSignal {
@@ -90,4 +90,16 @@
 
 .chartBox {
   @apply min-h-[250px];
+}
+
+.dateText {
+  @apply text-white/70;
+}
+
+.signalsListContainer {
+  @apply flex flex-col gap-4 bg-black-russian p-4 w-full;
+}
+
+.date {
+  @apply flex flex-col gap-2;
 }
