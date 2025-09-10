@@ -121,7 +121,7 @@ function Metric ({ label, value, totalHeap, signals = [], unit, threshold, thres
 
   // Calculate delta against threshold and check if over threshold
   if (label === 'ELU') {
-    const currentELU = value > 1 ? value : value * 100
+    const currentELU = value
     delta = currentELU - threshold
     isOverThreshold = currentELU > threshold
     showComparison = isOverThreshold
