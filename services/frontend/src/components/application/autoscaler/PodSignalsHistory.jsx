@@ -9,7 +9,7 @@ import typographyStyles from '../../../styles/Typography.module.css'
 import { getScaleEventMetrics, getAlertMetrics } from '../../../api/autoscaler'
 import LineChart from '../../metrics/LineChart'
 import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
-
+import dayjs from 'dayjs'
 function SignalBox ({ title, count }) {
   return (
     <div className={styles.signalBox}>
@@ -63,31 +63,59 @@ function SignalRow ({ signal }) {
   )
 }
 function SignalsList ({ signals, selectedSignal, setSelectedSignal }) {
+  function groupSignalsByDate (signals) {
+    return signals.reduce((acc, signal) => {
+      const djs = dayjs(signal.createdAt)
+      let date = djs.format('YYYY-MM-DD')
+      // if date is today, use 'Today' string
+      if (djs.isSame(dayjs(), 'day')) {
+        date = 'Today'
+      }
+
+      // if date is yesterday, use 'Yesterday' string
+      if (djs.isSame(dayjs().subtract(1, 'day'), 'day')) {
+        date = 'Yesterday'
+      }
+
+      acc[date] = acc[date] || []
+      acc[date].push(signal)
+      return acc
+    }, {})
+  }
   return (
-    <div className={styles.signalsList}>
-      {signals.map((signal) => (
-        <div
-          key={signal.id}
-          onClick={() => {
-            if (selectedSignal === null) {
-              setSelectedSignal(signal)
-            } else {
-              if (selectedSignal.id === signal.id) {
-                setSelectedSignal(null)
-              } else {
-                setSelectedSignal(null)
-                setTimeout(() => {
+    <div className={styles.signalsListContainer}>
+      <div className={styles.title}>
+        <span>Signals History</span>
+      </div>
+      {Object.entries(groupSignalsByDate(signals)).map(([date, signals]) => (
+        <div key={date} className={styles.date}>
+          <span className={styles.dateText}>{date}</span>
+          {signals.map((signal) => (
+            <div
+              key={signal.id}
+              onClick={() => {
+                if (selectedSignal === null) {
                   setSelectedSignal(signal)
-                }, 10)
-              }
-            }
-          }}
-          className={`${styles.signal} ${selectedSignal?.id === signal.id ? styles.selectedSignal : ''}`}
-        >
-          <SignalRow signal={signal} />
+                } else {
+                  if (selectedSignal.id === signal.id) {
+                    setSelectedSignal(null)
+                  } else {
+                    setSelectedSignal(null)
+                    setTimeout(() => {
+                      setSelectedSignal(signal)
+                    }, 10)
+                  }
+                }
+              }}
+              className={`${styles.signal} ${selectedSignal?.id === signal.id ? styles.selectedSignal : ''}`}
+            >
+              <SignalRow signal={signal} />
+            </div>
+          ))}
         </div>
       ))}
     </div>
+
   )
 }
 
