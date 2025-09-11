@@ -295,12 +295,24 @@ module.exports.startK8sAuthService = async function (t) {
   const { n, e, kty } = jwtPublicKey
   const kid = 'TEST-KID'
   const alg = 'RS256'
+  let url = null
 
   app.get('/openid/v1/jwks', async () => {
     return { keys: [{ alg, kty, n, e, use: 'sig', kid }] }
   })
 
-  let url = null
+  app.get('/.well-known/openid-configuration', async () => {
+    return {
+      issuer: url,
+      jwks_uri: `${url}/openid/v1/jwks`,
+      authorization_endpoint: 'urn:kubernetes:programatic_authorization',
+      response_types_supported: ['id_token'],
+      subject_types_supported: ['public'],
+      claims_supported: ['sub', 'iss'],
+      id_token_signing_alg_values_supported: ['RS256']
+    }
+  })
+
   app.decorate('generateToken', (podId, namespace) => {
     const header = { kid, alg, typ: 'JWT' }
     const payload = {
