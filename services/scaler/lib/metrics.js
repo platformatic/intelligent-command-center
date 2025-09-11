@@ -4,9 +4,14 @@ const { request } = require('undici')
 
 class Metrics {
   constructor (prometheusUrl, log, options = {}) {
-    this.prometheusUrl = prometheusUrl
+    this.prometheusUrl = this.#addTrailingSlash(prometheusUrl)
     this.log = log
     this.timeRange = options.timeRange || 60
+  }
+
+  #addTrailingSlash (url) {
+    if (url[url.length - 1] === '/') return url
+    return `${url}/`
   }
 
   #queryMetricWithApplicationId = async ({ metricName, applicationId, timeRange, step = 1 }) => {
@@ -15,7 +20,7 @@ class Metrics {
     const end = now
 
     try {
-      const url = new URL('/api/v1/query_range', this.prometheusUrl)
+      const url = new URL('api/v1/query_range', this.prometheusUrl)
       const query = `${metricName}{applicationId="${applicationId}"}`
 
       url.searchParams.append('query', query)
@@ -110,7 +115,7 @@ class Metrics {
     const end = now
 
     try {
-      const url = new URL('/api/v1/query_range', this.prometheusUrl)
+      const url = new URL('api/v1/query_range', this.prometheusUrl)
       const query = `${metricName}`
 
       url.searchParams.append('query', query)

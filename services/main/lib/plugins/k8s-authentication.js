@@ -14,33 +14,38 @@ async function plugin (app) {
   try {
     const caPath = app.config.K8S_CA_CERT_PATH
     k8sCaCert = await readFile(caPath)
+    app.log.debug({ caPath, k8sCaCert }, 'Loading cert for K8s authentication')
   } catch (err) {
     app.log.warn({ err }, 'Unable to load K8s CA certificate')
   }
-  const isCAAvailable = !!k8sCaCert
+
+  const jwksFetchOpt = {}
 
   const k8sToken = await app.getK8SJWTToken()
-  if (!k8sToken) {
+  if (k8sToken) {
+    jwksFetchOpt.headers = {
+      Authorization: `Bearer ${k8sToken}`
+    }
+
+    const encodedPayload = k8sToken.split('.')[1]
+    const decodedPayload = JSON.parse(Buffer.from(encodedPayload, 'base64').toString())
+
+    // The assumption is that the local token is issued by the same service
+    // as the incoming token
+    if (decodedPayload.iss.includes('kubernetes.default.svc')) {
+      jwksFetchOpt.dispatcher = new Agent({
+        connect: {
+          ca: k8sCaCert
+        }
+      })
+    }
+  } else {
     app.log.warn('K8s authentication disabled: Unable to get K8S JWT token')
   }
 
-  const fetchOptions = {
-    headers: {
-      Authorization: `Bearer ${k8sToken}`
-    }
-  }
-  if (isCAAvailable) {
-    const httpsAgent = new Agent({
-      connect: {
-        ca: k8sCaCert
-      }
-    })
-    fetchOptions.dispatcher = httpsAgent
-  }
-
   const getJwks = buildJwks({
-    jwksPath: '/openid/v1/jwks',
-    fetchOptions
+    providerDiscovery: true,
+    fetchOptions: jwksFetchOpt
   })
 
   app.register(fastifyJwt, {
@@ -48,10 +53,14 @@ async function plugin (app) {
     secret: async (_request, token) => {
       const {
         header: { kid, alg },
+
+        // If this issuer (incoming token) is different from the ICC token,
+        // we might not be able to get the public key
         payload: { iss }
       } = token
+
       return getJwks
-        .getPublicKey({ kid, domain: iss, alg })
+        .getPublicKey({ kid, alg, domain: iss })
     },
     verify: { algorithms: ['RS256'] }
   })
@@ -70,6 +79,7 @@ async function plugin (app) {
       app.log.warn('K8s authentication disabled: PLT_DISABLE_K8S_AUTH is set')
       return
     }
+
     try {
       const undecoded = await request.jwtVerify()
       request.k8s = undecoded['kubernetes.io']

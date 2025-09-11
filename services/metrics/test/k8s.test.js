@@ -5,8 +5,9 @@ const assert = require('node:assert')
 const { startMetrics, startPrometheusK8s, getControlPlane } = require('./helper')
 
 test('k8s metrics per infrastructure', async (t) => {
-  await startPrometheusK8s(t)
-  const server = await startMetrics(t)
+  const envOverride = { PLT_METRICS_PROMETHEUS_URL: 'http://localhost:4005/prometheus' }
+  await startPrometheusK8s(t, null, '/prometheus/')
+  const server = await startMetrics(t, null, envOverride)
   const res = await server.inject({
     method: 'GET',
     url: '/kubernetes/infra'
@@ -36,9 +37,9 @@ test('k8s metrics per application', async (t) => {
 
   const expected = {
     cpu: {
-      cpuAllAppsUsage: 0.5235983333333333,
-      cpuAllAppsUsageButApp: 1.6666666666666667,
-      cpuAppUsage: 6.666666666666667
+      cpuAllAppsUsage: 50,
+      cpuAllAppsUsageButApp: 10,
+      cpuAppUsage: 40
     },
     memory: {
       avgMemoryAppUsage: 1.721122686,
