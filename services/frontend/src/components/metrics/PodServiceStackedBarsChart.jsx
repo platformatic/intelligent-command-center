@@ -36,7 +36,7 @@ const PodServiceStackedBarsChart = ({
   const labels = Object.keys(percentiles)
 
   useEffect(() => {
-    if (svgRef.current && tooltipRef.current && !paused && numberLabelsOnXAxis && heightChart) {
+    if (svgRef.current && tooltipRef.current && !paused && numberLabelsOnXAxis && heightChart && data.length > 0) {
       const h = svgRef.current.clientHeight
       const w = svgRef.current.clientWidth
 

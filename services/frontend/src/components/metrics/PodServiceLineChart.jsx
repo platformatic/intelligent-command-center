@@ -34,7 +34,7 @@ const PodServiceLineChart = ({
   const [mousePosition] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
-    if (svgRef.current && tooltipRef.current && !paused && numberLabelsOnXAxis && heightChart) {
+    if (svgRef.current && tooltipRef.current && !paused && numberLabelsOnXAxis && heightChart && data.length > 0) {
       const h = svgRef.current.clientHeight
       const w = svgRef.current.clientWidth
 

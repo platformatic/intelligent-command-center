@@ -33,7 +33,7 @@ const LineChart = ({
   const [mousePosition] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
-    if (svgRef.current && tooltipRef.current && !paused) {
+    if (svgRef.current && tooltipRef.current && !paused && data.length > 0) {
       const h = svgRef.current.clientHeight
       const w = svgRef.current.clientWidth
 
