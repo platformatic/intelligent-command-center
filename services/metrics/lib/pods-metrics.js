@@ -49,7 +49,7 @@ const getPodMemMetrics = async ({ podId, timeWindow }) => {
 
 const getPodCpuEventMetrics = async ({ podId, timeWindow }) => {
   const cpuQuery = createCPUPodQuery({ podId, timeWindow })
-  const eventLoopQuery = createEventLoopPodQuery({ podId, timeWindow })
+  const eventLoopQuery = createEventLoopPodQuery({ podId })
   const podCoresQuery = createAllocatedCPUPodQuery({ podId })
   const [cpuRes, eventLoopRes, podCoresRes] = await Promise.all([
     queryPrometheus(cpuQuery),
