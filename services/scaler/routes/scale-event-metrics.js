@@ -1,6 +1,41 @@
 'use strict'
 
+const { request } = require('undici')
+
 module.exports = async function (app) {
+  async function queryMetric (metricName, podId, serviceId, prometheusUrl, start, end) {
+    const url = new URL('/api/v1/query_range', prometheusUrl)
+    const query = serviceId
+      ? `${metricName}{instanceId="${podId}", serviceId="${serviceId}"}`
+      : `${metricName}{instanceId="${podId}"}`
+
+    url.searchParams.append('query', query)
+    url.searchParams.append('start', start.toString())
+    url.searchParams.append('end', end.toString())
+    url.searchParams.append('step', '5')
+
+    app.log.debug({ url: url.toString(), metricName, podId, serviceId }, 'Querying Prometheus for alert metrics')
+
+    const { statusCode, body } = await request(url)
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      app.log.error({ error, metricName }, 'Prometheus query failed')
+      return []
+    }
+
+    const data = await body.json()
+
+    if (data.status === 'success' && data.data?.result?.[0]?.values) {
+      return data.data.result[0].values.map(([timestamp, value]) => ({
+        timestamp: parseInt(timestamp),
+        value: parseFloat(value)
+      }))
+    }
+
+    return []
+  }
+
   app.get('/scale-events/:scaleEventId/metrics', {
     schema: {
       params: {
@@ -114,45 +149,10 @@ module.exports = async function (app) {
           return reply.code(503).send({ message: 'Prometheus URL not configured' })
         }
 
-        // Query ELU and heap metrics for the specific pod
-        const { request } = require('undici')
-
-        async function queryMetric (metricName, podId) {
-          const url = new URL('/api/v1/query_range', prometheusUrl)
-          const query = `${metricName}{instanceId="${podId}"}`
-
-          url.searchParams.append('query', query)
-          url.searchParams.append('start', start.toString())
-          url.searchParams.append('end', end.toString())
-          url.searchParams.append('step', '5')
-
-          app.log.debug({ url: url.toString(), metricName, podId }, 'Querying Prometheus for scale event metrics')
-
-          const { statusCode, body } = await request(url)
-
-          if (statusCode !== 200) {
-            const error = await body.text()
-            app.log.error({ error, metricName }, 'Prometheus query failed')
-            return []
-          }
-
-          const data = await body.json()
-
-          if (data.status === 'success' && data.data?.result?.[0]?.values) {
-            return data.data.result[0].values.map(([timestamp, value]) => ({
-              timestamp: parseInt(timestamp),
-              value: parseFloat(value)
-            }))
-          }
-
-          return []
-        }
-
-        // Query all metrics in parallel
         const [eluData, heapUsedData, heapTotalData] = await Promise.all([
-          queryMetric('nodejs_eventloop_utilization', alert.podId),
-          queryMetric('nodejs_heap_size_used_bytes', alert.podId),
-          queryMetric('nodejs_heap_size_total_bytes', alert.podId)
+          queryMetric('nodejs_eventloop_utilization', alert.podId, alert.serviceId, prometheusUrl, start, end),
+          queryMetric('nodejs_heap_size_used_bytes', alert.podId, alert.serviceId, prometheusUrl, start, end),
+          queryMetric('nodejs_heap_size_total_bytes', alert.podId, alert.serviceId, prometheusUrl, start, end)
         ])
 
         return {
@@ -272,47 +272,10 @@ module.exports = async function (app) {
           return reply.code(503).send({ message: 'Prometheus URL not configured' })
         }
 
-        // Query ELU and heap metrics for the specific pod and service
-        const { request } = require('undici')
-
-        async function queryMetric (metricName, podId, serviceId) {
-          const url = new URL('/api/v1/query_range', prometheusUrl)
-          const query = serviceId
-            ? `${metricName}{instanceId="${podId}", serviceId="${serviceId}"}`
-            : `${metricName}{instanceId="${podId}"}`
-
-          url.searchParams.append('query', query)
-          url.searchParams.append('start', start.toString())
-          url.searchParams.append('end', end.toString())
-          url.searchParams.append('step', '5')
-
-          app.log.debug({ url: url.toString(), metricName, podId, serviceId }, 'Querying Prometheus for alert metrics')
-
-          const { statusCode, body } = await request(url)
-
-          if (statusCode !== 200) {
-            const error = await body.text()
-            app.log.error({ error, metricName }, 'Prometheus query failed')
-            return []
-          }
-
-          const data = await body.json()
-
-          if (data.status === 'success' && data.data?.result?.[0]?.values) {
-            return data.data.result[0].values.map(([timestamp, value]) => ({
-              timestamp: parseInt(timestamp),
-              value: parseFloat(value)
-            }))
-          }
-
-          return []
-        }
-
-        // Query all metrics in parallel
         const [eluData, heapUsedData, heapTotalData] = await Promise.all([
-          queryMetric('nodejs_eventloop_utilization', alert.podId, alert.serviceId),
-          queryMetric('nodejs_heap_size_used_bytes', alert.podId, alert.serviceId),
-          queryMetric('nodejs_heap_size_total_bytes', alert.podId, alert.serviceId)
+          queryMetric('nodejs_eventloop_utilization', alert.podId, alert.serviceId, prometheusUrl, start, end),
+          queryMetric('nodejs_heap_size_used_bytes', alert.podId, alert.serviceId, prometheusUrl, start, end),
+          queryMetric('nodejs_heap_size_total_bytes', alert.podId, alert.serviceId, prometheusUrl, start, end)
         ])
 
         return {
