@@ -23,6 +23,22 @@ const jwtPublicKey = createPublicKey(publicKey).export({ format: 'jwk' })
 let headers = {}
 async function buildJwksEndpoint (jwks, fail = false) {
   const app = fastify()
+  app.get('/.well-known/openid-configuration', async (req) => {
+    if (fail) {
+      throw Error('Could not load OpenID Configuration')
+    }
+
+    return {
+      issuer: `http://localhost:${app.MAGIC_PORT_NUM}`,
+      jwks_uri: `http://localhost:${app.MAGIC_PORT_NUM}/openid/v1/jwks`,
+      authorization_endpoint: 'urn:kubernetes:programatic_authorization',
+      response_types_supported: ['id_token'],
+      subject_types_supported: ['public'],
+      claims_supported: ['sub', 'iss'],
+      id_token_signing_alg_values_supported: ['RS256']
+    }
+  })
+
   app.get('/openid/v1/jwks', async (req) => {
     if (fail) {
       throw Error('JWKS ENDPOINT ERROR')
@@ -31,6 +47,7 @@ async function buildJwksEndpoint (jwks, fail = false) {
     return jwks
   })
   await app.listen({ port: 0 })
+  app.MAGIC_PORT_NUM = 0
   return app
 }
 
@@ -67,11 +84,6 @@ async function setupApp (env = { PLT_DISABLE_K8S_AUTH: false }) {
 }
 
 test('k8sJWTAuth process correctly valid token', async (t) => {
-  // The icctoken is used to call K8S APIs, in this test we just check
-  // tha it's sent to the JWKS endpoint
-  const iccToken = 'TEST_TOKEN'
-  await setupICCEnv(iccToken)
-
   // JWKS setup
   const { n, e, kty } = jwtPublicKey
   const kid = 'TEST-KID'
@@ -91,8 +103,10 @@ test('k8sJWTAuth process correctly valid token', async (t) => {
     }
   )
   test.after(() => jwksEndpoint.close())
+  const jwksEndpointPort = jwksEndpoint.server.address().port
+  jwksEndpoint.MAGIC_PORT_NUM = jwksEndpointPort
 
-  const issuer = `http://localhost:${jwksEndpoint.server.address().port}`
+  const issuer = `http://localhost:${jwksEndpointPort}`
   const header = {
     kid,
     alg,
@@ -125,6 +139,26 @@ test('k8sJWTAuth process correctly valid token', async (t) => {
     kid
   })
   const token = signSync(payload)
+
+  const iccToken = signSync({
+    'kubernetes.io': {
+      namespace: 'platformatic',
+      node: {
+        name: 'k3d-plt-cluster-server-0',
+        uid: '723cf17a-e783-4382-bc86-b2a6c06248ab'
+      },
+      pod: {
+        name: 'icc-6cc7c6cd58-kpsdd',
+        uid: 'bab4c2fc-7438-4204-9804-bf92f65641e4'
+      },
+      serviceaccount: {
+        name: 'platformatic',
+        uid: '0f668f4e-f2f8-4e2a-8642-08b87da06e22'
+      },
+      warnafter: 1744972498
+    }
+  })
+  await setupICCEnv(iccToken)
 
   t.after(async () => {
     await cleanupTestEnv()
@@ -153,11 +187,6 @@ test('k8sJWTAuth process correctly valid token', async (t) => {
 })
 
 test('k8sJWTAuth process fails if there is JWKS is not reachable', async (t) => {
-  // The icctoken is used to call K8S APIs, in this test we just check
-  // tha it's sent to the JWKS endpoint
-  const iccToken = 'TEST_TOKEN'
-  await setupICCEnv(iccToken)
-
   // JWKS setup
   const { n, e, kty } = jwtPublicKey
   const kid = 'TEST-KID'
@@ -177,8 +206,10 @@ test('k8sJWTAuth process fails if there is JWKS is not reachable', async (t) => 
     }, true
   )
   test.after(() => jwksEndpoint.close())
+  const jwksEndpointPort = jwksEndpoint.server.address().port
+  jwksEndpoint.MAGIC_PORT_NUM = jwksEndpointPort
 
-  const issuer = `http://localhost:${jwksEndpoint.server.address().port}`
+  const issuer = `http://localhost:${jwksEndpointPort}`
   const header = {
     kid,
     alg,
@@ -212,6 +243,25 @@ test('k8sJWTAuth process fails if there is JWKS is not reachable', async (t) => 
   })
   const token = signSync(payload)
 
+  const iccToken = signSync({
+    'kubernetes.io': {
+      namespace: 'platformatic',
+      node: {
+        name: 'k3d-plt-cluster-server-0',
+        uid: '723cf17a-e783-4382-bc86-b2a6c06248ab'
+      },
+      pod: {
+        name: 'icc-6cc7c6cd58-kpsdd',
+        uid: 'bab4c2fc-7438-4204-9804-bf92f65641e4'
+      },
+      serviceaccount: {
+        name: 'platformatic',
+        uid: '0f668f4e-f2f8-4e2a-8642-08b87da06e22'
+      },
+      warnafter: 1744972498
+    }
+  })
+  await setupICCEnv(iccToken)
   t.after(async () => {
     await cleanupTestEnv()
     headers = {}
@@ -235,11 +285,6 @@ test('k8sJWTAuth process fails if there is JWKS is not reachable', async (t) => 
 })
 
 test('k8sJWTAuth process fails if the JWT token is invalid', async (t) => {
-  // The icctoken is used to call K8S APIs, in this test we just check
-  // tha it's sent to the JWKS endpoint
-  const iccToken = 'TEST_TOKEN'
-  await setupICCEnv(iccToken)
-
   // JWKS setup
   const { n, e, kty } = jwtPublicKey
   const kid = 'TEST-KID'
@@ -259,6 +304,41 @@ test('k8sJWTAuth process fails if the JWT token is invalid', async (t) => {
     }
   )
   test.after(() => jwksEndpoint.close())
+  const jwksEndpointPort = jwksEndpoint.server.address().port
+  jwksEndpoint.MAGIC_PORT_NUM = jwksEndpointPort
+
+  const issuer = `http://localhost:${jwksEndpointPort}`
+  const header = {
+    kid,
+    alg,
+    typ: 'JWT'
+  }
+  const signSync = createSigner({
+    algorithm: 'RS256',
+    key: privateKey,
+    header,
+    iss: issuer,
+    kid
+  })
+  const iccToken = signSync({
+    'kubernetes.io': {
+      namespace: 'platformatic',
+      node: {
+        name: 'k3d-plt-cluster-server-0',
+        uid: '723cf17a-e783-4382-bc86-b2a6c06248ab'
+      },
+      pod: {
+        name: 'icc-6cc7c6cd58-kpsdd',
+        uid: 'bab4c2fc-7438-4204-9804-bf92f65641e4'
+      },
+      serviceaccount: {
+        name: 'platformatic',
+        uid: '0f668f4e-f2f8-4e2a-8642-08b87da06e22'
+      },
+      warnafter: 1744972498
+    }
+  })
+  await setupICCEnv(iccToken)
 
   const token = 'INVALID_TOKEN'
 
@@ -285,11 +365,6 @@ test('k8sJWTAuth process fails if the JWT token is invalid', async (t) => {
 })
 
 test('k8sJWTAuth process fails if the token is expired', async (t) => {
-  // The icctoken is used to call K8S APIs, in this test we just check
-  // tha it's sent to the JWKS endpoint
-  const iccToken = 'TEST_TOKEN'
-  await setupICCEnv(iccToken)
-
   // JWKS setup
   const { n, e, kty } = jwtPublicKey
   const kid = 'TEST-KID'
@@ -309,8 +384,10 @@ test('k8sJWTAuth process fails if the token is expired', async (t) => {
     }
   )
   test.after(() => jwksEndpoint.close())
+  const jwksEndpointPort = jwksEndpoint.server.address().port
+  jwksEndpoint.MAGIC_PORT_NUM = jwksEndpointPort
 
-  const issuer = `http://localhost:${jwksEndpoint.server.address().port}`
+  const issuer = `http://localhost:${jwksEndpointPort}`
   const header = {
     kid,
     alg,
@@ -344,6 +421,25 @@ test('k8sJWTAuth process fails if the token is expired', async (t) => {
     expiresIn: 1 // Expires in 1 millis
   })
   const token = signSync(payload)
+  const iccToken = signSync({
+    'kubernetes.io': {
+      namespace: 'platformatic',
+      node: {
+        name: 'k3d-plt-cluster-server-0',
+        uid: '723cf17a-e783-4382-bc86-b2a6c06248ab'
+      },
+      pod: {
+        name: 'icc-6cc7c6cd58-kpsdd',
+        uid: 'bab4c2fc-7438-4204-9804-bf92f65641e4'
+      },
+      serviceaccount: {
+        name: 'platformatic',
+        uid: '0f668f4e-f2f8-4e2a-8642-08b87da06e22'
+      },
+      warnafter: 1744972498
+    }
+  })
+  await setupICCEnv(iccToken)
 
   t.after(async () => {
     await cleanupTestEnv()
@@ -368,11 +464,6 @@ test('k8sJWTAuth process fails if the token is expired', async (t) => {
 })
 
 test('k8sJWTAuth process fails if the route is not allowed', async (t) => {
-  // The icctoken is used to call K8S APIs, in this test we just check
-  // tha it's sent to the JWKS endpoint
-  const iccToken = 'TEST_TOKEN'
-  await setupICCEnv(iccToken)
-
   // JWKS setup
   const { n, e, kty } = jwtPublicKey
   const kid = 'TEST-KID'
@@ -392,8 +483,10 @@ test('k8sJWTAuth process fails if the route is not allowed', async (t) => {
     }
   )
   test.after(() => jwksEndpoint.close())
+  const jwksEndpointPort = jwksEndpoint.server.address().port
+  jwksEndpoint.MAGIC_PORT_NUM = jwksEndpointPort
 
-  const issuer = `http://localhost:${jwksEndpoint.server.address().port}`
+  const issuer = `http://localhost:${jwksEndpointPort}`
   const header = {
     kid,
     alg,
@@ -426,6 +519,25 @@ test('k8sJWTAuth process fails if the route is not allowed', async (t) => {
     kid
   })
   const token = signSync(payload)
+  const iccToken = signSync({
+    'kubernetes.io': {
+      namespace: 'platformatic',
+      node: {
+        name: 'k3d-plt-cluster-server-0',
+        uid: '723cf17a-e783-4382-bc86-b2a6c06248ab'
+      },
+      pod: {
+        name: 'icc-6cc7c6cd58-kpsdd',
+        uid: 'bab4c2fc-7438-4204-9804-bf92f65641e4'
+      },
+      serviceaccount: {
+        name: 'platformatic',
+        uid: '0f668f4e-f2f8-4e2a-8642-08b87da06e22'
+      },
+      warnafter: 1744972498
+    }
+  })
+  await setupICCEnv(iccToken)
 
   t.after(async () => {
     await cleanupTestEnv()
@@ -450,9 +562,6 @@ test('k8sJWTAuth process fails if the route is not allowed', async (t) => {
 })
 
 test('k8sJWTAuth disabled if PLT_DISABLE_K8S_AUTH is set', async (t) => {
-  const iccToken = 'TEST_TOKEN'
-  await setupICCEnv(iccToken)
-
   t.after(async () => {
     await cleanupTestEnv()
     headers = {}

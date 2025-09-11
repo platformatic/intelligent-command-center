@@ -34,7 +34,7 @@ test('metrics plugin should load with valid Prometheus URL', async (t) => {
   await app.register(metricsPlugin)
 
   assert.ok(app.scalerMetrics)
-  assert.strictEqual(app.scalerMetrics.prometheusUrl, 'http://localhost:9090')
+  assert.strictEqual(app.scalerMetrics.prometheusUrl, 'http://localhost:9090/')
 
   await app.close()
 })
@@ -68,7 +68,7 @@ test('metrics plugin should load with only Prometheus URL set', async (t) => {
   app.log = mockLogger
 
   app.env = {
-    PLT_METRICS_PROMETHEUS_URL: 'http://prometheus:9090'
+    PLT_METRICS_PROMETHEUS_URL: 'http://prometheus:9090/prometheus/'
   }
 
   await app.register(fp(async function (app) {
@@ -78,7 +78,7 @@ test('metrics plugin should load with only Prometheus URL set', async (t) => {
   await app.register(metricsPlugin)
 
   assert.ok(app.scalerMetrics)
-  assert.strictEqual(app.scalerMetrics.prometheusUrl, 'http://prometheus:9090')
+  assert.strictEqual(app.scalerMetrics.prometheusUrl, 'http://prometheus:9090/prometheus/')
 
   await app.close()
 })

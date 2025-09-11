@@ -14,8 +14,8 @@ function setUpEnvironment (env = {}) {
   Object.assign(process.env, defaultEnv, env)
 }
 
-async function startMetrics (t, controlPlane) {
-  setUpEnvironment()
+async function startMetrics (t, controlPlane, env) {
+  setUpEnvironment(env)
   const config = JSON.parse(await readFile(join(__dirname, '..', 'platformatic.json'), 'utf8'))
   config.server ||= {}
   config.server.logger ||= {}
@@ -31,7 +31,7 @@ async function startMetrics (t, controlPlane) {
   return server
 }
 
-async function startPrometheusK8s (t, applicationId) {
+async function startPrometheusK8s (t, applicationId, urlPrefix = '/') {
   const coresQuery = 'kube_node_status_allocatable{resource="cpu",unit="core"}'
   const cpuAllQuery = sanitizePromQuery(`
     sum(
@@ -153,57 +153,58 @@ async function startPrometheusK8s (t, applicationId) {
   prometheus.register(formBody)
   t.after(() => prometheus.close())
 
-  prometheus.post('/api/v1/query', async (req, reply) => {
-    let { query } = req.body
-    query = sanitizePromQuery(query)
-
-    let value = 0
-    if (query.includes(coresQuery)) {
-      value = 10
-    } else if (query.includes(cpuAllQuery)) {
-      value = 3.14159
-    } else if (query === memAllQuery) {
-      value = 1721122686
-    } else if (query === totalMemQuery) {
-      value = 2721122686
-    } else if (query === cpuAppQuery) {
-      value = 6.666666666666667
-    } else if (query === cpuAllAppsQuery) {
-      value = 0.5235983333333333
-    } else if (query === cpuAllAppsButAppQuery) {
-      value = 1.6666666666666667
-    } else if (query === avgMemAppQuery) {
-      value = 1721122686
-    } else if (query === sumMemAppQuery) {
-      value = 3721122686
-    } else if (query === memAllButAppQuery) {
-      value = 3721122686
-    } else if (query === podsAppQuery) {
-      value = 3
-    } else if (query === podsAllQuery) {
-      value = 5
-    } else if (query === requestLatencyQuery) {
-      value = 0.120
-    } else if (query === requestPerSecondQuery) {
-      value = 50.11
-    }
-
-    return {
-      status: 'success',
-      data: {
-        resultType: 'vector',
-        result: [
-          {
-            metric: {},
-            value: [
-              1721122686.143,
-              value
-            ]
-          }
-        ]
+  prometheus.register(async (prometheus, opts) => {
+    prometheus.post('/api/v1/query', async (req, reply) => {
+      let { query } = req.body
+      query = sanitizePromQuery(query)
+      let value = 0
+      if (query.includes(coresQuery)) {
+        value = 10
+      } else if (query.includes(cpuAllQuery)) {
+        value = 3.14159
+      } else if (query === memAllQuery) {
+        value = 1721122686
+      } else if (query === totalMemQuery) {
+        value = 2721122686
+      } else if (query === cpuAppQuery) {
+        value = 40
+      } else if (query === cpuAllAppsQuery) {
+        value = 50
+      } else if (query === cpuAllAppsButAppQuery) {
+        value = 10
+      } else if (query === avgMemAppQuery) {
+        value = 1721122686
+      } else if (query === sumMemAppQuery) {
+        value = 3721122686
+      } else if (query === memAllButAppQuery) {
+        value = 3721122686
+      } else if (query === podsAppQuery) {
+        value = 3
+      } else if (query === podsAllQuery) {
+        value = 5
+      } else if (query === requestLatencyQuery) {
+        value = 0.120
+      } else if (query === requestPerSecondQuery) {
+        value = 50.11
       }
-    }
-  })
+
+      return {
+        status: 'success',
+        data: {
+          resultType: 'vector',
+          result: [
+            {
+              metric: {},
+              value: [
+                1721122686.143,
+                value
+              ]
+            }
+          ]
+        }
+      }
+    })
+  }, { prefix: urlPrefix })
 
   await prometheus.listen({ port: 4005 })
   return prometheus
