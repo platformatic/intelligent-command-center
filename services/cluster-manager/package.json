@@ -1,6 +1,6 @@
 {
   "name": "cluster-manager",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "scripts": {
     "start": "platformatic start",
     "build": "rm -rf dist && tsc",
