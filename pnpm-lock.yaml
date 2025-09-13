@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@platformatic/client':
         specifier: ^2.70.1
-        version: 2.75.0
+        version: 2.75.2
       fastify:
         specifier: ^5.2.1
         version: 5.6.0
@@ -2094,6 +2094,9 @@ packages:
 
   '@platformatic/client@2.75.0':
     resolution: {integrity: sha512-HMUVj2iomhCuTg+GUyjD8hss/mxgCAWGGyPz4IqaCsX8g0pmb742BR4fYUCHwx77z7ww/xnw3N+LsuioYBFQ6g==}
+
+  '@platformatic/client@2.75.2':
+    resolution: {integrity: sha512-UJkU6tqixCFG8W+lB87TiBVPmB6SwWz0x6YOKPshUQufaodmyZXypN2EoRsvX9NT4nWhZkEP/S9SJoV8y4NOwQ==}
 
   '@platformatic/composer@2.75.0':
     resolution: {integrity: sha512-zsHEHcwYJQ7gJ9PL7g9bXimt+MWxctGhLwGtgQQL57Iwj+oLqSmL7FUa6XtWk88yy1DRsHxEfd0u3pHletwHuQ==}
@@ -9184,6 +9187,17 @@ snapshots:
       yaml: 2.8.1
 
   '@platformatic/client@2.75.0':
+    dependencies:
+      '@apidevtools/json-schema-ref-parser': 11.9.3
+      '@fastify/error': 4.2.0
+      abstract-logging: 2.0.1
+      ajv: 8.17.1
+      camelcase: 6.3.0
+      desm: 1.3.1
+      jsonpointer: 5.0.1
+      undici: 7.15.0
+
+  '@platformatic/client@2.75.2':
     dependencies:
       '@apidevtools/json-schema-ref-parser': 11.9.3
       '@fastify/error': 4.2.0
