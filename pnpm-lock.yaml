@@ -32,7 +32,7 @@ importers:
         version: 2.75.0
       '@platformatic/runtime':
         specifier: ^2.70.1
-        version: 2.75.0
+        version: 2.75.2
       bats:
         specifier: ^1.12.0
         version: 1.12.0
@@ -106,7 +106,7 @@ importers:
         version: 2.75.2
       '@platformatic/runtime':
         specifier: ^2.70.1
-        version: 2.75.0
+        version: 2.75.2
       '@platformatic/service':
         specifier: ^2.70.1
         version: 2.75.0(typescript@5.9.2)
@@ -2125,6 +2125,9 @@ packages:
   '@platformatic/generators@2.75.0':
     resolution: {integrity: sha512-DpwFPosvL7eY6n5bYMGAFeUvkSAzgPhYeCaVbAkD0+mLbLtHCMgOamfBKjZbpX5U2/o7MENI5hk8v+4aohnHEQ==}
 
+  '@platformatic/generators@2.75.2':
+    resolution: {integrity: sha512-DHTDSvbhB/0GkJVrSdZ98tkXL06WQonLZ4QycQhUVs5dYewUmU1Blh8t+ZuDeAOafo23VqamXKrzORqG6FlgMg==}
+
   '@platformatic/graphql-composer@0.10.0':
     resolution: {integrity: sha512-wCX63v0HQRN0PPPR0M08VF73bhGqUyrccK04AK6eVR2+5nPcUJym4r4WyAy1KqhTkLj6kJWhul4NmSLoINbxDg==}
 
@@ -2155,6 +2158,10 @@ packages:
 
   '@platformatic/runtime@2.75.0':
     resolution: {integrity: sha512-O7Wky2lrrncPOkIUrfbqATsW5BeAyugNDkAzBZGkazJF71yCaHfwx7SvA8QYt6w3mlFVsf33Syj7/8JIb75hog==}
+    hasBin: true
+
+  '@platformatic/runtime@2.75.2':
+    resolution: {integrity: sha512-6B8V8PB8hlq1PyYspy4SY/QcvEgMWc5ovHFHlhdjwda21VKoUhBEPImPXllw/mj0pDudXEYxo1kvTq4U2G0k9A==}
     hasBin: true
 
   '@platformatic/scalar-theme@2.75.0':
@@ -2190,6 +2197,9 @@ packages:
 
   '@platformatic/ts-compiler@2.75.0':
     resolution: {integrity: sha512-05xrMDgYN21+4E98e/R2bD6k70822LyKJxYjUoC0TT0S7ak6CR664fSNstMZEz52UfyCvKy4nvHqQnzihzRU7Q==}
+
+  '@platformatic/ts-compiler@2.75.2':
+    resolution: {integrity: sha512-gYFS7W4N8YK0AzmehWmzY27nQZATMcRsffAi62WZ0IKAfoF65fa4p0VVrzoWs1lqNxvTySFvPurrd8nVtp32ig==}
 
   '@platformatic/ui-components@0.19.1':
     resolution: {integrity: sha512-M2TrnQKH/jgC+ZBeEzdzdK4WJoYSU/ToTfdfCyzzIosZAaPH5ZeyKGJ/+edR28xc12nJTvYusFugbo5JLnpheA==}
@@ -6988,6 +6998,10 @@ packages:
     resolution: {integrity: sha512-7oZJCPvvMvTd0OlqWsIxTuItTpJBpU1tcbVl24FMn3xt3+VSunwUasmfPJRE57oNO1KsZ4PgA1xTdAX4hq8NyQ==}
     engines: {node: '>=20.18.1'}
 
+  undici@7.16.0:
+    resolution: {integrity: sha512-QEg3HPMll0o3t2ourKwOeUAZ159Kn9mx5pnzHRQO8+Wixmh88YdZRiIwat0iNzNNXn0yoEtXJqFpyW7eM8BV7g==}
+    engines: {node: '>=20.18.1'}
+
   unicorn-magic@0.1.0:
     resolution: {integrity: sha512-lRfVq8fE8gz6QMBuDM6a+LO3IAzTi05H6gCVaUpir2E1Rwpo4ZUog45KpNXKC/Mn3Yb9UDuHumeFTo9iV/D9FQ==}
     engines: {node: '>=18'}
@@ -9276,7 +9290,7 @@ snapshots:
       fastify-plugin: 5.0.1
       fastify-user: 1.4.0
       leven: 3.1.0
-      undici: 7.15.0
+      undici: 7.16.0
 
   '@platformatic/db-core@2.75.0(typescript@5.9.2)':
     dependencies:
@@ -9361,6 +9375,18 @@ snapshots:
       fastify: 5.6.0
       glob: 11.0.3
       pino: 9.9.4
+      undici: 7.16.0
+
+  '@platformatic/generators@2.75.2':
+    dependencies:
+      '@fastify/error': 4.2.0
+      '@platformatic/config': 2.75.2
+      '@platformatic/utils': 2.75.2
+      change-case-all: 2.1.0
+      execa: 9.6.0
+      fastify: 5.6.0
+      glob: 11.0.3
+      pino: 9.9.5
       undici: 7.15.0
 
   '@platformatic/graphql-composer@0.10.0':
@@ -9474,6 +9500,52 @@ snapshots:
       help-me: 5.0.0
       minimist: 1.2.8
       pino: 9.9.4
+      pino-pretty: 13.1.1
+      pino-roll: 2.2.0
+      prom-client: 15.1.3
+      semgrator: 0.3.0
+      sonic-boom: 4.2.0
+      tail-file-stream: 0.2.0
+      undici: 7.15.0
+      undici-thread-interceptor: 0.14.1
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
+  '@platformatic/runtime@2.75.2':
+    dependencies:
+      '@fastify/accepts': 5.0.2
+      '@fastify/error': 4.2.0
+      '@fastify/websocket': 11.2.0
+      '@hapi/topo': 6.0.2
+      '@opentelemetry/api': 1.9.0
+      '@platformatic/basic': 2.75.2
+      '@platformatic/config': 2.75.2
+      '@platformatic/generators': 2.75.2
+      '@platformatic/itc': 2.75.2
+      '@platformatic/metrics': 2.75.2
+      '@platformatic/telemetry': 2.75.2
+      '@platformatic/ts-compiler': 2.75.2
+      '@platformatic/undici-cache-memory': 0.8.4
+      '@platformatic/utils': 2.75.2
+      '@watchable/unpromise': 1.0.2
+      change-case-all: 2.1.0
+      close-with-grace: 2.2.0
+      commist: 3.2.0
+      cron: 4.3.3
+      debounce: 2.2.0
+      desm: 1.3.1
+      dotenv: 16.6.1
+      dotenv-tool: 0.1.1
+      es-main: 1.4.0
+      fastest-levenshtein: 1.0.16
+      fastify: 5.6.0
+      graphql: 16.11.0
+      help-me: 5.0.0
+      minimist: 1.2.8
+      pino: 9.9.5
       pino-pretty: 13.1.1
       pino-roll: 2.2.0
       prom-client: 15.1.3
@@ -9661,6 +9733,14 @@ snapshots:
       '@platformatic/utils': 2.75.0
       execa: 9.6.0
       pino: 9.9.4
+      pino-pretty: 13.1.1
+      resolve: 1.22.10
+
+  '@platformatic/ts-compiler@2.75.2':
+    dependencies:
+      '@platformatic/utils': 2.75.2
+      execa: 9.6.0
+      pino: 9.9.5
       pino-pretty: 13.1.1
       resolve: 1.22.10
 
@@ -15439,6 +15519,8 @@ snapshots:
   undici@7.11.0: {}
 
   undici@7.15.0: {}
+
+  undici@7.16.0: {}
 
   unicorn-magic@0.1.0: {}
 
