@@ -53,7 +53,7 @@ importers:
         version: 4.2.0
       '@platformatic/db':
         specifier: ^2.70.1
-        version: 2.75.0(typescript@5.9.2)
+        version: 2.75.2(typescript@5.9.2)
     devDependencies:
       borp:
         specifier: ^0.20.0
@@ -136,7 +136,7 @@ importers:
         version: 4.2.0
       '@platformatic/db':
         specifier: ^2.74.3
-        version: 2.75.0(typescript@5.9.2)
+        version: 2.75.2(typescript@5.9.2)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.0.1
@@ -185,7 +185,7 @@ importers:
         version: 4.2.0
       '@platformatic/db':
         specifier: ^2.70.1
-        version: 2.75.0(typescript@5.9.2)
+        version: 2.75.2(typescript@5.9.2)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.0.1
@@ -232,7 +232,7 @@ importers:
     devDependencies:
       '@platformatic/db':
         specifier: ^2.70.1
-        version: 2.75.0(typescript@5.9.2)
+        version: 2.75.2(typescript@5.9.2)
       borp:
         specifier: ^0.20.0
         version: 0.20.2
@@ -259,7 +259,7 @@ importers:
         version: 2.75.2
       '@platformatic/db':
         specifier: ^2.70.1
-        version: 2.75.0(typescript@5.9.2)
+        version: 2.75.2(typescript@5.9.2)
       cron-parser:
         specifier: ^5.0.3
         version: 5.3.1
@@ -521,7 +521,7 @@ importers:
         version: 5.0.2
       '@platformatic/db':
         specifier: ^2.70.1
-        version: 2.75.0(typescript@5.9.2)
+        version: 2.75.2(typescript@5.9.2)
       ajv:
         specifier: ^8.17.1
         version: 8.17.1
@@ -622,7 +622,7 @@ importers:
         version: 4.2.0
       '@platformatic/db':
         specifier: ^2.70.1
-        version: 2.75.0(typescript@5.9.2)
+        version: 2.75.2(typescript@5.9.2)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.0.1
@@ -684,7 +684,7 @@ importers:
     devDependencies:
       '@platformatic/db':
         specifier: ^2.70.1
-        version: 2.75.0(typescript@5.9.2)
+        version: 2.75.2(typescript@5.9.2)
       borp:
         specifier: ^0.20.0
         version: 0.20.2
@@ -708,7 +708,7 @@ importers:
         version: 8.2.0
       '@platformatic/db':
         specifier: ^2.70.1
-        version: 2.75.0(typescript@5.9.2)
+        version: 2.75.2(typescript@5.9.2)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.0.1
@@ -2112,14 +2112,14 @@ packages:
     resolution: {integrity: sha512-dCAOq0/0Yu2RXbJWvTzYZVZxS59akfxi/c9TYwAldtRZaJpRvkvAUZKdBuTqNkycMqyeR7wq3lUSzr3Lhbtdng==}
     hasBin: true
 
-  '@platformatic/db-authorization@2.75.0':
-    resolution: {integrity: sha512-rf9jzeZTj8KS1K3jTGERHArPZWiC2esDOpx0c3TKekEv9ZvzuoiV9wMHlKeRv/nZvoIlhSeH/zFz1Eh7fxfOBw==}
+  '@platformatic/db-authorization@2.75.2':
+    resolution: {integrity: sha512-RPSIqfZZSPE3USZsPp2OZRVSh5FTTurB3KlxPsDtpvBy/i/D+yfkaRmM21El4l34cGHxIoU2FfnBK2cxdbjoGA==}
 
-  '@platformatic/db-core@2.75.0':
-    resolution: {integrity: sha512-Q4oybHb02tBeJSVrYuOkMWuCour5fAqgWghFib76S8rxRw6+ZOZo3AfSmZOyhK9N3c81dL0+39GOAY7zw/UmrQ==}
+  '@platformatic/db-core@2.75.2':
+    resolution: {integrity: sha512-8OSXVA6sVHv1lNF1Y6tHzI5T/VV1tmDp6IkHJXPqZiOk++bLNrKgHytie6h61TG1Vsdtv7cqMbBOxbbIVCS2sw==}
 
-  '@platformatic/db@2.75.0':
-    resolution: {integrity: sha512-hN6WsPE91ZmQnMBdaE1dRl54tPRKPyUGNJa6/u4xumh9kjEjMHjQb/AuYmPIXD8V3zIQwC75+IBfe2o/dPja3g==}
+  '@platformatic/db@2.75.2':
+    resolution: {integrity: sha512-lzP008FIzCgjVUcI27NDGt+1zspHyQE7O+8kzI5boLSsvN8jtBKtuWKTLelsoJI0dRqCzo/HKP+/achSalNKQQ==}
     hasBin: true
 
   '@platformatic/fastify-openapi-glue@5.1.0':
@@ -2181,23 +2181,23 @@ packages:
     resolution: {integrity: sha512-xajLPCkjPNdZoBPtWGUM1MRMlNkw/ZOBbyFT9ryIV0N8ypCnmXmGCKaCG1hQ4KldCBEVB7v0m0FvkWK8bvxqUQ==}
     hasBin: true
 
-  '@platformatic/sql-events@2.75.0':
-    resolution: {integrity: sha512-YZatl62ukU8ug+9NhAcn36LFEcXy1d7zPBYbkNoYzHt4lXVU59WTcTWX4KX/mb4+BXQueo1tDalsB2UuKtEapw==}
+  '@platformatic/sql-events@2.75.2':
+    resolution: {integrity: sha512-kQTvXBGqTAvEMRfWvlLrhm7NW3rpwZLjh0VsSbzJUWBP95/Z06+L/5wp3iyMnK/vtzo2H1C4S3eGNo4drtJCJQ==}
 
-  '@platformatic/sql-graphql@2.75.0':
-    resolution: {integrity: sha512-7AkER44beYaZKz/7tBaCee+A/IWmFgFhW4foOqF3CoEYKSIQ4CqiflxwV2Cdr+DIwxxTrGeCMUQTd8K5f3nBCg==}
+  '@platformatic/sql-graphql@2.75.2':
+    resolution: {integrity: sha512-u+IaA25ya+5U7AE2k26TW9KQIyawBXtCnBIO3Kni7h5tcYB17LQc7aXuds6ako/SBi7m4a2NG79vfQjrEVgErA==}
 
   '@platformatic/sql-inspector@0.2.0':
     resolution: {integrity: sha512-2HzNqYbYMXycaZdnsobDMpilgPBdxUZ+LGt9yiD+k4HOyxvxWrSYAhCRKlT0FbKMjB12m4ZR6GjdzKH+oYtboQ==}
 
-  '@platformatic/sql-json-schema-mapper@2.75.0':
-    resolution: {integrity: sha512-0QoVFodmm4vT706B3ein0SzDuSq+rm2nyET0pSFFVTOOmWyKuyRj9L7azXuWgmWZZKImpZilPMDYEoG7tWgNIg==}
+  '@platformatic/sql-json-schema-mapper@2.75.2':
+    resolution: {integrity: sha512-ikPFzrQum2jpJpodu/GiXM4BYj3GZbItYWPEs5EkKoBEKUVyYPJkF1QEgP+z0m/ZGWQGmpDlZp2CDif1yupeMQ==}
 
-  '@platformatic/sql-mapper@2.75.0':
-    resolution: {integrity: sha512-7Lmk2E4nx5vIrpNUJnHoDHu6b5sEyMKoTmika7JKtOrvxKIJabsiOsd6Vey8O6cz6pxS8njen4e2AMSsvQMSIw==}
+  '@platformatic/sql-mapper@2.75.2':
+    resolution: {integrity: sha512-tIIBoZIa/GNqN7G8SW9WlvldnH6nTKGV2+Rk8HykJpw/C9iVyhK2cVXGAav+l/e3GhUVa90nSM/XJ3E0VdEawg==}
 
-  '@platformatic/sql-openapi@2.75.0':
-    resolution: {integrity: sha512-j+0C0K06XEZ34wK1bDh6bkpnlj7c7SIHzvpo4Bgj+Ts3ErsFwsRwXq6uX3IN2Pl0BAcwjVkmykpgrvlNCaQOHA==}
+  '@platformatic/sql-openapi@2.75.2':
+    resolution: {integrity: sha512-whOe/JpIGI/pO5SAS/Sxj3YZEJaD/6YovcMIFCgoDb8+ryw5jW/LLzK3tct7OOAyjm7kG5e4nIJ5zdXitF83yQ==}
 
   '@platformatic/telemetry@2.75.0':
     resolution: {integrity: sha512-o/+IeWczY8x6wkZWTy30d6an+9mkFBfLLJWlYxyzIymmKCixYMYmZHKvXpjRhCX2X0FCmdpHgP5V7mI84bNgNw==}
@@ -2873,6 +2873,9 @@ packages:
 
   '@types/luxon@3.7.1':
     resolution: {integrity: sha512-H3iskjFIAn5SlJU7OuxUmTEpebK6TKB8rxZShDslBMZJ5u9S//KM1sbdAisiSrqwLQncVjnpi2OK2J51h+4lsg==}
+
+  '@types/node@24.3.3':
+    resolution: {integrity: sha512-GKBNHjoNw3Kra1Qg5UXttsY5kiWMEfoHq2TmXb+b1rcm6N7B3wTrFYIf/oSZ1xNQ+hVVijgLkiDZh7jRRsh+Gw==}
 
   '@types/node@24.3.3':
     resolution: {integrity: sha512-GKBNHjoNw3Kra1Qg5UXttsY5kiWMEfoHq2TmXb+b1rcm6N7B3wTrFYIf/oSZ1xNQ+hVVijgLkiDZh7jRRsh+Gw==}
@@ -9313,7 +9316,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@platformatic/db-authorization@2.75.0':
+  '@platformatic/db-authorization@2.75.2':
     dependencies:
       '@fastify/error': 4.2.0
       '@fastify/jwt': 9.1.0
@@ -9322,12 +9325,12 @@ snapshots:
       leven: 3.1.0
       undici: 7.16.0
 
-  '@platformatic/db-core@2.75.0(typescript@5.9.2)':
+  '@platformatic/db-core@2.75.2(typescript@5.9.2)':
     dependencies:
-      '@platformatic/sql-events': 2.75.0
-      '@platformatic/sql-graphql': 2.75.0
-      '@platformatic/sql-mapper': 2.75.0(typescript@5.9.2)
-      '@platformatic/sql-openapi': 2.75.0(typescript@5.9.2)
+      '@platformatic/sql-events': 2.75.2
+      '@platformatic/sql-graphql': 2.75.2
+      '@platformatic/sql-mapper': 2.75.2(typescript@5.9.2)
+      '@platformatic/sql-openapi': 2.75.2(typescript@5.9.2)
       fastify-plugin: 5.0.1
     transitivePeerDependencies:
       - bufferutil
@@ -9336,7 +9339,7 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@platformatic/db@2.75.0(typescript@5.9.2)':
+  '@platformatic/db@2.75.2(typescript@5.9.2)':
     dependencies:
       '@fastify/accepts': 5.0.2
       '@fastify/basic-auth': 6.2.0
@@ -9345,19 +9348,19 @@ snapshots:
       '@fastify/error': 4.2.0
       '@fastify/static': 8.2.0
       '@fastify/swagger': 9.5.1
-      '@platformatic/config': 2.75.0
-      '@platformatic/db-authorization': 2.75.0
-      '@platformatic/db-core': 2.75.0(typescript@5.9.2)
-      '@platformatic/generators': 2.75.0
-      '@platformatic/service': 2.75.0(typescript@5.9.2)
-      '@platformatic/sql-events': 2.75.0
-      '@platformatic/sql-graphql': 2.75.0
-      '@platformatic/sql-json-schema-mapper': 2.75.0
-      '@platformatic/sql-mapper': 2.75.0(typescript@5.9.2)
-      '@platformatic/sql-openapi': 2.75.0(typescript@5.9.2)
-      '@platformatic/telemetry': 2.75.0
-      '@platformatic/ts-compiler': 2.75.0
-      '@platformatic/utils': 2.75.0
+      '@platformatic/config': 2.75.2
+      '@platformatic/db-authorization': 2.75.2
+      '@platformatic/db-core': 2.75.2(typescript@5.9.2)
+      '@platformatic/generators': 2.75.2
+      '@platformatic/service': 2.75.2(typescript@5.9.2)
+      '@platformatic/sql-events': 2.75.2
+      '@platformatic/sql-graphql': 2.75.2
+      '@platformatic/sql-json-schema-mapper': 2.75.2
+      '@platformatic/sql-mapper': 2.75.2(typescript@5.9.2)
+      '@platformatic/sql-openapi': 2.75.2(typescript@5.9.2)
+      '@platformatic/telemetry': 2.75.2
+      '@platformatic/ts-compiler': 2.75.2
+      '@platformatic/utils': 2.75.2
       camelcase: 6.3.0
       close-with-grace: 2.2.0
       code-block-writer: 13.0.3
@@ -9376,7 +9379,7 @@ snapshots:
       minimist: 1.2.8
       my-ua-parser: 2.0.4
       ora: 6.3.1
-      pino: 9.9.4
+      pino: 9.9.5
       pino-pretty: 13.1.1
       postgrator: 8.0.0
       rfdc: 1.4.1
@@ -9417,7 +9420,7 @@ snapshots:
       fastify: 5.6.0
       glob: 11.0.3
       pino: 9.9.5
-      undici: 7.15.0
+      undici: 7.16.0
 
   '@platformatic/graphql-composer@0.10.0':
     dependencies:
@@ -9695,14 +9698,14 @@ snapshots:
       prom-client: 15.1.3
       rfdc: 1.4.1
       semgrator: 0.3.0
-      undici: 7.15.0
+      undici: 7.16.0
     transitivePeerDependencies:
       - bufferutil
       - supports-color
       - typescript
       - utf-8-validate
 
-  '@platformatic/sql-events@2.75.0':
+  '@platformatic/sql-events@2.75.2':
     dependencies:
       '@fastify/error': 4.2.0
       camelcase: 6.3.0
@@ -9712,11 +9715,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@platformatic/sql-graphql@2.75.0':
+  '@platformatic/sql-graphql@2.75.2':
     dependencies:
       '@fastify/error': 4.2.0
       '@mercuriusjs/federation': 5.0.0
-      '@platformatic/utils': 2.75.0
+      '@platformatic/utils': 2.75.2
       camelcase: 6.3.0
       fastify-plugin: 5.0.1
       graphql: 16.11.0
@@ -9730,12 +9733,12 @@ snapshots:
 
   '@platformatic/sql-inspector@0.2.0': {}
 
-  '@platformatic/sql-json-schema-mapper@2.75.0':
+  '@platformatic/sql-json-schema-mapper@2.75.2':
     dependencies:
       code-block-writer: 13.0.3
       safe-identifier: 0.4.2
 
-  '@platformatic/sql-mapper@2.75.0(typescript@5.9.2)':
+  '@platformatic/sql-mapper@2.75.2(typescript@5.9.2)':
     dependencies:
       '@databases/mysql': 7.0.0(typescript@5.9.2)
       '@databases/pg': 5.5.0(typescript@5.9.2)
@@ -9743,8 +9746,8 @@ snapshots:
       '@fastify/error': 4.2.0
       '@hapi/topo': 6.0.2
       '@matteo.collina/sqlite-pool': 0.6.0
-      '@platformatic/telemetry': 2.75.0
-      '@platformatic/utils': 2.75.0
+      '@platformatic/telemetry': 2.75.2
+      '@platformatic/utils': 2.75.2
       async-cache-dedupe: 2.2.0
       camelcase: 6.3.0
       fastify-plugin: 5.0.1
@@ -9754,14 +9757,14 @@ snapshots:
       - supports-color
       - typescript
 
-  '@platformatic/sql-openapi@2.75.0(typescript@5.9.2)':
+  '@platformatic/sql-openapi@2.75.2(typescript@5.9.2)':
     dependencies:
       '@fastify/deepmerge': 2.0.2
       '@fastify/error': 4.2.0
       '@fastify/swagger': 9.5.1
-      '@platformatic/scalar-theme': 2.75.0
-      '@platformatic/sql-json-schema-mapper': 2.75.0
-      '@platformatic/utils': 2.75.0
+      '@platformatic/scalar-theme': 2.75.2
+      '@platformatic/sql-json-schema-mapper': 2.75.2
+      '@platformatic/utils': 2.75.2
       '@scalar/fastify-api-reference': 1.34.4(typescript@5.9.2)
       camelcase: 6.3.0
       fastify-plugin: 5.0.1
@@ -10448,7 +10451,7 @@ snapshots:
 
   '@storybook/react-docgen-typescript-plugin@1.0.6--canary.9.0c3f3b7.0(typescript@5.9.2)(webpack@5.101.3(esbuild@0.25.9))':
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.3
       endent: 2.1.0
       find-cache-dir: 3.3.2
       flat-cache: 3.2.0
@@ -10699,6 +10702,10 @@ snapshots:
   '@types/lodash@4.17.20': {}
 
   '@types/luxon@3.7.1': {}
+
+  '@types/node@24.3.3':
+    dependencies:
+      undici-types: 7.10.0
 
   '@types/node@24.3.3':
     dependencies:
@@ -13447,7 +13454,7 @@ snapshots:
 
   json-schema-resolver@3.0.0:
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.3
       fast-uri: 3.1.0
       rfdc: 1.4.1
     transitivePeerDependencies:
