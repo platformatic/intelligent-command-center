@@ -423,7 +423,7 @@ importers:
         version: 11.2.0
       '@platformatic/composer':
         specifier: ^2.70.1
-        version: 2.75.0(chokidar@3.6.0)(typescript@5.9.2)
+        version: 2.75.2(chokidar@3.6.0)(typescript@5.9.2)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.0.1
@@ -2098,8 +2098,8 @@ packages:
   '@platformatic/client@2.75.2':
     resolution: {integrity: sha512-UJkU6tqixCFG8W+lB87TiBVPmB6SwWz0x6YOKPshUQufaodmyZXypN2EoRsvX9NT4nWhZkEP/S9SJoV8y4NOwQ==}
 
-  '@platformatic/composer@2.75.0':
-    resolution: {integrity: sha512-zsHEHcwYJQ7gJ9PL7g9bXimt+MWxctGhLwGtgQQL57Iwj+oLqSmL7FUa6XtWk88yy1DRsHxEfd0u3pHletwHuQ==}
+  '@platformatic/composer@2.75.2':
+    resolution: {integrity: sha512-keymH33B1ADTUlNUuk1pPzMrmx+EMXgDm2Pu7HHdXzLgGn1wQc7K614+UbDsoFLzgJQZ8xgXlofC6025Iq6iQg==}
     hasBin: true
 
   '@platformatic/config@2.75.0':
@@ -2170,8 +2170,15 @@ packages:
   '@platformatic/scalar-theme@2.75.0':
     resolution: {integrity: sha512-8aGZPcxZdwvx4xfdut82YoksTOIc4j2RH4LNW/Y76C5/UVWkHfMARNeCaI58XovJnwl2BeETBsPceRmhwTKXag==}
 
+  '@platformatic/scalar-theme@2.75.2':
+    resolution: {integrity: sha512-oTB6aVLM0aw3weJMYovs5tyT3mwdCKEQchIGDv6o60NJQthLm4WYCV64Cqyvu5SzN5BQtxs8lauXpv9NsxXOaA==}
+
   '@platformatic/service@2.75.0':
     resolution: {integrity: sha512-pHtHDBsio+86EUueJGljstwZpKgqly63yKA2tTiU5c5PrQQuxdeYmXCI2AJ3aokALputxjhtrUTvQv43AaYZaw==}
+    hasBin: true
+
+  '@platformatic/service@2.75.2':
+    resolution: {integrity: sha512-xajLPCkjPNdZoBPtWGUM1MRMlNkw/ZOBbyFT9ryIV0N8ypCnmXmGCKaCG1hQ4KldCBEVB7v0m0FvkWK8bvxqUQ==}
     hasBin: true
 
   '@platformatic/sql-events@2.75.0':
@@ -9208,7 +9215,7 @@ snapshots:
       jsonpointer: 5.0.1
       undici: 7.15.0
 
-  '@platformatic/composer@2.75.0(chokidar@3.6.0)(typescript@5.9.2)':
+  '@platformatic/composer@2.75.2(chokidar@3.6.0)(typescript@5.9.2)':
     dependencies:
       '@fastify/error': 4.2.0
       '@fastify/http-proxy': 11.3.0
@@ -9216,14 +9223,14 @@ snapshots:
       '@fastify/static': 8.2.0
       '@fastify/swagger': 9.5.1
       '@fastify/view': 10.0.2
-      '@platformatic/config': 2.75.0
+      '@platformatic/config': 2.75.2
       '@platformatic/fastify-openapi-glue': 5.1.0
-      '@platformatic/generators': 2.75.0
+      '@platformatic/generators': 2.75.2
       '@platformatic/graphql-composer': 0.10.0
-      '@platformatic/scalar-theme': 2.75.0
-      '@platformatic/service': 2.75.0(typescript@5.9.2)
-      '@platformatic/telemetry': 2.75.0
-      '@platformatic/utils': 2.75.0
+      '@platformatic/scalar-theme': 2.75.2
+      '@platformatic/service': 2.75.2(typescript@5.9.2)
+      '@platformatic/telemetry': 2.75.2
+      '@platformatic/utils': 2.75.2
       '@scalar/fastify-api-reference': 1.34.4(typescript@5.9.2)
       ajv: 8.17.1
       commist: 3.2.0
@@ -9242,7 +9249,7 @@ snapshots:
       my-ua-parser: 2.0.4
       nunjucks: 3.2.4(chokidar@3.6.0)
       ora: 6.3.1
-      pino: 9.9.4
+      pino: 9.9.5
       pino-pretty: 13.1.1
       rfdc: 1.4.1
       semgrator: 0.3.0
@@ -9410,7 +9417,7 @@ snapshots:
       graphql: 16.11.0
       mercurius: 15.1.0(graphql@16.11.0)
       metaline: 1.1.0
-      pino: 9.9.4
+      pino: 9.9.5
       undici: 7.15.0
     transitivePeerDependencies:
       - bufferutil
@@ -9576,6 +9583,8 @@ snapshots:
 
   '@platformatic/scalar-theme@2.75.0': {}
 
+  '@platformatic/scalar-theme@2.75.2': {}
+
   '@platformatic/service@2.75.0(typescript@5.9.2)':
     dependencies:
       '@fastify/accepts': 5.0.2
@@ -9619,6 +9628,60 @@ snapshots:
       my-ua-parser: 2.0.4
       ora: 6.3.1
       pino: 9.9.4
+      pino-pretty: 13.1.1
+      prom-client: 15.1.3
+      rfdc: 1.4.1
+      semgrator: 0.3.0
+      undici: 7.15.0
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - typescript
+      - utf-8-validate
+
+  '@platformatic/service@2.75.2(typescript@5.9.2)':
+    dependencies:
+      '@fastify/accepts': 5.0.2
+      '@fastify/autoload': 6.3.1
+      '@fastify/basic-auth': 6.2.0
+      '@fastify/cors': 10.1.0
+      '@fastify/deepmerge': 2.0.2
+      '@fastify/error': 4.2.0
+      '@fastify/static': 8.2.0
+      '@fastify/swagger': 9.5.1
+      '@fastify/under-pressure': 9.0.3
+      '@platformatic/client': 2.75.2
+      '@platformatic/config': 2.75.2
+      '@platformatic/generators': 2.75.2
+      '@platformatic/metrics': 2.75.2
+      '@platformatic/scalar-theme': 2.75.2
+      '@platformatic/telemetry': 2.75.2
+      '@platformatic/ts-compiler': 2.75.2
+      '@platformatic/utils': 2.75.2
+      '@scalar/fastify-api-reference': 1.34.4(typescript@5.9.2)
+      '@types/ws': 8.18.1
+      ajv: 8.17.1
+      cli-progress: 3.12.0
+      close-with-grace: 2.2.0
+      code-block-writer: 13.0.3
+      colorette: 2.0.20
+      commist: 3.2.0
+      console-table-printer: 2.14.6
+      desm: 1.3.1
+      env-schema: 6.0.1
+      es-main: 1.4.0
+      execa: 9.6.0
+      fast-json-patch: 3.1.1
+      fastify: 5.6.0
+      fastify-metrics: 12.1.0(fastify@5.6.0)
+      fastify-plugin: 5.0.1
+      graphql: 16.11.0
+      help-me: 5.0.0
+      mercurius: 16.2.0(graphql@16.11.0)
+      minimist: 1.2.8
+      my-ua-parser: 2.0.4
+      ora: 6.3.1
+      pino: 9.9.5
       pino-pretty: 13.1.1
       prom-client: 15.1.3
       rfdc: 1.4.1
