@@ -9,6 +9,22 @@ import { getFormattedDate } from '~/utilities/dates'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import useICCStore from '~/useICCStore'
 
+// Helper function to get the latest compatible version for an app's current version
+function getLatestCompatibleVersion (currentVersion, packageVersions, packageName) {
+  if (!currentVersion || !packageVersions?.[packageName]) {
+    return null
+  }
+
+  // Extract major version from current version (e.g., "1.52.0" -> 1)
+  const versionMatch = currentVersion.match(/^(\d+)\./)
+  if (!versionMatch) {
+    return null
+  }
+
+  const majorVersion = parseInt(versionMatch[1])
+  return packageVersions[packageName][majorVersion] || null
+}
+
 function AppNameBox ({
   gridClassName = '',
   application,
@@ -17,6 +33,16 @@ function AppNameBox ({
   const globalState = useICCStore()
 
   const { packageVersions } = globalState
+
+  // Get the latest compatible runtime version for this app
+  const latestCompatibleVersion = getLatestCompatibleVersion(
+    application.pltVersion,
+    packageVersions,
+    '@platformatic/runtime'
+  )
+
+  // Debug logging for version comparison
+  const shouldShowWarning = application.pltVersion !== latestCompatibleVersion && latestCompatibleVersion
 
   return (
     <BorderedBox classes={`${styles.borderexBoxContainer} ${gridClassName}`} backgroundColor={BLACK_RUSSIAN} color={TRANSPARENT}>
@@ -66,11 +92,11 @@ function AppNameBox ({
                       {application.pltVersion
                         ? (
                           <>
-                            <span className={`${typographyStyles.desktopBodySmall} ${application.pltVersion !== packageVersions['@platformatic/runtime'] ? typographyStyles.textWarningYellow : typographyStyles.textWhite}`}>{application.pltVersion}</span>
-                            {application.pltVersion !== packageVersions['@platformatic/runtime'] && (
+                            <span className={`${typographyStyles.desktopBodySmall} ${shouldShowWarning ? typographyStyles.textWarningYellow : typographyStyles.textWhite}`}>{application.pltVersion}</span>
+                            {shouldShowWarning && (
                               <Tooltip
                                 tooltipClassName={tooltipStyles.tooltipDarkStyle}
-                                content={(<span>There is a new Platformatic version.</span>)}
+                                content={(<span>There is a new Platformatic version: {latestCompatibleVersion}</span>)}
                                 offset={24}
                                 immediateActive={false}
                               >
