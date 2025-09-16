@@ -17,19 +17,20 @@ VALKEY_APPS_ADDRESS="${VALKEY_APPS_ADDRESS:-}"
 KUBE_CONTEXT="${KUBE_CONTEXT:-}"
 PUBLIC_URL="${PUBLIC_URL:-}"
 PROMETHEUS_URL="${PROMETHEUS_URL:-}"
-GITHUB_USERNAME="${GITHUB_USERNAME:-}"
-GITHUB_TOKEN="${GITHUB_TOKEN:-}"
+
+# Elasticache settings
+ELASTICACHE_ROLE_ARN="${ELASTICACHE_ROLE_ARN:-}"
+ELASTICACHE_REGION="${ELASTICACHE_REGION:-}"
+ELASTICACHE_CLUSTER_NAME="${ELASTICACHE_CLUSTER_NAME:-}"
 
 # OAuth settings
 GITHUB_OAUTH_CLIENT_ID="${GITHUB_OAUTH_CLIENT_ID:-}"
 GITHUB_OAUTH_CLIENT_SECRET="${GITHUB_OAUTH_CLIENT_SECRET:-}"
 GOOGLE_OAUTH_CLIENT_ID="${GOOGLE_OAUTH_CLIENT_ID:-}"
 GOOGLE_OAUTH_CLIENT_SECRET="${GOOGLE_OAUTH_CLIENT_SECRET:-}"
-DISABLE_ICC_OAUTH="${DISABLE_ICC_OAUTH:-}"
 
 # Required software
 readonly REQUIRED_TOOLS=("kubectl" "helm" "psql" "jq" "openssl")
-
 
 # Show usage information
 show_usage() {
@@ -44,9 +45,12 @@ OPTIONS:
     --valkey-apps ADDRESS           Valkey/Redis address for applications (optional)
     --public-url URL                Public URL for ICC access (optional)
     --prometheus URL                Prometheus server URL (optional)
-    --github-username USER          GitHub username for image pull (optional)
-    --github-token TOKEN            GitHub personal access token (optional)
     --kube-context CONTEXT          Kubernetes context name (optional)
+
+    ELASTICACHE CONFIGURATION:
+    --elasticache-role-arn ARN      Elasticache IAM role ARN (optional)
+    --elasticache-region REGION     Elasticache cluster region (optional)
+    --elasticache-cluster-name NAME Elasticache cluster name (optional)
     
     OAUTH AUTHENTICATION:
     --gh-oauth-client-id ID         GitHub OAuth client ID (optional)
@@ -55,7 +59,6 @@ OPTIONS:
     --github-oauth-client-secret SECRET GitHub OAuth client secret (alternative syntax)
     --google-oauth-client-id ID     Google OAuth client ID (optional)
     --google-oauth-client-secret SECRET Google OAuth client secret (optional)
-    --disable-icc-oauth             Disable OAuth and use demo authentication only (optional)
     
     -h, --help                      Show this help message
 
@@ -64,9 +67,7 @@ If not provided, you will be prompted to enter required values.
 OAuth Configuration:
 - If OAuth credentials are provided, the respective authentication method will be enabled
 - If partial OAuth credentials are provided (only ID or secret), you'll be prompted for the missing part
-- If no OAuth credentials are provided, you'll be prompted to configure at least one authentication method
-- When OAuth is configured, demo authentication is automatically disabled
-- Use --disable-icc-oauth to skip OAuth setup and use only demo authentication
+- If no OAuth credentials are provided, you will be prompted to configure at least one authentication method
 
 EXAMPLES:
     Interactive mode:
@@ -79,8 +80,6 @@ EXAMPLES:
         --valkey-apps "redis://localhost:6380" \\
         --public-url "https://icc.example.com" \\
         --prometheus "http://prometheus:9090" \\
-        --github-username "myuser" \\
-        --github-token "ghp_token..." \\
         --kube-context "my-cluster" \\
         --gh-oauth-client-id "your_github_client_id" \\
         --gh-oauth-client-secret "your_github_client_secret"
@@ -92,25 +91,23 @@ EXAMPLES:
         --valkey-apps "redis://localhost:6380" \\
         --public-url "https://icc.example.com" \\
         --prometheus "http://prometheus:9090" \\
-        --github-username "myuser" \\
-        --github-token "ghp_token..." \\
         --kube-context "my-cluster" \\
         --github-oauth-client-id "your_github_client_id" \\
         --github-oauth-client-secret "your_github_client_secret" \\
         --google-oauth-client-id "your_google_client_id" \\
         --google-oauth-client-secret "your_google_client_secret"
 
-    Demo authentication only (no OAuth):
+    With Elasticache configuration:
     ./$SCRIPT_NAME \\
         --pg-superuser "postgresql://user:pass@host:5432" \\
         --valkey-icc "redis://localhost:6379" \\
         --valkey-apps "redis://localhost:6380" \\
         --public-url "https://icc.example.com" \\
         --prometheus "http://prometheus:9090" \\
-        --github-username "myuser" \\
-        --github-token "ghp_token..." \\
         --kube-context "my-cluster" \\
-        --disable-icc-oauth
+        --elasticache-role-arn "arn:aws:iam::123456789012:role/ElasticacheRole" \\
+        --elasticache-region "us-west-2" \\
+        --elasticache-cluster-name "my-elasticache-cluster" \\
 
 EOF
 }
@@ -163,14 +160,6 @@ parse_arguments() {
 			PROMETHEUS_URL="$2"
 			shift 2
 			;;
-		--github-username)
-			GITHUB_USERNAME="$2"
-			shift 2
-			;;
-		--github-token)
-			GITHUB_TOKEN="$2"
-			shift 2
-			;;
 		--gh-oauth-client-id | --github-oauth-client-id)
 			GITHUB_OAUTH_CLIENT_ID="$2"
 			shift 2
@@ -187,9 +176,17 @@ parse_arguments() {
 			GOOGLE_OAUTH_CLIENT_SECRET="$2"
 			shift 2
 			;;
-		--disable-icc-oauth)
-			DISABLE_ICC_OAUTH="true"
-			shift 1
+		--elasticache-role-arn)
+			ELASTICACHE_ROLE_ARN="$2"
+			shift 2
+			;;
+		--elasticache-region)
+			ELASTICACHE_REGION="$2"
+			shift 2
+			;;
+		--elasticache-cluster-name)
+			ELASTICACHE_CLUSTER_NAME="$2"
+			shift 2
 			;;
 		-h | --help)
 			show_usage
@@ -248,26 +245,6 @@ validate_public_url() {
 	return 0
 }
 
-# Validate GitHub username format
-validate_github_username() {
-	local username="$1"
-	if [[ ! "$username" =~ ^[a-zA-Z0-9-]+$ ]]; then
-		error "GitHub username can only contain letters, numbers, and hyphens."
-		return 1
-	fi
-	return 0
-}
-
-# Validate GitHub token format
-validate_github_token() {
-	local token="$1"
-	if [[ ! "$token" =~ ^ghp_[A-Za-z0-9_]{36,}$ ]]; then
-		error "Invalid GitHub token format. Tokens should start with ghp_."
-		return 1
-	fi
-	return 0
-}
-
 # Validate OAuth client ID format
 validate_oauth_client_id() {
 	local client_id="$1"
@@ -291,6 +268,40 @@ validate_oauth_client_secret() {
 	fi
 	if [[ ${#client_secret} -lt 10 ]]; then
 		error "OAuth client secret appears too short (minimum 10 characters)."
+		return 1
+	fi
+	return 0
+}
+
+# Validate Elasticache role ARN format
+validate_elasticache_role_arn() {
+	local role_arn="$1"
+	if [[ ! "$role_arn" =~ ^arn:aws:iam::[0-9]+:role/.+ ]]; then
+		error "Invalid IAM role ARN format. Expected: arn:aws:iam::ACCOUNT:role/ROLE_NAME"
+		return 1
+	fi
+	return 0
+}
+
+# Validate AWS region format
+validate_aws_region() {
+	local region="$1"
+	if [[ ! "$region" =~ ^[a-z]{2}-[a-z]+-[0-9]+$ ]]; then
+		error "Invalid AWS region format. Expected format: us-west-2, eu-central-1, etc."
+		return 1
+	fi
+	return 0
+}
+
+# Validate Elasticache cluster name format
+validate_elasticache_cluster_name() {
+	local cluster_name="$1"
+	if [[ ! "$cluster_name" =~ ^[a-zA-Z][a-zA-Z0-9-]*$ ]]; then
+		error "Invalid cluster name. Must start with a letter and contain only letters, numbers, and hyphens."
+		return 1
+	fi
+	if [[ ${#cluster_name} -gt 50 ]]; then
+		error "Cluster name too long (maximum 50 characters)."
 		return 1
 	fi
 	return 0
@@ -463,22 +474,6 @@ prompt_public_url() {
 		"validate_public_url"
 }
 
-prompt_github_username() {
-	prompt_input "GITHUB_USERNAME" \
-		"ICC requires a GitHub username for image pull access" \
-		"Enter your GitHub username: " \
-		"validate_github_username"
-}
-
-prompt_github_token() {
-	prompt_input "GITHUB_TOKEN" \
-		"ICC requires a GitHub personal access token for image pull access" \
-		"Enter your GitHub personal access token: " \
-		"validate_github_token" \
-		"true" \
-		"Token needs 'packages:read' permission for ghcr.io access"
-}
-
 # OAuth configuration prompts
 prompt_github_oauth_client_id() {
 	prompt_input "GITHUB_OAUTH_CLIENT_ID" \
@@ -514,6 +509,62 @@ prompt_google_oauth_client_secret() {
 		"validate_oauth_client_secret" \
 		"true" \
 		"You can get this from Google Cloud Console > APIs & Services > Credentials"
+}
+
+# Elasticache configuration prompts
+prompt_elasticache_role_arn() {
+	prompt_input "ELASTICACHE_ROLE_ARN" \
+		"Elasticache requires an IAM role ARN for AWS access" \
+		"Enter the Elasticache IAM role ARN: " \
+		"validate_elasticache_role_arn" \
+		"false" \
+		"Example: arn:aws:iam::123456789012:role/ElasticacheRole"
+}
+
+prompt_elasticache_region() {
+	prompt_input "ELASTICACHE_REGION" \
+		"Elasticache requires the AWS region where the cluster is located" \
+		"Enter the AWS region: " \
+		"validate_aws_region" \
+		"false" \
+		"Example: us-west-2, eu-central-1, ap-southeast-1"
+}
+
+prompt_elasticache_cluster_name() {
+	prompt_input "ELASTICACHE_CLUSTER_NAME" \
+		"Elasticache requires the cluster name for connection" \
+		"Enter the Elasticache cluster name: " \
+		"validate_elasticache_cluster_name" \
+		"false" \
+		"This is the name of your existing Elasticache cluster"
+}
+
+prompt_elasticache_setup() {
+	info "If the Valkey instance for Apps is hosted with AWS Elasticache, Platformatic will need an IAM role to manage the cluster."
+	info "See documentation at https://icc.platformatic.dev/installation/elasticache/"
+	echo
+
+	while true; do
+		printf "Do you want to configure Elasticache? [y/N]: "
+		read -r response
+
+		case "$response" in
+		[yY][eE][sS]|[yY])
+			info "Configuring Elasticache..."
+			prompt_elasticache_role_arn
+			prompt_elasticache_region
+			prompt_elasticache_cluster_name
+			return 0
+			;;
+		[nN][oO]|[nN]|"")
+			info "Skipping Elasticache configuration"
+			return 0
+			;;
+		*)
+			error "Please answer yes (y) or no (n)."
+			;;
+		esac
+	done
 }
 
 # Prompt user to choose and configure OAuth method
@@ -837,14 +888,70 @@ validate_or_prompt() {
 	fi
 }
 
-# OAuth configuration logic
-handle_oauth_configuration() {
-	# If OAuth is disabled, skip all OAuth configuration
-	if [[ "$DISABLE_ICC_OAUTH" == "true" ]]; then
-		info "ICC OAuth disabled, using demo authentication only"
-		return 0
+# Elasticache configuration logic
+handle_elasticache_configuration() {
+	# Check if any Elasticache parameters are already provided
+	local has_partial_config=false
+	local has_complete_config=false
+
+	if [[ -n "$ELASTICACHE_ROLE_ARN" || -n "$ELASTICACHE_REGION" || -n "$ELASTICACHE_CLUSTER_NAME" ]]; then
+		has_partial_config=true
+
+		# Check if all required parameters are provided
+		if [[ -n "$ELASTICACHE_ROLE_ARN" && -n "$ELASTICACHE_REGION" && -n "$ELASTICACHE_CLUSTER_NAME" ]]; then
+			has_complete_config=true
+		fi
 	fi
 
+	if [[ "$has_complete_config" == true ]]; then
+		# Validate all provided parameters
+		if ! validate_elasticache_role_arn "$ELASTICACHE_ROLE_ARN"; then
+			fatal "Invalid Elasticache role ARN"
+		fi
+		if ! validate_aws_region "$ELASTICACHE_REGION"; then
+			fatal "Invalid AWS region"
+		fi
+		if ! validate_elasticache_cluster_name "$ELASTICACHE_CLUSTER_NAME"; then
+			fatal "Invalid Elasticache cluster name"
+		fi
+		info "Elasticache configuration provided and validated"
+	elif [[ "$has_partial_config" == true ]]; then
+		# Some parameters provided, prompt for missing ones
+		info "Partial Elasticache configuration detected, prompting for missing values..."
+
+		if [[ -z "$ELASTICACHE_ROLE_ARN" ]]; then
+			prompt_elasticache_role_arn
+		else
+			if ! validate_elasticache_role_arn "$ELASTICACHE_ROLE_ARN"; then
+				fatal "Invalid Elasticache role ARN"
+			fi
+		fi
+
+		if [[ -z "$ELASTICACHE_REGION" ]]; then
+			prompt_elasticache_region
+		else
+			if ! validate_aws_region "$ELASTICACHE_REGION"; then
+				fatal "Invalid AWS region"
+			fi
+		fi
+
+		if [[ -z "$ELASTICACHE_CLUSTER_NAME" ]]; then
+			prompt_elasticache_cluster_name
+		else
+			if ! validate_elasticache_cluster_name "$ELASTICACHE_CLUSTER_NAME"; then
+				fatal "Invalid Elasticache cluster name"
+			fi
+		fi
+	else
+		# No Elasticache parameters provided, ask user if they want to configure it
+		prompt_elasticache_setup
+	fi
+
+	return 0
+}
+
+# OAuth configuration logic
+handle_oauth_configuration() {
 	local github_partial=false
 	local google_partial=false
 	local has_any_oauth=false
@@ -914,25 +1021,6 @@ handle_oauth_configuration() {
 	return 0
 }
 
-# Validate OAuth flag conflicts
-validate_oauth_conflicts() {
-	if [[ "$DISABLE_ICC_OAUTH" == "true" ]]; then
-		local conflicts=()
-
-		[[ -n "$GITHUB_OAUTH_CLIENT_ID" ]] && conflicts+=("--gh-oauth-client-id/--github-oauth-client-id")
-		[[ -n "$GITHUB_OAUTH_CLIENT_SECRET" ]] && conflicts+=("--gh-oauth-client-secret/--github-oauth-client-secret")
-		[[ -n "$GOOGLE_OAUTH_CLIENT_ID" ]] && conflicts+=("--google-oauth-client-id")
-		[[ -n "$GOOGLE_OAUTH_CLIENT_SECRET" ]] && conflicts+=("--google-oauth-client-secret")
-
-		if [[ ${#conflicts[@]} -gt 0 ]]; then
-			error "Cannot use --disable-icc-oauth with OAuth configuration flags: ${conflicts[*]}"
-			error "Choose either --disable-icc-oauth for demo mode or provide OAuth credentials, not both."
-			return 1
-		fi
-	fi
-	return 0
-}
-
 # Check for required software
 check_requirements() {
 	info "Checking for required software..."
@@ -959,11 +1047,6 @@ main() {
 	# Parse command line arguments
 	parse_arguments "$@"
 
-	# Validate OAuth flag conflicts
-	if ! validate_oauth_conflicts; then
-		fatal "Conflicting authentication flags provided"
-	fi
-
 	# Check requirements
 	if ! check_requirements; then
 		fatal "Requirements check failed"
@@ -983,13 +1066,17 @@ main() {
 
 	# Handle remaining input validation
 	validate_or_prompt "PUBLIC_URL" "prompt_public_url" "validate_public_url" "public URL"
-	validate_or_prompt "GITHUB_USERNAME" "prompt_github_username" "validate_github_username" "GitHub username"
-	validate_or_prompt "GITHUB_TOKEN" "prompt_github_token" "validate_github_token" "GitHub token"
 
 	# Handle OAuth configuration
 	info "Configuring authentication methods..."
 	if ! handle_oauth_configuration; then
 		fatal "Failed to configure OAuth authentication"
+	fi
+
+	# Handle Elasticache configuration
+	info "Checking Elasticache configuration..."
+	if ! handle_elasticache_configuration; then
+		fatal "Failed to configure Elasticache"
 	fi
 
 	# Handle kubectl context selection
@@ -1074,59 +1161,51 @@ main() {
 	# Deploy ICC using Helm
 	info "Deploying ICC with Helm..."
 
+	# Build Elasticache configuration parameters
+	local helm_elasticache_args=()
+	if [[ -n "$ELASTICACHE_ROLE_ARN" ]]; then
+		helm_elasticache_args+=("--set" "services.icc.elasticache.role_arn=$ELASTICACHE_ROLE_ARN")
+		info "Elasticache role ARN: $ELASTICACHE_ROLE_ARN"
+	fi
+	if [[ -n "$ELASTICACHE_REGION" ]]; then
+		helm_elasticache_args+=("--set" "services.icc.elasticache.region=$ELASTICACHE_REGION")
+		info "Elasticache region: $ELASTICACHE_REGION"
+	fi
+	if [[ -n "$ELASTICACHE_CLUSTER_NAME" ]]; then
+		helm_elasticache_args+=("--set" "services.icc.elasticache.cluster_name=$ELASTICACHE_CLUSTER_NAME")
+		info "Elasticache cluster name: $ELASTICACHE_CLUSTER_NAME"
+	fi
+
 	# Build OAuth configuration parameters
 	local helm_oauth_args=()
 
-	# If OAuth is disabled, force demo mode
-	if [[ "$DISABLE_ICC_OAUTH" == "true" ]]; then
-		helm_oauth_args+=(
-			"--set" "services.icc.login_methods.github_oauth.enable=false"
-			"--set" "services.icc.login_methods.google_oauth.enable=false"
-			"--set" "services.icc.login_methods.demo.enable=true"
-		)
-		info "Forcing demo authentication (OAuth disabled)"
-	else
-		# Configure GitHub OAuth if provided
-		if [[ -n "$GITHUB_OAUTH_CLIENT_ID" && -n "$GITHUB_OAUTH_CLIENT_SECRET" ]]; then
-			helm_oauth_args+=(
-				"--set" "services.icc.login_methods.github_oauth.enable=true"
-				"--set" "services.icc.login_methods.github_oauth.client_id=$GITHUB_OAUTH_CLIENT_ID"
-				"--set" "services.icc.login_methods.github_oauth.client_secret=$GITHUB_OAUTH_CLIENT_SECRET"
-			)
-			info "Enabling GitHub OAuth authentication"
-		else
-			helm_oauth_args+=(
-				"--set" "services.icc.login_methods.github_oauth.enable=false"
-			)
-		fi
+  # Configure GitHub OAuth if provided
+  if [[ -n "$GITHUB_OAUTH_CLIENT_ID" && -n "$GITHUB_OAUTH_CLIENT_SECRET" ]]; then
+    helm_oauth_args+=(
+      "--set" "services.icc.login_methods.github_oauth.enable=true"
+      "--set" "services.icc.login_methods.github_oauth.client_id=$GITHUB_OAUTH_CLIENT_ID"
+      "--set" "services.icc.login_methods.github_oauth.client_secret=$GITHUB_OAUTH_CLIENT_SECRET"
+    )
+    info "Enabling GitHub OAuth authentication"
+  else
+    helm_oauth_args+=(
+      "--set" "services.icc.login_methods.github_oauth.enable=false"
+    )
+  fi
 
-		# Configure Google OAuth if provided
-		if [[ -n "$GOOGLE_OAUTH_CLIENT_ID" && -n "$GOOGLE_OAUTH_CLIENT_SECRET" ]]; then
-			helm_oauth_args+=(
-				"--set" "services.icc.login_methods.google_oauth.enable=true"
-				"--set" "services.icc.login_methods.google_oauth.client_id=$GOOGLE_OAUTH_CLIENT_ID"
-				"--set" "services.icc.login_methods.google_oauth.client_secret=$GOOGLE_OAUTH_CLIENT_SECRET"
-			)
-			info "Enabling Google OAuth authentication"
-		else
-			helm_oauth_args+=(
-				"--set" "services.icc.login_methods.google_oauth.enable=false"
-			)
-		fi
-
-		# Disable demo mode if any OAuth is configured
-		if [[ -n "$GITHUB_OAUTH_CLIENT_ID" || -n "$GOOGLE_OAUTH_CLIENT_ID" ]]; then
-			helm_oauth_args+=(
-				"--set" "services.icc.login_methods.demo.enable=false"
-			)
-			info "Disabling demo authentication (OAuth enabled)"
-		else
-			helm_oauth_args+=(
-				"--set" "services.icc.login_methods.demo.enable=true"
-			)
-			info "Keeping demo authentication enabled (no OAuth configured)"
-		fi
-	fi
+  # Configure Google OAuth if provided
+  if [[ -n "$GOOGLE_OAUTH_CLIENT_ID" && -n "$GOOGLE_OAUTH_CLIENT_SECRET" ]]; then
+    helm_oauth_args+=(
+      "--set" "services.icc.login_methods.google_oauth.enable=true"
+      "--set" "services.icc.login_methods.google_oauth.client_id=$GOOGLE_OAUTH_CLIENT_ID"
+      "--set" "services.icc.login_methods.google_oauth.client_secret=$GOOGLE_OAUTH_CLIENT_SECRET"
+    )
+    info "Enabling Google OAuth authentication"
+  else
+    helm_oauth_args+=(
+      "--set" "services.icc.login_methods.google_oauth.enable=false"
+    )
+  fi
 
 	if ! helm upgrade --install platformatic oci://ghcr.io/platformatic/helm \
 		--version "4.0.0-alpha.8" \
@@ -1134,8 +1213,6 @@ main() {
 		--namespace platformatic \
 		-f ../infra/helm.yaml \
 		--set "cloud=$cloud_provider" \
-		--set "imagePullSecret.user=$GITHUB_USERNAME" \
-		--set "imagePullSecret.token=$GITHUB_TOKEN" \
 		--set "services.icc.database_url=$new_postgres_url" \
 		--set "services.icc.public_url=$PUBLIC_URL" \
 		--set "services.icc.prometheus.url=$PROMETHEUS_URL" \
@@ -1144,6 +1221,7 @@ main() {
 		--set "services.icc.secrets.user_manager_session=$(openssl rand -base64 32)" \
 		--set "services.icc.secrets.icc_session=$(openssl rand -hex 32)" \
 		--set "services.icc.secrets.control_plane_keys=$(openssl rand -hex 32)" \
+		"${helm_elasticache_args[@]}" \
 		"${helm_oauth_args[@]}"; then
 		fatal "Helm deployment failed"
 	fi

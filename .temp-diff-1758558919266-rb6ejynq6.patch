@@ -1,0 +1,327 @@
+diff --git a/scripts/install.sh b/scripts/install.sh
+index b2e8a730..90eeb6b9 100755
+--- a/scripts/install.sh
++++ b/scripts/install.sh
+@@ -17,8 +17,6 @@ VALKEY_APPS_ADDRESS="${VALKEY_APPS_ADDRESS:-}"
+ KUBE_CONTEXT="${KUBE_CONTEXT:-}"
+ PUBLIC_URL="${PUBLIC_URL:-}"
+ PROMETHEUS_URL="${PROMETHEUS_URL:-}"
+-GITHUB_USERNAME="${GITHUB_USERNAME:-}"
+-GITHUB_TOKEN="${GITHUB_TOKEN:-}"
+ 
+ # Elasticache settings
+ ELASTICACHE_ROLE_ARN="${ELASTICACHE_ROLE_ARN:-}"
+@@ -30,12 +28,10 @@ GITHUB_OAUTH_CLIENT_ID="${GITHUB_OAUTH_CLIENT_ID:-}"
+ GITHUB_OAUTH_CLIENT_SECRET="${GITHUB_OAUTH_CLIENT_SECRET:-}"
+ GOOGLE_OAUTH_CLIENT_ID="${GOOGLE_OAUTH_CLIENT_ID:-}"
+ GOOGLE_OAUTH_CLIENT_SECRET="${GOOGLE_OAUTH_CLIENT_SECRET:-}"
+-DISABLE_ICC_OAUTH="${DISABLE_ICC_OAUTH:-}"
+ 
+ # Required software
+ readonly REQUIRED_TOOLS=("kubectl" "helm" "psql" "jq" "openssl")
+ 
+-
+ # Show usage information
+ show_usage() {
+ 	cat <<EOF
+@@ -49,8 +45,6 @@ OPTIONS:
+     --valkey-apps ADDRESS           Valkey/Redis address for applications (optional)
+     --public-url URL                Public URL for ICC access (optional)
+     --prometheus URL                Prometheus server URL (optional)
+-    --github-username USER          GitHub username for image pull (optional)
+-    --github-token TOKEN            GitHub personal access token (optional)
+     --kube-context CONTEXT          Kubernetes context name (optional)
+ 
+     ELASTICACHE CONFIGURATION:
+@@ -65,7 +59,6 @@ OPTIONS:
+     --github-oauth-client-secret SECRET GitHub OAuth client secret (alternative syntax)
+     --google-oauth-client-id ID     Google OAuth client ID (optional)
+     --google-oauth-client-secret SECRET Google OAuth client secret (optional)
+-    --disable-icc-oauth             Disable OAuth and use demo authentication only (optional)
+     
+     -h, --help                      Show this help message
+ 
+@@ -74,9 +67,7 @@ If not provided, you will be prompted to enter required values.
+ OAuth Configuration:
+ - If OAuth credentials are provided, the respective authentication method will be enabled
+ - If partial OAuth credentials are provided (only ID or secret), you'll be prompted for the missing part
+-- If no OAuth credentials are provided, you'll be prompted to configure at least one authentication method
+-- When OAuth is configured, demo authentication is automatically disabled
+-- Use --disable-icc-oauth to skip OAuth setup and use only demo authentication
++- If no OAuth credentials are provided, you will be prompted to configure at least one authentication method
+ 
+ EXAMPLES:
+     Interactive mode:
+@@ -89,8 +80,6 @@ EXAMPLES:
+         --valkey-apps "redis://localhost:6380" \\
+         --public-url "https://icc.example.com" \\
+         --prometheus "http://prometheus:9090" \\
+-        --github-username "myuser" \\
+-        --github-token "ghp_token..." \\
+         --kube-context "my-cluster" \\
+         --gh-oauth-client-id "your_github_client_id" \\
+         --gh-oauth-client-secret "your_github_client_secret"
+@@ -102,8 +91,6 @@ EXAMPLES:
+         --valkey-apps "redis://localhost:6380" \\
+         --public-url "https://icc.example.com" \\
+         --prometheus "http://prometheus:9090" \\
+-        --github-username "myuser" \\
+-        --github-token "ghp_token..." \\
+         --kube-context "my-cluster" \\
+         --github-oauth-client-id "your_github_client_id" \\
+         --github-oauth-client-secret "your_github_client_secret" \\
+@@ -117,25 +104,10 @@ EXAMPLES:
+         --valkey-apps "redis://localhost:6380" \\
+         --public-url "https://icc.example.com" \\
+         --prometheus "http://prometheus:9090" \\
+-        --github-username "myuser" \\
+-        --github-token "ghp_token..." \\
+         --kube-context "my-cluster" \\
+         --elasticache-role-arn "arn:aws:iam::123456789012:role/ElasticacheRole" \\
+         --elasticache-region "us-west-2" \\
+         --elasticache-cluster-name "my-elasticache-cluster" \\
+-        --disable-icc-oauth
+-
+-    Demo authentication only (no OAuth):
+-    ./$SCRIPT_NAME \\
+-        --pg-superuser "postgresql://user:pass@host:5432" \\
+-        --valkey-icc "redis://localhost:6379" \\
+-        --valkey-apps "redis://localhost:6380" \\
+-        --public-url "https://icc.example.com" \\
+-        --prometheus "http://prometheus:9090" \\
+-        --github-username "myuser" \\
+-        --github-token "ghp_token..." \\
+-        --kube-context "my-cluster" \\
+-        --disable-icc-oauth
+ 
+ EOF
+ }
+@@ -188,14 +160,6 @@ parse_arguments() {
+ 			PROMETHEUS_URL="$2"
+ 			shift 2
+ 			;;
+-		--github-username)
+-			GITHUB_USERNAME="$2"
+-			shift 2
+-			;;
+-		--github-token)
+-			GITHUB_TOKEN="$2"
+-			shift 2
+-			;;
+ 		--gh-oauth-client-id | --github-oauth-client-id)
+ 			GITHUB_OAUTH_CLIENT_ID="$2"
+ 			shift 2
+@@ -224,10 +188,6 @@ parse_arguments() {
+ 			ELASTICACHE_CLUSTER_NAME="$2"
+ 			shift 2
+ 			;;
+-		--disable-icc-oauth)
+-			DISABLE_ICC_OAUTH="true"
+-			shift 1
+-			;;
+ 		-h | --help)
+ 			show_usage
+ 			exit 0
+@@ -285,26 +245,6 @@ validate_public_url() {
+ 	return 0
+ }
+ 
+-# Validate GitHub username format
+-validate_github_username() {
+-	local username="$1"
+-	if [[ ! "$username" =~ ^[a-zA-Z0-9-]+$ ]]; then
+-		error "GitHub username can only contain letters, numbers, and hyphens."
+-		return 1
+-	fi
+-	return 0
+-}
+-
+-# Validate GitHub token format
+-validate_github_token() {
+-	local token="$1"
+-	if [[ ! "$token" =~ ^ghp_[A-Za-z0-9_]{36,}$ ]]; then
+-		error "Invalid GitHub token format. Tokens should start with ghp_."
+-		return 1
+-	fi
+-	return 0
+-}
+-
+ # Validate OAuth client ID format
+ validate_oauth_client_id() {
+ 	local client_id="$1"
+@@ -534,22 +474,6 @@ prompt_public_url() {
+ 		"validate_public_url"
+ }
+ 
+-prompt_github_username() {
+-	prompt_input "GITHUB_USERNAME" \
+-		"ICC requires a GitHub username for image pull access" \
+-		"Enter your GitHub username: " \
+-		"validate_github_username"
+-}
+-
+-prompt_github_token() {
+-	prompt_input "GITHUB_TOKEN" \
+-		"ICC requires a GitHub personal access token for image pull access" \
+-		"Enter your GitHub personal access token: " \
+-		"validate_github_token" \
+-		"true" \
+-		"Token needs 'packages:read' permission for ghcr.io access"
+-}
+-
+ # OAuth configuration prompts
+ prompt_github_oauth_client_id() {
+ 	prompt_input "GITHUB_OAUTH_CLIENT_ID" \
+@@ -1029,12 +953,6 @@ handle_elasticache_configuration() {
+ 
+ # OAuth configuration logic
+ handle_oauth_configuration() {
+-	# If OAuth is disabled, skip all OAuth configuration
+-	if [[ "$DISABLE_ICC_OAUTH" == "true" ]]; then
+-		info "ICC OAuth disabled, using demo authentication only"
+-		return 0
+-	fi
+-
+ 	local github_partial=false
+ 	local google_partial=false
+ 	local has_any_oauth=false
+@@ -1104,25 +1022,6 @@ handle_oauth_configuration() {
+ 	return 0
+ }
+ 
+-# Validate OAuth flag conflicts
+-validate_oauth_conflicts() {
+-	if [[ "$DISABLE_ICC_OAUTH" == "true" ]]; then
+-		local conflicts=()
+-
+-		[[ -n "$GITHUB_OAUTH_CLIENT_ID" ]] && conflicts+=("--gh-oauth-client-id/--github-oauth-client-id")
+-		[[ -n "$GITHUB_OAUTH_CLIENT_SECRET" ]] && conflicts+=("--gh-oauth-client-secret/--github-oauth-client-secret")
+-		[[ -n "$GOOGLE_OAUTH_CLIENT_ID" ]] && conflicts+=("--google-oauth-client-id")
+-		[[ -n "$GOOGLE_OAUTH_CLIENT_SECRET" ]] && conflicts+=("--google-oauth-client-secret")
+-
+-		if [[ ${#conflicts[@]} -gt 0 ]]; then
+-			error "Cannot use --disable-icc-oauth with OAuth configuration flags: ${conflicts[*]}"
+-			error "Choose either --disable-icc-oauth for demo mode or provide OAuth credentials, not both."
+-			return 1
+-		fi
+-	fi
+-	return 0
+-}
+-
+ # Check for required software
+ check_requirements() {
+ 	info "Checking for required software..."
+@@ -1149,11 +1048,6 @@ main() {
+ 	# Parse command line arguments
+ 	parse_arguments "$@"
+ 
+-	# Validate OAuth flag conflicts
+-	if ! validate_oauth_conflicts; then
+-		fatal "Conflicting authentication flags provided"
+-	fi
+-
+ 	# Check requirements
+ 	if ! check_requirements; then
+ 		fatal "Requirements check failed"
+@@ -1173,8 +1067,6 @@ main() {
+ 
+ 	# Handle remaining input validation
+ 	validate_or_prompt "PUBLIC_URL" "prompt_public_url" "validate_public_url" "public URL"
+-	validate_or_prompt "GITHUB_USERNAME" "prompt_github_username" "validate_github_username" "GitHub username"
+-	validate_or_prompt "GITHUB_TOKEN" "prompt_github_token" "validate_github_token" "GitHub token"
+ 
+ 	# Handle OAuth configuration
+ 	info "Configuring authentication methods..."
+@@ -1288,56 +1180,33 @@ main() {
+ 	# Build OAuth configuration parameters
+ 	local helm_oauth_args=()
+ 
+-	# If OAuth is disabled, force demo mode
+-	if [[ "$DISABLE_ICC_OAUTH" == "true" ]]; then
+-		helm_oauth_args+=(
+-			"--set" "services.icc.login_methods.github_oauth.enable=false"
+-			"--set" "services.icc.login_methods.google_oauth.enable=false"
+-			"--set" "services.icc.login_methods.demo.enable=true"
+-		)
+-		info "Forcing demo authentication (OAuth disabled)"
+-	else
+-		# Configure GitHub OAuth if provided
+-		if [[ -n "$GITHUB_OAUTH_CLIENT_ID" && -n "$GITHUB_OAUTH_CLIENT_SECRET" ]]; then
+-			helm_oauth_args+=(
+-				"--set" "services.icc.login_methods.github_oauth.enable=true"
+-				"--set" "services.icc.login_methods.github_oauth.client_id=$GITHUB_OAUTH_CLIENT_ID"
+-				"--set" "services.icc.login_methods.github_oauth.client_secret=$GITHUB_OAUTH_CLIENT_SECRET"
+-			)
+-			info "Enabling GitHub OAuth authentication"
+-		else
+-			helm_oauth_args+=(
+-				"--set" "services.icc.login_methods.github_oauth.enable=false"
+-			)
+-		fi
+-
+-		# Configure Google OAuth if provided
+-		if [[ -n "$GOOGLE_OAUTH_CLIENT_ID" && -n "$GOOGLE_OAUTH_CLIENT_SECRET" ]]; then
+-			helm_oauth_args+=(
+-				"--set" "services.icc.login_methods.google_oauth.enable=true"
+-				"--set" "services.icc.login_methods.google_oauth.client_id=$GOOGLE_OAUTH_CLIENT_ID"
+-				"--set" "services.icc.login_methods.google_oauth.client_secret=$GOOGLE_OAUTH_CLIENT_SECRET"
+-			)
+-			info "Enabling Google OAuth authentication"
+-		else
+-			helm_oauth_args+=(
+-				"--set" "services.icc.login_methods.google_oauth.enable=false"
+-			)
+-		fi
+-
+-		# Disable demo mode if any OAuth is configured
+-		if [[ -n "$GITHUB_OAUTH_CLIENT_ID" || -n "$GOOGLE_OAUTH_CLIENT_ID" ]]; then
+-			helm_oauth_args+=(
+-				"--set" "services.icc.login_methods.demo.enable=false"
+-			)
+-			info "Disabling demo authentication (OAuth enabled)"
+-		else
+-			helm_oauth_args+=(
+-				"--set" "services.icc.login_methods.demo.enable=true"
+-			)
+-			info "Keeping demo authentication enabled (no OAuth configured)"
+-		fi
+-	fi
++  # Configure GitHub OAuth if provided
++  if [[ -n "$GITHUB_OAUTH_CLIENT_ID" && -n "$GITHUB_OAUTH_CLIENT_SECRET" ]]; then
++    helm_oauth_args+=(
++      "--set" "services.icc.login_methods.github_oauth.enable=true"
++      "--set" "services.icc.login_methods.github_oauth.client_id=$GITHUB_OAUTH_CLIENT_ID"
++      "--set" "services.icc.login_methods.github_oauth.client_secret=$GITHUB_OAUTH_CLIENT_SECRET"
++    )
++    info "Enabling GitHub OAuth authentication"
++  else
++    helm_oauth_args+=(
++      "--set" "services.icc.login_methods.github_oauth.enable=false"
++    )
++  fi
++
++  # Configure Google OAuth if provided
++  if [[ -n "$GOOGLE_OAUTH_CLIENT_ID" && -n "$GOOGLE_OAUTH_CLIENT_SECRET" ]]; then
++    helm_oauth_args+=(
++      "--set" "services.icc.login_methods.google_oauth.enable=true"
++      "--set" "services.icc.login_methods.google_oauth.client_id=$GOOGLE_OAUTH_CLIENT_ID"
++      "--set" "services.icc.login_methods.google_oauth.client_secret=$GOOGLE_OAUTH_CLIENT_SECRET"
++    )
++    info "Enabling Google OAuth authentication"
++  else
++    helm_oauth_args+=(
++      "--set" "services.icc.login_methods.google_oauth.enable=false"
++    )
++  fi
+ 
+ 	if ! helm upgrade --install platformatic oci://ghcr.io/platformatic/helm \
+ 		--version "4.0.0-alpha.8" \
+@@ -1345,8 +1214,6 @@ main() {
+ 		--namespace platformatic \
+ 		-f ../infra/helm.yaml \
+ 		--set "cloud=$cloud_provider" \
+-		--set "imagePullSecret.user=$GITHUB_USERNAME" \
+-		--set "imagePullSecret.token=$GITHUB_TOKEN" \
+ 		--set "services.icc.database_url=$new_postgres_url" \
+ 		--set "services.icc.public_url=$PUBLIC_URL" \
+ 		--set "services.icc.prometheus.url=$PROMETHEUS_URL" \

@@ -24,5 +24,8 @@ following flags can be set:
 * `--google-oauth-client-id` - Google OAuth
 * `--google-oauth-client-secret` - Google OAuth
 * `--disable-icc-oauth` - Disable OAuth
+* `--elasticache-role-arn` - Valkey Apps Elasticache IAM role ARN
+* `--elasticache-region` - Valkey Apps Elasticache cluster region
+* `--elasticache-cluster-name` - Valkey Apps Elasticache cluster name
 
 If any of these are not set, the user will be prompted.

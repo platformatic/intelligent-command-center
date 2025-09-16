@@ -353,3 +353,170 @@ setup() {
 	[[ "$output" =~ "--google-oauth-client-secret SECRET" ]]
 	[[ "$output" =~ "OAuth Configuration:" ]]
 }
+
+# Elasticache-related tests
+
+@test "install script has Elasticache validation functions" {
+	run grep -n "validate_elasticache_role_arn()" "$INSTALL_SCRIPT"
+	[ "$status" -eq 0 ]
+
+	run grep -n "validate_aws_region()" "$INSTALL_SCRIPT"
+	[ "$status" -eq 0 ]
+
+	run grep -n "validate_elasticache_cluster_name()" "$INSTALL_SCRIPT"
+	[ "$status" -eq 0 ]
+}
+
+@test "install script has Elasticache prompt functions" {
+	run grep -n "prompt_elasticache_role_arn()" "$INSTALL_SCRIPT"
+	[ "$status" -eq 0 ]
+
+	run grep -n "prompt_elasticache_region()" "$INSTALL_SCRIPT"
+	[ "$status" -eq 0 ]
+
+	run grep -n "prompt_elasticache_cluster_name()" "$INSTALL_SCRIPT"
+	[ "$status" -eq 0 ]
+
+	run grep -n "prompt_elasticache_setup()" "$INSTALL_SCRIPT"
+	[ "$status" -eq 0 ]
+}
+
+@test "install script has handle_elasticache_configuration function" {
+	run grep -n "handle_elasticache_configuration()" "$INSTALL_SCRIPT"
+	[ "$status" -eq 0 ]
+}
+
+@test "install script accepts Elasticache arguments" {
+	run grep -n "elasticache-role-arn" "$INSTALL_SCRIPT"
+	[ "$status" -eq 0 ]
+
+	run grep -n "elasticache-region" "$INSTALL_SCRIPT"
+	[ "$status" -eq 0 ]
+
+	run grep -n "elasticache-cluster-name" "$INSTALL_SCRIPT"
+	[ "$status" -eq 0 ]
+}
+
+@test "validate_elasticache_role_arn validates input correctly" {
+	# Valid role ARN
+	run bash -c "source '$INSTALL_SCRIPT'; validate_elasticache_role_arn 'arn:aws:iam::123456789012:role/ElasticacheRole'"
+	[ "$status" -eq 0 ]
+
+	# Invalid role ARN should fail
+	run bash -c "source '$INSTALL_SCRIPT'; validate_elasticache_role_arn 'invalid-arn'"
+	[ "$status" -eq 1 ]
+	[[ "$output" =~ "Invalid IAM role ARN format" ]]
+
+	# Missing parts should fail
+	run bash -c "source '$INSTALL_SCRIPT'; validate_elasticache_role_arn 'arn:aws:iam::123456789012'"
+	[ "$status" -eq 1 ]
+	[[ "$output" =~ "Invalid IAM role ARN format" ]]
+}
+
+@test "validate_aws_region validates input correctly" {
+	# Valid regions
+	run bash -c "source '$INSTALL_SCRIPT'; validate_aws_region 'us-west-2'"
+	[ "$status" -eq 0 ]
+
+	run bash -c "source '$INSTALL_SCRIPT'; validate_aws_region 'eu-central-1'"
+	[ "$status" -eq 0 ]
+
+	run bash -c "source '$INSTALL_SCRIPT'; validate_aws_region 'ap-southeast-1'"
+	[ "$status" -eq 0 ]
+
+	# Invalid regions should fail
+	run bash -c "source '$INSTALL_SCRIPT'; validate_aws_region 'invalid-region'"
+	[ "$status" -eq 1 ]
+	[[ "$output" =~ "Invalid AWS region format" ]]
+
+	run bash -c "source '$INSTALL_SCRIPT'; validate_aws_region 'us-west'"
+	[ "$status" -eq 1 ]
+	[[ "$output" =~ "Invalid AWS region format" ]]
+}
+
+@test "validate_elasticache_cluster_name validates input correctly" {
+	# Valid cluster names
+	run bash -c "source '$INSTALL_SCRIPT'; validate_elasticache_cluster_name 'my-cluster'"
+	[ "$status" -eq 0 ]
+
+	run bash -c "source '$INSTALL_SCRIPT'; validate_elasticache_cluster_name 'cluster123'"
+	[ "$status" -eq 0 ]
+
+	run bash -c "source '$INSTALL_SCRIPT'; validate_elasticache_cluster_name 'MyCluster'"
+	[ "$status" -eq 0 ]
+
+	# Invalid cluster names should fail
+	run bash -c "source '$INSTALL_SCRIPT'; validate_elasticache_cluster_name '123cluster'"
+	[ "$status" -eq 1 ]
+	[[ "$output" =~ "Invalid cluster name" ]]
+
+	run bash -c "source '$INSTALL_SCRIPT'; validate_elasticache_cluster_name 'cluster_with_underscores'"
+	[ "$status" -eq 1 ]
+	[[ "$output" =~ "Invalid cluster name" ]]
+
+	# Too long cluster name should fail
+	run bash -c "source '$INSTALL_SCRIPT'; validate_elasticache_cluster_name 'this-is-a-very-long-cluster-name-that-exceeds-fifty-characters'"
+	[ "$status" -eq 1 ]
+	[[ "$output" =~ "Cluster name too long" ]]
+}
+
+@test "install script help shows Elasticache options" {
+	run "$INSTALL_SCRIPT" --help
+	[ "$status" -eq 0 ]
+	[[ "$output" =~ "ELASTICACHE CONFIGURATION:" ]]
+	[[ "$output" =~ "--elasticache-role-arn ARN" ]]
+	[[ "$output" =~ "--elasticache-region REGION" ]]
+	[[ "$output" =~ "--elasticache-cluster-name NAME" ]]
+	[[ "$output" =~ "Elasticache IAM role ARN (optional)" ]]
+	[[ "$output" =~ "Elasticache cluster region (optional)" ]]
+	[[ "$output" =~ "Elasticache cluster name (optional)" ]]
+	[[ "$output" =~ "With Elasticache configuration:" ]]
+}
+
+@test "handle_elasticache_configuration validates complete config" {
+	run bash -c "
+		export ELASTICACHE_ROLE_ARN='arn:aws:iam::123456789012:role/ElasticacheRole'
+		export ELASTICACHE_REGION='us-west-2'
+		export ELASTICACHE_CLUSTER_NAME='my-cluster'
+		source '$INSTALL_SCRIPT'
+		handle_elasticache_configuration
+	"
+	[ "$status" -eq 0 ]
+	[[ "$output" =~ "Elasticache configuration provided and validated" ]]
+}
+
+@test "handle_elasticache_configuration rejects invalid role ARN" {
+	run bash -c "
+		export ELASTICACHE_ROLE_ARN='invalid-arn'
+		export ELASTICACHE_REGION='us-west-2'
+		export ELASTICACHE_CLUSTER_NAME='my-cluster'
+		source '$INSTALL_SCRIPT'
+		handle_elasticache_configuration
+	"
+	[ "$status" -eq 1 ]
+	[[ "$output" =~ "Invalid Elasticache role ARN" ]]
+}
+
+@test "handle_elasticache_configuration rejects invalid region" {
+	run bash -c "
+		export ELASTICACHE_ROLE_ARN='arn:aws:iam::123456789012:role/ElasticacheRole'
+		export ELASTICACHE_REGION='invalid-region'
+		export ELASTICACHE_CLUSTER_NAME='my-cluster'
+		source '$INSTALL_SCRIPT'
+		handle_elasticache_configuration
+	"
+	[ "$status" -eq 1 ]
+	[[ "$output" =~ "Invalid AWS region" ]]
+}
+
+@test "handle_elasticache_configuration rejects invalid cluster name" {
+	run bash -c "
+		export ELASTICACHE_ROLE_ARN='arn:aws:iam::123456789012:role/ElasticacheRole'
+		export ELASTICACHE_REGION='us-west-2'
+		export ELASTICACHE_CLUSTER_NAME='123invalid'
+		source '$INSTALL_SCRIPT'
+		handle_elasticache_configuration
+	"
+	[ "$status" -eq 1 ]
+	[[ "$output" =~ "Invalid Elasticache cluster name" ]]
+}
