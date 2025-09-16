@@ -96,7 +96,8 @@ function AppNameBox ({
                             {shouldShowWarning && (
                               <Tooltip
                                 tooltipClassName={tooltipStyles.tooltipDarkStyle}
-                                content={(<span>There is a new Platformatic version: {latestCompatibleVersion}</span>)}
+                                content={(<div>New Platformatic version available: <span className={styles.newVersion}>{latestCompatibleVersion}</span></div>)}
+
                                 offset={24}
                                 immediateActive={false}
                               >

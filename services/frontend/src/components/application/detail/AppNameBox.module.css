@@ -20,3 +20,7 @@
 .verticalSeparator {
   @apply hidden md:block
 }
+
+.newVersion {
+  @apply font-bold;
+}
