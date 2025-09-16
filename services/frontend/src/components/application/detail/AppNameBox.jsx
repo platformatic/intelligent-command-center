@@ -97,7 +97,6 @@ function AppNameBox ({
                               <Tooltip
                                 tooltipClassName={tooltipStyles.tooltipDarkStyle}
                                 content={(<div>New Platformatic version available: <span className={styles.newVersion}>{latestCompatibleVersion}</span></div>)}
-
                                 offset={24}
                                 immediateActive={false}
                               >
