@@ -102,7 +102,7 @@ test('isUrlAllowed behavior with path extensions', async (t) => {
 
   const disallowedPaths = [
     createMockRequest('/risk-cold-storage', 'GET'),
-    createMockRequest('/trafficante/request', 'POST')
+    createMockRequest('/traffic-inspector/request', 'POST')
   ]
 
   for (const req of disallowedPaths) {

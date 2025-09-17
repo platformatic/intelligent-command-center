@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
-const { startTrafficante, sortRules, generateRecommendationRoute } = require('./helper')
+const { startTrafficInspector, sortRules, generateRecommendationRoute } = require('./helper')
 
 test('should save a recommendation route (merge with a prev config)', async (t) => {
   const applicationId1 = randomUUID()
@@ -46,13 +46,13 @@ test('should save a recommendation route (merge with a prev config)', async (t) 
     varyHeaders: []
   })
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     recommendations: [prevRecommendation, recommendation],
     recommendationsRoutes: [recommendationRoute1, recommendationRoute2],
     interceptorConfigs: [prevInterceptorConfig]
   })
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: `/recommendations/${recommendation.id}/interceptor-configs/${applicationId1}`
   })
@@ -72,7 +72,7 @@ test('should save a recommendation route (merge with a prev config)', async (t) 
     }
   ])
 
-  const { entities } = trafficante.platformatic
+  const { entities } = trafficInspector.platformatic
 
   const interceptorConfigs = await entities.interceptorConfig.find()
   assert.strictEqual(interceptorConfigs.length, 2)

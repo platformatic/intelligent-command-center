@@ -2,8 +2,8 @@ import { type FastifyReply, type FastifyPluginAsync } from 'fastify'
 import { type GetHeadersOptions, type StatusCode1xx, type StatusCode2xx, type StatusCode3xx, type StatusCode4xx, type StatusCode5xx } from '@platformatic/client'
 import { type FormData } from 'undici'
 
-declare namespace trafficante {
-  export type Trafficante = {
+declare namespace trafficInspector {
+  export type TrafficInspector = {
     /**
      * Get recommendations.
      *
@@ -271,11 +271,11 @@ declare namespace trafficante {
      */
     getUpdates(req: GetUpdatesRequest): Promise<GetUpdatesResponses>;
   }
-  export interface TrafficanteOptions {
+  export interface TrafficInspectorOptions {
     url: string
   }
-  export const trafficante: TrafficantePlugin;
-  export { trafficante as default };
+  export const trafficInspector: TrafficInspectorPlugin;
+  export { trafficInspector as default };
   export interface FullResponse<T, U extends number> {
     'statusCode': U;
     'headers': Record<string, string>;
@@ -1869,14 +1869,14 @@ declare namespace trafficante {
 
 }
 
-type TrafficantePlugin = FastifyPluginAsync<NonNullable<trafficante.TrafficanteOptions>>
+type TrafficInspectorPlugin = FastifyPluginAsync<NonNullable<trafficInspector.TrafficInspectorOptions>>
 
 declare module 'fastify' {
-  interface ConfigureTrafficante {
+  interface ConfigureTrafficInspector {
     getHeaders(req: FastifyRequest, reply: FastifyReply, options: GetHeadersOptions): Promise<Record<string,string>>;
   }
   interface FastifyInstance {
-    configureTrafficante(opts: ConfigureTrafficante): unknown
+    configureTrafficInspector(opts: ConfigureTrafficInspector): unknown
   }
 
   interface FastifyRequest {
@@ -1885,9 +1885,9 @@ declare module 'fastify' {
      *
      * Exposing a SQL database as REST
      */
-    'trafficante': trafficante.Trafficante;
+    'trafficInspector': trafficInspector.TrafficInspector;
   }
 }
 
-declare function trafficante(...params: Parameters<TrafficantePlugin>): ReturnType<TrafficantePlugin>;
-export = trafficante;
+declare function trafficInspector(...params: Parameters<TrafficInspectorPlugin>): ReturnType<TrafficInspectorPlugin>;
+export = trafficInspector;

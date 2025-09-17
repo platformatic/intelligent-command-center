@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
-const { startTrafficante, generateRecommendationRoute } = require('./helper')
+const { startTrafficInspector, generateRecommendationRoute } = require('./helper')
 
 test('should update a recommendation route', async (t) => {
   const recommendation = { id: randomUUID(), version: 1, count: 1 }
@@ -15,12 +15,12 @@ test('should update a recommendation route', async (t) => {
     varyHeaders: []
   })
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     recommendations: [recommendation],
     recommendationsRoutes: [recommendationRoute]
   })
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'PATCH',
     url: `/recommendations/${recommendation.id}/routes/${recommendationRoute.id}`,
     body: {
@@ -31,7 +31,7 @@ test('should update a recommendation route', async (t) => {
   })
   assert.strictEqual(statusCode, 200, body)
 
-  const { entities } = trafficante.platformatic
+  const { entities } = trafficInspector.platformatic
 
   const recommendations = await entities.recommendation.find()
   assert.strictEqual(recommendations.length, 1)
@@ -66,19 +66,19 @@ test('should unselect a recommendation route', async (t) => {
     varyHeaders: []
   })
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     recommendations: [recommendation],
     recommendationsRoutes: [recommendationRoute]
   })
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'PATCH',
     url: `/recommendations/${recommendation.id}/routes/${recommendationRoute.id}`,
     body: { selected: false }
   })
   assert.strictEqual(statusCode, 200, body)
 
-  const { entities } = trafficante.platformatic
+  const { entities } = trafficInspector.platformatic
 
   const recommendations = await entities.recommendation.find()
   assert.strictEqual(recommendations.length, 1)
@@ -114,19 +114,19 @@ test('should select a recommendation route', async (t) => {
     varyHeaders: []
   })
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     recommendations: [recommendation],
     recommendationsRoutes: [recommendationRoute]
   })
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'PATCH',
     url: `/recommendations/${recommendation.id}/routes/${recommendationRoute.id}`,
     body: { selected: true }
   })
   assert.strictEqual(statusCode, 200, body)
 
-  const { entities } = trafficante.platformatic
+  const { entities } = trafficInspector.platformatic
 
   const recommendations = await entities.recommendation.find()
   assert.strictEqual(recommendations.length, 1)

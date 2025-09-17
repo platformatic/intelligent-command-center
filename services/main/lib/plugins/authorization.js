@@ -24,8 +24,8 @@ async function getWhitelistedPaths () {
     ['/fonts', '*'],
     ['/backgrounds', '*'],
     ['/assets', '*'],
-    ['/trafficante/requests', ['POST']],
-    ['/trafficante/requests/hash', ['POST']],
+    ['/traffic-inspector/requests', ['POST']],
+    ['/traffic-inspector/requests/hash', ['POST']],
     ['/risk-service/v1/traces', ['POST']],
     ['/cron/watt-jobs', ['PUT']]
   ]

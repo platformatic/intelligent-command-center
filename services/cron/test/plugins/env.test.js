@@ -32,11 +32,11 @@ test('Setup the default scheduler env information', async (t) => {
     PLT_CRON_ICC_JOB_FFC_RECOMMENDER_URL: 'http://cluster-manager.plt.local/optimize',
     PLT_CRON_ICC_JOB_FFC_RECOMMENDER_METHOD: 'GET',
     PLT_CRON_ICC_JOB_FFC_RECOMMENDER_MAX_RETRIES: 3,
-    PLT_CRON_ICC_JOB_TRAFFICANTE_NAME: 'trafficante',
-    PLT_CRON_ICC_JOB_TRAFFICANTE_CRON: '0 0 * * *',
-    PLT_CRON_ICC_JOB_TRAFFICANTE_URL: 'http://trafficante.plt.local/recommendations',
-    PLT_CRON_ICC_JOB_TRAFFICANTE_METHOD: 'POST',
-    PLT_CRON_ICC_JOB_TRAFFICANTE_MAX_RETRIES: 3,
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_NAME: 'traffic-inspector',
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_CRON: '0 0 * * *',
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_URL: 'http://traffic-inspector.plt.local/recommendations',
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_METHOD: 'POST',
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_MAX_RETRIES: 3,
     PLT_CRON_ICC_JOB_SCALER_NAME: 'scaler',
     PLT_CRON_ICC_JOB_SCALER_CRON: '0 */12 * * *',
     PLT_CRON_ICC_JOB_SCALER_URL: 'http://scaler.plt.local/predictions/calculate',
@@ -77,11 +77,11 @@ test('Overrides scheduler configuration', async (t) => {
     PLT_CRON_ICC_JOB_FFC_RECOMMENDER_NAME: 'ffc-recommender',
     PLT_CRON_ICC_JOB_FFC_RECOMMENDER_URL: 'http://cluster-manager.plt.local/optimize',
     PLT_CRON_ICC_JOB_FFC_RECOMMENDER_MAX_RETRIES: 3,
-    PLT_CRON_ICC_JOB_TRAFFICANTE_NAME: 'trafficante',
-    PLT_CRON_ICC_JOB_TRAFFICANTE_CRON: '0 0 * * *',
-    PLT_CRON_ICC_JOB_TRAFFICANTE_URL: 'http://trafficante.plt.local/recommendations',
-    PLT_CRON_ICC_JOB_TRAFFICANTE_METHOD: 'POST',
-    PLT_CRON_ICC_JOB_TRAFFICANTE_MAX_RETRIES: 3,
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_NAME: 'traffic-inspector',
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_CRON: '0 0 * * *',
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_URL: 'http://traffic-inspector.plt.local/recommendations',
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_METHOD: 'POST',
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_MAX_RETRIES: 3,
     PLT_CRON_ICC_JOB_SCALER_NAME: 'scaler',
     PLT_CRON_ICC_JOB_SCALER_CRON: '0 */12 * * *',
     PLT_CRON_ICC_JOB_SCALER_URL: 'http://scaler.plt.local/predictions/calculate',
@@ -99,7 +99,7 @@ test('All features enabled', async (t) => {
     PLT_FEATURE_FFC: true
   })
 
-  assert.strictEqual(server.env.PLT_CRON_ICC_JOBS, 'SYNC, SCALER, TRAFFICANTE, RISK_SERVICE_DUMP, FFC_RECOMMENDER')
+  assert.strictEqual(server.env.PLT_CRON_ICC_JOBS, 'SYNC, SCALER, TRAFFIC_INSPECTOR, RISK_SERVICE_DUMP, FFC_RECOMMENDER')
 })
 
 test('No features enabled', async (t) => {

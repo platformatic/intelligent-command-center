@@ -85,7 +85,7 @@ test('GET all jobs', async (t) => {
   assert.equal(statusCode, 200)
 
   const jobNames = jobs.map(job => job.name).sort()
-  const expectedJobs = ['ffc-recommender', 'risk-service-dump', 'scaler', 'sync', 'trafficante']
+  const expectedJobs = ['ffc-recommender', 'risk-service-dump', 'scaler', 'sync', 'traffic-inspector']
   assert.deepEqual(jobNames, expectedJobs)
 
   jobs.forEach(job => {

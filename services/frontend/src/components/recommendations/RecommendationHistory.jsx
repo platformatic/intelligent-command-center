@@ -13,7 +13,7 @@ import StatusPill from './StatusPill'
 import DetailView from './DetailView'
 import NoDataFound from '~/components/ui/NoDataFound'
 import { callApiGetRecommendations } from '../../api/recommendations'
-import { callApiGetCacheRecommendations, callApiUpdateRecommendationStatus, callApiTriggerTrafficante } from '../../api/cache-recommendations'
+import { callApiGetCacheRecommendations, callApiUpdateRecommendationStatus, callApiTriggerTrafficInspector } from '../../api/cache-recommendations'
 
 /** @typedef Recommendation
  * @property {string} createdAt
@@ -194,7 +194,7 @@ export default function RecommendationsHistory () {
               label='DEMO: Optimize Cache'
               onClick={async () => {
                 setInnerLoading(true)
-                const result = await callApiTriggerTrafficante()
+                const result = await callApiTriggerTrafficInspector()
                 setInnerLoading(false)
                 if (result) {
                   getRecommendationsHistory()

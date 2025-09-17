@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
-const { startTrafficante } = require('./helper')
+const { startTrafficInspector } = require('./helper')
 
 test('should save application requests hashes', async (t) => {
   const applicationId = randomUUID()
@@ -13,7 +13,7 @@ test('should save application requests hashes', async (t) => {
   const urlPath = '/test?foo=bar'
   const requestUrl1 = `http://${domain}${urlPath}`
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     domains: {
       domains: {
         [applicationId]: {
@@ -31,7 +31,7 @@ test('should save application requests hashes', async (t) => {
   const responseHash1 = 'hash-1'
 
   for (let i = 0; i < 10; i++) {
-    const { statusCode, body } = await trafficante.inject({
+    const { statusCode, body } = await trafficInspector.inject({
       method: 'POST',
       url: '/requests/hash',
       headers: {
@@ -55,7 +55,7 @@ test('should save application requests hashes', async (t) => {
   const responseHash2 = 'hash-2'
 
   for (let i = 0; i < 4; i++) {
-    const { statusCode, body } = await trafficante.inject({
+    const { statusCode, body } = await trafficInspector.inject({
       method: 'POST',
       url: '/requests/hash',
       headers: {
@@ -76,17 +76,17 @@ test('should save application requests hashes', async (t) => {
     assert.strictEqual(statusCode, 200, body)
   }
 
-  const keys = await trafficante.redis.keys('*')
+  const keys = await trafficInspector.redis.keys('*')
   assert.strictEqual(keys.length, 16)
 
-  const version = await trafficante.getCurrentVersion()
+  const version = await trafficInspector.getCurrentVersion()
   assert.strictEqual(version, 0)
 
   const requestKeys = keys.filter((key) => key.includes(':hashes:'))
   assert.strictEqual(requestKeys.length, 14)
 
   for (const requestKey of requestKeys) {
-    const requestMetrics = await trafficante.redis.hgetall(requestKey)
+    const requestMetrics = await trafficInspector.redis.hgetall(requestKey)
     assert.ok(requestMetrics.url)
     assert.ok(requestMetrics.bodyHash)
     assert.ok(requestMetrics.bodySize)
@@ -103,7 +103,7 @@ test('should save application requests hashes (with a saved recommendation)', as
   const urlPath = '/test?foo=bar'
   const requestUrl1 = `http://${domain}${urlPath}`
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     recommendations: [{ version: 44 }],
     domains: {
       domains: {
@@ -122,7 +122,7 @@ test('should save application requests hashes (with a saved recommendation)', as
   const responseHash1 = 'hash-1'
 
   for (let i = 0; i < 10; i++) {
-    const { statusCode, body } = await trafficante.inject({
+    const { statusCode, body } = await trafficInspector.inject({
       method: 'POST',
       url: '/requests/hash',
       headers: {
@@ -147,7 +147,7 @@ test('should save application requests hashes (with a saved recommendation)', as
   const responseHash2 = 'hash-2'
 
   for (let i = 0; i < 4; i++) {
-    const { statusCode, body } = await trafficante.inject({
+    const { statusCode, body } = await trafficInspector.inject({
       method: 'POST',
       url: '/requests/hash',
       headers: {
@@ -168,17 +168,17 @@ test('should save application requests hashes (with a saved recommendation)', as
     assert.strictEqual(statusCode, 200, body)
   }
 
-  const keys = await trafficante.redis.keys('*')
+  const keys = await trafficInspector.redis.keys('*')
   assert.strictEqual(keys.length, 16)
 
-  const version = await trafficante.getCurrentVersion()
+  const version = await trafficInspector.getCurrentVersion()
   assert.strictEqual(version, 44)
 
   const requestKeys = keys.filter((key) => key.includes(':hashes:'))
   assert.strictEqual(requestKeys.length, 14)
 
   for (const requestKey of requestKeys) {
-    const requestMetrics = await trafficante.redis.hgetall(requestKey)
+    const requestMetrics = await trafficInspector.redis.hgetall(requestKey)
     assert.ok(requestMetrics.url)
     assert.ok(requestMetrics.bodyHash)
     assert.ok(requestMetrics.bodySize)

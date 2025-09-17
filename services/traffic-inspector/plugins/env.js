@@ -1,0 +1,57 @@
+'use strict'
+
+const fp = require('fastify-plugin')
+const fastifyEnv = require('@fastify/env')
+
+const schema = {
+  type: 'object',
+  required: [
+    'PLT_ICC_VALKEY_CONNECTION_STRING',
+    'PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_TIME_WINDOW_SEC',
+    'PLT_TRAFFIC_INSPECTOR_DOMAIN_CACHE_TTL_SEC',
+    'PLT_TRAFFIC_INSPECTOR_REQUEST_CACHE_TTL_SEC',
+    'PLT_TRAFFIC_INSPECTOR_ROUTE_CACHE_TTL_SEC',
+    'PLT_TRAFFIC_INSPECTOR_ROUTE_EXAMPLE_CACHE_TTL_SEC',
+    'PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_SCORE_THRESHOLD',
+    'PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_HISTORY_LENGTH',
+    'PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_DECAY_FACTOR',
+    'PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_EXPECTED_IDS',
+    'PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_HISTORY_WEIGHT',
+    'PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_PAST_SCORE_WEIGHT',
+    'PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_SCALE_FACTOR',
+    'PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_SCALE_SIGMA',
+    'PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_BASE_TTL'
+  ],
+
+  properties: {
+    PLT_ICC_VALKEY_CONNECTION_STRING: { type: 'string' },
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_TIME_WINDOW_SEC: { type: 'number', default: 5 * 60 }, // 5 minutes
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_SCORE_THRESHOLD: { type: 'number', default: 0.7 },
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_HISTORY_LENGTH: { type: 'number', default: 5 },
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_DECAY_FACTOR: { type: 'number', default: 0.5 },
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_EXPECTED_IDS: { type: 'number', default: 10 },
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_HISTORY_WEIGHT: { type: 'number', default: 0.3 },
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_PAST_SCORE_WEIGHT: { type: 'number', default: 0.1 },
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_SCALE_FACTOR: { type: 'number', default: 1000 },
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_SCALE_SIGMA: { type: 'number', default: 100 },
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_BASE_TTL: { type: 'number', default: 60 },
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_MIN_TTL: { type: 'number', default: 1 },
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_MAX_TTL: { type: 'number', default: 300 },
+    PLT_TRAFFIC_INSPECTOR_DOMAIN_CACHE_TTL_SEC: { type: 'number', default: 24 * 60 * 60 }, // 1 day
+    PLT_TRAFFIC_INSPECTOR_REQUEST_CACHE_TTL_SEC: { type: 'number', default: 60 }, // 1 minute
+    PLT_TRAFFIC_INSPECTOR_ROUTE_CACHE_TTL_SEC: { type: 'number', default: 24 * 60 * 60 }, // 1 day
+    PLT_TRAFFIC_INSPECTOR_ROUTE_EXAMPLE_CACHE_TTL_SEC: { type: 'number', default: 24 * 60 * 60 } // 1 day
+  }
+}
+
+const fastifyEnvOpts = {
+  schema,
+  confKey: 'env',
+  dotenv: true
+}
+
+async function envPlugin (fastify) {
+  fastify.register(fastifyEnv, fastifyEnvOpts)
+}
+
+module.exports = fp(envPlugin, { name: 'env' })

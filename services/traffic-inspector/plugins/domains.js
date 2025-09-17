@@ -6,10 +6,10 @@ const fp = require('fastify-plugin')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
-  const { PLT_TRAFFICANTE_DOMAIN_CACHE_TTL_SEC: domainsTTL } = app.env
+  const { PLT_TRAFFIC_INSPECTOR_DOMAIN_CACHE_TTL_SEC: domainsTTL } = app.env
 
   app.decorate('getDomains', async (ctx) => {
-    const domainsKey = 'trafficante:domains'
+    const domainsKey = 'traffic-inspector:domains'
 
     const cachedDomains = await app.redis.get(domainsKey)
     if (cachedDomains) {

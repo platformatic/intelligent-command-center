@@ -25,10 +25,10 @@
       "serviceId": "risk-cold-storage"
     },
     {
-      "schema": "../../clients/trafficante/trafficante.openapi.json",
-      "name": "trafficante",
+      "schema": "../../clients/traffic-inspector/traffic-inspector.openapi.json",
+      "name": "trafficInspector",
       "type": "openapi",
-      "serviceId": "trafficante"
+      "serviceId": "traffic-inspector"
     }
   ],
   "watch": "{DEV_K8S}"

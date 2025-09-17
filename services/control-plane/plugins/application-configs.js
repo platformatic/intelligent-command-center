@@ -104,7 +104,7 @@ const plugin = fp(async function (app) {
 
   app.decorate('getHttpCacheConfig', async (application, ctx) => {
     try {
-      const cacheConfigs = await ctx.req.trafficante.getInterceptorConfigs({
+      const cacheConfigs = await ctx.req.trafficInspector.getInterceptorConfigs({
         'where.applicationId.eq': application.id,
         'where.applied.eq': true,
         'orderby.createdAt': 'desc',

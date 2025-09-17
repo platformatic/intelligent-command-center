@@ -20,7 +20,7 @@ test('should list all ICC services name', async (t) => {
     'risk-cold-storage',
     'risk-service',
     'scaler',
-    'trafficante',
+    'traffic-inspector',
     'user-manager'
   ])
 })
@@ -40,7 +40,7 @@ test('should list all ICC services name excluding \'main\'', async (t) => {
     'risk-cold-storage',
     'risk-service',
     'scaler',
-    'trafficante',
+    'traffic-inspector',
     'user-manager'
   ])
 })

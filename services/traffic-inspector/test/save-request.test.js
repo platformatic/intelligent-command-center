@@ -3,14 +3,14 @@
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
-const { startTrafficante } = require('./helper')
+const { startTrafficInspector } = require('./helper')
 
 test('should save an example of the request (route info is already cached)', async (t) => {
   const applicationId = randomUUID()
   const telemetryId = 'test-app-1-service-1'
   const domain = 'example.com'
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     domains: {
       domains: {
         [applicationId]: {
@@ -41,7 +41,7 @@ test('should save an example of the request (route info is already cached)', asy
   }
   const resBody = { foo: 'bar' }
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/requests',
     headers: {
@@ -63,7 +63,7 @@ test('should save an example of the request (route info is already cached)', asy
 
   assert.strictEqual(statusCode, 200, body)
 
-  const routeExamples = await trafficante.platformatic.entities.routeExample.find({})
+  const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
   assert.strictEqual(routeExamples.length, 1)
 
   const routeExample = routeExamples[0]
@@ -73,10 +73,10 @@ test('should save an example of the request (route info is already cached)', asy
   assert.deepStrictEqual(routeExample.request, expectedRequest)
   assert.deepStrictEqual(routeExample.response, expectedResponse)
 
-  const cachedRequestsKeys = await trafficante.redis.keys('trafficante:requests:*')
+  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 0)
 
-  const cachedRouteExamplesKeys = await trafficante.redis.keys('trafficante:examples:*')
+  const cachedRouteExamplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
   assert.strictEqual(cachedRouteExamplesKeys.length, 1)
 })
 
@@ -85,7 +85,7 @@ test('should save an example of the request (route info is not in the cache)', a
   const telemetryId = 'test-app-1-service-1'
   const domain = 'example.com'
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     domains: {
       domains: {
         [applicationId]: {
@@ -111,7 +111,7 @@ test('should save an example of the request (route info is not in the cache)', a
   const resBody = { foo: 'bar' }
 
   {
-    const { statusCode, body } = await trafficante.inject({
+    const { statusCode, body } = await trafficInspector.inject({
       method: 'POST',
       url: '/requests',
       headers: {
@@ -140,22 +140,22 @@ test('should save an example of the request (route info is not in the cache)', a
   const expectedResponse = { headers: resHeaders, body: resBody }
 
   {
-    const routeExamples = await trafficante.platformatic.entities.routeExample.find({})
+    const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
     assert.strictEqual(routeExamples.length, 0)
 
-    const cachedRequestsKeys = await trafficante.redis.keys('trafficante:requests:*')
+    const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
     assert.strictEqual(cachedRequestsKeys.length, 1)
 
-    const cachedRequest = await trafficante.redis.hgetall(cachedRequestsKeys[0])
+    const cachedRequest = await trafficInspector.redis.hgetall(cachedRequestsKeys[0])
     assert.deepStrictEqual(JSON.parse(cachedRequest.request), expectedCachedRequest)
     assert.deepStrictEqual(JSON.parse(cachedRequest.response), expectedResponse)
 
-    const cachedRouteExamplesKeys = await trafficante.redis.keys('trafficante:examples:*')
+    const cachedRouteExamplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
     assert.strictEqual(cachedRouteExamplesKeys.length, 0)
   }
 
   {
-    const { statusCode, body } = await trafficante.inject({
+    const { statusCode, body } = await trafficInspector.inject({
       method: 'POST',
       url: '/routes',
       headers: {
@@ -174,7 +174,7 @@ test('should save an example of the request (route info is not in the cache)', a
   }
 
   {
-    const routeExamples = await trafficante.platformatic.entities.routeExample.find({})
+    const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
     assert.strictEqual(routeExamples.length, 1)
 
     const routeExample = routeExamples[0]
@@ -184,10 +184,10 @@ test('should save an example of the request (route info is not in the cache)', a
     assert.deepStrictEqual(routeExample.request, expectedRequest)
     assert.deepStrictEqual(routeExample.response, expectedResponse)
 
-    const cachedRequestsKeys = await trafficante.redis.keys('trafficante:requests:*')
+    const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
     assert.strictEqual(cachedRequestsKeys.length, 0)
 
-    const cachedRouteExamplesKeys = await trafficante.redis.keys('trafficante:examples:*')
+    const cachedRouteExamplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
     assert.strictEqual(cachedRouteExamplesKeys.length, 1)
   }
 })
@@ -216,7 +216,7 @@ test('should update an existing route example', async (t) => {
   }
   const prevResponse = { headers: resHeaders, body: resBody }
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     domains: {
       domains: {
         [applicationId]: {
@@ -245,7 +245,7 @@ test('should update an existing route example', async (t) => {
 
   const newResBody = { bar: 'new-foo' }
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/requests',
     headers: {
@@ -261,7 +261,7 @@ test('should update an existing route example', async (t) => {
 
   assert.strictEqual(statusCode, 200, body)
 
-  const routeExamples = await trafficante.platformatic.entities.routeExample.find({})
+  const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
   assert.strictEqual(routeExamples.length, 1)
 
   const routeExample = routeExamples[0]
@@ -271,10 +271,10 @@ test('should update an existing route example', async (t) => {
   assert.deepStrictEqual(routeExample.request, prevRequest)
   assert.deepStrictEqual(routeExample.response, newResponse)
 
-  const cachedRequestsKeys = await trafficante.redis.keys('trafficante:requests:*')
+  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 0)
 
-  const cachedRouteExamplesKeys = await trafficante.redis.keys('trafficante:examples:*')
+  const cachedRouteExamplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
   assert.strictEqual(cachedRouteExamplesKeys.length, 1)
 })
 
@@ -297,7 +297,7 @@ test('should not update an existing request if it is cached by redis', async (t)
   const prevRequest = { url: reqUrl, headers: reqHeaders }
   const prevResponse = { headers: resHeaders, body: resBody }
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     domains: {
       domains: {
         [applicationId]: {
@@ -318,19 +318,19 @@ test('should not update an existing request if it is cached by redis', async (t)
     }]
   })
 
-  const requestKey = trafficante.generateRequestKey(
+  const requestKey = trafficInspector.generateRequestKey(
     applicationId,
     telemetryId,
     '/test'
   )
-  await trafficante.redis.hset(requestKey, {
+  await trafficInspector.redis.hset(requestKey, {
     request: JSON.stringify(prevRequest),
     response: JSON.stringify(prevResponse)
   })
 
   const newResBody = { bar: 'new-foo' }
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/requests',
     headers: {
@@ -344,7 +344,7 @@ test('should not update an existing request if it is cached by redis', async (t)
 
   assert.strictEqual(statusCode, 200, body)
 
-  const routeExamples = await trafficante.platformatic.entities.routeExample.find({})
+  const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
   assert.strictEqual(routeExamples.length, 1)
 
   const routeExample = routeExamples[0]
@@ -354,10 +354,10 @@ test('should not update an existing request if it is cached by redis', async (t)
   assert.deepStrictEqual(routeExample.request, prevRequest)
   assert.deepStrictEqual(routeExample.response, prevResponse)
 
-  const cachedRequestsKeys = await trafficante.redis.keys('trafficante:requests:*')
+  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 1)
 
-  const cachedRequest = await trafficante.redis.hgetall(cachedRequestsKeys[0])
+  const cachedRequest = await trafficInspector.redis.hgetall(cachedRequestsKeys[0])
   assert.deepStrictEqual(JSON.parse(cachedRequest.request), prevRequest)
   assert.deepStrictEqual(JSON.parse(cachedRequest.response), prevResponse)
 })
@@ -381,7 +381,7 @@ test('should not update an existing route example if it is cached by redis', asy
   const prevRequest = { url: reqUrl, headers: reqHeaders }
   const prevResponse = { headers: resHeaders, body: resBody }
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     domains: {
       domains: {
         [applicationId]: {
@@ -416,12 +416,12 @@ test('should not update an existing route example if it is cached by redis', asy
     }]
   })
 
-  const routeExampleKey = trafficante.generateRouteExampleKey(
+  const routeExampleKey = trafficInspector.generateRouteExampleKey(
     applicationId,
     telemetryId,
     '/products/:id'
   )
-  await trafficante.redis.set(routeExampleKey, 1)
+  await trafficInspector.redis.set(routeExampleKey, 1)
 
   const newUrl = `http://${domain}/products/43?foo=bar`
   const newResBody = { bar: 'new-foo' }
@@ -433,7 +433,7 @@ test('should not update an existing route example if it is cached by redis', asy
   }
   const newResponse = { headers: resHeaders, body: newResBody }
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/requests',
     headers: {
@@ -447,7 +447,7 @@ test('should not update an existing route example if it is cached by redis', asy
 
   assert.strictEqual(statusCode, 200, body)
 
-  const routeExamples = await trafficante.platformatic.entities.routeExample.find({})
+  const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
   assert.strictEqual(routeExamples.length, 1)
 
   const routeExample = routeExamples[0]
@@ -457,10 +457,10 @@ test('should not update an existing route example if it is cached by redis', asy
   assert.deepStrictEqual(routeExample.request, prevRequest)
   assert.deepStrictEqual(routeExample.response, prevResponse)
 
-  const cachedRequestsKeys = await trafficante.redis.keys('trafficante:requests:*')
+  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 1)
 
-  const cachedRequest = await trafficante.redis.hgetall(cachedRequestsKeys[0])
+  const cachedRequest = await trafficInspector.redis.hgetall(cachedRequestsKeys[0])
   assert.deepStrictEqual(JSON.parse(cachedRequest.request), newRequest)
   assert.deepStrictEqual(JSON.parse(cachedRequest.response), newResponse)
 })

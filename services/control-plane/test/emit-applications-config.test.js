@@ -5,7 +5,7 @@ const { test } = require('node:test')
 const {
   startControlPlane,
   startMainService,
-  startTrafficante
+  startTrafficInspector
 } = require('./helper')
 
 test('should emit application config change', async (t) => {
@@ -37,7 +37,7 @@ test('should emit application config change', async (t) => {
     }
   }
 
-  await startTrafficante(t, {
+  await startTrafficInspector(t, {
     getInterceptorConfigs: () => {
       const configs = []
       if (interceptorConfig) {

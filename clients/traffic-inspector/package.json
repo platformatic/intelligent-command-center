@@ -1,0 +1,5 @@
+{
+  "name": "traffic-interceptor",
+  "types": "./traffic-interceptor.d.ts",
+  "main": "./traffic-interceptor.cjs"
+}

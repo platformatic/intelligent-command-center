@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
-const { startTrafficante, generateRecommendationRoute } = require('./helper')
+const { startTrafficInspector, generateRecommendationRoute } = require('./helper')
 const { startControlPlane } = require('../../control-plane/test/helper')
 
 test('should apply the recommendation', async (t) => {
@@ -46,7 +46,7 @@ test('should apply the recommendation', async (t) => {
     selected: true
   })
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     recommendations: [recommendation],
     recommendationsRoutes: [
       recommendationRoute1,
@@ -54,7 +54,7 @@ test('should apply the recommendation', async (t) => {
     ]
   })
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/recommendations/apply',
     query: {
@@ -64,7 +64,7 @@ test('should apply the recommendation', async (t) => {
   })
   assert.strictEqual(statusCode, 200, body)
 
-  const { entities } = trafficante.platformatic
+  const { entities } = trafficInspector.platformatic
 
   const foundRecommendations = await entities.recommendation.find()
   assert.strictEqual(foundRecommendations.length, 1)
@@ -109,7 +109,7 @@ test('should apply the recommendation without saving a config', async (t) => {
     selected: true
   })
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     recommendations: [recommendation],
     recommendationsRoutes: [
       recommendationRoute1,
@@ -117,7 +117,7 @@ test('should apply the recommendation without saving a config', async (t) => {
     ]
   })
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/recommendations/apply',
     query: {
@@ -127,7 +127,7 @@ test('should apply the recommendation without saving a config', async (t) => {
   })
   assert.strictEqual(statusCode, 200, body)
 
-  const { entities } = trafficante.platformatic
+  const { entities } = trafficInspector.platformatic
 
   const foundRecommendations = await entities.recommendation.find()
   assert.strictEqual(foundRecommendations.length, 1)

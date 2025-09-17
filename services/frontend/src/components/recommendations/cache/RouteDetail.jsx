@@ -25,7 +25,7 @@ export default function RouteDetail ({ routeId, onPageChange = (page) => {} }) {
   }
 
   async function fetchRouteDetails () {
-    const res = await callApi('trafficante', `recommendationsRoutes/${routeId}`, 'GET')
+    const res = await callApi('trafficInspector', `recommendationsRoutes/${routeId}`, 'GET')
     if (Object.keys(res.varyHeaders).length === 0) {
       res.varyHeaders = []
     } else {

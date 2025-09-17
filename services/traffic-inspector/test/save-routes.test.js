@@ -3,15 +3,15 @@
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
-const { startTrafficante } = require('./helper')
+const { startTrafficInspector } = require('./helper')
 
 test('should save url routes', async (t) => {
   const applicationId = randomUUID()
   const telemetryId = 'test-app-1-service-1'
 
-  const trafficante = await startTrafficante(t)
+  const trafficInspector = await startTrafficInspector(t)
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/routes',
     headers: {
@@ -31,20 +31,20 @@ test('should save url routes', async (t) => {
 
   assert.strictEqual(statusCode, 200, body)
 
-  const routeExamples = await trafficante.platformatic.entities.routeExample.find({})
+  const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
   assert.strictEqual(routeExamples.length, 0)
 
-  const routesKeys = await trafficante.redis.keys('trafficante:url-routes:*')
+  const routesKeys = await trafficInspector.redis.keys('traffic-inspector:url-routes:*')
   assert.strictEqual(routesKeys.length, 1)
 
   const routeKey = routesKeys[0]
-  const route = await trafficante.redis.get(routeKey)
+  const route = await trafficInspector.redis.get(routeKey)
   assert.strictEqual(route, '/products/:id')
 
-  const examplesKeys = await trafficante.redis.keys('trafficante:examples:*')
+  const examplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
   assert.strictEqual(examplesKeys.length, 0)
 
-  const cachedRequestsKeys = await trafficante.redis.keys('trafficante:requests:*')
+  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 0)
 })
 
@@ -52,7 +52,7 @@ test('should overwrite a route if it exists', async (t) => {
   const applicationId = randomUUID()
   const telemetryId = 'test-app-1-service-1'
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     routes: [
       {
         applicationId,
@@ -63,7 +63,7 @@ test('should overwrite a route if it exists', async (t) => {
     ]
   })
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/routes',
     headers: {
@@ -83,20 +83,20 @@ test('should overwrite a route if it exists', async (t) => {
 
   assert.strictEqual(statusCode, 200, body)
 
-  const routeExamples = await trafficante.platformatic.entities.routeExample.find({})
+  const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
   assert.strictEqual(routeExamples.length, 0)
 
-  const routesKeys = await trafficante.redis.keys('trafficante:url-routes:*')
+  const routesKeys = await trafficInspector.redis.keys('traffic-inspector:url-routes:*')
   assert.strictEqual(routesKeys.length, 1)
 
   const routeKey = routesKeys[0]
-  const route = await trafficante.redis.get(routeKey)
+  const route = await trafficInspector.redis.get(routeKey)
   assert.strictEqual(route, '/products/*')
 
-  const examplesKeys = await trafficante.redis.keys('trafficante:examples:*')
+  const examplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
   assert.strictEqual(examplesKeys.length, 0)
 
-  const cachedRequestsKeys = await trafficante.redis.keys('trafficante:requests:*')
+  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 0)
 })
 
@@ -122,7 +122,7 @@ test('should save url routes (creates a route example)', async (t) => {
     body: { foo: 'bar' }
   }
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     requests: [{ applicationId, request, response }],
     domains: {
       domains: {
@@ -137,7 +137,7 @@ test('should save url routes (creates a route example)', async (t) => {
     }
   })
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/routes',
     headers: {
@@ -157,7 +157,7 @@ test('should save url routes (creates a route example)', async (t) => {
 
   assert.strictEqual(statusCode, 200, body)
 
-  const routeExamples = await trafficante.platformatic.entities.routeExample.find({})
+  const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
   assert.strictEqual(routeExamples.length, 1)
 
   const routeExample = routeExamples[0]
@@ -167,16 +167,16 @@ test('should save url routes (creates a route example)', async (t) => {
   assert.deepStrictEqual(routeExample.request, request)
   assert.deepStrictEqual(routeExample.response, response)
 
-  const routesKeys = await trafficante.redis.keys('trafficante:url-routes:*')
+  const routesKeys = await trafficInspector.redis.keys('traffic-inspector:url-routes:*')
   assert.strictEqual(routesKeys.length, 1)
 
   const routeKey = routesKeys[0]
-  const route = await trafficante.redis.get(routeKey)
+  const route = await trafficInspector.redis.get(routeKey)
   assert.strictEqual(route, '/products/:id')
 
-  const examplesKeys = await trafficante.redis.keys('trafficante:examples:*')
+  const examplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
   assert.strictEqual(examplesKeys.length, 1)
 
-  const cachedRequestsKeys = await trafficante.redis.keys('trafficante:requests:*')
+  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 0)
 })

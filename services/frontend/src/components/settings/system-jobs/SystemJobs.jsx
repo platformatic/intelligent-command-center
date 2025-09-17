@@ -24,7 +24,7 @@ function SystemJobs () {
   // Status of job form. contains `valid` and `newValue` keys (the latter only if changed)
   // The key is the job name
   const [jobStatus, setJobStatus] = useState({
-    trafficante: {
+    'traffic-inspector': {
       valid: true
     },
     'ffc-recommender': {
@@ -45,9 +45,9 @@ function SystemJobs () {
       const isImporter = syncConfig?.enabled && syncConfig?.isImporter
 
       const allPossibleJobs = [{
-        name: 'Trafficante',
+        name: 'Traffic Inspector',
         label: 'How often you want the ICC to check for Cache optimization.',
-        slug: 'trafficante'
+        slug: 'traffic-inspector'
       },
       {
         name: 'Fusion & Fission',

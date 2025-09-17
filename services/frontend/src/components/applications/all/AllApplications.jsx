@@ -15,7 +15,7 @@ const AllApplications = React.forwardRef(({ _ }, ref) => {
   //   }).length > 0
   // }
   // function hasNewCacheRecommendations () {
-  //   return updates.trafficante?.filter((u) => {
+  //   return updates.trafficInspector?.filter((u) => {
   //     return u.type === 'new-recommendation'
   //   }).length > 0
   // }

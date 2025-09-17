@@ -11,7 +11,7 @@ const defaultEnv = {
 
   PLT_APPLICATIONS_VALKEY_CONNECTION_STRING: 'redis://localhost:6342',
 
-  PLT_EXTERNAL_TRAFFICANTE_URL: 'http://localhost:3033',
+  PLT_EXTERNAL_TRAFFIC_INSPECTOR_URL: 'http://localhost:3033',
   PLT_EXTERNAL_ACTIVITIES_URL: 'http://localhost:3004',
   PLT_EXTERNAL_COMPLIANCE_URL: 'http://localhost:3003',
   PLT_EXTERNAL_CRON_URL: '',
@@ -27,7 +27,7 @@ const defaultEnv = {
   PLT_METRICS_URL: 'http://localhost:3009',
   PLT_MAIN_SERVICE_URL: 'http://localhost:3010',
   PLT_COMPLIANCE_URL: 'http://localhost:3022',
-  PLT_TRAFFICANTE_URL: 'http://localhost:3033',
+  PLT_TRAFFIC_INSPECTOR_URL: 'http://localhost:3033',
 
   PLT_APPLICATIONS_CACHE_PROVIDER: 'valkey-oss',
   PLT_CONTROL_PLANE_SECRET_KEYS: 'secret',
@@ -96,10 +96,10 @@ async function startControlPlane (t, entities = {}, env = {}) {
         url: process.env.PLT_SCALER_URL
       },
       {
-        schema: join(clientsDir, 'trafficante', 'trafficante.openapi.json'),
-        name: 'trafficante',
+        schema: join(clientsDir, 'traffic-inspector', 'traffic-inspector.openapi.json'),
+        name: 'trafficInspector',
         type: 'openapi',
-        url: process.env.PLT_TRAFFICANTE_URL
+        url: process.env.PLT_TRAFFIC_INSPECTOR_URL
       }
     ],
     watch: false
@@ -549,19 +549,19 @@ async function startCompliance (t, opts = {}) {
   return compliance
 }
 
-async function startTrafficante (t, opts = {}) {
-  const trafficante = fastify({ keepAliveTimeout: 1 })
+async function startTrafficInspector (t, opts = {}) {
+  const trafficInspector = fastify({ keepAliveTimeout: 1 })
 
-  trafficante.get('/interceptorConfigs/', async (req) => {
+  trafficInspector.get('/interceptorConfigs/', async (req) => {
     return opts?.getInterceptorConfigs() ?? []
   })
 
   t.after(async () => {
-    await trafficante.close()
+    await trafficInspector.close()
   })
 
-  await trafficante.listen({ port: 3033 })
-  return trafficante
+  await trafficInspector.listen({ port: 3033 })
+  return trafficInspector
 }
 
 function generateK8sAuthContext (podId, namespace) {
@@ -579,7 +579,7 @@ module.exports = {
   startMetrics,
   startMachinist,
   startCompliance,
-  startTrafficante,
+  startTrafficInspector,
   startScaler,
   startMainService,
   generateGeneration,

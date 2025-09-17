@@ -4,7 +4,7 @@
     "pluginTimeout": 60000
   },
   "db": {
-    "connectionString": "{PLT_TRAFFICANTE_DATABASE_URL}",
+    "connectionString": "{PLT_TRAFFIC_INSPECTOR_DATABASE_URL}",
     "openapi": {
       "ignoreRoutes": [
         { "method": "POST", "path": "/recommendations"},

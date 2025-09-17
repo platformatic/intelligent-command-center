@@ -13,7 +13,7 @@ const schema = {
     'PLT_MAIN_SERVICE_URL',
     'PLT_EXTERNAL_CRON_URL',
     'PLT_EXTERNAL_COMPLIANCE_URL',
-    'PLT_EXTERNAL_TRAFFICANTE_URL',
+    'PLT_EXTERNAL_TRAFFIC_INSPECTOR_URL',
     'PLT_EXTERNAL_USER_MANAGER_URL',
     'PLT_EXTERNAL_RISK_MANAGER_URL',
     'PLT_EXTERNAL_RISK_SERVICE_URL',
@@ -34,7 +34,7 @@ const schema = {
     PLT_COMPLIANCE_URL: { type: 'string' },
     PLT_MAIN_SERVICE_URL: { type: 'string' },
     PLT_EXTERNAL_CRON_URL: { type: 'string' },
-    PLT_EXTERNAL_TRAFFICANTE_URL: { type: 'string' },
+    PLT_EXTERNAL_TRAFFIC_INSPECTOR_URL: { type: 'string' },
     PLT_EXTERNAL_USER_MANAGER_URL: { type: 'string' },
     PLT_EXTERNAL_RISK_MANAGER_URL: { type: 'string' },
     PLT_EXTERNAL_RISK_SERVICE_URL: { type: 'string' },
@@ -65,7 +65,7 @@ async function envPlugin (app) {
   await app.register(fastifyEnv, fastifyEnvOpts)
   app.decorate('iccServicesUrls', {
     cron: app.env.PLT_EXTERNAL_CRON_URL,
-    trafficante: app.env.PLT_EXTERNAL_TRAFFICANTE_URL,
+    trafficInspector: app.env.PLT_EXTERNAL_TRAFFIC_INSPECTOR_URL,
     userManager: app.env.PLT_EXTERNAL_USER_MANAGER_URL,
     riskManager: app.env.PLT_EXTERNAL_RISK_MANAGER_URL,
     riskService: app.env.PLT_EXTERNAL_RISK_SERVICE_URL,

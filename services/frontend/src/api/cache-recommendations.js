@@ -1,4 +1,4 @@
-const baseUrl = `${import.meta.env.VITE_API_BASE_URL}/trafficante`
+const baseUrl = `${import.meta.env.VITE_API_BASE_URL}/traffic-inspector`
 
 export const callApiGetCacheRecommendations = async () => {
   const url = `${baseUrl}/recommendations`
@@ -140,7 +140,7 @@ export const callApiApplyRecommendation = async (applicationId, saveInterceptorC
   return true
 }
 
-export const callApiTriggerTrafficante = async () => {
+export const callApiTriggerTrafficInspector = async () => {
   const url = `${baseUrl}/recommendations`
   const response = await fetch(url, {
     method: 'POST',
@@ -153,8 +153,8 @@ export const callApiTriggerTrafficante = async () => {
   }
   const payload = await response.json()
   if (status !== 200) {
-    console.error(`Failed to trigger trafficante: ${payload.message || payload.error}`)
-    throw new Error(`Failed to trigger trafficante: ${payload.message || payload.error}`)
+    console.error(`Failed to trigger traffic inspector: ${payload.message || payload.error}`)
+    throw new Error(`Failed to trigger traffic inspector: ${payload.message || payload.error}`)
   }
   if (payload.id) {
     return true

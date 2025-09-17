@@ -5,7 +5,7 @@ const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
 const { setTimeout: sleep } = require('node:timers/promises')
 const {
-  startTrafficante,
+  startTrafficInspector,
   generateRequests,
   generateRecommendationRoute
 } = require('./helper')
@@ -87,7 +87,7 @@ test('should generate cache recommendation (cold start)', async (t) => {
 
   const versions = [{ version: 42 }]
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     versions,
     requestsHashes,
     routes: [
@@ -112,13 +112,13 @@ test('should generate cache recommendation (cold start)', async (t) => {
     ]
   })
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/recommendations'
   })
   assert.strictEqual(statusCode, 200, body)
 
-  const recommendations = await trafficante.platformatic.entities.recommendation.find({})
+  const recommendations = await trafficInspector.platformatic.entities.recommendation.find({})
   assert.strictEqual(recommendations.length, 1)
 
   const foundRecommendation = recommendations[0]
@@ -127,7 +127,7 @@ test('should generate cache recommendation (cold start)', async (t) => {
   assert.strictEqual(foundRecommendation.count, 1)
   assert.ok(foundRecommendation.createdAt)
 
-  const recommendationsRoutes = await trafficante.platformatic.entities.recommendationsRoute.find({})
+  const recommendationsRoutes = await trafficInspector.platformatic.entities.recommendationsRoute.find({})
   assert.strictEqual(recommendationsRoutes.length, 2)
 
   const route1 = recommendationsRoutes.find((route) => route.route === '/apps/:app-id/products/:id')
@@ -165,19 +165,19 @@ test('should generate cache recommendation (cold start)', async (t) => {
   assert.deepStrictEqual(route2.varyHeaders, [])
   assert.ok(route2.scores)
 
-  const currentVersion = await trafficante.getCurrentVersion()
+  const currentVersion = await trafficInspector.getCurrentVersion()
   assert.strictEqual(currentVersion, 43)
 
-  // Wait for Trafficante to clean up the version metrics
+  // Wait for TrafficInspector to clean up the version metrics
   await sleep(1000)
-  const keys = await trafficante.redis.keys('*')
+  const keys = await trafficInspector.redis.keys('*')
 
-  assert.ok(keys.includes('trafficante:versions'))
+  assert.ok(keys.includes('traffic-inspector:versions'))
 
-  const routeKeys = keys.filter((key) => key.startsWith('trafficante:url-routes:'))
+  const routeKeys = keys.filter((key) => key.startsWith('traffic-inspector:url-routes:'))
   assert.strictEqual(routeKeys.length, 3)
 
-  const interceptorConfigs = await trafficante.platformatic.entities.interceptorConfig.find({})
+  const interceptorConfigs = await trafficInspector.platformatic.entities.interceptorConfig.find({})
   assert.strictEqual(interceptorConfigs.length, 0)
 })
 
@@ -265,7 +265,7 @@ test('should generate a second cache recommendation', async (t) => {
 
   const versions = [{ version: 2 }]
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     versions,
     requestsHashes,
     routes: [
@@ -292,13 +292,13 @@ test('should generate a second cache recommendation', async (t) => {
     recommendationsRoutes: prevRecommendationRoutes
   })
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/recommendations'
   })
   assert.strictEqual(statusCode, 200, body)
 
-  const recommendations = await trafficante.platformatic.entities.recommendation.find({})
+  const recommendations = await trafficInspector.platformatic.entities.recommendation.find({})
   assert.strictEqual(recommendations.length, 2)
 
   const foundPrevRecommendation = recommendations.find((rec) => rec.id === prevRecommendation.id)
@@ -309,7 +309,7 @@ test('should generate a second cache recommendation', async (t) => {
   assert.strictEqual(foundRecommendation.version, 2)
   assert.strictEqual(foundRecommendation.status, 'new')
 
-  const recommendationsRoutes = await trafficante.platformatic.entities.recommendationsRoute.find({})
+  const recommendationsRoutes = await trafficInspector.platformatic.entities.recommendationsRoute.find({})
   assert.strictEqual(recommendationsRoutes.length, 3)
 
   const newRoutes = recommendationsRoutes.filter(
@@ -353,19 +353,19 @@ test('should generate a second cache recommendation', async (t) => {
   assert.deepStrictEqual(route2.varyHeaders, [])
   assert.ok(route2.scores)
 
-  const currentVersion = await trafficante.getCurrentVersion()
+  const currentVersion = await trafficInspector.getCurrentVersion()
   assert.strictEqual(currentVersion, 3)
 
-  // Wait for Trafficante to clean up the version metrics
+  // Wait for TrafficInspector to clean up the version metrics
   await sleep(1000)
-  const keys = await trafficante.redis.keys('*')
+  const keys = await trafficInspector.redis.keys('*')
 
-  assert.ok(keys.includes('trafficante:versions'))
+  assert.ok(keys.includes('traffic-inspector:versions'))
 
-  const routeKeys = keys.filter((key) => key.startsWith('trafficante:url-routes:'))
+  const routeKeys = keys.filter((key) => key.startsWith('traffic-inspector:url-routes:'))
   assert.strictEqual(routeKeys.length, 3)
 
-  const interceptorConfigs = await trafficante.platformatic.entities.interceptorConfig.find({})
+  const interceptorConfigs = await trafficInspector.platformatic.entities.interceptorConfig.find({})
   assert.strictEqual(interceptorConfigs.length, 0)
 })
 
@@ -405,7 +405,7 @@ test('should not recommend a route to cache if there is only one request', async
 
   const versions = [{ version: 1 }]
 
-  const trafficante = await startTrafficante(t, {
+  const trafficInspector = await startTrafficInspector(t, {
     versions,
     requestsHashes,
     routes: [
@@ -418,15 +418,15 @@ test('should not recommend a route to cache if there is only one request', async
     ]
   })
 
-  const { statusCode, body } = await trafficante.inject({
+  const { statusCode, body } = await trafficInspector.inject({
     method: 'POST',
     url: '/recommendations'
   })
   assert.strictEqual(statusCode, 200, body)
 
-  const recommendations = await trafficante.platformatic.entities.recommendation.find({})
+  const recommendations = await trafficInspector.platformatic.entities.recommendation.find({})
   assert.strictEqual(recommendations.length, 0)
 
-  const interceptorConfigs = await trafficante.platformatic.entities.interceptorConfig.find({})
+  const interceptorConfigs = await trafficInspector.platformatic.entities.interceptorConfig.find({})
   assert.strictEqual(interceptorConfigs.length, 0)
 })

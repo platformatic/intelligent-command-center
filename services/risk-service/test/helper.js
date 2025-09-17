@@ -173,7 +173,7 @@ const bootstrap = async function bootstrap (t, serverOverrides = {}, env = {}) {
   })
 
   server.addHook('onRequest', function (req, reply, done) {
-    req.trafficante = {
+    req.trafficInspector = {
       saveUrlsRoutes: async () => ({ ok: true })
     }
     done()

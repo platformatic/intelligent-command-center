@@ -8,10 +8,10 @@ const fp = require('fastify-plugin')
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
   const {
-    PLT_TRAFFICANTE_RECOMMENDATION_TIME_WINDOW_SEC: timeWindow,
-    PLT_TRAFFICANTE_REQUEST_CACHE_TTL_SEC: requestCacheTTL,
-    PLT_TRAFFICANTE_ROUTE_CACHE_TTL_SEC: routeCacheTTL,
-    PLT_TRAFFICANTE_ROUTE_EXAMPLE_CACHE_TTL_SEC: routeExampleCacheTTL
+    PLT_TRAFFIC_INSPECTOR_RECOMMENDATION_TIME_WINDOW_SEC: timeWindow,
+    PLT_TRAFFIC_INSPECTOR_REQUEST_CACHE_TTL_SEC: requestCacheTTL,
+    PLT_TRAFFIC_INSPECTOR_ROUTE_CACHE_TTL_SEC: routeCacheTTL,
+    PLT_TRAFFIC_INSPECTOR_ROUTE_EXAMPLE_CACHE_TTL_SEC: routeExampleCacheTTL
   } = app.env
 
   app.decorate('saveRequestHash', async (
@@ -282,7 +282,7 @@ module.exports = fp(async function (app) {
   })
 
   app.decorate('getCurrentVersion', async () => {
-    const versionKey = 'trafficante:versions'
+    const versionKey = 'traffic-inspector:versions'
 
     let version = await app.redis.get(versionKey)
     if (version !== null) return parseInt(version)
@@ -299,28 +299,28 @@ module.exports = fp(async function (app) {
   })
 
   app.decorate('setCurrentVersion', async (version) => {
-    const versionKey = 'trafficante:versions'
+    const versionKey = 'traffic-inspector:versions'
     await app.redis.set(versionKey, version)
   })
 
   app.decorate('generateRouteKey', (applicationId, telemetryId, url) => {
     const encodedUrl = encodeURIComponent(url)
-    return `trafficante:url-routes:${applicationId}:${telemetryId}:${encodedUrl}`
+    return `traffic-inspector:url-routes:${applicationId}:${telemetryId}:${encodedUrl}`
   })
 
   app.decorate('generateRouteExampleKey', (applicationId, telemetryId, route) => {
     const encodedRoute = encodeURIComponent(route)
-    return `trafficante:examples:${applicationId}:${telemetryId}:${encodedRoute}`
+    return `traffic-inspector:examples:${applicationId}:${telemetryId}:${encodedRoute}`
   })
 
   app.decorate('generateRequestKey', (applicationId, telemetryId, url) => {
     const encodedUrl = encodeURIComponent(url)
-    return `trafficante:requests:${applicationId}:${telemetryId}:${encodedUrl}`
+    return `traffic-inspector:requests:${applicationId}:${telemetryId}:${encodedUrl}`
   })
 
   app.decorate('generateRequestHashKey', (applicationId, version) => {
     const reqId = randomUUID()
-    return `trafficante:hashes:${applicationId}:${version}:${reqId}`
+    return `traffic-inspector:hashes:${applicationId}:${version}:${reqId}`
   })
 
   app.decorate('parseRequestKey', (requestKey) => {
@@ -329,7 +329,7 @@ module.exports = fp(async function (app) {
   })
 
   function generateRequestsHashesPattern (version) {
-    return `trafficante:hashes:*:${version}:*`
+    return `traffic-inspector:hashes:*:${version}:*`
   }
 
   function scanByPattern (pattern, callback) {

@@ -10,7 +10,7 @@ const {
   startMachinist,
   startMainService,
   startCompliance,
-  startTrafficante,
+  startTrafficInspector,
   startScaler,
   generateK8sHeader
 } = require('./helper')
@@ -113,7 +113,7 @@ test('should save an instance of a new application', async (t) => {
     'riskManager',
     'riskService',
     'scaler',
-    'trafficante',
+    'trafficInspector',
     'userManager'
   ])
 
@@ -254,7 +254,7 @@ test('should save a new app instance with the same image', async (t) => {
   })
 
   let interceptorConfig = null
-  await startTrafficante(t, {
+  await startTrafficInspector(t, {
     getInterceptorConfigs: () => {
       const configs = []
       if (interceptorConfig) {
@@ -1108,7 +1108,7 @@ test('should get applicationName from controller name when missing from request 
     'riskManager',
     'riskService',
     'scaler',
-    'trafficante',
+    'trafficInspector',
     'userManager'
   ])
 

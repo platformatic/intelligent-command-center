@@ -5,7 +5,7 @@ const { randomUUID } = require('node:crypto')
 const { buildServer: buildDbServer } = require('@platformatic/db')
 
 const defaultEnv = {
-  PLT_TRAFFICANTE_DATABASE_URL: 'postgres://postgres:postgres@127.0.0.1:5433/trafficante',
+  PLT_TRAFFIC_INSPECTOR_DATABASE_URL: 'postgres://postgres:postgres@127.0.0.1:5433/traffic_inspector',
   PLT_ICC_VALKEY_CONNECTION_STRING: 'redis://localhost:6343',
   PLT_CONTROL_PLANE: 'http://127.0.0.1:3042'
 }
@@ -14,7 +14,7 @@ function setUpEnvironment (env = {}) {
   Object.assign(process.env, defaultEnv, env)
 }
 
-async function startTrafficante (t, entities = {}, env = {}) {
+async function startTrafficInspector (t, entities = {}, env = {}) {
   setUpEnvironment(env)
 
   const clientsDir = join(__dirname, '..', '..', '..', 'clients')
@@ -26,7 +26,7 @@ async function startTrafficante (t, entities = {}, env = {}) {
       logger: { level: 'error' }
     },
     db: {
-      connectionString: process.env.PLT_TRAFFICANTE_DATABASE_URL,
+      connectionString: process.env.PLT_TRAFFIC_INSPECTOR_DATABASE_URL,
       events: false,
       openapi: {
         ignoreRoutes: [
@@ -76,14 +76,14 @@ async function startTrafficante (t, entities = {}, env = {}) {
   if (entities.versions?.length > 0) {
     for (const versionParams of entities.versions) {
       const { version } = versionParams
-      await app.redis.set('trafficante:versions', version)
+      await app.redis.set('traffic-inspector:versions', version)
     }
   }
 
   if (entities.domains) {
     const { domains } = entities.domains
     await app.redis.set(
-      'trafficante:domains', JSON.stringify(domains)
+      'traffic-inspector:domains', JSON.stringify(domains)
     )
   }
 
@@ -240,7 +240,7 @@ function generateRecommendationRoute (route) {
 
 module.exports = {
   defaultEnv,
-  startTrafficante,
+  startTrafficInspector,
   generateRequests,
   sortRoutes,
   sortRules,

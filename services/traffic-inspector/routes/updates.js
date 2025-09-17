@@ -8,12 +8,12 @@ module.exports = async function (app, opts) {
       })
       if (newRecommendations.length === 0) {
         return {
-          serviceName: 'trafficante',
+          serviceName: 'traffic-inspector',
           updates: []
         }
       }
       return {
-        serviceName: 'trafficante',
+        serviceName: 'traffic-inspector',
         updates: [{
           type: 'new-recommendation',
           count: newRecommendations[0].version

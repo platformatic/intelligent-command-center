@@ -166,7 +166,7 @@ jobs:
       - name: Run test suite
         run: cd services/user-manager && pnpm run test
 
-  ci-trafficante:
+  ci-traffic-inspector:
     services:
       icc-postgres:
         image: postgres
@@ -208,7 +208,7 @@ jobs:
           retry_on: error
           command: pnpm install --frozen-lockfile
       - name: Run test suite
-        run: cd services/trafficante && pnpm run test
+        run: cd services/traffic-inspector && pnpm run test
 
   ci-activities:
     services:

@@ -2,7 +2,7 @@
 
 const createError = require('@fastify/error')
 
-const ERROR_PREFIX = 'PLT_TRAFFICANTE'
+const ERROR_PREFIX = 'PLT_TRAFFIC_INSPECTOR'
 
 module.exports = {
   MissingApplicationId: createError(

@@ -22,7 +22,7 @@ This is a microservices application with 12 services orchestrated through Platfo
 - **cache-manager** - Cache dependency management for Next.js apps
 - **risk-service** - OpenTelemetry traces & risk assessment
 - **risk-cold-storage** - Long-term storage and archival of risk data
-- **trafficante** - Traffic analysis and routing optimization
+- **traffic-inspector** - Traffic analysis and routing optimization
 
 ## Tech Stack
 

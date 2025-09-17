@@ -61,7 +61,7 @@ setup() {
 	[[ "$output" =~ "cron" ]]
 	[[ "$output" =~ "risk-cold-storage" ]]
 	[[ "$output" =~ "scaler" ]]
-	[[ "$output" =~ "trafficante" ]]
+	[[ "$output" =~ "traffic-inspector" ]]
 	[[ "$output" =~ "user-manager" ]]
 	# Check that non-database services are NOT in the output
 	[[ ! "$output" =~ "frontend" ]]
@@ -210,7 +210,7 @@ setup() {
 	[[ "$output" =~ "CREATE DATABASE cron" ]]
 	[[ "$output" =~ "CREATE DATABASE risk_cold_storage" ]]
 	[[ "$output" =~ "CREATE DATABASE scaler" ]]
-	[[ "$output" =~ "CREATE DATABASE trafficante" ]]
+	[[ "$output" =~ "CREATE DATABASE traffic_inspector" ]]
 	[[ "$output" =~ "CREATE DATABASE user_manager" ]]
 	[[ "$output" =~ "CREATE USER test_user" ]]
 	[[ "$output" =~ "test_pass" ]]

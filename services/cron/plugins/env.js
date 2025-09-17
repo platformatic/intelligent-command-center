@@ -39,12 +39,12 @@ const schema = {
     PLT_CRON_ICC_JOB_FFC_RECOMMENDER_METHOD: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'], default: 'GET' },
     PLT_CRON_ICC_JOB_FFC_RECOMMENDER_MAX_RETRIES: { type: 'integer', default: 3 },
 
-    // Trafficante
-    PLT_CRON_ICC_JOB_TRAFFICANTE_NAME: { type: 'string', default: 'trafficante' },
-    PLT_CRON_ICC_JOB_TRAFFICANTE_CRON: { type: 'string', default: EVERY_DAY },
-    PLT_CRON_ICC_JOB_TRAFFICANTE_URL: { type: 'string', default: 'http://trafficante.plt.local/recommendations' },
-    PLT_CRON_ICC_JOB_TRAFFICANTE_METHOD: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'], default: 'POST' },
-    PLT_CRON_ICC_JOB_TRAFFICANTE_MAX_RETRIES: { type: 'integer', default: 3 },
+    // Traffic Inspector
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_NAME: { type: 'string', default: 'traffic-inspector' },
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_CRON: { type: 'string', default: EVERY_DAY },
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_URL: { type: 'string', default: 'http://traffic-inspector.plt.local/recommendations' },
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_METHOD: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'], default: 'POST' },
+    PLT_CRON_ICC_JOB_TRAFFIC_INSPECTOR_MAX_RETRIES: { type: 'integer', default: 3 },
 
     // Scaler
     PLT_CRON_ICC_JOB_SCALER_NAME: { type: 'string', default: 'scaler' },
@@ -79,7 +79,7 @@ async function envPlugin (fastify) {
   }
 
   if (fastify.env.PLT_FEATURE_CACHE_RECOMMENDATIONS) {
-    jobs.push('TRAFFICANTE')
+    jobs.push('TRAFFIC_INSPECTOR')
   }
 
   if (fastify.env.PLT_FEATURE_RISK_SERVICE_DUMP) {

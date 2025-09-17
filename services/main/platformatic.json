@@ -80,9 +80,9 @@
         }
       },
       {
-        "id": "trafficante",
+        "id": "traffic-inspector",
         "proxy": {
-          "prefix": "trafficante"
+          "prefix": "traffic-inspector"
         }
       },
       {
