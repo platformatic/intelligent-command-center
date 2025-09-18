@@ -13,7 +13,7 @@ import Forms from '@platformatic/ui-components/src/components/forms'
 import { useLoaderData } from 'react-router-dom'
 
 const Activities = React.forwardRef(({ _ }, ref) => {
-  const ALL_APPLICATIONS = { label: 'All applications', value: FILTER_ALL }
+  const ALL_APPLICATIONS = { label: 'All watts', value: FILTER_ALL }
   const ALL_USERS = { label: 'All Users', value: FILTER_ALL }
   const ALL_EVENTS = { label: 'All events', value: FILTER_ALL }
   const LIMIT = 13
@@ -36,7 +36,7 @@ const Activities = React.forwardRef(({ _ }, ref) => {
 
   useEffect(() => {
     const apps = {
-      label: 'All applications',
+      label: 'All watts',
       value: FILTER_ALL
     }
     setOptionApplications([apps].concat(applications.map(app => ({

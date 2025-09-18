@@ -96,7 +96,7 @@ export default function ServiceDetails () {
 
   function getLabelForResource (s) {
     const map = {
-      threads: 'Threads per service',
+      threads: 'Threads per application',
       heap: <span>Max Heap <span className={styles.unit}>(MB)</span></span>
     }
     return map[s]

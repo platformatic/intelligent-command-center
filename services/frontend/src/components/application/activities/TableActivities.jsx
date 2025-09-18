@@ -47,7 +47,7 @@ function TableActivities ({
       )
     }
 
-    if (showNoResult) { return <NoDataFound title='No Activities yet' subTitle={<span>There's no history of activities between your apps.<br />If you don't currently have any applications in the Command Center, you can add one now.</span>} /> }
+    if (showNoResult) { return <NoDataFound title='No Activities yet' subTitle={<span>There's no history of activities between your apps.<br />If you don't currently have any watts in the Command Center, you can add one now.</span>} /> }
 
     return (
       <div className={styles.content}>

@@ -173,7 +173,7 @@ export default function CachedEntries ({
         <div className={styles.noData}>
           <NoDataFound
             title='Caching not available'
-            subTitle={<span>There is no caching for this application.</span>}
+            subTitle={<span>There is no caching for this watt.</span>}
           />
         </div>
       )

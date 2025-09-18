@@ -135,14 +135,14 @@ const Caching = React.forwardRef(({ _ }, ref) => {
                 inputTextClassName={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite} ${styles.heightSelectClass}`}
                 paddingClass={styles.selectPaddingClass}
                 handleClickOutside
-                placeholder='Select Application...'
+                placeholder='Select Watt...'
               />
             </div>
 
             <div className={styles.cachingStatsControls}>
               <div>
                 <Forms.ToggleSwitch
-                  label='Compare with All Applications Metrics'
+                  label='Compare with All Watts Metrics'
                   labelClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}
                   name='selectAllServices'
                   onChange={() => setCompareWithAll(!compareWithAll)}

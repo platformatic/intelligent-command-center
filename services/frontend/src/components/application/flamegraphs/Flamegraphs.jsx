@@ -180,7 +180,7 @@ function FlamegraphRow ({ date, flamegraphs, application, alertId = null, scaleE
               <div key={fg.id} className={styles.flamegraph}>
                 <div key={fg.id} className={styles.flamegraphDetails}>
                   <div>
-                    <span className={styles.label}>Service:</span>
+                    <span className={styles.label}>Application:</span>
                     <div className={styles.value}>{fg.serviceId}</div>
                   </div>
                   <div className={styles.separator}>|</div>
@@ -192,7 +192,7 @@ function FlamegraphRow ({ date, flamegraphs, application, alertId = null, scaleE
                 <div
                   className={styles.flamegraphLink} onClick={(e) => {
                     e.stopPropagation()
-                    const newPath = generatePath('/applications/:applicationId/flamegraphs/:flamegraphId', {
+                    const newPath = generatePath('/watts/:applicationId/flamegraphs/:flamegraphId', {
                       applicationId: application.id,
                       flamegraphId: fg.id
                     })

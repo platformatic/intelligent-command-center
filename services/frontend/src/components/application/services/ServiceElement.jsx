@@ -44,7 +44,7 @@ function ServiceElement ({
           {getIcon()}
           <span className={`${typographyStyles.desktopBodySemibold} ${status === SERVICE_OUTDATED ? typographyStyles.textWarningYellow : typographyStyles.textWhite} `}>{service.id}</span>
           {applicationEntrypoint && (
-            <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>(Application Entrypoint)</span>
+            <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>(Watt Entrypoint)</span>
           )}
         </div>
         <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter} ${styles.secondRow}`}>

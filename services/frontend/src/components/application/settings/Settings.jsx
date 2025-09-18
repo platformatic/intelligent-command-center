@@ -24,7 +24,7 @@ export default function Settings () {
       <div className={styles.leftPane}>
         <div className={styles.header}>
           <Icons.AppSettingsIcon color={WHITE} size={MEDIUM} />
-          <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>App Settings</p>
+          <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Watt Settings</p>
         </div>
         <hr />
         <div className={styles.sections}>

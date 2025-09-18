@@ -3,11 +3,11 @@ import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import { MEDIUM, OPACITY_100, OPACITY_15, BLACK_RUSSIAN, SMALL, WARNING_YELLOW, WHITE, TRANSPARENT, OPACITY_30 } from '@platformatic/ui-components/src/components/constants'
 import { BorderedBox, Icons, PlatformaticIcon, VerticalSeparator } from '@platformatic/ui-components'
-import styles from './ApplicationCard.module.css'
+import styles from './WattCard.module.css'
 import { useNavigate } from 'react-router-dom'
 import { getFormattedDate } from '~/utilities/dates'
 
-export default function ApplicationCard ({
+export default function WattCard ({
   id,
   name = '',
   createdAt = '-',
@@ -22,9 +22,9 @@ export default function ApplicationCard ({
     window.open(url, '_blank')
   }
 
-  function handleApplicationClick () {
+  function handleWattClick () {
     if (hasValidState()) {
-      navigate(`/applications/${id}`)
+      navigate(`/watts/${id}`)
     } else {
       window.alert(`Application ${name} is loading...`)
     }
@@ -37,10 +37,10 @@ export default function ApplicationCard ({
       color={TRANSPARENT}
       backgroundColor={BLACK_RUSSIAN}
       backgroundColorOpacity={OPACITY_100}
-      classes={styles.gridApplication}
+      classes={styles.wattGrid}
       backgroundColorOver={WHITE}
       backgroundColorOpacityOver={OPACITY_15}
-      onClick={handleApplicationClick}
+      onClick={handleWattClick}
       clickable
       internalOverHandling
     >
@@ -65,7 +65,7 @@ export default function ApplicationCard ({
                 </p>
                 <VerticalSeparator color={WHITE} backgroundColorOpacity={OPACITY_30} />
                 <p>
-                  <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}  ${typographyStyles.opacity70}`}>Services: </span><span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{state?.services?.length ?? '-'}</span>
+                  <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}  ${typographyStyles.opacity70}`}>Applications: </span><span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{state?.services?.length ?? '-'}</span>
                 </p>
               </div>
             )}

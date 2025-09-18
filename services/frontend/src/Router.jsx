@@ -3,7 +3,7 @@ import { createHashRouter, useNavigate, useRouteError } from 'react-router-dom'
 import ErrorComponent from './components/errors/ErrorComponent'
 import PrivateRouteContainer from './layout/PrivateRouteContainer'
 import HomeContainer from './layout/HomeContainer'
-import AllApplications from './components/applications/all/AllApplications'
+import AllWatts from './components/applications/all/AllWatts'
 import RecommendationsHistory from './components/recommendations/RecommendationHistory'
 import Settings from './components/settings/Settings'
 import Profile from './components/profile/Profile'
@@ -15,7 +15,7 @@ import callApi from './api/common'
 import Activities from '~/components/application/activities/Activities'
 import DeploymentHistory from '~/components/application/deployment_history/DeploymentHistory'
 import AppDetails from '~/components/application/detail/AppDetails'
-import ApplicationContainer from '~/layout/ApplicationContainer'
+import WattContainer from '~/layout/WattContainer'
 import AutoscalerPodDetailContainer from '~/layout/AutoscalerPodDetailContainer'
 
 // Import Root Pages
@@ -79,11 +79,11 @@ export function getRouter () {
   //       path={APPLICATION_DETAIL_SERVICE_DETAIL_PATH}
   //       element={
   //         <PrivateRouteContainer>
-  //           <ApplicationContainer>
+  //           <WattContainer>
   //             <ServiceDetails
   //               key={APPLICATION_DETAIL_SERVICE_DETAIL_PATH}
   //             />
-  //           </ApplicationContainer>
+  //           </WattContainer>
   //         </PrivateRouteContainer>
   //           }
   //     />
@@ -139,8 +139,8 @@ export function getRouter () {
       children: [
         {
           path: '/',
-          id: 'allApplications',
-          element: <AllApplications />
+          id: 'allWatts',
+          element: <AllWatts />
         },
 
         {
@@ -201,7 +201,7 @@ export function getRouter () {
     },
 
     {
-      path: '/applications/:applicationId',
+      path: '/watts/:applicationId',
       errorElement: <CustomError />,
       id: 'appRoot',
       loader: async ({ params }) => {
@@ -213,18 +213,18 @@ export function getRouter () {
       },
       element: (
         <PrivateRouteContainer>
-          <ApplicationContainer />
+          <WattContainer />
         </PrivateRouteContainer>
       ),
       children: [
         {
           path: '',
-          id: 'application/details',
+          id: 'watt/details',
           element: <AppDetails />
         },
         {
           path: 'activities',
-          id: 'application/activities',
+          id: 'watt/activities',
           loader: async (loaderObject) => {
             const { applicationId } = loaderObject.params
             const [activities, users, types] = await Promise.all([
@@ -243,7 +243,7 @@ export function getRouter () {
         },
         {
           path: 'deployment-history',
-          id: 'application/deploymentHistory',
+          id: 'watt/deploymentHistory',
           loader: async ({ request, params }) => {
             const url = new URL(request.url)
             const page = parseInt(url.searchParams.get('page') || '0')
@@ -260,25 +260,25 @@ export function getRouter () {
           element: <DeploymentHistory />
         },
         {
-          id: 'application/services',
-          path: 'services',
+          id: 'watt/applications',
+          path: 'applications',
           element: <Services />
         },
         {
-          id: 'application/services/detail',
+          id: 'watt/applications/detail',
           loader: async ({ params }) => {
             return { serviceId: params.serviceId }
           },
-          path: 'services/:serviceId',
+          path: 'applications/:serviceId',
           element: <ServiceDetails />
         },
         {
-          id: 'application/scheduled-jobs',
+          id: 'watt/scheduled-jobs',
           path: 'scheduled-jobs',
           element: <ScheduledJobs />
         },
         {
-          id: 'application/scheduled-jobs-detail',
+          id: 'watt/scheduled-jobs-detail',
           loader: async ({ params }) => {
             const job = await callApi('cron', `jobs/${params.id}`, 'GET')
             return { jobName: job.name }
@@ -287,7 +287,7 @@ export function getRouter () {
           element: <ScheduledJobDetail />
         },
         {
-          id: 'application/autoscaler',
+          id: 'watt/autoscaler',
           loader: async ({ params }) => {
             const query = `where.applicationId.eq=${params.applicationId}`
             const signals = await callApi('scaler', `scaleEvents?${query}`, 'GET')
@@ -312,7 +312,7 @@ export function getRouter () {
           element: <Autoscaler />
         },
         {
-          id: 'application/settings',
+          id: 'watt/settings',
           loader: async ({ params }) => {
             const scaleConfig = await callApi('scaler', `applications/${params.applicationId}/scale-configs`, 'GET')
             return { scaleConfig }
@@ -321,7 +321,7 @@ export function getRouter () {
           element: <ApplicationSettings />
         },
         {
-          id: 'application/flamegraphs',
+          id: 'watt/flamegraphs',
           loader: async ({ params }) => {
             const query = new URLSearchParams({
               'where.applicationId.eq': params.applicationId
@@ -336,7 +336,7 @@ export function getRouter () {
           element: <Flamegraphs />
         },
         {
-          id: 'application/flamegraphs-detail',
+          id: 'watt/flamegraphs-detail',
           loader: async ({ params }) => {
             try {
               const flamegraph = await callApi('scaler', `flamegraphs/${params.id}`, 'GET')
@@ -359,7 +359,7 @@ export function getRouter () {
       ]
     },
     {
-      path: '/applications/:applicationId/autoscaler/:podId',
+      path: '/watts/:applicationId/autoscaler/:podId',
       id: 'autoscalerPodDetailRoot',
       loader: async ({ params }) => {
         const application = await getApiApplication(params.applicationId)
@@ -395,7 +395,7 @@ export function getRouter () {
           element: <PodSignalsHistory />
         },
         {
-          path: 'services',
+          path: 'applications',
           loader: async ({ params }) => {
             const podMetrics = await getApiPod(params.applicationId, params.podId)
             return {
@@ -405,7 +405,7 @@ export function getRouter () {
               }
             }
           },
-          id: 'autoscalerPodDetail/services',
+          id: 'autoscalerPodDetail/applications',
           element: <PodServicesCharts />
         }
       ]

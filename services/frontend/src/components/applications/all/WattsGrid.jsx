@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
-import styles from './GridApplications.module.css'
+import styles from './WattsGrid.module.css'
 import { LoadingSpinnerV2, SearchBarV2 } from '@platformatic/ui-components'
-import ApplicationCard from './ApplicationCard'
+import ApplicationCard from './WattCard'
 import NoDataFound from '~/components/ui/NoDataFound'
 import { MEDIUM, WHITE } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import { getApplicationsWithMetadata } from '../../../api'
 import useSubscribeToUpdates from '~/hooks/useSubscribeToUpdates'
 
-function GridApplications () {
+export default function WattsGrid () {
   const [allApplications, setAllApplications] = useState([])
   const [innerLoading, setInnerLoading] = useState(true)
   const [filteredApplications, setFilteredApplications] = useState([])
@@ -71,7 +71,7 @@ function GridApplications () {
             containerClassName: `${commonStyles.mediumFlexBlock} ${commonStyles.itemsCenter}`,
             sentences: [{
               style: `${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`,
-              text: 'Loading your applications...'
+              text: 'Loading your watts...'
             }, {
               style: `${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`,
               text: 'This process will just take a few seconds.'
@@ -85,14 +85,14 @@ function GridApplications () {
 
     if (allApplications.length === 0) {
       return (
-        <NoDataFound title='No applications found' subTitle={<span>There are no existing application yet.</span>} />
+        <NoDataFound title='No watts found' subTitle={<span>There are no existing watts yet.</span>} />
       )
     }
     return (
       <div className={styles.content}>
         <div className={styles.filtersContainer}>
           <SearchBarV2
-            placeholder='Search by Application name'
+            placeholder='Search by Watt name'
             onClear={onClearFilterApplicationName}
             onChange={onChangeFilterApplicationName}
             inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}
@@ -128,5 +128,3 @@ function GridApplications () {
     </div>
   )
 }
-
-export default GridApplications

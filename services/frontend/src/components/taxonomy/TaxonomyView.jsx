@@ -260,7 +260,7 @@ function TaxonomyView ({
         />
       )
     }
-    if (showNoResult) { return <NoDataFound title='Taxonomy not available' subTitle={<span>To view the Taxonomy of you application, start by <br /> adding an application to the Intelligent command Center.</span>} /> }
+    if (showNoResult) { return <NoDataFound title='Taxonomy not available' subTitle={<span>To view the Taxonomy of you watt, start by <br /> adding a watt to the Intelligent command Center.</span>} /> }
 
     return (
       <>

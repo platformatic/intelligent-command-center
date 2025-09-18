@@ -217,7 +217,7 @@ function SignalDetail ({ signal }) {
           label='View Scale Event'
           onClick={() => {
             if (signal.scaleEventId) {
-              navigate(`/applications/${applicationId}/autoscaler?tab=scaling_history&eventId=${signal.scaleEventId}`)
+              navigate(`/watts/${applicationId}/autoscaler?tab=scaling_history&eventId=${signal.scaleEventId}`)
             }
           }}
           disabled={!signal.scaleEventId}

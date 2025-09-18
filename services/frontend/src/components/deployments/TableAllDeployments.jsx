@@ -62,7 +62,7 @@ function TableAllDeployments ({
           <div className={styles.tableHeaders}>
             <div className={`${styles.tableHeader}`}>
               <div className={styles.thWithIcon}>
-                <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>App Name</span>
+                <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Watt Name</span>
               </div>
             </div>
             <div className={`${styles.tableHeader}`}>

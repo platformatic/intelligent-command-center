@@ -333,7 +333,7 @@ export default function PodServicesMetrics ({
                   <PodServiceStackedBarsChart
                     key={getKeyAggregated('latency')}
                     data={dataAggregated.latency}
-                    title='Aggregated Service Latency'
+                    title='Aggregated Application Latency'
                     unit='ms'
                     paused={paused}
                     setPaused={setPaused}

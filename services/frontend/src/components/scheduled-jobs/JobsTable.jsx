@@ -105,7 +105,7 @@ export default function JobsTable ({ jobs }) {
                 offset={24}
                 immediateActive={false}
                 tooltipClassName={tooltipStyles.tooltipDarkStyle}
-                content={(<span>Job Created by the Application</span>)}
+                content={(<span>Job Created by the Watt</span>)}
               >
                 <Icons.ScheduledJobsAppIcon
                   color={WHITE}
@@ -146,7 +146,7 @@ export default function JobsTable ({ jobs }) {
                   paddingClass={commonStyles.smallButtonPadding}
                   textClass={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite}`}
                   onClick={() => {
-                    const newPath = `/applications/${application.id}/scheduled-jobs/${job.id}`
+                    const newPath = `/watts/${application.id}/scheduled-jobs/${job.id}`
                     navigate(newPath)
                   }}
                   bordered={false}

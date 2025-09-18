@@ -13,7 +13,7 @@ export default function Services () {
         <div className={`${styles.elementContainer} ${commonStyles.tinyFlexBlock}`}>
           <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
             <Icons.PlatformaticServiceIcon color={WHITE} size={MEDIUM} />
-            <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Services</p>
+            <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Applications</p>
           </div>
           <ListView />
         </div>

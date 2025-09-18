@@ -81,12 +81,12 @@ function PanelTaxonomyApplication ({ id, name, services, mainTaxonomyId, islates
       <BorderedBox key={`${service.id}-${index}`} color={TRANSPARENT} backgroundColor={RICH_BLACK} classes={`${commonStyles.smallFlexRow} ${styles.boxServicesContainer} ${commonStyles.itemsCenter} ${commonStyles.positionRelative}`}>
         <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>{service.id}</span>
         {service.entrypoint && (
-          <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>(Application Entrypoint)</span>
+          <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>(Watt Entrypoint)</span>
         )}
         {outdated && (
           <Tooltip
             tooltipClassName={tooltipStyles.tooltipDarkStyle}
-            content={(<span>Service outdated</span>)}
+            content={(<span>Application outdated</span>)}
             offset={TOOLTIP_OFFSET}
             immediateActive={false}
           >
@@ -195,10 +195,10 @@ function PanelTaxonomyApplication ({ id, name, services, mainTaxonomyId, islates
         <BorderedBox color={TRANSPARENT} backgroundColor={BLACK_RUSSIAN} classes={styles.boxServicesContainer}>
           <div className={`${commonStyles.tinyFlexBlock} ${commonStyles.fullWidth}`}>
             <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter} ${commonStyles.justifyBetween} ${commonStyles.fullWidth} ${commonStyles.positionRelative}`}>
-              <span className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite}`}>Services</span>
+              <span className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite}`}>Applications</span>
               <Tooltip
                 tooltipClassName={tooltipStyles.tooltipDarkStyle}
-                content={(<span>The list of services contained<br /> in the selected application</span>)}
+                content={(<span>The list of applications contained<br /> in the selected watt</span>)}
                 offset={-160}
                 direction={DIRECTION_LEFT}
                 immediateActive={false}

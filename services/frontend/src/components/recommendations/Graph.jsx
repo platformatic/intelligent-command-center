@@ -172,12 +172,12 @@ export default function Graph ({
       </div>
 
       <div className={styles.legend}>
-        <div className={typographyStyles.desktopBodySmallest}><span>Service Changes:</span>
+        <div className={typographyStyles.desktopBodySmallest}><span>Application Changes:</span>
           <svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
             <rect x='0.5' y='0.5' width='11' height='11' rx='1.5' stroke='#2588E4' />
           </svg>
         </div>
-        <div className={typographyStyles.desktopBodySmallest}><span>New Applications:</span>
+        <div className={typographyStyles.desktopBodySmallest}><span>New Watts:</span>
           <svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
             <rect x='0.5' y='0.5' width='11' height='11' rx='1.5' stroke='#21FA90' strokeDasharray='4 4' />
           </svg>

@@ -1,14 +1,14 @@
 import React from 'react'
-import styles from './AllApplications.module.css'
+import styles from './AllWatts.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
-import GridApplications from './GridApplications'
+import WattsGrid from './WattsGrid'
 import { WHITE, MEDIUM } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 
 // import RecommendationBanner from './RecommendationBanner'
 
-const AllApplications = React.forwardRef(({ _ }, ref) => {
+const AllWatts = React.forwardRef(({ _ }, ref) => {
   // function hasNewRecommendations () {
   //   return updates['cluster-manager']?.filter((u) => {
   //     return u.type === 'new-recommendation'
@@ -36,16 +36,16 @@ const AllApplications = React.forwardRef(({ _ }, ref) => {
           <div className={`${commonStyles.tinyFlexBlock}`}>
             <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
               <Icons.AllAppsIcon color={WHITE} size={MEDIUM} />
-              <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Applications</p>
+              <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Watts</p>
             </div>
           </div>
           {renderRecommendationBanner()}
 
-          <GridApplications />
+          <WattsGrid />
         </div>
       </div>
     </>
   )
 })
 
-export default AllApplications
+export default AllWatts

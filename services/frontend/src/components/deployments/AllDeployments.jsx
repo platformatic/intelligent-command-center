@@ -14,7 +14,7 @@ const AllDeployments = React.forwardRef(({ _ }, ref) => {
   const [deploymentsPage, setDeploymentsPage] = useState(0)
   const [filteredDeployments, setFilteredDeployments] = useState([])
   const [optionsApplications, setOptionApplications] = useState([])
-  const [filterDeploymentsByApplicationId, setFilterDeploymentsByApplicationId] = useState({ label: 'All applications', value: '' })
+  const [filterDeploymentsByApplicationId, setFilterDeploymentsByApplicationId] = useState({ label: 'All watts', value: '' })
   const { deployments, totalCount, applications } = useLoaderData()
 
   useEffect(() => {
@@ -30,7 +30,7 @@ const AllDeployments = React.forwardRef(({ _ }, ref) => {
   }, [filterDeploymentsByApplicationId])
 
   useEffect(() => {
-    setOptionApplications([{ label: 'All applications', value: '' }].concat(
+    setOptionApplications([{ label: 'All watts', value: '' }].concat(
       applications.map(application => ({
         value: application.id,
         label: application.name

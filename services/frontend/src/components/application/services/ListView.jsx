@@ -40,7 +40,7 @@ function ListView () {
   const [showNoResult, setShowNoResult] = useState(false)
   const [filteredServices, setFilteredServices] = useState([])
   const [filterServiceByName, setFilterServiceByName] = useState('')
-  const [filterServiceByStatus, setFilterServiceByStatus] = useState({ label: 'All Services', value: FILTER_ALL })
+  const [filterServiceByStatus, setFilterServiceByStatus] = useState({ label: 'All Applications', value: FILTER_ALL })
   const [filtersServiceByStatus, setFiltersServiceByStatus] = useState([])
   const [reportServices, setReportServices] = useState({})
 
@@ -64,7 +64,7 @@ function ListView () {
         const outdatedServices = getFilteredOutdatedServices(applicationSelectedServices, services).length
 
         setFiltersServiceByStatus([{
-          label: `All Services (${applicationSelectedServices.length})`,
+          label: `All Applications (${applicationSelectedServices.length})`,
           value: FILTER_ALL,
           iconName: 'PlatformaticServiceIcon',
           disabled: false
@@ -135,7 +135,7 @@ function ListView () {
             containerClassName: `${commonStyles.mediumFlexBlock} ${commonStyles.itemsCenter}`,
             sentences: [{
               style: `${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`,
-              text: 'Loading your services...'
+              text: 'Loading your applications...'
             }, {
               style: `${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`,
               text: 'This process will just take a few seconds.'
@@ -154,7 +154,7 @@ function ListView () {
         <div className={`${styles.content}`}>
           <div className={styles.filtersContainer}>
             <SearchBarV2
-              placeholder='Search for a Service Name'
+              placeholder='Search for an Application Name'
               onClear={onClearFilterServiceName}
               onChange={onChangeFilterServiceName}
               inputTextClassName={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}

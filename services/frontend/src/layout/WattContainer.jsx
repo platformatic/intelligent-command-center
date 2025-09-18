@@ -7,7 +7,7 @@ import SideBar from '~/components/ui/SideBar'
 import { Outlet, useLoaderData, useNavigation, generatePath } from 'react-router-dom'
 import { LoadingSpinnerV2 } from '@platformatic/ui-components'
 
-function ApplicationContainer ({ children }) {
+function WattContainer ({ children }) {
   const { application } = useLoaderData()
   const navigation = useNavigation()
 
@@ -19,7 +19,7 @@ function ApplicationContainer ({ children }) {
           containerClassName: `${commonStyles.mediumFlexBlock} ${commonStyles.itemsCenter}`,
           sentences: [{
             style: `${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`,
-            text: 'Loading your application...'
+            text: 'Loading your watt...'
           }, {
             style: `${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`,
             text: 'This process will just take a few seconds.'
@@ -37,7 +37,7 @@ function ApplicationContainer ({ children }) {
         topItems={[
           {
             link: generatePath('/'),
-            label: 'All Applications',
+            label: 'All Watts',
             iconName: 'AllAppsIcon',
             disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
           },
@@ -46,13 +46,13 @@ function ApplicationContainer ({ children }) {
           },
           {
             link: generatePath('', { applicationId: application.id }),
-            label: 'App Details',
+            label: 'Watt Details',
             iconName: 'AppDetailsIcon',
             disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
           },
           {
-            link: generatePath('services', { applicationId: application.id }),
-            label: 'Services',
+            link: generatePath('applications', { applicationId: application.id }),
+            label: 'Applications',
             iconName: 'PlatformaticServiceIcon',
             disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
           },
@@ -95,4 +95,4 @@ function ApplicationContainer ({ children }) {
   )
 }
 
-export default ApplicationContainer
+export default WattContainer
