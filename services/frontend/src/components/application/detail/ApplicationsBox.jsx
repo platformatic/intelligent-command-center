@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { WHITE, TRANSPARENT, MEDIUM, SMALL, WARNING_YELLOW, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
-import styles from './ServicesBox.module.css'
+import styles from './ApplicationsBox.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
@@ -10,11 +10,11 @@ import { getApiCompliancy } from '~/api'
 import { generatePath, useNavigate } from 'react-router-dom'
 import { APPLICATION_DETAILS_ALL_SERVICES } from '../../../paths'
 
-function getFilteredOutdatedServices (allServices, comparingServices) {
-  return allServices.filter(service => {
-    if (comparingServices[service.id]) {
-      const foundOutdated = Object.keys(comparingServices[service.id]).find(dependency => {
-        const { current, wanted } = comparingServices[service.id][dependency]
+function getFilteredOutdatedApplications (allApplications, comparingApplications) {
+  return allApplications.filter(application => {
+    if (comparingApplications[application.id]) {
+      const foundOutdated = Object.keys(comparingApplications[application.id]).find(dependency => {
+        const { current, wanted } = comparingApplications[application.id][dependency]
         return current !== wanted
       })
       return foundOutdated !== undefined
@@ -24,13 +24,13 @@ function getFilteredOutdatedServices (allServices, comparingServices) {
   })
 }
 
-function InnerServicesBox ({
-  numberOfServices,
-  services,
+function InnerApplicationsBox ({
+  numberOfApplications,
+  applications,
   sentence,
   values
 }) {
-  function displayServices () {
+  function displayApplications () {
     const outdatedValue = values[0]
     const upToDateValue = values[1]
     const outdated = Array.from(Array(outdatedValue.value).keys()).map((_) => ({ outdated: true }))
@@ -43,13 +43,13 @@ function InnerServicesBox ({
   return (
     <div className={styles.innerServiceBoxContainer}>
       <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
-        <h4 className={`${typographyStyles.desktopHeadline4} ${typographyStyles.textWhite}`}>{numberOfServices}</h4>
-        <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>of {services}</span>
+        <h4 className={`${typographyStyles.desktopHeadline4} ${typographyStyles.textWhite}`}>{numberOfApplications}</h4>
+        <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>of {applications}</span>
         <Icons.AlertIcon color={WARNING_YELLOW} size={SMALL} />
       </div>
       <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>{sentence}</span>
       <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter} ${styles.flexWrap}`}>
-        {displayServices()}
+        {displayApplications()}
       </div>
       <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter} ${commonStyles.justifyBetween}`}>
         {values.map((value, index) => (
@@ -63,36 +63,36 @@ function InnerServicesBox ({
     </div>
   )
 }
-function reorderServices (services = []) {
-  if (services.length === 0) { return services }
-  return services.filter(service => service.entrypoint).concat(services.filter(service => !service.entrypoint))
+function reorderApplications (applications = []) {
+  if (applications.length === 0) { return applications }
+  return applications.filter(application => application.entrypoint).concat(applications.filter(application => !application.entrypoint))
 }
-function ServicesBox ({
+function ApplicationsBox ({
   application,
   gridClassName = ''
 }) {
-  const applicationSelectedServices = reorderServices(application.state.services)
-  const [servicesLength, setServicesLength] = useState(0)
-  const [outdatedServices, setOutdatedServices] = useState(0)
+  const wattSelectedApplications = reorderApplications(application.state.services)
+  const [applicationsLength, setApplicationsLength] = useState(0)
+  const [outdatedApplications, setOutdatedApplications] = useState(0)
   const [innerLoading, setInnerLoading] = useState(true)
   const navigate = useNavigate()
 
-  function viewAllServices () {
+  function viewAllApplications () {
     navigate(generatePath(APPLICATION_DETAILS_ALL_SERVICES, { applicationId: application.id }))
   }
 
   useEffect(() => {
     async function loadCompliancy () {
       const report = await getApiCompliancy(application.id)
-      let services = {}
+      let applications = {}
       if (report.length > 0) {
         const ruleSet = report[0].ruleSet
         const index = Object.keys(report[0].ruleSet).find(rule => report[0].ruleSet[rule].name === 'outdated-npm-deps')
-        services = ruleSet[index]?.details?.services ?? {}
+        applications = ruleSet[index]?.details?.services ?? {}
       }
 
-      setServicesLength(applicationSelectedServices.length)
-      setOutdatedServices(getFilteredOutdatedServices(applicationSelectedServices, services).length)
+      setApplicationsLength(wattSelectedApplications.length)
+      setOutdatedApplications(getFilteredOutdatedApplications(wattSelectedApplications, applications).length)
       setInnerLoading(false)
     }
     loadCompliancy()
@@ -116,33 +116,33 @@ function ServicesBox ({
       )
     }
 
-    return (outdatedServices > 0)
+    return (outdatedApplications > 0)
       ? (
         <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} `}>
-          <InnerServicesBox
-            numberOfServices={outdatedServices}
-            services={servicesLength}
-            sentence='Services containing outdated dependencies'
+          <InnerApplicationsBox
+            numberOfApplications={outdatedApplications}
+            applications={applicationsLength}
+            sentence='Applications containing outdated dependencies'
             values={[{
               key_value: 'outdated_dependencies',
-              label: 'Service containing outdated dependencies:',
+              label: 'Application containing outdated dependencies:',
               className: 'boxOutdatedDependencies',
-              value: outdatedServices,
-              value_perc: ((outdatedServices / servicesLength) * 100)
+              value: outdatedApplications,
+              value_perc: ((outdatedApplications / applicationsLength) * 100)
             }, {
               key_value: 'up_to_date_dependencies',
-              label: 'Up to Date Service:',
+              label: 'Up to Date Application:',
               className: 'boxUpToDateDependencies',
-              value: servicesLength - outdatedServices,
-              value_perc: (((servicesLength - outdatedServices) / servicesLength) * 100)
+              value: applicationsLength - outdatedApplications,
+              value_perc: (((applicationsLength - outdatedApplications) / applicationsLength) * 100)
             }]}
           />
         </div>
         )
       : (
         <div className={`${commonStyles.tinyFlexBlock} ${commonStyles.fullWidth} ${commonStyles.itemsCenter} ${commonStyles.justifyCenter}`}>
-          <h4 className={`${typographyStyles.desktopHeadline4} ${typographyStyles.textWhite}`}>{servicesLength}</h4>
-          <p className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>All services are up to date</p>
+          <h4 className={`${typographyStyles.desktopHeadline4} ${typographyStyles.textWhite}`}>{applicationsLength}</h4>
+          <p className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>All applications are up to date</p>
         </div>
         )
   }
@@ -157,14 +157,14 @@ function ServicesBox ({
               size={MEDIUM}
             />
             <div className={styles.applicationName}>
-              <p className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite} ${typographyStyles.ellipsis}`}>Services</p>
+              <p className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite} ${typographyStyles.ellipsis}`}>Applications</p>
             </div>
           </div>
           <div className={styles.buttonContainer}>
             <Button
               type='button'
-              label='View All Services'
-              onClick={() => viewAllServices()}
+              label='View All Applications'
+              onClick={() => viewAllApplications()}
               color={WHITE}
               backgroundColor={TRANSPARENT}
               paddingClass={commonStyles.smallButtonPadding}
@@ -179,4 +179,4 @@ function ServicesBox ({
   )
 }
 
-export default ServicesBox
+export default ApplicationsBox

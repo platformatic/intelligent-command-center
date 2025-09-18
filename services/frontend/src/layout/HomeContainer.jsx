@@ -27,7 +27,7 @@ export default function HomeContainer () {
     iconName: 'AppOptimizedIcon'
   }, {
     link: '/',
-    label: 'Applications',
+    label: 'Watts',
     iconName: 'AllAppsIcon'
   }, {
     link: '/taxonomy',
@@ -83,7 +83,7 @@ export default function HomeContainer () {
           containerClassName: `${commonStyles.mediumFlexBlock} ${commonStyles.itemsCenter}`,
           sentences: [{
             style: `${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`,
-            text: 'Loading your application...'
+            text: 'Loading your watt...'
           }, {
             style: `${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`,
             text: 'This process will just take a few seconds.'

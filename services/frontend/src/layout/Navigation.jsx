@@ -10,10 +10,10 @@ function getRootPageBreadcrumbs (routeId) {
   const output = []
   switch (routeId) {
     case 'root':
-      output.push({ label: 'All Applications' })
+      output.push({ label: 'All Watts' })
       break
-    case 'allApplications':
-      output.push({ label: 'All Applications' })
+    case 'allWatts':
+      output.push({ label: 'All Watts' })
       break
     case 'appDetails':
       output.push({ label: 'Recommendations' })
@@ -33,6 +33,9 @@ function getRootPageBreadcrumbs (routeId) {
     case 'deployments':
       output.push({ label: 'Deployments' })
       break
+    case 'activities':
+      output.push({ label: 'Activities' })
+      break
     case 'ingressPaths':
       output.push({ label: 'Ingress Paths' })
       break
@@ -45,63 +48,66 @@ function getRootPageBreadcrumbs (routeId) {
 function getApplicationPageBreadcrumbs (routeId, application, otherParams) {
   const output = []
   output.push({
-    label: 'All Applications',
+    label: 'All Watts',
     link: generatePath('/', {})
   })
   output.push({
     label: application.name,
-    link: generatePath('/applications/:applicationId', { applicationId: application.id })
+    link: generatePath('/watts/:applicationId', { applicationId: application.id })
   })
   const flamegraphDate = dayjs(otherParams?.flamegraph?.createdAt).format('DD-MM-YYYY')
   switch (routeId) {
-    case 'application/details':
+    case 'watt/details':
       break
-    case 'application/deployments':
+    case 'watt/deployments':
       output.push({ label: 'Deployments' })
       break
-    case 'application/deploymentHistory':
+    case 'watt/deploymentHistory':
       output.push({ label: 'Deployment History' })
       break
-    case 'application/services':
-      output.push({ label: 'Services' })
+    case 'watt/applications':
+      output.push({ label: 'Applications' })
       break
-    case 'application/scheduled-jobs':
+    case 'watt/activities':
+      output.push({ label: 'Activities' })
+      break
+    case 'watt/scheduled-jobs':
       output.push({ label: 'Scheduled Jobs' })
       break
-    case 'application/scheduled-jobs-detail':
-      output.push({ label: 'Scheduled Jobs', link: generatePath('/applications/:applicationId/scheduled-jobs', { applicationId: application.id }) })
+    case 'watt/scheduled-jobs-detail':
+      output.push({ label: 'Scheduled Jobs', link: generatePath('/watts/:applicationId/scheduled-jobs', { applicationId: application.id }) })
       output.push({ label: otherParams.jobName })
       break
-    case 'application/autoscaler':
+    case 'watt/autoscaler':
       output.push({ label: 'Autoscaler' })
       break
-    case 'application/settings':
+    case 'watt/settings':
       output.push({ label: 'Settings' })
       break
-    case 'application/services/detail':
-      output.push({ label: 'Services', link: generatePath('/applications/:applicationId/services', { applicationId: application.id }) })
+    case 'watt/applications/detail':
+      output.push({ label: 'Applications', link: generatePath('/watts/:applicationId/applications', { applicationId: application.id }) })
       output.push({ label: otherParams.serviceId })
       break
     case 'autoscalerPodDetail/overview':
-      output.push({ label: 'Autoscaler', link: generatePath('/applications/:applicationId/autoscaler', { applicationId: application.id }) })
+      output.push({ label: 'Autoscaler', link: generatePath('/watts/:applicationId/autoscaler', { applicationId: application.id }) })
       output.push({ label: otherParams.pod.id })
       break
-    case 'autoscalerPodDetail/services':
-      output.push({ label: 'Autoscaler', link: generatePath('/applications/:applicationId/autoscaler', { applicationId: application.id }) })
+    case 'autoscalerPodDetail/applications':
+      output.push({ label: 'Autoscaler', link: generatePath('/watts/:applicationId/autoscaler', { applicationId: application.id }) })
       output.push({ label: otherParams.pod.id })
-      output.push({ label: 'Services' })
+      output.push({ label: 'Applications' })
       break
 
-    case 'application/flamegraphs':
-      output.push({ label: 'Flamegraphs', link: generatePath('/applications/:applicationId/flamegraphs', { applicationId: application.id }) })
+    case 'watt/flamegraphs':
+      output.push({ label: 'Flamegraphs', link: generatePath('/watts/:applicationId/flamegraphs', { applicationId: application.id }) })
       break
     case 'autoscalerPodDetail/signalsHistory':
-      output.push({ label: 'Autoscaler', link: generatePath('/applications/:applicationId/autoscaler', { applicationId: application.id }) })
+      output.push({ label: 'Autoscaler', link: generatePath('/watts/:applicationId/autoscaler', { applicationId: application.id }) })
       output.push({ label: otherParams.pod.id })
       output.push({ label: 'Signals History' })
       break
-    case 'application/flamegraphs-detail':
-      output.push({ label: 'Flamegraphs', link: generatePath('/applications/:applicationId/flamegraphs', { applicationId: application.id }) })
+    case 'watt/flamegraphs-detail':
+      output.push({ label: 'Flamegraphs', link: generatePath('/watts/:applicationId/flamegraphs', { applicationId: application.id }) })
       output.push({ label: `[${flamegraphDate}] - ${otherParams.flamegraph.serviceId}` })
       break
   }

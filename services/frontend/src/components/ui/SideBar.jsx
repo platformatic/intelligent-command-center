@@ -13,7 +13,7 @@ function renderButton (item) {
 
   // TODO: better way to check if the item is selected
   const isSelected = (location.pathname === item.link) ||
-    (item.label === 'App Details' && routes[routes.length - 1].id === 'application/details') || // for app detail home page
+    (item.label === 'Watt Details' && routes[routes.length - 1].id === 'watt/details') || // for watt detail home page
     (item.link === 'scheduled-jobs' && location.pathname.includes('scheduled-jobs')) || // for scheduled jobs detail page
     (location.pathname.endsWith(item.link) && location.pathname !== item.link && item.link !== '') // check if the link is a subpath
 

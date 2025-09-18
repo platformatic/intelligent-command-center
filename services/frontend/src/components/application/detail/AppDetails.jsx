@@ -2,7 +2,7 @@ import React from 'react'
 import { useRouteLoaderData } from 'react-router-dom'
 import styles from './AppDetails.module.css'
 import AppNameBox from './AppNameBox'
-import ServicesBox from './ServicesBox'
+import ApplicationsBox from './ApplicationsBox'
 import DeploymentsBox from './DeploymentsBox'
 import NodeJSMetrics from './NodeJSMetrics'
 import KubernetesResources from './KubernetesResources'
@@ -20,7 +20,7 @@ export default function AppDetails () {
             gridClassName={styles.appNameBox}
             applicationPublicUrl={publicUrl}
           />
-          <ServicesBox
+          <ApplicationsBox
             application={application}
             gridClassName={styles.servicesBox}
           />

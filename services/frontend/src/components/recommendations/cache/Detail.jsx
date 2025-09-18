@@ -100,7 +100,7 @@ export default function Detail ({
   function renderApplicationsTitle () {
     return (
       <div className={styles.applicationsTitle}>
-        Applications
+        Watts
         <span className={styles.applicationsCount}>({getApplicationsFromRoutes().length})</span>
       </div>
     )
@@ -159,8 +159,8 @@ export default function Detail ({
           modalCloseClassName={styles.modalCloseClassName}
         >
           <div className={`${styles.modalText} ${typographyStyles.desktopBodySmall}`}>
-            <p>You are about to automatically optimize the caching of this application.</p>
-            <p>By continuing we will automatically redeploy your application with the new caching.</p>
+            <p>You are about to automatically optimize the caching of this watt.</p>
+            <p>By continuing we will automatically redeploy your watt with the new caching.</p>
             <p>Once clicked on Apply and Deploy this recommendation will be marked as "Done" and it won't be applicable again.</p>
           </div>
 
@@ -251,7 +251,7 @@ export default function Detail ({
                   <li>
                     Set the <pre className={typographyStyles.desktopOtherCliTerminalSmall}>PLT_CACHE_CONFIG</pre> environment variable to the value you copied in the previous step
                   </li>
-                  <li>Deploy the application</li>
+                  <li>Deploy the watt</li>
                 </ol>
               </div>
 
@@ -293,7 +293,7 @@ export default function Detail ({
       <div className={styles.content}>
         <div className={styles.applicationsContainer}>
           <PageSection title={renderApplicationsTitle()}>
-            <span className={styles.secondaryText}>The applications that contains routes that can be optimized</span>
+            <span className={styles.secondaryText}>The watts that contains routes that can be optimized</span>
             <div className={styles.applicationsList}>
               {getApplicationsFromRoutes().map((application) => {
                 return (

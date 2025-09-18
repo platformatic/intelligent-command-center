@@ -14,7 +14,7 @@ function TableDeployments ({
   ]
   if (withApplicationName) {
     columns.push({
-      label: 'Application Name',
+      label: 'Watt Name',
       key: 'applicationName'
     })
   }

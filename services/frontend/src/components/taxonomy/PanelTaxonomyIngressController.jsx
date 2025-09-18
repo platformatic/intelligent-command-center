@@ -47,10 +47,10 @@ function PanelTaxonomyIngressController ({ name = '', entrypoints = [] }) {
       <BorderedBox color={TRANSPARENT} backgroundColor={BLACK_RUSSIAN} classes={styles.boxEntrypointsContainer}>
         <div className={`${commonStyles.tinyFlexBlock} ${commonStyles.fullWidth}`}>
           <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter} ${commonStyles.justifyBetween} ${commonStyles.fullWidth}`}>
-            <span className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Applications</span>
+            <span className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Watts</span>
             <Tooltip
               tooltipClassName={tooltipStyles.tooltipDarkStyle}
-              content={(<span>List of applications linked to ingress controller <br />with their respective entrypoint and paths.</span>)}
+              content={(<span>List of watts linked to ingress controller <br />with their respective entrypoint and paths.</span>)}
               offset={-250}
               direction={DIRECTION_LEFT}
               immediateActive={false}

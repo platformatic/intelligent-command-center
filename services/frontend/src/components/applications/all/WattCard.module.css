@@ -1,4 +1,4 @@
-.gridApplication {
+.wattGrid {
   @apply flex flex-col justify-center items-center gap-y-1 w-full p-2 rounded-[4px]; 
 }
 .smallLeftPadding {

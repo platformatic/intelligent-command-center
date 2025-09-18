@@ -95,7 +95,7 @@ function DeploymentsBox ({
             </div>
           </div>
           <div className={styles.buttonContainer}>
-            <NavLink to={`/applications/${application.id}/deployment-history`}>
+            <NavLink to={`/watts/${application.id}/deployment-history`}>
               <Button
                 type='button'
                 label='View Deployment History'

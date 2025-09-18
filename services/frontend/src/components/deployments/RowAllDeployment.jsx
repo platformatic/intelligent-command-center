@@ -41,7 +41,7 @@ function RowAllDeployment ({
     <div className={styles.rowAllDeployment}>
       <div className={`${styles.tableSmallDescription}`}>
         <div className={styles.tableCell}>
-          <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>Application Name</span>
+          <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>Watt Name</span>
         </div>
         <div className={`${styles.tableCell}`}>
           <div className={`${styles.customSmallFlexRow}`}>

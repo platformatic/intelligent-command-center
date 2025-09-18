@@ -12,14 +12,14 @@ function AutoscalerPodDetailContainer () {
         topItems={[
           {
             link: generatePath('/'),
-            label: 'All Applications',
+            label: 'All Watts',
             iconName: 'AllAppsIcon'
           },
           {
             separator: true
           },
           {
-            link: generatePath('/applications/:applicationId/autoscaler', { applicationId: application.id }),
+            link: generatePath('/watts/:applicationId/autoscaler', { applicationId: application.id }),
             label: 'Overview',
             iconName: 'HorizontalPodAutoscalerIcon',
             disabled: false
@@ -33,20 +33,20 @@ function AutoscalerPodDetailContainer () {
             separator: true
           },
           {
-            link: generatePath('/applications/:applicationId/autoscaler/:podId', { applicationId: application.id, podId: params.podId }),
+            link: generatePath('/watts/:applicationId/autoscaler/:podId', { applicationId: application.id, podId: params.podId }),
             label: 'Overview',
             iconName: 'PodDetailsIcon',
             disabled: false
           },
           {
-            link: generatePath('/applications/:applicationId/autoscaler/:podId/signals-history', { applicationId: application.id, podId: params.podId }),
+            link: generatePath('/watts/:applicationId/autoscaler/:podId/signals-history', { applicationId: application.id, podId: params.podId }),
             label: 'Signals History',
             iconName: 'PodSignalsIcon',
             disabled: false
           },
           {
-            link: generatePath('/applications/:applicationId/autoscaler/:podId/services', { applicationId: application.id, podId: params.podId }),
-            label: 'Services',
+            link: generatePath('/watts/:applicationId/autoscaler/:podId/applications', { applicationId: application.id, podId: params.podId }),
+            label: 'Applications',
             iconName: 'PodServicesIcon',
             disabled: false
           }]}
