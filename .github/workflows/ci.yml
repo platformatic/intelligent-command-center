@@ -19,7 +19,7 @@ jobs:
         with:
           # https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#use-private-packages
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - uses: "nick-fields/retry@v3.0.2"
         with:
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
@@ -110,7 +110,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -152,7 +152,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -196,7 +196,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -236,7 +236,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -280,7 +280,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -326,7 +326,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
@@ -370,7 +370,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
@@ -399,7 +399,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -439,7 +439,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
@@ -478,7 +478,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -505,7 +505,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
@@ -529,7 +529,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
@@ -569,7 +569,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
@@ -611,7 +611,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 20
+          node-version: 22
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
