@@ -15,7 +15,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           # https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#use-private-packages
           registry-url: "https://registry.npmjs.org"
@@ -37,7 +37,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -61,7 +61,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -107,7 +107,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -149,7 +149,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -193,7 +193,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -233,7 +233,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -277,7 +277,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -323,7 +323,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -367,7 +367,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -396,7 +396,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -436,7 +436,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -475,7 +475,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -502,7 +502,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -526,7 +526,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -566,7 +566,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
@@ -608,7 +608,7 @@ jobs:
       - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
