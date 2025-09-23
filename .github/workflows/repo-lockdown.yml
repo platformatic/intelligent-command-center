@@ -1,0 +1,42 @@
+name: 'Repo Lockdown'
+
+on:
+  issues:
+    types: opened
+  pull_request_target:
+    types: opened
+  workflow_dispatch:
+  
+  # schedule:
+  #   - cron: '0 * * * *'
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dessant/repo-lockdown@v4
+        with:
+          close-issue: false
+          pr-comment: 'This repository does not accept pull requests. Please use https://github.com/platformatic/icc-3.'
+        #   github-token: ${{ github.token }}
+        #   exclude-issue-created-before: ''
+        #   exclude-issue-labels: ''
+        #   issue-labels: ''
+        #   issue-comment: ''
+        #   skip-closed-issue-comment: false
+        #   issue-close-reason: 'not planned'
+        #   lock-issue: true
+        #   issue-lock-reason: ''
+        #   exclude-pr-created-before: ''
+        #   exclude-pr-labels: ''
+        #   pr-labels: ''
+        #   skip-closed-pr-comment: false
+        #   close-pr: true
+        #   lock-pr: true
+        #   pr-lock-reason: ''
+        #   process-only: ''
+        #   log-output: false
