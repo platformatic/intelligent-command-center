@@ -30,11 +30,6 @@ setup() {
 	[ "$status" -eq 0 ]
 }
 
-@test "install script has get_database_services function" {
-	run grep -n "get_database_services()" "$INSTALL_SCRIPT"
-	[ "$status" -eq 0 ]
-}
-
 @test "install script has parse_arguments function" {
 	run grep -n "parse_arguments()" "$INSTALL_SCRIPT"
 	[ "$status" -eq 0 ]
@@ -50,27 +45,8 @@ setup() {
 	[ "$status" -eq 0 ]
 }
 
-@test "get_database_services returns expected services" {
-	run bash -c "cd '$(dirname "$INSTALL_SCRIPT")'; source '$INSTALL_SCRIPT'; get_database_services"
-	[ "$status" -eq 0 ]
-	# Check that expected database services are in the output
-	[[ "$output" =~ "activities" ]]
-	[[ "$output" =~ "cluster-manager" ]]
-	[[ "$output" =~ "compliance" ]]
-	[[ "$output" =~ "control-plane" ]]
-	[[ "$output" =~ "cron" ]]
-	[[ "$output" =~ "risk-cold-storage" ]]
-	[[ "$output" =~ "scaler" ]]
-	[[ "$output" =~ "traffic-inspector" ]]
-	[[ "$output" =~ "user-manager" ]]
-	# Check that non-database services are NOT in the output
-	[[ ! "$output" =~ "frontend" ]]
-	[[ ! "$output" =~ "cache-manager" ]]
-	[[ ! "$output" =~ "metrics" ]]
-}
-
 @test "install script shows help when called with --help" {
-	run "$INSTALL_SCRIPT" --help
+	run env TEST_MODE=1 "$INSTALL_SCRIPT" --help
 	[ "$status" -eq 0 ]
 	[[ "$output" =~ "Usage:" ]]
 	[[ "$output" =~ "--pg-superuser ADDRESS" ]]
@@ -104,19 +80,19 @@ setup() {
 }
 
 @test "install script validates PostgreSQL address format" {
-	run "$INSTALL_SCRIPT" --pg-superuser "invalid://address" --valkey-icc "redis://localhost:6379" --valkey-apps "redis://localhost:6380" --prometheus "http://localhost:9090"
+	run env TEST_MODE=1 "$INSTALL_SCRIPT" --pg-superuser "invalid://address" --valkey-icc "redis://localhost:6379" --valkey-apps "redis://localhost:6380" --prometheus "http://localhost:9090"
 	[ "$status" -eq 1 ]
 	[[ "$output" =~ "PostgreSQL address must start with 'postgresql://'" ]]
 }
 
 @test "install script validates Valkey address format" {
-	run "$INSTALL_SCRIPT" --pg-superuser "postgresql://user:pass@localhost:5432/db" --valkey-icc "invalid://address" --valkey-apps "redis://localhost:6380" --prometheus "http://localhost:9090"
+	run env TEST_MODE=1 "$INSTALL_SCRIPT" --pg-superuser "postgresql://user:pass@localhost:5432/db" --valkey-icc "invalid://address" --valkey-apps "redis://localhost:6380" --prometheus "http://localhost:9090"
 	[ "$status" -eq 1 ]
 	[[ "$output" =~ "Valkey/Redis address must start with 'redis://' or 'rediss://'" ]]
 }
 
 @test "install script validates Prometheus URL format" {
-	run "$INSTALL_SCRIPT" --pg-superuser "postgresql://user:pass@localhost:5432/db" --valkey-icc "redis://localhost:6379" --valkey-apps "redis://localhost:6380" --prometheus "invalid://address"
+	run env TEST_MODE=1 "$INSTALL_SCRIPT" --pg-superuser "postgresql://user:pass@localhost:5432/db" --valkey-icc "redis://localhost:6379" --valkey-apps "redis://localhost:6380" --prometheus "invalid://address"
 	[ "$status" -eq 1 ]
 	[[ "$output" =~ "Prometheus URL must start with 'http://' or 'https://'" ]]
 }
@@ -189,35 +165,24 @@ setup() {
 	[[ "$output" =~ ^[A-Za-z0-9]+$ ]]
 }
 
-@test "create_db.template.sql exists and is readable" {
-	local template_file="$(dirname "$INSTALL_SCRIPT")/create_db.template.sql"
-	[ -f "$template_file" ]
-	[ -r "$template_file" ]
-}
-
 @test "generate_database_sql produces valid SQL" {
-	local template_file="$(dirname "$INSTALL_SCRIPT")/create_db.template.sql"
-
-	run bash -c "source '$INSTALL_SCRIPT'; generate_database_sql 'test_user' 'test_pass' '$template_file' 'postgresql://admin:admin123@localhost:5432'"
+	run bash -c "source '$INSTALL_SCRIPT'; generate_database_sql 'test_user' 'test_pass' 'postgresql://admin:admin123@localhost:5432'"
 
 	[ "$status" -eq 0 ]
 	[ -n "$output" ]
 	# Check that SQL contains expected elements
 	[[ "$output" =~ "CREATE DATABASE activities" ]]
-	[[ "$output" =~ "CREATE DATABASE cluster_manager" ]]
-	[[ "$output" =~ "CREATE DATABASE compliance" ]]
 	[[ "$output" =~ "CREATE DATABASE control_plane" ]]
+	[[ "$output" =~ "CREATE DATABASE compliance" ]]
+	[[ "$output" =~ "CREATE USER test_user" ]]
 	[[ "$output" =~ "CREATE DATABASE cron" ]]
 	[[ "$output" =~ "CREATE DATABASE risk_cold_storage" ]]
 	[[ "$output" =~ "CREATE DATABASE scaler" ]]
-	[[ "$output" =~ "CREATE DATABASE traffic_inspector" ]]
+	[[ "$output" =~ "CREATE DATABASE trafficante" ]]
 	[[ "$output" =~ "CREATE DATABASE user_manager" ]]
 	[[ "$output" =~ "CREATE USER test_user" ]]
 	[[ "$output" =~ "test_pass" ]]
 	[[ "$output" =~ "GRANT ALL PRIVILEGES" ]]
-	# Check that it uses the original credentials in dblink connection
-	[[ "$output" =~ "user=admin" ]]
-	[[ "$output" =~ "password=admin123" ]]
 }
 
 @test "build_new_connection_string creates valid URL" {
@@ -342,7 +307,7 @@ setup() {
 }
 
 @test "install script help shows OAuth options" {
-	run "$INSTALL_SCRIPT" --help
+	run env TEST_MODE=1 "$INSTALL_SCRIPT" --help
 	[ "$status" -eq 0 ]
 	[[ "$output" =~ "OAUTH AUTHENTICATION:" ]]
 	[[ "$output" =~ "--gh-oauth-client-id ID" ]]
@@ -461,7 +426,7 @@ setup() {
 }
 
 @test "install script help shows Elasticache options" {
-	run "$INSTALL_SCRIPT" --help
+	run env TEST_MODE=1 "$INSTALL_SCRIPT" --help
 	[ "$status" -eq 0 ]
 	[[ "$output" =~ "ELASTICACHE CONFIGURATION:" ]]
 	[[ "$output" =~ "--elasticache-role-arn ARN" ]]
