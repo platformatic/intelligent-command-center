@@ -20,18 +20,35 @@ module.exports = fp(async function (app) {
     logger.info('Starting K8s controller sync')
 
     try {
-      const controllers = await app.platformatic.entities.controller.find()
+      // Get the most recent controller for each applicationId
+      const result = await app.platformatic.db.query(app.platformatic.sql`
+        SELECT c.*
+        FROM controllers c
+        INNER JOIN (
+          SELECT application_id, MAX(created_at) as max_created_at
+          FROM controllers
+          GROUP BY application_id
+        ) latest ON c.application_id = latest.application_id
+        AND c.created_at = latest.max_created_at
+        ORDER BY c.created_at DESC
+      `)
+
+      const controllers = result.rows || result || []
 
       if (controllers.length === 0) {
         logger.debug('No controllers found, skipping sync')
         return
       }
 
+      logger.info({
+        uniqueApplications: controllers.length
+      }, 'Processing most recent controller for each application')
+
       const k8sPromises = controllers.map(async (controller) => {
         const k8sController = await app.machinist.getController(
-          controller.k8SControllerId,
+          controller.k8s_controller_id,
           controller.namespace,
-          controller.apiVersion,
+          controller.api_version,
           controller.kind
         )
         return {
@@ -47,7 +64,7 @@ module.exports = fp(async function (app) {
           const { controller, k8sController } = result.value
 
           logger.info({
-            controllerId: controller.k8SControllerId,
+            controllerId: controller.k8s_controller_id,
             namespace: controller.namespace,
             kind: controller.kind,
             currentReplicas: controller.replicas,
@@ -55,7 +72,7 @@ module.exports = fp(async function (app) {
           }, 'Controller sync result')
 
           logger.debug({
-            controllerId: controller.k8SControllerId,
+            controllerId: controller.k8s_controller_id,
             dbReplicas: controller.replicas,
             k8sReplicas: k8sController.replicas
           }, 'Comparing controller replicas')
@@ -66,8 +83,8 @@ module.exports = fp(async function (app) {
             const direction = replicasDiff > 0 ? 'up' : 'down'
 
             logger.info({
-              applicationId: controller.applicationId,
-              controllerId: controller.k8SControllerId,
+              applicationId: controller.application_id,
+              controllerId: controller.k8s_controller_id,
               oldReplicas,
               newReplicas,
               replicasDiff,
@@ -76,14 +93,19 @@ module.exports = fp(async function (app) {
 
             await app.platformatic.entities.controller.save({
               input: {
-                ...controller,
+                id: controller.id,
+                applicationId: controller.application_id,
+                k8SControllerId: controller.k8s_controller_id,
+                namespace: controller.namespace,
+                apiVersion: controller.api_version,
+                kind: controller.kind,
                 replicas: newReplicas
               }
             })
 
             await app.platformatic.entities.scaleEvent.save({
               input: {
-                applicationId: controller.applicationId,
+                applicationId: controller.application_id,
                 direction,
                 replicas: newReplicas,
                 replicasDiff: Math.abs(replicasDiff),
@@ -93,7 +115,7 @@ module.exports = fp(async function (app) {
             })
 
             logger.info({
-              applicationId: controller.applicationId,
+              applicationId: controller.application_id,
               direction,
               oldReplicas,
               newReplicas
