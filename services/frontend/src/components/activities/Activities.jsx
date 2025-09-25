@@ -6,11 +6,11 @@ import TableActivities from './TableActivities'
 import { getApiActivities, getApiActivitiesTypes, getApiActivitiesUsers } from '~/api'
 import ErrorComponent from '~/components/errors/ErrorComponent'
 import { FILTER_ALL } from '~/ui-constants'
-import { MEDIUM, RICH_BLACK, TRANSPARENT, WHITE } from '@platformatic/ui-components/src/components/constants'
+import { MEDIUM, RICH_BLACK, WHITE } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
-import { Button } from '@platformatic/ui-components'
 import Forms from '@platformatic/ui-components/src/components/forms'
 import { useLoaderData } from 'react-router-dom'
+import Paginator from '../ui/Paginator'
 
 const Activities = React.forwardRef(({ _ }, ref) => {
   const ALL_APPLICATIONS = { label: 'All watts', value: FILTER_ALL }
@@ -22,8 +22,8 @@ const Activities = React.forwardRef(({ _ }, ref) => {
   const [error, setError] = useState(null)
   const [activitiesLoaded, setActivitiesLoaded] = useState(false)
   const [reloadActivities, setReloadActivities] = useState(true)
-  const [pages, setPages] = useState([])
   const [activitiesPage, setActivitiesPage] = useState(0)
+  const [totalCount, setTotalCount] = useState(0)
   const [filteredActivities, setFilteredActivities] = useState([])
   const [optionsApplications, setOptionApplications] = useState([])
   const [filterActivitiesByApplicationId, setFilterActivitiesByApplicationId] = useState(ALL_APPLICATIONS)
@@ -59,15 +59,13 @@ const Activities = React.forwardRef(({ _ }, ref) => {
               userId: filterActivitiesByUserId.value === FILTER_ALL ? '' : filterActivitiesByUserId.value
             })
           const { activities, totalCount } = response
+          setTotalCount(totalCount)
           if (!enableFilters) {
             setEnableFilter(activities.length > 0)
           }
           setFilteredActivities([...activities])
           setActivitiesLoaded(true)
           setReloadActivities(false)
-          const arrayPages = Array.from(new Array(Math.ceil(totalCount / LIMIT)).keys())
-          setPages([...arrayPages])
-
           response = await getApiActivitiesTypes()
           let data = await response.json()
 
@@ -191,18 +189,11 @@ const Activities = React.forwardRef(({ _ }, ref) => {
           />
         </div>
         <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyCenter}`}>
-          {pages.map(page =>
-            <Button
-              key={page}
-              paddingClass={commonStyles.buttonPadding}
-              label={`${page + 1}`}
-              onClick={() => setActivitiesPage(page)}
-              color={WHITE}
-              selected={page === activitiesPage}
-              backgroundColor={TRANSPARENT}
-              bordered={false}
-            />
-          )}
+          <Paginator
+            pagesNumber={Math.ceil(totalCount / LIMIT)}
+            onClickPage={(page) => setActivitiesPage(page)}
+            selectedPage={activitiesPage}
+          />
         </div>
       </div>
     </div>

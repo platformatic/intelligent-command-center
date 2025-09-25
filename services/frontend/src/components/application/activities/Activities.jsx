@@ -6,11 +6,11 @@ import TableActivities from './TableActivities'
 import { getApiActivities, getApiActivitiesTypes } from '~/api'
 import ErrorComponent from '~/components/errors/ErrorComponent'
 import { FILTER_ALL } from '~/ui-constants'
-import { TRANSPARENT, WHITE, MEDIUM, RICH_BLACK } from '@platformatic/ui-components/src/components/constants'
+import { WHITE, MEDIUM, RICH_BLACK } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
-import { Button } from '@platformatic/ui-components'
 import Forms from '@platformatic/ui-components/src/components/forms'
 import { useLoaderData } from 'react-router-dom'
+import Paginator from '../../ui/Paginator'
 
 const Activities = React.forwardRef(({ _ }, ref) => {
   const LIMIT = 12
@@ -21,9 +21,9 @@ const Activities = React.forwardRef(({ _ }, ref) => {
   const [error, setError] = useState(null)
   const [activitiesLoaded, setActivitiesLoaded] = useState(false)
   const [reloadActivities, setReloadActivities] = useState(true)
-  const [pages, setPages] = useState([])
   const [activitiesPage, setActivitiesPage] = useState(0)
   const [filteredActivities, setFilteredActivities] = useState([])
+  const [totalCount, setTotalCount] = useState(0)
   const [optionsEvents, setOptionsEvents] = useState([])
   const [filterActivitiesByEventId, setFilterActivitiesByEventId] = useState(ALL_EVENTS)
   const [enableFilters, setEnableFilter] = useState(false)
@@ -39,12 +39,10 @@ const Activities = React.forwardRef(({ _ }, ref) => {
               search: filterActivitiesByEventId.value === FILTER_ALL ? '' : filterActivitiesByEventId.value
             })
           const { activities, totalCount } = response
+          setTotalCount(totalCount)
           setFilteredActivities([...activities])
           setActivitiesLoaded(true)
           setReloadActivities(false)
-          const arrayPages = Array.from(new Array(Math.ceil(totalCount / LIMIT)).keys())
-          setPages([...arrayPages])
-
           if (!enableFilters) {
             setEnableFilter(activities.length > 0)
           }
@@ -117,18 +115,11 @@ const Activities = React.forwardRef(({ _ }, ref) => {
           onErrorOccurred={() => setShowErrorComponent(true)}
         />
         <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyCenter}`}>
-          {pages.map(page =>
-            <Button
-              key={page}
-              paddingClass={commonStyles.buttonPadding}
-              label={`${page + 1}`}
-              onClick={() => setActivitiesPage(page)}
-              color={WHITE}
-              selected={page === activitiesPage}
-              backgroundColor={TRANSPARENT}
-              bordered={false}
-            />
-          )}
+          <Paginator
+            pagesNumber={Math.ceil(totalCount / LIMIT)}
+            onClickPage={(page) => setActivitiesPage(page)}
+            selectedPage={activitiesPage}
+          />
         </div>
 
       </div>
