@@ -31,6 +31,7 @@ module.exports = fp(async function (app) {
     applicationName,
     podId,
     namespace,
+    apiVersion,
     ctx
   ) => {
     let application = null
@@ -161,7 +162,7 @@ module.exports = fp(async function (app) {
     ])
 
     const httpCache = { clientOpts: httpCacheClientOpts }
-    const iccServices = app.getICCServicesConfigs()
+    const iccServices = app.getICCServicesConfigs(apiVersion)
 
     const enableOpenTelemetry = enableCacheRecommendations ?? false
     const enableSlicerInterceptor = enableCacheRecommendations ?? false
@@ -347,12 +348,23 @@ module.exports = fp(async function (app) {
     })
   })
 
-  app.decorate('getICCServicesConfigs', () => {
+  app.decorate('getICCServicesConfigs', (apiVersion = 'v2') => {
     const { iccServicesUrls } = app
     const iccServicesConfigs = {}
 
     for (const [name, url] of Object.entries(iccServicesUrls)) {
-      iccServicesConfigs[name] = { url }
+      // Handle traffic inspector naming based on API version
+      if (name === 'trafficInspector') {
+        if (apiVersion === 'v2') {
+          // For v2, use 'trafficante' as the key name
+          iccServicesConfigs.trafficante = { url }
+        } else {
+          // For v3, use 'trafficInspector' as the key name
+          iccServicesConfigs[name] = { url }
+        }
+      } else {
+        iccServicesConfigs[name] = { url }
+      }
     }
     return iccServicesConfigs
   })

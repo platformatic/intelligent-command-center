@@ -52,7 +52,8 @@ module.exports = fp(async function (app) {
       body: {
         type: 'object',
         properties: {
-          applicationName: { type: 'string' }
+          applicationName: { type: 'string' },
+          apiVersion: { type: 'string', enum: ['v2', 'v3'], default: 'v2' }
         }
       },
       response: {
@@ -114,7 +115,7 @@ module.exports = fp(async function (app) {
     },
     handler: async (req) => {
       const { podId, namespace } = authK8sPodRequest(req.params.podId, req.k8s)
-      const { applicationName } = req.body
+      const { applicationName, apiVersion = 'v2' } = req.body
 
       const logger = req.log.child({ podId })
       const ctx = { req, logger }
@@ -123,6 +124,7 @@ module.exports = fp(async function (app) {
         applicationName,
         podId,
         namespace,
+        apiVersion,
         ctx
       )
 

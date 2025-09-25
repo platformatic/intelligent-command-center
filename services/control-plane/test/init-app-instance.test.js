@@ -113,7 +113,7 @@ test('should save an instance of a new application', async (t) => {
     'riskManager',
     'riskService',
     'scaler',
-    'trafficInspector',
+    'trafficante', // v2 default
     'userManager'
   ])
 
@@ -1108,7 +1108,7 @@ test('should get applicationName from controller name when missing from request 
     'riskManager',
     'riskService',
     'scaler',
-    'trafficInspector',
+    'trafficante', // v2 default
     'userManager'
   ])
 
