@@ -2,18 +2,19 @@ import React, { useEffect, useState } from 'react'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './AutoscalerHistory.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
-import { BorderedBox, /* Icons, */ LoadingSpinnerV2 } from '@platformatic/ui-components'
-import { BLACK_RUSSIAN, /* MEDIUM, */ TRANSPARENT /* WHITE */ } from '@platformatic/ui-components/src/components/constants'
+import { BorderedBox } from '@platformatic/ui-components'
+import { BLACK_RUSSIAN, TRANSPARENT } from '@platformatic/ui-components/src/components/constants'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
 import gridStyles from '~/styles/GridStyles.module.css'
-import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
 import AutoscalerHistoryChart from '~/components/application/autoscaler/AutoscalerHistoryChart'
 import { getScalingHistory } from '../../../api/autoscaler'
+
+import { REFRESH_INTERVAL_METRICS } from '~/ui-constants'
+import useRefreshData from '../../../hooks/useRefreshData'
 
 const AutoscalerHistory = ({
   applicationId
 }) => {
-  const [loading, setLoading] = useState(true)
   const [showNoResults, setShowNoResult] = useState(true)
   const [data, setData] = useState([])
 
@@ -23,9 +24,8 @@ const AutoscalerHistory = ({
       setShowNoResult(false)
     }
   }, [data])
-
+  useRefreshData(REFRESH_INTERVAL_METRICS, loadData)
   async function loadData () {
-    setLoading(true)
     try {
       const history = await getScalingHistory(applicationId)
       if (history.length > 0) {
@@ -41,8 +41,6 @@ const AutoscalerHistory = ({
       }
     } catch (error) {
       console.error(error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -51,19 +49,6 @@ const AutoscalerHistory = ({
   }, [])
 
   function renderComponent () {
-    if (loading) {
-      return (
-        <LoadingSpinnerV2
-          loading
-          applySentences={{
-            containerClassName: `${commonStyles.mediumFlexBlock} ${commonStyles.itemsCenter}`,
-            sentences: []
-          }}
-          containerClassName={loadingSpinnerStyles.loadingSpinner}
-        />
-      )
-    }
-
     if (showNoResults) {
       return <NoDataAvailable iconName='NoMetricsIcon' />
     }

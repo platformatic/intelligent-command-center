@@ -6,9 +6,9 @@ import Paginator from '../../ui/Paginator'
 import { REFRESH_INTERVAL_METRICS } from '~/ui-constants'
 import ScalerPill from './ScalerPill'
 import dayjs from 'dayjs'
+import useRefreshData from '../../../hooks/useRefreshData'
 
 const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10, limit = 10, onSelectEvent, selectedEventId, onEventLoaded }) {
-  // const [events, setEvents] = useState([])
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [totalCount, setTotalCount] = useState(null)
   const [page, setPage] = useState(0)
@@ -33,6 +33,8 @@ const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10
       return acc
     }, {})
   }
+  useRefreshData(REFRESH_INTERVAL_METRICS, loadScalerEvents)
+
   async function loadScalerEvents () {
     const response = await getScalingHistory(applicationId, limit)
     if (response.length > 0) {
