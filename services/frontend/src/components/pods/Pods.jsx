@@ -6,20 +6,16 @@ import {
   getApplicationsRaw,
   getApiMetricsForApplication
 } from '~/api'
-// import { getScalingHistory } from '~/api/autoscaler'
-import useICCStore from '~/useICCStore'
 import { getPodPerformances } from './performances'
 import { REFRESH_INTERVAL, UNKNOWN_PERFORMANCE } from '~/ui-constants'
 import PodSummary from '../application/autoscaler/PodSummary'
 import PodHoneycomb from '../application/autoscaler/PodHoneycomb'
 import { useLoaderData } from 'react-router-dom'
 
-const Pods = React.forwardRef(({
-  applicationId,
-  fromPreview = false
-}, ref) => {
-  const globalState = useICCStore()
-  const { pods, setPods, setPodsLoaded } = globalState
+export default function Pods ({
+  applicationId
+}) {
+  const [pods, setPods] = useState([])
   const [optionsApplications, setOptionsApplications] = useState([])
   const [showErrorComponent, setShowErrorComponent] = useState(false)
   const [allData, setAllData] = useState({})
@@ -72,7 +68,6 @@ const Pods = React.forwardRef(({
     if (applicationId && timer >= REFRESH_INTERVAL / 1000) {
       async function loadMetrics () {
         await loadPodsInstances()
-        setPodsLoaded(true)
       }
       loadMetrics()
     }
@@ -124,7 +119,7 @@ const Pods = React.forwardRef(({
   }
 
   return (
-    <div className={styles.podsContainer} ref={ref}>
+    <div className={styles.podsContainer}>
       <div className={styles.podSummaryContainer}>
 
         <PodHoneycomb pods={pods} scaleConfig={getLatestScaleConfig()} />
@@ -134,6 +129,4 @@ const Pods = React.forwardRef(({
       </div>
     </div>
   )
-})
-
-export default Pods
+}

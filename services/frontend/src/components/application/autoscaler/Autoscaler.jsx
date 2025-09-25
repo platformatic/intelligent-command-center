@@ -10,7 +10,7 @@ import ScalerEvents from './ScalerEvents'
 import { useRouteLoaderData, useSearchParams } from 'react-router-dom'
 import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
 
-const Autoscaler = React.forwardRef(({ _ }, ref) => {
+export default function Autoscaler () {
   const { application } = useRouteLoaderData('appRoot')
   const [keyTabSelected, setKeyTabSelected] = useState('pods')
 
@@ -32,7 +32,7 @@ const Autoscaler = React.forwardRef(({ _ }, ref) => {
     }
   }, [])
   return (
-    <div className={styles.autoscalerContainer} ref={ref}>
+    <div className={styles.autoscalerContainer}>
       <div className={styles.autoscalerContent}>
         <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter} ${commonStyles.justifyBetween}`}>
           <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
@@ -69,6 +69,4 @@ const Autoscaler = React.forwardRef(({ _ }, ref) => {
       </div>
     </div>
   )
-})
-
-export default Autoscaler
+}

@@ -14,8 +14,6 @@ const initialState = {
     '@platformatic/service': '1.52.2'
   },
   enableSidebarFirstLevel: false,
-  pods: [],
-  podsLoaded: false,
   splashScreen: {
     show: false,
     title: '',
@@ -123,22 +121,6 @@ const useICCStore = create((set, get) => ({
       return {
         ...state,
         enableSidebarFirstLevel: value
-      }
-    })
-  },
-  setPods: (data = []) => {
-    set((state) => {
-      return {
-        ...state,
-        pods: [...data]
-      }
-    })
-  },
-  setPodsLoaded: (value) => {
-    set((state) => {
-      return {
-        ...state,
-        podsLoaded: value
       }
     })
   },
