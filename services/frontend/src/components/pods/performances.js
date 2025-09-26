@@ -172,9 +172,6 @@ export const getPodPerformances = (metrics) => {
     scoreElu(eventLoop)
   ]
 
-  // Please don't remove this line until we are sure about the rules we want to apply
-  // console.log('POD scores', scores)
-
   // we collect only the reasons for the scores that are not 0
   const reasons = scores.filter((score) => score.score >= 1).map((score) => score.reason)
 

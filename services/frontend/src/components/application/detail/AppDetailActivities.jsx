@@ -81,7 +81,6 @@ function AppDetailActivities ({ gridClassName = '', application }) {
 
   function handleShowDetailActivity (activitySelected) {
     // TODO: check if this needs implementation or not
-    console.log('activitySelected', activitySelected)
   }
 
   function renderComponent () {

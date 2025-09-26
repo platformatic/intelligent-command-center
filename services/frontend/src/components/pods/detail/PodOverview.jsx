@@ -66,26 +66,19 @@ export default function PodOverview () {
       const signalsResponse = await getPodSignals(application.id, podId)
       const allSignals = signalsResponse.signals || []
 
-      console.log('Pod Overview - All signals:', allSignals)
-
       if (!allSignals || allSignals.length === 0) {
-        console.log('Pod Overview - No signals found')
         setSignals({ noSignals: true })
         return
       }
 
       // Find recent signals within the last 60 seconds
       const sixtySecondsAgo = new Date(Date.now() - 60 * 1000)
-      console.log('Pod Overview - Looking for signals after:', sixtySecondsAgo)
 
       const recentSignals = allSignals.filter(signal =>
         new Date(signal.createdAt || signal.created_at) > sixtySecondsAgo
       )
 
-      console.log('Pod Overview - Recent signals found:', recentSignals)
-
       if (!recentSignals || recentSignals.length === 0) {
-        console.log('Pod Overview - No recent signals in last 60 seconds')
         setSignals({ noRecentSignals: true })
         return
       }
@@ -94,12 +87,8 @@ export default function PodOverview () {
       const recentELUSignal = recentSignals.find(signal => signal.type === 'elu')
       const recentHeapSignal = recentSignals.find(signal => signal.type === 'heap')
 
-      console.log('Pod Overview - ELU signal:', recentELUSignal)
-      console.log('Pod Overview - Heap signal:', recentHeapSignal)
-
       // If we don't have both types of signals, show no recent signals
       if (!recentELUSignal && !recentHeapSignal) {
-        console.log('Pod Overview - No recent ELU or Heap signals found')
         setSignals({ noRecentSignals: true })
         return
       }
