@@ -429,7 +429,7 @@ importers:
         version: 5.0.1
       get-jwks:
         specifier: ^11.0.0
-        version: 11.0.1
+        version: 11.0.2
       mqemitter-redis:
         specifier: ^7.0.0
         version: 7.1.0
@@ -4647,8 +4647,8 @@ packages:
     resolution: {integrity: sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ==}
     engines: {node: '>= 0.4'}
 
-  get-jwks@11.0.1:
-    resolution: {integrity: sha512-/1kb/MEh5bfT6Nyy8f3IhCaE6pXa9LdS/QRyRoQNdrzsmgTHjw+QcV19qumsHYIfcKWiBp6xwpJ7sMZREr5mvg==}
+  get-jwks@11.0.2:
+    resolution: {integrity: sha512-mWv9ebbZnbMmxh1EJUzPeqmHrM+4XMNK2j6UWGlk6kUwZKHh0yF+3ieRzXkGKCMbWBdIlh18bEpn1kGeq+7pjQ==}
     engines: {node: '>=20'}
 
   get-proto@1.0.1:
@@ -5350,6 +5350,10 @@ packages:
 
   lru-cache@11.2.1:
     resolution: {integrity: sha512-r8LA6i4LP4EeWOhqBaZZjDWwehd1xUJPCJd9Sv300H0ZmcUER4+JPh7bqqZeqs1o5pgtgvXm+d9UGrB5zZGDiQ==}
+    engines: {node: 20 || >=22}
+
+  lru-cache@11.2.2:
+    resolution: {integrity: sha512-F9ODfyqML2coTIsQpSkRHnLSZMtkU8Q+mSfcaIyKwy58u+8k5nvAYeiNhsyMARvzNcXJ9QfWVrcPsC9e9rAxtg==}
     engines: {node: 20 || >=22}
 
   lru-cache@5.1.1:
@@ -12481,7 +12485,7 @@ snapshots:
       '@fastify/jwt': 9.1.0
       fastify: 5.6.1
       fastify-plugin: 5.0.1
-      get-jwks: 11.0.1
+      get-jwks: 11.0.2
 
   fastify@5.6.1:
     dependencies:
@@ -12673,10 +12677,10 @@ snapshots:
       hasown: 2.0.2
       math-intrinsics: 1.1.0
 
-  get-jwks@11.0.1:
+  get-jwks@11.0.2:
     dependencies:
       jwk-to-pem: 2.0.7
-      lru-cache: 11.2.1
+      lru-cache: 11.2.2
 
   get-proto@1.0.1:
     dependencies:
@@ -13408,6 +13412,8 @@ snapshots:
 
   lru-cache@11.2.1: {}
 
+  lru-cache@11.2.2: {}
+
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
@@ -13980,7 +13986,7 @@ snapshots:
 
   path-scurry@2.0.0:
     dependencies:
-      lru-cache: 11.2.1
+      lru-cache: 11.2.2
       minipass: 7.1.2
 
   path-to-regexp@8.3.0: {}
