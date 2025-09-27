@@ -321,10 +321,10 @@ importers:
         version: 0.19.1
       '@types/react':
         specifier: ^19.0.1
-        version: 19.1.13
+        version: 19.1.14
       '@types/react-dom':
         specifier: ^19.0.1
-        version: 19.1.9(@types/react@19.1.13)
+        version: 19.1.9(@types/react@19.1.14)
       '@vitejs/plugin-react':
         specifier: ^5.0.0
         version: 5.0.3(vite@5.4.20(@types/node@24.5.2)(terser@5.44.0))
@@ -396,7 +396,7 @@ importers:
         version: 8.18.3
       zustand:
         specifier: ^5.0.2
-        version: 5.0.8(@types/react@19.1.13)(react@19.1.1)
+        version: 5.0.8(@types/react@19.1.14)(react@19.1.1)
 
   services/main:
     dependencies:
@@ -2860,8 +2860,8 @@ packages:
     peerDependencies:
       '@types/react': ^19.0.0
 
-  '@types/react@19.1.13':
-    resolution: {integrity: sha512-hHkbU/eoO3EG5/MZkuFSKmYqPbSVk5byPFa3e7y/8TybHiLMACgI8seVYlicwk7H5K/rI2px9xrQp/C+AUDTiQ==}
+  '@types/react@19.1.14':
+    resolution: {integrity: sha512-ukd93VGzaNPMAUPy0gRDSC57UuQbnH9Kussp7HBjM06YFi9uZTFhOvMSO2OKqXm1rSgzOE+pVx1k1PYHGwlc8Q==}
 
   '@types/resolve@1.20.6':
     resolution: {integrity: sha512-A4STmOXPhMUtHH+S6ymgE2GiBSMqf4oTvcQZMcHzokuTLVYzXTB8ttjcgxOVaAp2lGwEdzZ0J+cRbbeevQj1UQ==}
@@ -10468,11 +10468,11 @@ snapshots:
 
   '@types/parse-json@4.0.2': {}
 
-  '@types/react-dom@19.1.9(@types/react@19.1.13)':
+  '@types/react-dom@19.1.9(@types/react@19.1.14)':
     dependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.14
 
-  '@types/react@19.1.13':
+  '@types/react@19.1.14':
     dependencies:
       csstype: 3.1.3
 
@@ -15751,7 +15751,7 @@ snapshots:
 
   zod@3.25.76: {}
 
-  zustand@5.0.8(@types/react@19.1.13)(react@19.1.1):
+  zustand@5.0.8(@types/react@19.1.14)(react@19.1.1):
     optionalDependencies:
-      '@types/react': 19.1.13
+      '@types/react': 19.1.14
       react: 19.1.1
