@@ -345,7 +345,7 @@ importers:
         version: 17.2.2
       mercurius:
         specifier: ^16.0.0
-        version: 16.2.0(graphql@16.11.0)
+        version: 16.3.0(graphql@16.11.0)
       mermaid:
         specifier: ^11.0.0
         version: 11.12.0
@@ -460,7 +460,7 @@ importers:
         version: 5.6.1
       mercurius:
         specifier: ^16.0.0
-        version: 16.2.0(graphql@16.11.0)
+        version: 16.3.0(graphql@16.11.0)
       nock:
         specifier: ^14.0.0
         version: 14.0.10
@@ -5413,6 +5413,12 @@ packages:
     peerDependencies:
       graphql: ^16.0.0
 
+  mercurius@16.3.0:
+    resolution: {integrity: sha512-JQSCMc/TmvNfbOkGDwY5cSvkmn01ME/LiqvhzCGK5RtN4VfgcWUgXofh8uTkvdOmguOl35zwGfVVZvV/zPC+pA==}
+    engines: {node: ^20.9.0 || >=22.0.0}
+    peerDependencies:
+      graphql: ^16.0.0
+
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
 
@@ -6157,6 +6163,10 @@ packages:
     resolution: {integrity: sha512-Pzd/4IFnTb8E+I1P5rbLQoqpUHcXKg48qTYKi4EANg+sTPwGFEMOcYGiiZz6xuQcOMZP7MPsrdAPx+16Q8qahg==}
     engines: {node: '>=18'}
 
+  quick-lru@7.2.0:
+    resolution: {integrity: sha512-fG4L8TlD1CacJiGMGPxM1/K8l/GaKL2eFQZ6DWAjxZYxSf07DkumbC/Mhh+u/NHvxkfQVL25By0pxBS8QE9ZrQ==}
+    engines: {node: '>=18'}
+
   randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
 
@@ -6525,6 +6535,9 @@ packages:
 
   single-user-cache@2.0.0:
     resolution: {integrity: sha512-AGsTqnYmJH59HtK/5RhCfWh0cz3/Y2bxJf4w+0chSdkg1WmS8vYMnFGZc+C/m0gDZFl4iQ9sSLv7oURP6aKJwQ==}
+
+  single-user-cache@2.1.0:
+    resolution: {integrity: sha512-Wmu+uIEkabMoQPpJTOYhEsE6h/XjnjIhtuB1+tynxeO/hQxwQD0hIDq/ad65P1Tw9wt9f5SKnUe+63m6TMB4Uw==}
 
   sinon@18.0.1:
     resolution: {integrity: sha512-a2N2TDY1uGviajJ6r4D1CyRAkzE9NNVlYOV1wX5xQDuAk0ONgzgRl0EjCQuRCPxOwp13ghsMwt9Gdldujs39qw==}
@@ -8755,7 +8768,7 @@ snapshots:
     dependencies:
       '@fastify/error': 4.2.0
       graphql: 16.11.0
-      mercurius: 16.2.0(graphql@16.11.0)
+      mercurius: 16.3.0(graphql@16.11.0)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -9194,7 +9207,7 @@ snapshots:
       graphql: 16.11.0
       help-me: 5.0.0
       json-schema-traverse: 1.0.0
-      mercurius: 16.2.0(graphql@16.11.0)
+      mercurius: 16.3.0(graphql@16.11.0)
       minimist: 1.2.8
       my-ua-parser: 2.0.4
       nunjucks: 3.2.4(chokidar@3.6.0)
@@ -9524,7 +9537,7 @@ snapshots:
       graphql-scalars: 1.24.2(graphql@16.11.0)
       graphql-type-json: 0.3.2(graphql@16.11.0)
       inflected: 2.1.0
-      mercurius: 16.2.0(graphql@16.11.0)
+      mercurius: 16.3.0(graphql@16.11.0)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -13439,7 +13452,7 @@ snapshots:
       graphql-jit: 0.8.6(graphql@16.11.0)
       mqemitter: 6.0.2
       p-map: 4.0.0
-      quick-lru: 7.1.0
+      quick-lru: 7.2.0
       readable-stream: 4.7.0
       safe-stable-stringify: 2.5.0
       secure-json-parse: 2.7.0
@@ -13466,6 +13479,27 @@ snapshots:
       safe-stable-stringify: 2.5.0
       secure-json-parse: 3.0.2
       single-user-cache: 2.0.0
+      tiny-lru: 11.4.5
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  mercurius@16.3.0(graphql@16.11.0):
+    dependencies:
+      '@fastify/error': 4.2.0
+      '@fastify/static': 8.2.0
+      '@fastify/websocket': 11.2.0
+      fastify-plugin: 5.0.1
+      graphql: 16.11.0
+      graphql-jit: 0.8.7(graphql@16.11.0)
+      mqemitter: 7.1.0
+      p-map: 4.0.0
+      quick-lru: 7.2.0
+      readable-stream: 4.7.0
+      safe-stable-stringify: 2.5.0
+      secure-json-parse: 3.0.2
+      single-user-cache: 2.1.0
       tiny-lru: 11.4.5
       ws: 8.18.3
     transitivePeerDependencies:
@@ -14321,6 +14355,8 @@ snapshots:
 
   quick-lru@7.1.0: {}
 
+  quick-lru@7.2.0: {}
+
   randombytes@2.1.0:
     dependencies:
       safe-buffer: 5.2.1
@@ -14805,6 +14841,10 @@ snapshots:
       safe-stable-stringify: 2.5.0
 
   single-user-cache@2.0.0:
+    dependencies:
+      safe-stable-stringify: 2.5.0
+
+  single-user-cache@2.1.0:
     dependencies:
       safe-stable-stringify: 2.5.0
 
