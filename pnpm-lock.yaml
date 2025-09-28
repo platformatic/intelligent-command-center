@@ -99,7 +99,7 @@ importers:
         version: 7.16.0
       undici-cache-redis:
         specifier: ^1.0.0
-        version: 1.0.0
+        version: 1.0.1
     devDependencies:
       '@platformatic/next':
         specifier: ^2.70.1
@@ -6962,8 +6962,8 @@ packages:
   underscore@1.12.1:
     resolution: {integrity: sha512-hEQt0+ZLDVUMhebKxL4x1BTtDY7bavVofhZ9KZ4aI26X9SRaE+Y3m83XUL1UP2jn8ynjndwCCpEHdUG+9pP1Tw==}
 
-  undici-cache-redis@1.0.0:
-    resolution: {integrity: sha512-pzbCpQCwHRzsPKNITOqPNim/HsdlHT3WjbTksMD++OwMgcsQYQR8QZkc+i+0c+JDMz92hmioio/r4qwxqXVajA==}
+  undici-cache-redis@1.0.1:
+    resolution: {integrity: sha512-WPggGOAmthr48gaBgZLltgEUp2g+1Ej0P2DFo48MNHbVw6GeHysr/4gDtl7k5BvmAj9391J+d5b0uGrTHaYArw==}
 
   undici-oidc-interceptor@0.6.0:
     resolution: {integrity: sha512-9Cddcqv9kLsvsYlGd5wuC9CywgontjyKmhvOC0JUj0HOUzr6nr3zfJZG4NfAEtutLzlyMAiGRq5gNhMqbmxqIw==}
@@ -15336,9 +15336,8 @@ snapshots:
 
   underscore@1.12.1: {}
 
-  undici-cache-redis@1.0.0:
+  undici-cache-redis@1.0.1:
     dependencies:
-      atomic-sleep: 1.0.0
       iovalkey: 0.3.3
       lru_map: 0.4.1
     transitivePeerDependencies:
