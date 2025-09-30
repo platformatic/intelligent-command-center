@@ -3,11 +3,12 @@ import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './PanelCompliancyService.module.css'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import { WHITE, TRANSPARENT, WARNING_YELLOW, SMALL, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
-import { BorderedBox } from '@platformatic/ui-components'
+import { BorderedBox, Tooltip } from '@platformatic/ui-components'
 import DependenciesIssues from './DependenciesIssues'
 import React, { useEffect, useState } from 'react'
 import Forms from '@platformatic/ui-components/src/components/forms'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
+import tooltipStyles from '~/styles/TooltipStyles.module.css'
 
 function Dependency ({ name, wanted = '-', current = '-', isOutdated = false }) {
   return (
@@ -18,11 +19,20 @@ function Dependency ({ name, wanted = '-', current = '-', isOutdated = false }) 
           {isOutdated && <Icons.AlertIcon size={SMALL} color={WARNING_YELLOW} />}
         </div>
         <div className={`${commonStyles.tinyFlexRow} ${typographyStyles.desktopBodySmall}`}>
-          <span className={` ${typographyStyles.opacity70}`}>Current version:</span>
+          <span className={` ${typographyStyles.opacity70}`}>Current</span>
           <span className={`${isOutdated ? typographyStyles.textWarningYellow : typographyStyles.textWhite}`}>{current ?? '-'}</span>
           <Icons.ArrowLongRightIcon size={SMALL} color={WHITE} />
-          <span className={` ${typographyStyles.opacity70}`}>Latest version:</span>
+          <span className={` ${typographyStyles.opacity70}`}>Latest</span>
           <span>{wanted ?? '-'}</span>
+          <Tooltip
+            tooltipClassName={tooltipStyles.tooltipDarkStyle}
+            content={(<div>Latest version at deployment time.</div>)}
+            offset={24}
+            immediateActive={false}
+          >
+            <Icons.InfoCircleIcon size={SMALL} color={WHITE} />
+          </Tooltip>
+
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 .boxDependenciesContainer {
-  @apply w-full text-white;
+  @apply w-full text-white p-4;
 }
 
 .depContainer {
@@ -7,10 +7,6 @@
 }
 .boxDependency {
   @apply w-[350px] p-2 bg-rich-black;
-}
-.boxDependenciesContainer {
-  @apply p-4 overflow-y-auto;
-  max-height: calc(100vh - 23rem);
 }
 .boxDependency {
   @apply p-2;
