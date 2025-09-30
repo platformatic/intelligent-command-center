@@ -2,6 +2,7 @@
 
 const { join } = require('node:path')
 const { buildServer } = require('@platformatic/db')
+const fastify = require('fastify')
 const {
   MockAgent,
   setGlobalDispatcher,
@@ -17,7 +18,8 @@ const mockAgent = new MockAgent({
 function setUpEnvironment (env = {}) {
   const defaultEnv = {
     PLT_COMPLIANCE_DATABASE_URL: 'postgres://postgres:postgres@127.0.0.1:5433/compliance',
-    PLT_COMPLIANCE_RULES_DIR: 'test/fixtures/rules'
+    PLT_COMPLIANCE_RULES_DIR: 'test/fixtures/rules',
+    PLT_CONTROL_PLANE_URL: 'http://127.0.0.1:3042'
   }
 
   Object.assign(process.env, defaultEnv, env)
@@ -25,6 +27,8 @@ function setUpEnvironment (env = {}) {
 
 async function startCompliance (t, envOverride, rulesData) {
   setUpEnvironment(envOverride)
+
+  const clientsDir = join(__dirname, '..', '..', '..', 'clients')
 
   const app = await buildServer({
     server: {
@@ -46,7 +50,15 @@ async function startCompliance (t, envOverride, rulesData) {
         { path: join(__dirname, '..', 'plugins') },
         { path: join(__dirname, '..', 'routes') }
       ]
-    }
+    },
+    clients: [
+      {
+        schema: join(clientsDir, 'control-plane', 'control-plane.openapi.json'),
+        name: 'controlPlane',
+        type: 'openapi',
+        url: process.env.PLT_CONTROL_PLANE_URL
+      }
+    ]
   })
 
   t.after(async () => {
@@ -132,6 +144,24 @@ async function startCompliance (t, envOverride, rulesData) {
   return app
 }
 
+async function startControlPlane (t, opts = {}) {
+  const controlPlane = fastify({ keepAliveTimeout: 1 })
+
+  controlPlane.get('/instances/', async (req) => {
+    const podId = req.query['where.podId.eq']
+    const applicationId = req.query['where.applicationId.eq']
+
+    return opts?.getInstances({ podId, applicationId }) ?? []
+  })
+
+  t.after(async () => {
+    await controlPlane.close()
+  })
+
+  await controlPlane.listen({ port: 3042 })
+  return controlPlane
+}
+
 async function startNpmMock (t, npmPackages = []) {
   const globalDispatcher = getGlobalDispatcher()
   setGlobalDispatcher(mockAgent)
@@ -163,8 +193,19 @@ async function startNpmMock (t, npmPackages = []) {
   return npmRegistryClient
 }
 
+function generateK8sAuthContext (podId, namespace) {
+  return { namespace, pod: { name: podId } }
+}
+
+function generateK8sHeader (podId, namespace) {
+  namespace = namespace || 'platformatic'
+  return JSON.stringify(generateK8sAuthContext(podId, namespace))
+}
+
 module.exports = {
   startCompliance,
+  startControlPlane,
   startNpmMock,
-  setUpEnvironment
+  setUpEnvironment,
+  generateK8sHeader
 }

@@ -1,12 +1,11 @@
 'use strict'
 const fp = require('fastify-plugin')
 module.exports = fp(async function (app, opts) {
-  app.decorate('shouldRunCompliance', async (applicationId) => {
+  app.decorate('shouldRunCompliance', async (applicationId, deploymentId) => {
     const oldReport = await app.platformatic.entities.report.find({
       where: {
-        applicationId: {
-          eq: applicationId
-        }
+        applicationId: { eq: applicationId },
+        deploymentId: { eq: deploymentId }
       }
     })
 
@@ -15,7 +14,13 @@ module.exports = fp(async function (app, opts) {
     }
     return true
   })
-  app.decorate('saveComplianceReport', async (applicationId, compliant, rulesReports) => {
+
+  app.decorate('saveComplianceReport', async (
+    applicationId,
+    deploymentId,
+    compliant,
+    rulesReports
+  ) => {
     const ruleSet = rulesReports.map((rr) => {
       return {
         id: rr.ruleId,
@@ -27,6 +32,7 @@ module.exports = fp(async function (app, opts) {
     })
     const input = {
       applicationId,
+      deploymentId,
       result: compliant,
       ruleSet: JSON.stringify(ruleSet)
     }
