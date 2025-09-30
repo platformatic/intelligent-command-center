@@ -13,9 +13,9 @@ services:
   applications-valkey:
     ports:
       - "6342:6379"
-    image: "valkey/valkey:8.1"
+    image: "valkey/valkey:9.0"
 
   icc-valkey:
     ports:
       - "6343:6379"
-    image: "valkey/valkey:8.1"
+    image: "valkey/valkey:9.0"

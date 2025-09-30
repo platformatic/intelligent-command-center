@@ -82,11 +82,11 @@ jobs:
     timeout-minutes: 15
     services:
       cache-valkey:
-        image: "valkey/valkey:8.1"
+        image: "valkey/valkey:9.0"
         ports:
           - "6342:6379"
       main-valkey:
-        image: "valkey/valkey:8.1"
+        image: "valkey/valkey:9.0"
         ports:
           - "6343:6379"
       icc-postgres:
@@ -182,7 +182,7 @@ jobs:
         ports:
           - 5433:5432
       valkey:
-        image: "valkey/valkey:8.1"
+        image: "valkey/valkey:9.0"
         ports:
           - "6343:6379"
     needs: setup-node_modules
@@ -269,7 +269,7 @@ jobs:
         ports:
           - 5433:5432
       cache-valkey:
-        image: "valkey/valkey:8.1"
+        image: "valkey/valkey:9.0"
         ports:
           - "6342:6379"
     steps:
@@ -311,7 +311,7 @@ jobs:
           - 5433:5432
 
       valkey:
-        image: "valkey/valkey:8.1"
+        image: "valkey/valkey:9.0"
         ports:
           - "6343:6379"
 
@@ -355,7 +355,7 @@ jobs:
           - 5433:5432
 
       valkey:
-        image: "valkey/valkey:8.1"
+        image: "valkey/valkey:9.0"
         ports:
           - "6379:6379"
 
@@ -385,7 +385,7 @@ jobs:
   ci-cache-manager:
     services:
       valkey:
-        image: "valkey/valkey:8.1"
+        image: "valkey/valkey:9.0"
         ports:
           - "6342:6379"
     needs: setup-node_modules
@@ -412,7 +412,7 @@ jobs:
   ci-cluster-manager:
     services:
       valkey:
-        image: "valkey/valkey:8.1"
+        image: "valkey/valkey:9.0"
         ports:
           - "6342:6379"
       icc-postgres:
@@ -584,7 +584,7 @@ jobs:
   ci-scaler:
     services:
       main-valkey:
-        image: "valkey/valkey:8.1"
+        image: "valkey/valkey:9.0"
         ports:
           - "6343:6379"
       icc-postgres:
