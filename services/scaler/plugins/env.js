@@ -25,6 +25,10 @@ const schema = {
     PLT_SCALER_PERIODIC_TRIGGER: { type: 'number', default: 60 }, // in seconds
     PLT_SCALER_SYNC_K8S: { type: 'number', default: 60 }, // in seconds
     PLT_FEATURE_SCALER_TRENDS_LEARNING: { type: 'boolean', default: false },
+    PLT_SCALER_POD_MIN_LABEL: { type: 'string', default: 'icc.platformatic.dev/scaler-min' },
+    PLT_SCALER_POD_MIN_DEFAULT_VALUE: { type: 'number', default: 1 },
+    PLT_SCALER_POD_MAX_LABEL: { type: 'string', default: 'icc.platformatic.dev/scaler-max' },
+    PLT_SCALER_POD_MAX_DEFAULT_VALUE: { type: 'number', default: 10 },
     PLT_MACHINIST_URL: { type: 'string' }
   }
 }

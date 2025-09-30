@@ -413,6 +413,11 @@ test('k8s-sync plugin handles multiple applications with multiple controllers ea
     }
   }
 
+  // Mock getControllerLabels to return empty labels
+  server.machinist.getControllerLabels = async (id, namespace, kind, apiVersion) => {
+    return {}
+  }
+
   await server.k8sSync.syncControllerData()
 
   // Should have called machinist for both newest controllers only
@@ -432,4 +437,260 @@ test('k8s-sync plugin handles multiple applications with multiple controllers ea
   })
   assert.strictEqual(app2ScaleEvents.length, 1)
   assert.strictEqual(app2ScaleEvents[0].replicas, 7)
+})
+
+test('k8s-sync plugin syncs scaler config from labels', async (t) => {
+  const applicationId = '123e4567-e89b-12d3-a456-426614174300'
+
+  const server = await buildServer(t)
+
+  // Create a controller
+  await server.platformatic.entities.controller.save({
+    input: {
+      applicationId,
+      deploymentId: '123e4567-e89b-12d3-a456-426614174301',
+      k8SControllerId: 'test-controller',
+      namespace: 'default',
+      apiVersion: 'apps/v1',
+      kind: 'Deployment',
+      replicas: 2
+    }
+  })
+
+  // Mock machinist to return controller with labels
+  server.machinist.getController = async (id) => {
+    if (id === 'test-controller') {
+      return { replicas: 3 }
+    }
+    throw new Error(`Unexpected controller ${id}`)
+  }
+
+  server.machinist.getControllerLabels = async (id, namespace, kind, apiVersion) => {
+    if (id === 'test-controller') {
+      return {
+        'app.kubernetes.io/name': 'test-app',
+        'icc.platformatic.dev/scaler-min': '2',
+        'icc.platformatic.dev/scaler-max': '8'
+      }
+    }
+    return {}
+  }
+
+  // Verify no scale config exists initially
+  const initialConfig = await server.getScaleConfig(applicationId)
+  assert.strictEqual(initialConfig, null)
+
+  // Run the sync
+  await server.k8sSync.syncControllerData()
+
+  // Verify scale config was created from labels
+  const scaleConfig = await server.getScaleConfig(applicationId)
+  assert.notStrictEqual(scaleConfig, null)
+  assert.strictEqual(scaleConfig.minPods, 2)
+  assert.strictEqual(scaleConfig.maxPods, 8)
+  assert.strictEqual(scaleConfig.applicationId, applicationId)
+
+  // Verify controller replica was updated too
+  const updatedController = await server.platformatic.entities.controller.find({
+    where: { applicationId: { eq: applicationId } },
+    orderBy: [{ field: 'createdAt', direction: 'desc' }],
+    limit: 1
+  })
+  assert.strictEqual(updatedController[0].replicas, 3)
+})
+
+test('k8s-sync plugin provides manual scaler config sync function', async (t) => {
+  const applicationId1 = '123e4567-e89b-12d3-a456-426614174400'
+  const applicationId2 = '123e4567-e89b-12d3-a456-426614174401'
+
+  const server = await buildServer(t)
+
+  // Create two controllers
+  await server.platformatic.entities.controller.save({
+    input: {
+      applicationId: applicationId1,
+      deploymentId: '123e4567-e89b-12d3-a456-426614174402',
+      k8SControllerId: 'app1-controller',
+      namespace: 'default',
+      apiVersion: 'apps/v1',
+      kind: 'Deployment',
+      replicas: 2
+    }
+  })
+
+  await server.platformatic.entities.controller.save({
+    input: {
+      applicationId: applicationId2,
+      deploymentId: '123e4567-e89b-12d3-a456-426614174403',
+      k8SControllerId: 'app2-controller',
+      namespace: 'production',
+      apiVersion: 'apps/v1',
+      kind: 'Deployment',
+      replicas: 1
+    }
+  })
+
+  // Mock machinist to return labels and handle updateController
+  server.machinist.getControllerLabels = async (id, namespace, kind, apiVersion) => {
+    if (id === 'app1-controller') {
+      return {
+        'icc.platformatic.dev/scaler-min': '3',
+        'icc.platformatic.dev/scaler-max': '15'
+      }
+    } else if (id === 'app2-controller') {
+      return {
+        'icc.platformatic.dev/scaler-max': '25'
+      }
+    }
+    return {}
+  }
+
+  // Mock updateController for saveScaleConfig
+  server.machinist.updateController = async () => {
+    return { success: true }
+  }
+
+  // Verify no scale configs exist initially
+  assert.strictEqual(await server.getScaleConfig(applicationId1), null)
+  assert.strictEqual(await server.getScaleConfig(applicationId2), null)
+
+  // Call the manual trigger function
+  assert.ok(typeof server.syncScalerConfigFromLabels === 'function', 'Manual trigger function should be exposed')
+  await server.syncScalerConfigFromLabels()
+
+  // Verify scale configs were created
+  const config1 = await server.getScaleConfig(applicationId1)
+  assert.notStrictEqual(config1, null)
+  assert.strictEqual(config1.minPods, 3)
+  assert.strictEqual(config1.maxPods, 15)
+
+  const config2 = await server.getScaleConfig(applicationId2)
+  assert.notStrictEqual(config2, null)
+  assert.strictEqual(config2.minPods, 1) // default
+  assert.strictEqual(config2.maxPods, 25)
+})
+
+test('k8s-sync plugin uses custom label names from environment variables', async (t) => {
+  const applicationId = '123e4567-e89b-12d3-a456-426614174000'
+  const deploymentId = '123e4567-e89b-12d3-a456-426614174001'
+  const controllerId = 'test-controller-1'
+  const namespace = 'default'
+
+  const server = await buildServer(t, {
+    PLT_SCALER_POD_MIN_LABEL: 'custom.example.com/min-replicas',
+    PLT_SCALER_POD_MAX_LABEL: 'custom.example.com/max-replicas'
+  })
+
+  await server.platformatic.entities.controller.save({
+    input: {
+      applicationId,
+      deploymentId,
+      k8SControllerId: controllerId,
+      namespace,
+      apiVersion: 'apps/v1',
+      kind: 'Deployment',
+      replicas: 3
+    }
+  })
+
+  server.machinist.getController = async () => ({
+    replicas: 3,
+    metadata: { name: controllerId }
+  })
+
+  server.machinist.getControllerLabels = async () => ({
+    'custom.example.com/min-replicas': '2',
+    'custom.example.com/max-replicas': '10',
+    'icc.platformatic.dev/scaler-min': '5',
+    'icc.platformatic.dev/scaler-max': '15'
+  })
+
+  server.getScaleConfig = async () => null
+  server.saveScaleConfig = async (appId, config) => {
+    assert.strictEqual(appId, applicationId)
+    assert.strictEqual(config.minPods, 2)
+    assert.strictEqual(config.maxPods, 10)
+    return { success: true }
+  }
+
+  await server.k8sSync.syncControllerData()
+})
+
+test('k8s-sync plugin records activity when scaler config changes', async (t) => {
+  const { MockAgent, setGlobalDispatcher, getGlobalDispatcher } = require('undici')
+
+  const applicationId = '123e4567-e89b-12d3-a456-426614174000'
+  const deploymentId = '123e4567-e89b-12d3-a456-426614174001'
+  const controllerId = 'test-controller-1'
+  const namespace = 'default'
+
+  const server = await buildServer(t)
+
+  let recordedActivity = null
+
+  const originalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  mockAgent.disableNetConnect()
+  setGlobalDispatcher(mockAgent)
+  t.after(() => setGlobalDispatcher(originalDispatcher))
+
+  const mockControlPlane = mockAgent.get('http://control-plane.plt.local')
+  mockControlPlane
+    .intercept({
+      path: `/applications/${applicationId}`,
+      method: 'GET'
+    })
+    .reply(200, { name: 'test-app' })
+    .persist()
+
+  const mockActivities = mockAgent.get('http://activities.plt.local')
+  mockActivities
+    .intercept({
+      path: '/events',
+      method: 'POST'
+    })
+    .reply((opts) => {
+      recordedActivity = JSON.parse(opts.body)
+      return { statusCode: 201, data: {} }
+    })
+    .persist()
+
+  await server.platformatic.entities.controller.save({
+    input: {
+      applicationId,
+      deploymentId,
+      k8SControllerId: controllerId,
+      namespace,
+      apiVersion: 'apps/v1',
+      kind: 'Deployment',
+      replicas: 3
+    }
+  })
+
+  server.machinist.getController = async () => ({
+    replicas: 3,
+    metadata: { name: controllerId }
+  })
+
+  server.machinist.getControllerLabels = async () => ({
+    'custom.example.com/min-replicas': '2',
+    'custom.example.com/max-replicas': '8'
+  })
+
+  server.getScaleConfig = async () => null
+  server.saveScaleConfig = async (appId, config) => {
+    assert.strictEqual(appId, applicationId)
+    assert.strictEqual(config.minPods, 2)
+    assert.strictEqual(config.maxPods, 8)
+    return { success: true }
+  }
+
+  // Test that syncControllerData calls recordConfigActivity when config changes
+  await server.k8sSync.syncControllerData()
+  assert.notStrictEqual(recordedActivity, null, 'Activity should be recorded when config changes')
+  assert.strictEqual(recordedActivity.type, 'CONFIG_UPDATE')
+  assert.strictEqual(recordedActivity.applicationId, applicationId)
+  assert.strictEqual(recordedActivity.data.source, 'kubernetes-labels')
+  assert.strictEqual(recordedActivity.data.newConfig.minPods, 2)
+  assert.strictEqual(recordedActivity.data.newConfig.maxPods, 8)
 })

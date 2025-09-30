@@ -49,7 +49,7 @@ class Machinist {
   }
 
   async getController (controllerId, namespace, apiVersion, kind) {
-    this.#app.log.info('Getting controller details')
+    this.#app.log.debug('Getting controller details')
 
     const url = this.url + `/controllers/${namespace}/${controllerId}`
     const { statusCode, body } = await request(url, {
@@ -119,6 +119,33 @@ class Machinist {
 
     const data = await body.json()
     return data.controllers
+  }
+
+  async getControllerLabels (name, namespace, kind, apiVersion) {
+    this.#app.log.debug('Getting controller labels', { name, namespace, kind, apiVersion })
+
+    try {
+      // Use the existing getController method to get controller details
+      const controller = await this.getController(name, namespace, apiVersion, kind)
+
+      // Get labels directly from controller.metadata.labels (standard K8s location)
+      if (controller?.metadata?.labels) {
+        this.#app.log.debug('Found labels in controller.metadata.labels:', controller.metadata.labels)
+        return controller.metadata.labels
+      }
+
+      // No labels found on the controller
+      this.#app.log.debug('No labels found on controller')
+      return {}
+    } catch (error) {
+      this.#app.log.error('Error in getControllerLabels', {
+        name,
+        namespace,
+        kind,
+        error: error.message
+      })
+      throw error
+    }
   }
 }
 

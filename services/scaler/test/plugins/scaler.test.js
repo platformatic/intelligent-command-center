@@ -11,6 +11,8 @@ const storePlugin = require('../../plugins/store')
 const leaderPlugin = require('../../plugins/leader')
 const machinistPlugin = require('../../plugins/machinist')
 const k8sSyncPlugin = require('../../plugins/k8s-sync')
+const scaleConfigsPlugin = require('../../plugins/scale-configs')
+const activitiesPlugin = require('../../plugins/activities')
 
 const getPlugins = (executor) => [
   envPlugin,
@@ -18,6 +20,8 @@ const getPlugins = (executor) => [
   storePlugin,
   predictionSchedulerPlugin,
   machinistPlugin,
+  scaleConfigsPlugin,
+  activitiesPlugin,
   k8sSyncPlugin,
   leaderPlugin,
   scalerPlugin

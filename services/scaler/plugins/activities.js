@@ -61,6 +61,55 @@ module.exports = fp(async function (app) {
       app.log.error({ err, applicationId }, 'Failed to record scaling activity')
     }
   })
+
+  app.decorate('recordConfigActivity', async function (applicationId, oldConfig, newConfig, source) {
+    try {
+      let applicationName = 'Unknown'
+      try {
+        const { statusCode, body } = await request(`${controlPlaneUrl}/applications/${applicationId}`, {
+          method: 'GET',
+          headers: {
+            'content-type': 'application/json'
+          }
+        })
+
+        if (statusCode === 200) {
+          const application = await body.json()
+          applicationName = application.name
+        }
+      } catch (err) {
+        app.log.warn({ err, applicationId }, 'Failed to get application name from control-plane')
+      }
+
+      const { statusCode, body } = await request(`${activitiesUrl}/events`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: 'CONFIG_UPDATE',
+          applicationId,
+          targetId: applicationId,
+          success: true,
+          data: {
+            applicationName,
+            oldConfig,
+            newConfig,
+            source: source || 'kubernetes-labels'
+          }
+        })
+      })
+
+      if (statusCode !== 200 && statusCode !== 201) {
+        const error = await body.text()
+        throw new Error(`Failed to post config activity: ${error}`)
+      }
+
+      app.log.info({ applicationId, oldConfig, newConfig, source }, 'Configuration activity recorded')
+    } catch (err) {
+      app.log.error({ err, applicationId }, 'Failed to record configuration activity')
+    }
+  })
 }, {
   name: 'activities',
   dependencies: []

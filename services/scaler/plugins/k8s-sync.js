@@ -2,6 +2,7 @@
 
 const fp = require('fastify-plugin')
 const { setTimeout } = require('timers/promises')
+const { syncScalerConfigFromLabels } = require('../lib/scaler-config-sync')
 
 module.exports = fp(async function (app) {
   let isServerClosed = false
@@ -16,24 +17,27 @@ module.exports = fp(async function (app) {
 
   let syncController = null
 
+  async function getMostRecentControllers () {
+    const result = await app.platformatic.db.query(app.platformatic.sql`
+      SELECT c.*
+      FROM controllers c
+      INNER JOIN (
+        SELECT application_id, MAX(created_at) as max_created_at
+        FROM controllers
+        GROUP BY application_id
+      ) latest ON c.application_id = latest.application_id
+      AND c.created_at = latest.max_created_at
+      ORDER BY c.created_at DESC
+    `)
+
+    return result.rows || result || []
+  }
+
   async function syncControllerData () {
     logger.info('Starting K8s controller sync')
 
     try {
-      // Get the most recent controller for each applicationId
-      const result = await app.platformatic.db.query(app.platformatic.sql`
-        SELECT c.*
-        FROM controllers c
-        INNER JOIN (
-          SELECT application_id, MAX(created_at) as max_created_at
-          FROM controllers
-          GROUP BY application_id
-        ) latest ON c.application_id = latest.application_id
-        AND c.created_at = latest.max_created_at
-        ORDER BY c.created_at DESC
-      `)
-
-      const controllers = result.rows || result || []
+      const controllers = await getMostRecentControllers()
 
       if (controllers.length === 0) {
         logger.debug('No controllers found, skipping sync')
@@ -51,9 +55,26 @@ module.exports = fp(async function (app) {
           controller.api_version,
           controller.kind
         )
+
+        let labels = {}
+        try {
+          labels = await app.machinist.getControllerLabels(
+            controller.k8s_controller_id,
+            controller.namespace,
+            controller.kind,
+            controller.api_version
+          )
+        } catch (err) {
+          logger.debug({
+            controllerId: controller.k8s_controller_id,
+            err: err.message
+          }, 'Failed to get controller labels, continuing without label sync')
+        }
+
         return {
           controller,
-          k8sController
+          k8sController,
+          labels
         }
       })
 
@@ -61,7 +82,7 @@ module.exports = fp(async function (app) {
 
       for (const result of results) {
         if (result.status === 'fulfilled') {
-          const { controller, k8sController } = result.value
+          const { controller, k8sController, labels } = result.value
 
           logger.info({
             controllerId: controller.k8s_controller_id,
@@ -121,6 +142,23 @@ module.exports = fp(async function (app) {
               newReplicas
             }, 'Created sync scale event')
           }
+
+          try {
+            const result = await syncScalerConfigFromLabels(app, controller.application_id, labels, logger)
+            if (result && result.hasChanges) {
+              await app.recordConfigActivity(
+                controller.application_id,
+                result.oldConfig,
+                result.newConfig,
+                'kubernetes-labels'
+              )
+            }
+          } catch (err) {
+            logger.error({
+              applicationId: controller.application_id,
+              err: err.message
+            }, 'Failed to sync scaler config from labels')
+          }
         } else {
           logger.error({
             err: result.reason
@@ -157,7 +195,6 @@ module.exports = fp(async function (app) {
         } catch (err) {
           logger.error({ err }, 'Error in K8s sync execution')
         }
-        // Schedule next sync
         scheduleSync()
       }
     } catch (err) {
@@ -167,7 +204,6 @@ module.exports = fp(async function (app) {
       logger.error({ err }, 'Error in K8s sync, retrying after delay')
       try {
         await setTimeout(1000, null, { signal })
-        // Retry scheduling
         scheduleSync()
       } catch (delayErr) {
         if (delayErr.name === 'AbortError') {
@@ -186,7 +222,6 @@ module.exports = fp(async function (app) {
     syncController = new AbortController()
     logger.info({ intervalSeconds: syncIntervalSeconds }, 'Starting K8s sync scheduler')
 
-    // Start the recursive scheduling
     scheduleSync()
   }
 
@@ -205,10 +240,79 @@ module.exports = fp(async function (app) {
   app.decorate('startK8sSync', startSync)
   app.decorate('stopK8sSync', stopSync)
 
+  async function syncScalerConfigsFromLabels () {
+    logger.info('Starting scaler config sync from labels for all controllers')
+
+    try {
+      const controllers = await getMostRecentControllers()
+
+      if (!controllers || controllers.length === 0) {
+        logger.info('No controllers found for scaler config sync')
+        return
+      }
+
+      logger.info(`Processing ${controllers.length} most recent controllers for scaler config sync`)
+
+      for (const controller of controllers) {
+        try {
+          logger.info({
+            applicationId: controller.application_id,
+            k8SControllerId: controller.k8s_controller_id,
+            namespace: controller.namespace,
+            kind: controller.kind
+          }, 'Processing controller for scaler config sync')
+
+          const labels = await app.machinist.getControllerLabels(
+            controller.k8s_controller_id,
+            controller.namespace,
+            controller.kind,
+            controller.api_version
+          )
+
+          logger.info({
+            applicationId: controller.application_id,
+            labels
+          }, 'Retrieved labels for controller')
+
+          const result = await syncScalerConfigFromLabels(app, controller.application_id, labels, logger)
+          if (result && result.hasChanges) {
+            await app.recordConfigActivity(
+              controller.application_id,
+              result.oldConfig,
+              result.newConfig,
+              'kubernetes-labels'
+            )
+          }
+        } catch (err) {
+          logger.error({
+            applicationId: controller.application_id,
+            k8SControllerId: controller.k8s_controller_id,
+            namespace: controller.namespace,
+            error: err.message
+          }, 'Failed to sync scaler config for application')
+        }
+      }
+
+      logger.info('Completed scaler config sync from labels')
+    } catch (err) {
+      logger.error({
+        error: err.message,
+        stack: err.stack
+      }, 'Failed to sync scaler configs from labels')
+    }
+  }
+
   app.decorate('k8sSync', {
     syncControllerData
   })
+
+  app.decorate('syncScalerConfigFromLabels', syncScalerConfigsFromLabels)
+
+  app.ready(async () => {
+    logger.info('Running initial scaler config sync from labels')
+    await syncScalerConfigsFromLabels()
+  })
 }, {
   name: 'k8s-sync',
-  dependencies: ['env', 'machinist']
+  dependencies: ['env', 'machinist', 'scale-config', 'activities']
 })

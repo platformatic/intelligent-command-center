@@ -7,6 +7,7 @@ const deployApplicationEvent = require('./deploy-application-event')
 const updateApplicationResources = require('./update-application-resources-event')
 const scaleUpEvent = require('./scale-up-event')
 const scaleDownEvent = require('./scale-down-event')
+const configUpdateEvent = require('./config-update-event')
 
 module.exports.getPayloadForEventType = function (type, data) {
   let payload = {}
@@ -54,6 +55,15 @@ module.exports.getPayloadForEventType = function (type, data) {
         data.data.reason
       )
       break
+    case 'CONFIG_UPDATE':
+      payload = configUpdateEvent(
+        data.applicationId,
+        data.data.applicationName,
+        data.data.oldConfig,
+        data.data.newConfig,
+        data.data.source
+      )
+      break
 
     default:
       throw new UnknownEventTypeError(type)
@@ -71,6 +81,7 @@ module.exports.getTypes = function () {
     APPLICATION_DEPLOY: 'Application Deploy',
     APPLICATION_RESOURCES_UPDATE: 'Application Resources Update',
     SCALED_UP: 'Application Scaled Up',
-    SCALED_DOWN: 'Application Scaled Down'
+    SCALED_DOWN: 'Application Scaled Down',
+    CONFIG_UPDATE: 'Application Configuration Update'
   }
 }
