@@ -470,7 +470,9 @@ export const callApiAddKey = async (id, name) => {
 /* COMPLIANCY */
 export const getApiCompliancy = async (applicationId) => {
   return await getReports({
-    'where.applicationId.eq': applicationId
+    'where.applicationId.eq': applicationId,
+    'orderby.createdAt': DESC,
+    limit: 1
   })
 }
 
@@ -899,7 +901,7 @@ export const callApiGetSyncImports = async (filters = { limit: 10, offset: 0 }) 
 }
 
 export const callApiGetSyncAvailableImports = async () => {
-  const url = `${baseUrl}/risk-cold-storage/sync/available?orderBy.fileName=${DESC}`
+  const url = `${baseUrl}/risk-cold-storage/sync/available?orderby.fileName=${DESC}`
 
   const response = await fetch(url, {
     method: 'GET',

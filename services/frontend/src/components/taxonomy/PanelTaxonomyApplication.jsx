@@ -30,7 +30,7 @@ function PanelTaxonomyApplication ({ id, name, services, mainTaxonomyId, islates
           const scaleConfig = await getApiApplicationScaleConfig(id)
           const maximumInstanceCount = scaleConfig.maxPods
 
-          const report = await getApiCompliancy(mainTaxonomyId, id)
+          const report = await getApiCompliancy(id)
           let services = {}
           if (report.length > 0) {
             const ruleSet = report[0].ruleSet
@@ -40,27 +40,6 @@ function PanelTaxonomyApplication ({ id, name, services, mainTaxonomyId, islates
           setReportServices({ ...services })
 
           values.pods.podsAll = maximumInstanceCount > values.pods.podsAll ? maximumInstanceCount : values.pods.podsAll
-
-          /* const values = {
-            cpu: {
-              cpuAppUsage: null,
-              cpuAllAppsUsage: 4.668559104061728,
-              cpuAllAppsUsageButApp: 4.668559104061728
-            },
-            memory: {
-              memoryAppUsage: null,
-              memoryAllAppsUsage: 0.2337799072265625,
-              memoryAllAppsUsageButApp: 0.2337799072265625,
-              totalMemory: 7.559383392333984
-            },
-            pods: {
-              pods: 1,
-              podsAll: 1
-            },
-            requests: {
-              latency: 120
-            }
-          } */
           setValues(values)
         } catch (error) {
           console.error(`Error on getResources ${error}`)

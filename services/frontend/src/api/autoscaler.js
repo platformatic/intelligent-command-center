@@ -80,7 +80,7 @@ export async function getAlertMetrics (alertId) {
 export async function getPodSignals (applicationId, podId) {
   try {
     // Fetch real alerts data from scaler service for this application and pod
-    const alerts = await callApi('scaler', `/alerts?where.applicationId.eq=${applicationId}&where.podId.eq=${podId}&orderBy.createdAt=desc&limit=50`, 'GET')
+    const alerts = await callApi('scaler', `/alerts?where.applicationId.eq=${applicationId}&where.podId.eq=${podId}&orderby.createdAt=desc&limit=50`, 'GET')
 
     // Check if alerts is a boolean (callApi returns true when no results)
     if (typeof alerts === 'boolean' || !Array.isArray(alerts)) {

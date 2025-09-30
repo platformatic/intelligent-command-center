@@ -79,7 +79,7 @@ function TaxonomyView ({
     if (Object.keys(taxonomy).length > 0 && !taxonomy.html) {
       async function createChart () {
         const updatedApplications = await Promise.all(taxonomy.applications.map(async (application) => {
-          const report = await getApiCompliancy(taxonomy.id, application?.id)
+          const report = await getApiCompliancy(application?.id)
           let reportServices = {}
           if (report.length > 0) {
             const ruleSet = report[0].ruleSet
