@@ -146,7 +146,7 @@ export const getApiApplication = async (id) => {
   })
 
   const response = await fetch((`${baseApiUrl}/events?` + new URLSearchParams({
-    'where.applicationId.eq': id,
+    applicationId: id,
     'orderby.createdAt': DESC,
     limit: 1,
     offset: 0
