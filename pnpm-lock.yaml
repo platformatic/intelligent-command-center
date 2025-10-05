@@ -142,7 +142,7 @@ importers:
         version: 5.1.0
       pino:
         specifier: ^9.9.0
-        version: 9.12.0
+        version: 9.13.1
       undici:
         specifier: ^7.14.0
         version: 7.16.0
@@ -5927,6 +5927,10 @@ packages:
     resolution: {integrity: sha512-0Gd0OezGvqtqMwgYxpL7P0pSHHzTJ0Lx992h+mNlMtRVfNnqweWmf0JmRWk5gJzHalyd2mxTzKjhiNbGS2Ztfw==}
     hasBin: true
 
+  pino@9.13.1:
+    resolution: {integrity: sha512-Szuj+ViDTjKPQYiKumGmEn3frdl+ZPSdosHyt9SnUevFosOkMY2b7ipxlEctNKPmMD/VibeBI+ZcZCJK+4DPuw==}
+    hasBin: true
+
   pirates@4.0.7:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
@@ -6518,6 +6522,9 @@ packages:
 
   slow-redact@0.3.0:
     resolution: {integrity: sha512-cf723wn9JeRIYP9tdtd86GuqoR5937u64Io+CYjlm2i7jvu7g0H+Cp0l0ShAf/4ZL+ISUTVT+8Qzz7RZmp9FjA==}
+
+  slow-redact@0.3.1:
+    resolution: {integrity: sha512-NvFvl1GuLZNW4U046Tfi8b26zXo8aBzgCAS2f7yVJR/fArN93mOqSA99cB9uITm92ajSz01bsu1K7SCVVjIMpQ==}
 
   snazzy@9.0.0:
     resolution: {integrity: sha512-8QZmJb11OiYaUP90Nnjqcj/LEpO8CLgChnP87Wqjv5tNB4djwHaz27VO2usSRR0NmViapeGW04p0aWAMhxxLXg==}
@@ -9109,7 +9116,7 @@ snapshots:
       '@platformatic/utils': 2.75.2
       execa: 9.6.0
       fast-json-patch: 3.1.1
-      pino: 9.12.0
+      pino: 9.13.1
       pino-abstract-transport: 2.0.0
       semver: 7.7.2
       split2: 4.2.0
@@ -9185,7 +9192,7 @@ snapshots:
       my-ua-parser: 2.0.4
       nunjucks: 3.2.4(chokidar@3.6.0)
       ora: 6.3.1
-      pino: 9.12.0
+      pino: 9.13.1
       pino-pretty: 13.1.1
       rfdc: 1.4.1
       semgrator: 0.3.0
@@ -9327,7 +9334,7 @@ snapshots:
       graphql: 16.11.0
       mercurius: 15.1.0(graphql@16.11.0)
       metaline: 1.1.0
-      pino: 9.12.0
+      pino: 9.13.1
       undici: 7.16.0
     transitivePeerDependencies:
       - bufferutil
@@ -14060,6 +14067,20 @@ snapshots:
       sonic-boom: 4.2.0
       thread-stream: 3.1.0
 
+  pino@9.13.1:
+    dependencies:
+      atomic-sleep: 1.0.0
+      on-exit-leak-free: 2.1.2
+      pino-abstract-transport: 2.0.0
+      pino-std-serializers: 7.0.0
+      process-warning: 5.0.0
+      quick-format-unescaped: 4.0.4
+      real-require: 0.2.0
+      safe-stable-stringify: 2.5.0
+      slow-redact: 0.3.1
+      sonic-boom: 4.2.0
+      thread-stream: 3.1.0
+
   pirates@4.0.7: {}
 
   pkg-conf@3.1.0:
@@ -14804,6 +14825,8 @@ snapshots:
 
   slow-redact@0.3.0: {}
 
+  slow-redact@0.3.1: {}
+
   snazzy@9.0.0:
     dependencies:
       chalk: 4.1.2
@@ -15512,7 +15535,7 @@ snapshots:
       execa: 9.6.0
       help-me: 5.0.0
       minimist: 1.2.8
-      pino: 9.12.0
+      pino: 9.13.1
       pino-pretty: 13.1.1
       semver: 7.7.2
       split2: 4.2.0
