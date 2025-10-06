@@ -148,7 +148,63 @@ function getTimeWindow ({ start, end }) {
   return `${duration}s`
 }
 
+async function getThreadCountByPod ({ applicationId }) {
+  const query = `nodejs_eventloop_utilization{applicationId="${applicationId}"}`
+
+  let result
+  try {
+    result = await queryPrometheus(query)
+  } catch (err) {
+    const error = new Error(`Failed to query Prometheus: ${err.message}`)
+    error.statusCode = 503
+    error.cause = err
+    throw error
+  }
+
+  if (!result.data || !result.data.result) {
+    const error = new Error('Invalid response from Prometheus')
+    error.statusCode = 500
+    throw error
+  }
+
+  if (result.data.result.length === 0) {
+    return {}
+  }
+
+  const threadCounts = {}
+
+  for (const { metric } of result.data.result) {
+    const { serviceId, instanceId, workerId } = metric
+
+    if (!serviceId || !instanceId) continue
+
+    if (!threadCounts[serviceId]) {
+      threadCounts[serviceId] = {}
+    }
+
+    if (!threadCounts[serviceId][instanceId]) {
+      threadCounts[serviceId][instanceId] = new Set()
+    }
+
+    if (workerId !== undefined) {
+      threadCounts[serviceId][instanceId].add(workerId)
+    }
+  }
+
+  const threadCountsByService = {}
+  for (const serviceId in threadCounts) {
+    threadCountsByService[serviceId] = {}
+    for (const instanceId in threadCounts[serviceId]) {
+      const workerIds = threadCounts[serviceId][instanceId]
+      threadCountsByService[serviceId][instanceId] = workerIds.size > 0 ? workerIds.size : 1
+    }
+  }
+
+  return threadCountsByService
+}
+
 module.exports = {
   getServicesMetrics,
-  getServiceThreadMetrics
+  getServiceThreadMetrics,
+  getThreadCountByPod
 }

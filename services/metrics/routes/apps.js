@@ -15,7 +15,7 @@ const {
 
 const { getEntrypoint } = require('../lib/control-plane')
 
-const { getServiceThreadMetrics } = require('../lib/services')
+const { getServiceThreadMetrics, getThreadCountByPod } = require('../lib/services')
 
 const applicationTimeWindow = 2
 const timeWindow = '2m'
@@ -83,6 +83,35 @@ module.exports = async function (app) {
       const chart = await getPodChartsMetrics({ podId, serviceId })
       const latency = await getPodLatencyMetrics({ podId, serviceId })
       return { chart, latency }
+    }
+  })
+
+  // Thread count per pod for a given application
+  app.get('/apps/:appId/threads', {
+    schema: {
+      params: {
+        type: 'object',
+        properties: {
+          appId: { type: 'string' }
+        },
+        required: ['appId']
+      },
+      response: {
+        200: {
+          type: 'object',
+          additionalProperties: {
+            type: 'object',
+            additionalProperties: {
+              type: 'number'
+            }
+          }
+        }
+      }
+    },
+    handler: async (req) => {
+      const { appId } = req.params
+      app.log.info({ appId }, 'Getting thread count per pod')
+      return getThreadCountByPod({ applicationId: appId })
     }
   })
 

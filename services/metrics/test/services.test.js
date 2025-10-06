@@ -64,3 +64,136 @@ test('get services metrics with undefined values from prometheus', async (t) => 
   }
   assert.deepEqual(metrics, expected)
 })
+
+test('get thread count per pod for an application', async (t) => {
+  const appId = 'test-app-id'
+  const prometheus = require('fastify')({ keepAliveTimeout: 1 })
+  const formBody = require('@fastify/formbody')
+  prometheus.register(formBody)
+  t.after(() => prometheus.close())
+
+  prometheus.post('/api/v1/query', async (req, reply) => {
+    const { query } = req.body
+
+    if (query.includes('nodejs_eventloop_utilization')) {
+      return {
+        status: 'success',
+        data: {
+          resultType: 'vector',
+          result: [
+            {
+              metric: {
+                applicationId: appId,
+                serviceId: 'service-1',
+                instanceId: 'pod-1',
+                workerId: '0'
+              },
+              value: [1721122686.143, 0.5]
+            },
+            {
+              metric: {
+                applicationId: appId,
+                serviceId: 'service-1',
+                instanceId: 'pod-1',
+                workerId: '1'
+              },
+              value: [1721122686.143, 0.6]
+            },
+            {
+              metric: {
+                applicationId: appId,
+                serviceId: 'service-1',
+                instanceId: 'pod-2',
+                workerId: '0'
+              },
+              value: [1721122686.143, 0.4]
+            },
+            {
+              metric: {
+                applicationId: appId,
+                serviceId: 'service-2',
+                instanceId: 'pod-3'
+              },
+              value: [1721122686.143, 0.7]
+            }
+          ]
+        }
+      }
+    }
+
+    return {
+      status: 'success',
+      data: { resultType: 'vector', result: [] }
+    }
+  })
+
+  await prometheus.listen({ port: 4005 })
+
+  const server = await startMetrics(t)
+
+  const res = await server.inject({
+    method: 'GET',
+    url: `/apps/${appId}/threads`
+  })
+
+  assert.equal(res.statusCode, 200)
+  const threadCounts = res.json()
+
+  const expected = {
+    'service-1': {
+      'pod-1': 2,
+      'pod-2': 1
+    },
+    'service-2': {
+      'pod-3': 1
+    }
+  }
+
+  assert.deepEqual(threadCounts, expected)
+})
+
+test('get thread count returns empty object when no data from prometheus', async (t) => {
+  const appId = 'non-existent-app-id'
+  const prometheus = require('fastify')({ keepAliveTimeout: 1 })
+  const formBody = require('@fastify/formbody')
+  prometheus.register(formBody)
+  t.after(() => prometheus.close())
+
+  prometheus.post('/api/v1/query', async (req, reply) => {
+    return {
+      status: 'success',
+      data: {
+        resultType: 'vector',
+        result: []
+      }
+    }
+  })
+
+  await prometheus.listen({ port: 4005 })
+
+  const server = await startMetrics(t)
+
+  const res = await server.inject({
+    method: 'GET',
+    url: `/apps/${appId}/threads`
+  })
+
+  assert.equal(res.statusCode, 200)
+  const body = res.json()
+  assert.deepEqual(body, {})
+})
+
+test('get thread count returns 503 when prometheus is unavailable', async (t) => {
+  const server = await startMetrics(t, null, {
+    PLT_METRICS_PROMETHEUS_URL: 'http://localhost:9999'
+  })
+
+  const res = await server.inject({
+    method: 'GET',
+    url: '/apps/test-app-id/threads'
+  })
+
+  assert.equal(res.statusCode, 503)
+  const body = res.json()
+  assert.ok(body.message.includes('Failed to query Prometheus'))
+})
