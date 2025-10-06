@@ -508,8 +508,8 @@ importers:
         specifier: ^17.1.2
         version: 17.1.2
       undici-oidc-interceptor:
-        specifier: ^0.6.0
-        version: 0.6.0
+        specifier: ^0.7.0
+        version: 0.7.0
 
   services/risk-cold-storage:
     dependencies:
@@ -3279,6 +3279,9 @@ packages:
 
   async-cache-dedupe@2.2.0:
     resolution: {integrity: sha512-jl4L6dGC+KLB/LIA1iIBiq7eWQ43K7lIcIdwbUUwRmfT209yH8Xm1uPTOxxlNQ7XD6/XHU7xhSr/NgPxlH04MQ==}
+
+  async-cache-dedupe@3.1.0:
+    resolution: {integrity: sha512-qflNcHdv/L5L1KNQVY0lWYci0rrRdhCRkL9XoT4hl1xs64HQwoZEdcdnHJVxTSpwJr99g+QXz/C8iwa4DIUj/w==}
 
   async-function@1.0.0:
     resolution: {integrity: sha512-hsU18Ae8CDTR6Kgu9DYf0EbCr/a5iGL0rytQDobUcdpYOKokk8LEjVphnXkDkgpi0wYVsqrXuP0bZxJaTqdgoA==}
@@ -6956,8 +6959,8 @@ packages:
   undici-cache-redis@1.0.1:
     resolution: {integrity: sha512-WPggGOAmthr48gaBgZLltgEUp2g+1Ej0P2DFo48MNHbVw6GeHysr/4gDtl7k5BvmAj9391J+d5b0uGrTHaYArw==}
 
-  undici-oidc-interceptor@0.6.0:
-    resolution: {integrity: sha512-9Cddcqv9kLsvsYlGd5wuC9CywgontjyKmhvOC0JUj0HOUzr6nr3zfJZG4NfAEtutLzlyMAiGRq5gNhMqbmxqIw==}
+  undici-oidc-interceptor@0.7.0:
+    resolution: {integrity: sha512-bUM1hGHHQnkf19mLzJPur7idlOk9ybnMWacXeihM1fkPkHyuFKccJ3NhfhGeLUf0CUmBsO5TjcNqMFl4UzNAgQ==}
 
   undici-thread-interceptor@0.14.4:
     resolution: {integrity: sha512-SLQgNiuAJZA+scl2Oz6T6nHTtaIc9AsnlSZHFYZ0wCZoRQzF0GAtNg8HFXguLs56iVCgQACAL9NwsHkDAeRooA==}
@@ -10996,6 +10999,11 @@ snapshots:
   async-cache-dedupe@2.2.0:
     dependencies:
       mnemonist: 0.39.8
+      safe-stable-stringify: 2.5.0
+
+  async-cache-dedupe@3.1.0:
+    dependencies:
+      mnemonist: 0.40.3
       safe-stable-stringify: 2.5.0
 
   async-function@1.0.0: {}
@@ -15308,9 +15316,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  undici-oidc-interceptor@0.6.0:
+  undici-oidc-interceptor@0.7.0:
     dependencies:
-      fast-jwt: 5.0.6
+      async-cache-dedupe: 3.1.0
+      fast-jwt: 6.0.2
       undici: 7.16.0
 
   undici-thread-interceptor@0.14.4:
