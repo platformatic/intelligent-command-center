@@ -304,12 +304,22 @@ module.exports = fp(async function (app) {
 
     const services = []
     for (const serviceMetadata of servicesMetadata) {
-      services.push({
+      const state = {
         id: serviceMetadata.id,
         type: serviceMetadata.type,
         version: serviceMetadata.version,
         entrypoint: serviceMetadata.entrypoint
-      })
+      }
+      if (serviceMetadata.minWorkers) {
+        state.minWorkers = serviceMetadata.minWorkers
+      }
+      if (serviceMetadata.maxWorkers) {
+        state.maxWorkers = serviceMetadata.maxWorkers
+      }
+      if (serviceMetadata.workers) {
+        state.workers = serviceMetadata.workers
+      }
+      services.push(state)
     }
 
     const { entities } = app.platformatic

@@ -41,14 +41,20 @@ test('should save a application instance state', async (t) => {
     id: 'entrypoint',
     type: '@platformatic/composer',
     version: '1.0.0',
-    entrypoint: true
+    entrypoint: true,
+    workers: 1,
+    minWorkers: 1,
+    maxWorkers: 2
   }
 
   const serviceMetadata2 = {
     id: 'service-2',
     type: '@platformatic/service',
     version: '1.0.0',
-    entrypoint: false
+    entrypoint: false,
+    workers: 4,
+    minWorkers: 4,
+    maxWorkers: 8
   }
 
   const { statusCode, body } = await controlPlane.inject({
@@ -85,7 +91,10 @@ test('should save a application instance state', async (t) => {
     id: 'entrypoint',
     type: '@platformatic/composer',
     version: '1.0.0',
-    entrypoint: true
+    entrypoint: true,
+    workers: 1,
+    minWorkers: 1,
+    maxWorkers: 2
   })
 
   const service2 = services.find((s) => s.id === 'service-2')
@@ -94,7 +103,10 @@ test('should save a application instance state', async (t) => {
     id: 'service-2',
     type: '@platformatic/service',
     version: '1.0.0',
-    entrypoint: false
+    entrypoint: false,
+    workers: 4,
+    minWorkers: 4,
+    maxWorkers: 8
   })
 })
 
