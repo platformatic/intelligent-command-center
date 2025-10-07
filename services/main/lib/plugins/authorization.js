@@ -163,7 +163,9 @@ async function plugin (app) {
     }
     return headers
   })
-  app.addHook('onRequest', app.auth([authorizeRoute]))
+  // Use preValidation instead of onRequest to avoid conflicts with @fastify/websocket
+  // which needs to handle the socket upgrade before the response object is touched
+  app.addHook('preValidation', app.auth([authorizeRoute]))
 }
 plugin[Symbol.for('skip-override')] = true
 

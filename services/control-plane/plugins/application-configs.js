@@ -117,7 +117,7 @@ const plugin = fp(async function (app) {
       }
 
       if (cacheConfigs.length === 0) {
-        ctx.logger.error('No cache config found')
+        ctx.logger.debug('No cache config found')
         return null
       }
 
