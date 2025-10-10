@@ -148,8 +148,12 @@ function getTimeWindow ({ start, end }) {
   return `${duration}s`
 }
 
-async function getThreadCountByPod ({ applicationId }) {
-  const query = `nodejs_eventloop_utilization{applicationId="${applicationId}"}`
+async function getThreadCountByPod ({ applicationId, serviceId = null }) {
+  let query = `nodejs_eventloop_utilization{applicationId="${applicationId}"`
+  if (serviceId) {
+    query += `,serviceId="${serviceId}"`
+  }
+  query += '}'
 
   let result
   try {

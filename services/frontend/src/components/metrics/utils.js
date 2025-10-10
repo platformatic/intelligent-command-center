@@ -30,3 +30,11 @@ export function getTicksDate (minDate, maxDate, count) {
   retValue.push(maxDate.getTime())
   return retValue
 }
+
+export function convertThreadsToArray (threads, serviceId) {
+  let output = []
+  if (threads[serviceId]) {
+    output = Object.keys(threads[serviceId]).map(key => ({ [key]: threads[serviceId][key] }))
+  }
+  return output
+}

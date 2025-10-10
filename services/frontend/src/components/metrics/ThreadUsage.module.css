@@ -1,0 +1,10 @@
+.container {
+  @apply w-full bg-rich-black p-2 h-full;
+}
+.header {
+  @apply flex justify-between relative w-full items-center;
+}
+
+.threadCount {
+  @apply flex items-center gap-2;
+}

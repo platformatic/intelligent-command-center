@@ -7,7 +7,7 @@
 }
 
 .title {
-  @apply text-[24px] font-semibold text-white;
+  @apply text-[16px] font-semibold text-white;
 }
 
 .infoIcon {

@@ -16,7 +16,7 @@
   @apply grid grid-cols-1 md:flex md:flex-row gap-2 w-full items-center pb-4
 }
 .serviceContainer {
-  @apply grid grid-cols-1 md:grid-cols-3 grow overflow-y-auto items-start gap-2 w-full max-h-[calc(40vH)];
+  @apply grid grid-cols-1 md:grid-cols-3 grow overflow-y-auto items-start gap-2 w-full h-full;
 }
 .searchBarPaddingClass {
   @apply px-2 py-1 md:px-3;

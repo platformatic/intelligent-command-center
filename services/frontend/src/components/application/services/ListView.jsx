@@ -8,7 +8,8 @@ import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
 import { FILTER_ALL, SERVICE_OUTDATED } from '~/ui-constants'
 import { MEDIUM, RICH_BLACK, WHITE } from '@platformatic/ui-components/src/components/constants'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
-import { generatePath, useNavigate, useRouteLoaderData } from 'react-router-dom'
+import { generatePath, useLoaderData, useNavigate, useRouteLoaderData } from 'react-router-dom'
+
 import { getApiCompliancy } from '~/api'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import { APPLICATION_DETAILS_ALL_SERVICES_DETAIL } from '../../../paths'
@@ -27,15 +28,11 @@ function getFilteredOutdatedServices (allServices, comparingServices) {
   })
 }
 
-function getStatusService (allServices, comparingServices, service) {
-  const val = getFilteredOutdatedServices(allServices, comparingServices).find(s => s.id === service.id)
-  return val
-}
-
 function ListView () {
   const navigate = useNavigate()
   const { application } = useRouteLoaderData('appRoot')
-  const applicationSelectedServices = application.state.services
+  const { applicationThreads } = useLoaderData()
+  const wattApplications = application.state.services
   const [innerLoading, setInnerLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
   const [filteredServices, setFilteredServices] = useState([])
@@ -44,8 +41,12 @@ function ListView () {
   const [filtersServiceByStatus, setFiltersServiceByStatus] = useState([])
   const [reportServices, setReportServices] = useState({})
 
+  function getThreadsUsageArray (serviceId) {
+    const data = applicationThreads[serviceId]
+    return Object.keys(data).map(key => ({ [key]: data[key] }))
+  }
   useEffect(() => {
-    if (applicationSelectedServices.length > 0) {
+    if (wattApplications.length > 0) {
       async function loadCompliancy () {
         setShowNoResult(false)
         setInnerLoading(true)
@@ -58,13 +59,13 @@ function ListView () {
           services = ruleSet[index]?.details?.services ?? {}
         }
 
-        setFilteredServices([...applicationSelectedServices])
+        setFilteredServices([...wattApplications])
         setReportServices(services)
 
-        const outdatedServices = getFilteredOutdatedServices(applicationSelectedServices, services).length
+        const outdatedServices = getFilteredOutdatedServices(wattApplications, services).length
 
         setFiltersServiceByStatus([{
-          label: `All Applications (${applicationSelectedServices.length})`,
+          label: `All Applications (${wattApplications.length})`,
           value: FILTER_ALL,
           iconName: 'PlatformaticServiceIcon',
           disabled: false
@@ -81,11 +82,11 @@ function ListView () {
       setShowNoResult(true)
       setInnerLoading(false)
     }
-  }, [applicationSelectedServices.length])
+  }, [wattApplications.length])
 
   useEffect(() => {
     if (filterServiceByStatus.value || filterServiceByName) {
-      let founds = [...applicationSelectedServices]
+      let founds = [...wattApplications]
       if (filterServiceByStatus.value && filterServiceByStatus.value !== FILTER_ALL) {
         if (filterServiceByStatus.value === SERVICE_OUTDATED) {
           founds = getFilteredOutdatedServices(founds, reportServices)
@@ -96,7 +97,7 @@ function ListView () {
       }
       setFilteredServices(founds)
     } else {
-      setFilteredServices([...applicationSelectedServices])
+      setFilteredServices([...wattApplications])
     }
   }, [
     filterServiceByStatus.value,
@@ -192,10 +193,10 @@ function ListView () {
                 <ServiceElement
                   key={index}
                   id={service.id}
+                  threads={getThreadsUsageArray(service.id) ?? []}
                   service={service}
                   applicationEntrypoint={service.entrypoint}
                   onClickService={() => handleSelectedService(service)}
-                  status={getStatusService(applicationSelectedServices, reportServices, service) ? SERVICE_OUTDATED : ''}
                   dependencies={getDependencies(service)}
                 />
               ))}

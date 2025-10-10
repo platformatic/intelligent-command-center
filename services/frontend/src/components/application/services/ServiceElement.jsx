@@ -1,31 +1,27 @@
 import React from 'react'
-import { WHITE, OPACITY_30, OPACITY_15, MEDIUM, WARNING_YELLOW, OPACITY_100, BLACK_RUSSIAN, TRANSPARENT } from '@platformatic/ui-components/src/components/constants'
+import { WHITE, OPACITY_15, WARNING_YELLOW, OPACITY_100, BLACK_RUSSIAN, TRANSPARENT } from '@platformatic/ui-components/src/components/constants'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
-import { BorderedBox, VerticalSeparator } from '@platformatic/ui-components'
-import Icons from '@platformatic/ui-components/src/components/icons'
-import { SERVICE_OUTDATED } from '~/ui-constants'
+import { BorderedBox } from '@platformatic/ui-components'
 import styles from './ServiceElement.module.css'
+import StatusPill from '../../common/StatusPill'
+import ThreadUsage from '../../metrics/ThreadUsage'
+import { useRouteLoaderData } from 'react-router-dom'
 
 function ServiceElement ({
   service = {},
   applicationEntrypoint = false,
   onClickService = () => {},
-  status = '',
+  threads = [],
   dependencies = {}
 }) {
-  function getIcon () {
-    if (status === SERVICE_OUTDATED) return <Icons.OutdatedServiceIcon color={WARNING_YELLOW} size={MEDIUM} />
-    return <Icons.PlatformaticServiceIcon color={WHITE} size={MEDIUM} />
-  }
-
   function getOutdatedDependencies () {
     return Object.keys(dependencies).reduce((partialSum, dependency) => {
       const { current, wanted } = dependencies[dependency]
       return partialSum + (current !== wanted ? 1 : 0)
     }, 0)
   }
-
+  const { application } = useRouteLoaderData('appRoot')
   return (
     <BorderedBox
       classes={`${commonStyles.buttonSquarePadding} ${commonStyles.fullWidth} ${styles.serviceElementBox}`}
@@ -39,27 +35,33 @@ function ServiceElement ({
       clickable
       onClick={onClickService}
     >
-      <div className={`${commonStyles.miniFlexBlock} ${commonStyles.fullWidth} ${commonStyles.itemsCenter} `}>
+      <div className={styles.container}>
         <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter} `}>
-          {getIcon()}
-          <span className={`${typographyStyles.desktopBodySemibold} ${status === SERVICE_OUTDATED ? typographyStyles.textWarningYellow : typographyStyles.textWhite} `}>{service.id}</span>
+          <span className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite} `}>{service.id}</span>
           {applicationEntrypoint && (
             <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>(Watt Entrypoint)</span>
           )}
         </div>
-        <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter} ${styles.secondRow}`}>
-          <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
-            <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Dependencies:</span>
-            <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{Object.keys(dependencies)?.length ?? 0}</span>
-          </div>
 
-          <VerticalSeparator color={WHITE} backgroundColorOpacity={OPACITY_30} />
-
-          <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
-            <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Outdated dependencies:</span>
-            <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{getOutdatedDependencies() ?? 0}</span>
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div>Dependencies</div>
+            <div>
+              <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{Object.keys(dependencies)?.length ?? 0}</span>
+              <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>
+                <StatusPill
+                  backgroundColor={WARNING_YELLOW}
+                  status={`${getOutdatedDependencies()} outdated`}
+                />
+              </span>
+            </div>
           </div>
         </div>
+        <ThreadUsage
+          data={threads}
+          serviceId={service.id}
+          applicationId={application.id}
+        />
       </div>
     </BorderedBox>
   )

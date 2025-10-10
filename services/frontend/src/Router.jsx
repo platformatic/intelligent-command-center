@@ -43,6 +43,7 @@ import PodSignalsHistory from './components/application/autoscaler/PodSignalsHis
 
 // Import Flamegraph utils
 import { fetchProfile } from 'react-pprof'
+import { convertThreadsToArray } from './components/metrics/utils'
 export function getRouter () {
   // TODO: check if this is needed
   // import useErrorBoundary from 'use-error-boundary'
@@ -142,7 +143,6 @@ export function getRouter () {
           id: 'allWatts',
           element: <AllWatts />
         },
-
         {
           id: 'recommendationsHistory',
           path: '/recommendations-history',
@@ -262,12 +262,23 @@ export function getRouter () {
         {
           id: 'watt/applications',
           path: 'applications',
+          loader: async ({ params }) => {
+            const applicationThreads = await callApi('metrics', `apps/${params.applicationId}/threads`, 'GET')
+            return { applicationThreads }
+          },
           element: <Services />
         },
         {
           id: 'watt/applications/detail',
           loader: async ({ params }) => {
-            return { serviceId: params.serviceId }
+            const applicationThreads = await callApi('metrics', `apps/${params.applicationId}/threads?serviceId=${params.serviceId}`, 'GET')
+            const output = {
+              serviceId: params.serviceId,
+              applicationId: params.applicationId
+            }
+            output.threads = convertThreadsToArray(applicationThreads, params.serviceId)
+
+            return output
           },
           path: 'applications/:serviceId',
           element: <ServiceDetails />

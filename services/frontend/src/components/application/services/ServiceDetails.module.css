@@ -15,3 +15,7 @@
 .compliancy {
   @apply w-full;
 }
+
+.firstLine {
+  @apply flex justify-between gap-x-2 w-full;
+}

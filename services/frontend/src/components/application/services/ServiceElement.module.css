@@ -1,7 +1,18 @@
-.secondRow {
-  @apply pl-8;
-  box-sizing: border-box;
-}
 .serviceElementBox {
   @apply rounded-[4px];
+}
+
+.container {
+  @apply flex flex-col gap-2;
+}
+.section {
+  @apply bg-rich-black p-2;
+}
+
+.sectionHeader {
+  @apply flex items-center justify-between w-full;
+}
+
+.sectionHeader div {
+  @apply flex items-center gap-x-2;
 }

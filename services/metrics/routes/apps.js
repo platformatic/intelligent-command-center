@@ -89,6 +89,12 @@ module.exports = async function (app) {
   // Thread count per pod for a given application
   app.get('/apps/:appId/threads', {
     schema: {
+      querystring: {
+        type: 'object',
+        properties: {
+          serviceId: { type: 'string' }
+        }
+      },
       params: {
         type: 'object',
         properties: {
@@ -110,8 +116,9 @@ module.exports = async function (app) {
     },
     handler: async (req) => {
       const { appId } = req.params
-      app.log.info({ appId }, 'Getting thread count per pod')
-      return getThreadCountByPod({ applicationId: appId })
+      const { serviceId } = req.query
+      app.log.info({ appId, serviceId }, 'Getting thread count per pod')
+      return getThreadCountByPod({ applicationId: appId, serviceId })
     }
   })
 
