@@ -1,6 +1,7 @@
 'use strict'
 
 const Redis = require('iovalkey')
+const { scanKeys } = require('../../../lib/redis-utils')
 const {
   ALERTS_PREFIX,
   PERF_HISTORY_PREFIX,
@@ -26,7 +27,7 @@ class Store {
   }
 
   async #getAlertsByPattern (pattern, timeWindow = 0) {
-    const keys = await this.valkey.keys(pattern)
+    const keys = await scanKeys(this.valkey, pattern)
 
     if (keys.length === 0) {
       return []

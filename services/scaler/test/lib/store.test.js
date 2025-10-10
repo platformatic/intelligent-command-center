@@ -7,6 +7,7 @@ const { setTimeout } = require('node:timers/promises')
 const Store = require('../../lib/store')
 const { valkeyConnectionString } = require('../helper')
 const { ALERTS_PREFIX } = require('../../lib/store-constants')
+const { scanKeys } = require('../../../../lib/redis-utils')
 
 async function setup (t) {
   const mockLogger = {
@@ -15,15 +16,15 @@ async function setup (t) {
   }
   const store = new Store(valkeyConnectionString, mockLogger)
 
-  const keys = await store.valkey.keys('scaler:*')
+  const keys = await scanKeys(store.valkey, 'scaler:*')
   if (keys.length > 0) {
-    await store.valkey.del(keys)
+    await store.valkey.del(...keys)
   }
 
   t.after(async () => {
-    const keys = await store.valkey.keys('scaler:*')
+    const keys = await scanKeys(store.valkey, 'scaler:*')
     if (keys.length > 0) {
-      await store.valkey.del(keys)
+      await store.valkey.del(...keys)
     }
     await store.close()
   })
@@ -45,10 +46,10 @@ test('saveAlert - saves an alert to Redis with timestamp', async (t) => {
 
   await store.saveAlert(alert)
 
-  const appAlertKeys = await store.valkey.keys(`${ALERTS_PREFIX}app:${alert.applicationId}:*`)
+  const appAlertKeys = await scanKeys(store.valkey, `${ALERTS_PREFIX}app:${alert.applicationId}:*`)
   assert.strictEqual(appAlertKeys.length, 1, 'Should have one app alert key')
 
-  const podAlertKeys = await store.valkey.keys(`${ALERTS_PREFIX}app:*:pod:${alert.podId}:*`)
+  const podAlertKeys = await scanKeys(store.valkey, `${ALERTS_PREFIX}app:*:pod:${alert.podId}:*`)
   assert.strictEqual(podAlertKeys.length, 1, 'Should have one pod alert key')
 
   const alertKey = appAlertKeys[0]

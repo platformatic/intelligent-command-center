@@ -5,6 +5,7 @@ const assert = require('node:assert')
 const AlertsManager = require('../../lib/alerts-manager')
 const { randomUUID } = require('node:crypto')
 const { valkeyConnectionString, cleanValkeyData } = require('../helper')
+const { scanKeys } = require('../../../../lib/redis-utils')
 const Redis = require('iovalkey')
 
 test('AlertsManager clearRecentTriggers', async (t) => {
@@ -22,12 +23,12 @@ test('AlertsManager clearRecentTriggers', async (t) => {
   await mockValkey.set('scaler:triggered-pods:pod1', Date.now(), 'EX', 30)
   await mockValkey.set('scaler:triggered-pods:pod2', Date.now(), 'EX', 30)
 
-  const initialKeys = await mockValkey.keys('scaler:triggered-pods:*')
+  const initialKeys = await scanKeys(mockValkey, 'scaler:triggered-pods:*')
   assert.strictEqual(initialKeys.length, 2)
 
   await manager.clearRecentTriggers()
 
-  const remainingKeys = await mockValkey.keys('scaler:triggered-pods:*')
+  const remainingKeys = await scanKeys(mockValkey, 'scaler:triggered-pods:*')
   assert.strictEqual(remainingKeys.length, 0)
 
   await mockValkey.quit()
@@ -267,7 +268,7 @@ test('AlertsManager handles Redis errors gracefully', async (t) => {
   const errorRedis = {
     get: async () => { throw new Error('Redis get error') },
     set: async () => { throw new Error('Redis set error') },
-    keys: async () => { throw new Error('Redis keys error') },
+    scan: async () => { throw new Error('Redis scan error') },
     del: async () => { throw new Error('Redis del error') }
   }
 
@@ -316,7 +317,7 @@ test('AlertsManager handles _deleteTriggeredPodKeys Redis error gracefully', asy
 
   const errorLogs = []
   const errorRedis = {
-    keys: async () => { throw new Error('Redis keys error') }
+    scan: async () => { throw new Error('Redis scan error') }
   }
 
   const mockApp = {
@@ -340,7 +341,7 @@ test('AlertsManager handles _deleteTriggeredPodKeys Redis error gracefully', asy
 
   const errorLog = errorLogs.find(log =>
     log.msg === 'Failed to delete triggered pod keys from Redis' &&
-    log.data.err.message === 'Redis keys error'
+    log.data.err.message === 'Redis scan error'
   )
   assert.ok(errorLog, 'Should log error when Redis operation fails')
 })

@@ -3,6 +3,7 @@
 const fp = require('fastify-plugin')
 const fastifyRedis = require('@fastify/redis')
 const { getDBKey, parseDBKey } = require('../lib/db')
+const { flushall } = require('../../../lib/redis-utils')
 
 const {
   DB_NAMESPACE,
@@ -372,7 +373,7 @@ const plugin = async (fastify) => {
     deleteKeys,
     parseDump,
     parsePath,
-    flushAll: async () => redis.flushall(),
+    flushAll: async () => flushall(redis),
     PATHS_NAMESPACE,
     storeDBSpan,
     loadDBSpans,

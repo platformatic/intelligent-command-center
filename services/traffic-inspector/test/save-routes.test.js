@@ -4,6 +4,7 @@ const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
 const { startTrafficInspector } = require('./helper')
+const { scanKeys } = require('../../../lib/redis-utils')
 
 test('should save url routes', async (t) => {
   const applicationId = randomUUID()
@@ -34,17 +35,17 @@ test('should save url routes', async (t) => {
   const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
   assert.strictEqual(routeExamples.length, 0)
 
-  const routesKeys = await trafficInspector.redis.keys('traffic-inspector:url-routes:*')
+  const routesKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:url-routes:*')
   assert.strictEqual(routesKeys.length, 1)
 
   const routeKey = routesKeys[0]
   const route = await trafficInspector.redis.get(routeKey)
   assert.strictEqual(route, '/products/:id')
 
-  const examplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
+  const examplesKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:examples:*')
   assert.strictEqual(examplesKeys.length, 0)
 
-  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
+  const cachedRequestsKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 0)
 })
 
@@ -86,17 +87,17 @@ test('should overwrite a route if it exists', async (t) => {
   const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
   assert.strictEqual(routeExamples.length, 0)
 
-  const routesKeys = await trafficInspector.redis.keys('traffic-inspector:url-routes:*')
+  const routesKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:url-routes:*')
   assert.strictEqual(routesKeys.length, 1)
 
   const routeKey = routesKeys[0]
   const route = await trafficInspector.redis.get(routeKey)
   assert.strictEqual(route, '/products/*')
 
-  const examplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
+  const examplesKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:examples:*')
   assert.strictEqual(examplesKeys.length, 0)
 
-  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
+  const cachedRequestsKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 0)
 })
 
@@ -167,16 +168,16 @@ test('should save url routes (creates a route example)', async (t) => {
   assert.deepStrictEqual(routeExample.request, request)
   assert.deepStrictEqual(routeExample.response, response)
 
-  const routesKeys = await trafficInspector.redis.keys('traffic-inspector:url-routes:*')
+  const routesKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:url-routes:*')
   assert.strictEqual(routesKeys.length, 1)
 
   const routeKey = routesKeys[0]
   const route = await trafficInspector.redis.get(routeKey)
   assert.strictEqual(route, '/products/:id')
 
-  const examplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
+  const examplesKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:examples:*')
   assert.strictEqual(examplesKeys.length, 1)
 
-  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
+  const cachedRequestsKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 0)
 })

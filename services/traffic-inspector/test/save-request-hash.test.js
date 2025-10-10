@@ -4,6 +4,7 @@ const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
 const { startTrafficInspector } = require('./helper')
+const { scanKeys } = require('../../../lib/redis-utils')
 
 test('should save application requests hashes', async (t) => {
   const applicationId = randomUUID()
@@ -76,7 +77,7 @@ test('should save application requests hashes', async (t) => {
     assert.strictEqual(statusCode, 200, body)
   }
 
-  const keys = await trafficInspector.redis.keys('*')
+  const keys = await scanKeys(trafficInspector.redis, '*')
   assert.strictEqual(keys.length, 16)
 
   const version = await trafficInspector.getCurrentVersion()
@@ -168,7 +169,7 @@ test('should save application requests hashes (with a saved recommendation)', as
     assert.strictEqual(statusCode, 200, body)
   }
 
-  const keys = await trafficInspector.redis.keys('*')
+  const keys = await scanKeys(trafficInspector.redis, '*')
   assert.strictEqual(keys.length, 16)
 
   const version = await trafficInspector.getCurrentVersion()

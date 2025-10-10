@@ -28,19 +28,20 @@ function createMockLog () {
 }
 
 async function setupStore (t) {
+  const { scanKeys } = require('../../../../lib/redis-utils')
   const store = new Store(valkeyConnectionString, createMockLog())
 
   // Clean up before test
-  const keys = await store.valkey.keys('scaler:*')
+  const keys = await scanKeys(store.valkey, 'scaler:*')
   if (keys.length > 0) {
-    await store.valkey.del(keys)
+    await store.valkey.del(...keys)
   }
 
   // Register cleanup after test
   t.after(async () => {
-    const keys = await store.valkey.keys('scaler:*')
+    const keys = await scanKeys(store.valkey, 'scaler:*')
     if (keys.length > 0) {
-      await store.valkey.del(keys)
+      await store.valkey.del(...keys)
     }
     await store.close()
   })

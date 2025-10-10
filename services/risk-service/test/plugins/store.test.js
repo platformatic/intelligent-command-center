@@ -4,6 +4,7 @@ const { test } = require('node:test')
 const assert = require('node:assert')
 const { createTraceId, createSpanId } = require('../helper')
 const Fastify = require('fastify')
+const { flushall } = require('../../../../lib/redis-utils')
 const store = require('../../plugins/store')
 const env = require('../../plugins/env')
 
@@ -16,7 +17,7 @@ const setupServer = async (t, options) => {
   await fastify.register(store, options)
   await fastify.ready()
   t.after(async () => {
-    await fastify.store.flushAll()
+    await flushall(fastify.redis)
     await fastify.close()
   })
   return fastify

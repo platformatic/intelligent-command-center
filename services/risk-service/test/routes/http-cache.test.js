@@ -2,6 +2,7 @@
 
 const { test } = require('node:test')
 const assert = require('node:assert')
+const { flushall } = require('../../../../lib/redis-utils')
 const {
   bootstrap,
   createResourceSpan,
@@ -13,7 +14,7 @@ const {
 test('should get the cache path of server which calls another server', async (t) => {
   // X => A => B
   const riskService = await bootstrap(t)
-  await riskService.redis.flushall()
+  await flushall(riskService.redis)
 
   const { processResourceSpans } = riskService
   const { messages } = riskService
@@ -109,7 +110,7 @@ test('should get the cache path of server which calls another server (cached req
 
 test('should get the same cache entry from two different traces', async (t) => {
   const riskService = await bootstrap(t)
-  await riskService.redis.flushall()
+  await flushall(riskService.redis)
 
   const { processResourceSpans } = riskService
   const { messages } = riskService
@@ -205,7 +206,7 @@ test('should get the same cache entry from two different traces', async (t) => {
 test('should get the cache path of server which calls another server', async (t) => {
   // X => A => B => C
   const riskService = await bootstrap(t)
-  await riskService.redis.flushall()
+  await flushall(riskService.redis)
 
   const { processResourceSpans } = riskService
   const { messages } = riskService

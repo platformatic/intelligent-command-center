@@ -10,6 +10,7 @@ const { Client, interceptors } = require('undici')
 const { buildServer } = require('@platformatic/service')
 const { loadConfig, buildServer: buildRuntimeServer } = require('@platformatic/runtime')
 const RedisCacheStore = require('undici-cache-redis')
+const { flushall } = require('../../../lib/redis-utils')
 
 const defaultEnv = {
   PLT_FEATURE_CACHE: true,
@@ -142,7 +143,7 @@ function sortEntries (e1, e2) {
 
 async function cleanValkey () {
   const redis = new Redis(defaultEnv.PLT_APPLICATIONS_VALKEY_CONNECTION_STRING)
-  await redis.flushall()
+  await flushall(redis)
   redis.quit()
 }
 

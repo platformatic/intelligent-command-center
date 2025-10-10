@@ -83,10 +83,14 @@ jobs:
     services:
       cache-valkey:
         image: "valkey/valkey:9.0"
+        options: >-
+          --name cache-valkey
         ports:
           - "6342:6379"
       main-valkey:
         image: "valkey/valkey:9.0"
+        options: >-
+          --name main-valkey
         ports:
           - "6343:6379"
       icc-postgres:
@@ -114,6 +118,16 @@ jobs:
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
+      - name: Apply Valkey ACL to cache-valkey
+        shell: bash
+        run: |
+          until docker exec cache-valkey valkey-cli ping >/dev/null 2>&1; do sleep 0.5; done
+          docker exec -i cache-valkey valkey-cli --no-auth-warning < ./scripts/redis-set-user.txt
+      - name: Apply Valkey ACL to main-valkey
+        shell: bash
+        run: |
+          until docker exec main-valkey valkey-cli ping >/dev/null 2>&1; do sleep 0.5; done
+          docker exec -i main-valkey valkey-cli --no-auth-warning < ./scripts/redis-set-user.txt
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -183,6 +197,8 @@ jobs:
           - 5433:5432
       valkey:
         image: "valkey/valkey:9.0"
+        options: >-
+          --name valkey
         ports:
           - "6343:6379"
     needs: setup-node_modules
@@ -200,6 +216,11 @@ jobs:
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
+      - name: Apply Valkey ACL
+        shell: bash
+        run: |
+          until docker exec valkey valkey-cli ping >/dev/null 2>&1; do sleep 0.5; done
+          docker exec -i valkey valkey-cli --no-auth-warning < ./scripts/redis-set-user.txt
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -270,6 +291,8 @@ jobs:
           - 5433:5432
       cache-valkey:
         image: "valkey/valkey:9.0"
+        options: >-
+          --name cache-valkey
         ports:
           - "6342:6379"
     steps:
@@ -284,6 +307,11 @@ jobs:
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
+      - name: Apply Valkey ACL to cache-valkey
+        shell: bash
+        run: |
+          until docker exec cache-valkey valkey-cli ping >/dev/null 2>&1; do sleep 0.5; done
+          docker exec -i cache-valkey valkey-cli --no-auth-warning < ./scripts/redis-set-user.txt
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -312,6 +340,8 @@ jobs:
 
       valkey:
         image: "valkey/valkey:9.0"
+        options: >-
+          --name valkey
         ports:
           - "6343:6379"
 
@@ -329,6 +359,11 @@ jobs:
           node-version: 22
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
+      - name: Apply Valkey ACL
+        shell: bash
+        run: |
+          until docker exec valkey valkey-cli ping >/dev/null 2>&1; do sleep 0.5; done
+          docker exec -i valkey valkey-cli --no-auth-warning < ./scripts/redis-set-user.txt
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -356,6 +391,8 @@ jobs:
 
       valkey:
         image: "valkey/valkey:9.0"
+        options: >-
+          --name valkey
         ports:
           - "6379:6379"
 
@@ -373,6 +410,11 @@ jobs:
           node-version: 22
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
+      - name: Apply Valkey ACL
+        shell: bash
+        run: |
+          until docker exec valkey valkey-cli ping >/dev/null 2>&1; do sleep 0.5; done
+          docker exec -i valkey valkey-cli --no-auth-warning < ./scripts/redis-set-user.txt
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -386,6 +428,8 @@ jobs:
     services:
       valkey:
         image: "valkey/valkey:9.0"
+        options: >-
+          --name valkey
         ports:
           - "6342:6379"
     needs: setup-node_modules
@@ -400,6 +444,11 @@ jobs:
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: 22
+      - name: Apply Valkey ACL
+        shell: bash
+        run: |
+          until docker exec valkey valkey-cli ping >/dev/null 2>&1; do sleep 0.5; done
+          docker exec -i valkey valkey-cli --no-auth-warning < ./scripts/redis-set-user.txt
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -413,6 +462,8 @@ jobs:
     services:
       valkey:
         image: "valkey/valkey:9.0"
+        options: >-
+          --name valkey
         ports:
           - "6342:6379"
       icc-postgres:
@@ -442,6 +493,11 @@ jobs:
           node-version: 22
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
+      - name: Apply Valkey ACL
+        shell: bash
+        run: |
+          until docker exec valkey valkey-cli ping >/dev/null 2>&1; do sleep 0.5; done
+          docker exec -i valkey valkey-cli --no-auth-warning < ./scripts/redis-set-user.txt
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:
@@ -585,6 +641,8 @@ jobs:
     services:
       main-valkey:
         image: "valkey/valkey:9.0"
+        options: >-
+          --name main-valkey
         ports:
           - "6343:6379"
       icc-postgres:
@@ -614,6 +672,11 @@ jobs:
           node-version: 22
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
+      - name: Apply Valkey ACL
+        shell: bash
+        run: |
+          until docker exec main-valkey valkey-cli ping >/dev/null 2>&1; do sleep 0.5; done
+          docker exec -i main-valkey valkey-cli --no-auth-warning < ./scripts/redis-set-user.txt
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
         with:

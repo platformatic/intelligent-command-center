@@ -10,12 +10,20 @@ services:
     volumes:
       - ./pg-init:/docker-entrypoint-initdb.d
 
+  # Valkey instances with AWS ElastiCache Serverless ACL restrictions
+  # See scripts/redis.acl.md for detailed documentation on restricted commands
   applications-valkey:
     ports:
       - "6342:6379"
     image: "valkey/valkey:9.0"
+    volumes:
+      - ./scripts/redis.acl:/etc/valkey/users.acl
+    command: valkey-server --aclfile /etc/valkey/users.acl
 
   icc-valkey:
     ports:
       - "6343:6379"
     image: "valkey/valkey:9.0"
+    volumes:
+      - ./scripts/redis.acl:/etc/valkey/users.acl
+    command: valkey-server --aclfile /etc/valkey/users.acl

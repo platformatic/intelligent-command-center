@@ -4,6 +4,7 @@ const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
 const { startTrafficInspector } = require('./helper')
+const { scanKeys } = require('../../../lib/redis-utils')
 
 test('should save an example of the request (route info is already cached)', async (t) => {
   const applicationId = randomUUID()
@@ -73,10 +74,10 @@ test('should save an example of the request (route info is already cached)', asy
   assert.deepStrictEqual(routeExample.request, expectedRequest)
   assert.deepStrictEqual(routeExample.response, expectedResponse)
 
-  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
+  const cachedRequestsKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 0)
 
-  const cachedRouteExamplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
+  const cachedRouteExamplesKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:examples:*')
   assert.strictEqual(cachedRouteExamplesKeys.length, 1)
 })
 
@@ -143,14 +144,14 @@ test('should save an example of the request (route info is not in the cache)', a
     const routeExamples = await trafficInspector.platformatic.entities.routeExample.find({})
     assert.strictEqual(routeExamples.length, 0)
 
-    const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
+    const cachedRequestsKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:requests:*')
     assert.strictEqual(cachedRequestsKeys.length, 1)
 
     const cachedRequest = await trafficInspector.redis.hgetall(cachedRequestsKeys[0])
     assert.deepStrictEqual(JSON.parse(cachedRequest.request), expectedCachedRequest)
     assert.deepStrictEqual(JSON.parse(cachedRequest.response), expectedResponse)
 
-    const cachedRouteExamplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
+    const cachedRouteExamplesKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:examples:*')
     assert.strictEqual(cachedRouteExamplesKeys.length, 0)
   }
 
@@ -184,10 +185,10 @@ test('should save an example of the request (route info is not in the cache)', a
     assert.deepStrictEqual(routeExample.request, expectedRequest)
     assert.deepStrictEqual(routeExample.response, expectedResponse)
 
-    const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
+    const cachedRequestsKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:requests:*')
     assert.strictEqual(cachedRequestsKeys.length, 0)
 
-    const cachedRouteExamplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
+    const cachedRouteExamplesKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:examples:*')
     assert.strictEqual(cachedRouteExamplesKeys.length, 1)
   }
 })
@@ -271,10 +272,10 @@ test('should update an existing route example', async (t) => {
   assert.deepStrictEqual(routeExample.request, prevRequest)
   assert.deepStrictEqual(routeExample.response, newResponse)
 
-  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
+  const cachedRequestsKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 0)
 
-  const cachedRouteExamplesKeys = await trafficInspector.redis.keys('traffic-inspector:examples:*')
+  const cachedRouteExamplesKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:examples:*')
   assert.strictEqual(cachedRouteExamplesKeys.length, 1)
 })
 
@@ -354,7 +355,7 @@ test('should not update an existing request if it is cached by redis', async (t)
   assert.deepStrictEqual(routeExample.request, prevRequest)
   assert.deepStrictEqual(routeExample.response, prevResponse)
 
-  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
+  const cachedRequestsKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 1)
 
   const cachedRequest = await trafficInspector.redis.hgetall(cachedRequestsKeys[0])
@@ -457,7 +458,7 @@ test('should not update an existing route example if it is cached by redis', asy
   assert.deepStrictEqual(routeExample.request, prevRequest)
   assert.deepStrictEqual(routeExample.response, prevResponse)
 
-  const cachedRequestsKeys = await trafficInspector.redis.keys('traffic-inspector:requests:*')
+  const cachedRequestsKeys = await scanKeys(trafficInspector.redis, 'traffic-inspector:requests:*')
   assert.strictEqual(cachedRequestsKeys.length, 1)
 
   const cachedRequest = await trafficInspector.redis.hgetall(cachedRequestsKeys[0])

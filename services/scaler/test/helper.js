@@ -8,6 +8,7 @@ const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const createConnectionPool = require('@databases/pg')
 const Redis = require('iovalkey')
+const { scanKeys } = require('../../../lib/redis-utils')
 
 const connectionString = 'postgres://postgres:postgres@127.0.0.1:5433/scaler'
 const valkeyConnectionString = 'redis://localhost:6343'
@@ -247,9 +248,9 @@ async function setupMockPrometheusServer (responses = {}) {
 async function cleanValkeyData () {
   const redis = new Redis(valkeyConnectionString)
   try {
-    const keys = await redis.keys('scaler:*')
+    const keys = await scanKeys(redis, 'scaler:*')
     if (keys.length > 0) {
-      await redis.del(keys)
+      await redis.del(...keys)
     }
   } finally {
     await redis.quit()

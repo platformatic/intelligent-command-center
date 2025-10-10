@@ -3,6 +3,7 @@
 const { join } = require('node:path')
 const { randomUUID } = require('node:crypto')
 const { buildServer: buildDbServer } = require('@platformatic/db')
+const { flushall } = require('../../../lib/redis-utils')
 
 const defaultEnv = {
   PLT_TRAFFIC_INSPECTOR_DATABASE_URL: 'postgres://postgres:postgres@127.0.0.1:5433/traffic_inspector',
@@ -71,7 +72,7 @@ async function startTrafficInspector (t, entities = {}, env = {}) {
   await db.query(sql`DELETE FROM "recommendations"`)
 
   await app.start()
-  await app.redis.flushall()
+  await flushall(app.redis)
 
   if (entities.versions?.length > 0) {
     for (const versionParams of entities.versions) {

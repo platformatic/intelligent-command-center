@@ -18,6 +18,7 @@ const env = require('../../plugins/env')
 const routes = require('../../plugins/routes')
 const Fastify = require('fastify')
 const { setTimeout: sleep } = require('node:timers/promises')
+const { flushall } = require('../../../../lib/redis-utils')
 
 const setupServer = async (t) => {
   process.env.PLT_ICC_VALKEY_CONNECTION_STRING = 'redis://localhost:6343'
@@ -30,7 +31,7 @@ const setupServer = async (t) => {
   await fastify.ready()
 
   t.after(async () => {
-    await fastify.store.flushAll()
+    await flushall(fastify.redis)
     await fastify.close()
   })
   return fastify

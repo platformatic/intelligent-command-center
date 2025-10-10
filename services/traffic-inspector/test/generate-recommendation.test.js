@@ -9,6 +9,7 @@ const {
   generateRequests,
   generateRecommendationRoute
 } = require('./helper')
+const { scanKeys } = require('../../../lib/redis-utils')
 
 const { startControlPlane } = require('../../control-plane/test/helper')
 
@@ -170,7 +171,7 @@ test('should generate cache recommendation (cold start)', async (t) => {
 
   // Wait for TrafficInspector to clean up the version metrics
   await sleep(1000)
-  const keys = await trafficInspector.redis.keys('*')
+  const keys = await scanKeys(trafficInspector.redis, '*')
 
   assert.ok(keys.includes('traffic-inspector:versions'))
 
@@ -358,7 +359,7 @@ test('should generate a second cache recommendation', async (t) => {
 
   // Wait for TrafficInspector to clean up the version metrics
   await sleep(1000)
-  const keys = await trafficInspector.redis.keys('*')
+  const keys = await scanKeys(trafficInspector.redis, '*')
 
   assert.ok(keys.includes('traffic-inspector:versions'))
 
