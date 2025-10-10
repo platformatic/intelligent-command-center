@@ -174,7 +174,7 @@ async function getThreadCountByPod ({ applicationId }) {
   const threadCounts = {}
 
   for (const { metric } of result.data.result) {
-    const { serviceId, instanceId, workerId } = metric
+    let { serviceId, instanceId, workerId } = metric
 
     if (!serviceId || !instanceId) continue
 
@@ -186,9 +186,8 @@ async function getThreadCountByPod ({ applicationId }) {
       threadCounts[serviceId][instanceId] = new Set()
     }
 
-    if (workerId !== undefined) {
-      threadCounts[serviceId][instanceId].add(workerId)
-    }
+    workerId ??= 'initial'
+    threadCounts[serviceId][instanceId].add(workerId)
   }
 
   const threadCountsByService = {}

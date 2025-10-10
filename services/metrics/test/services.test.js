@@ -85,8 +85,7 @@ test('get thread count per pod for an application', async (t) => {
               metric: {
                 applicationId: appId,
                 serviceId: 'service-1',
-                instanceId: 'pod-1',
-                workerId: '0'
+                instanceId: 'pod-1'
               },
               value: [1721122686.143, 0.5]
             },
