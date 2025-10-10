@@ -7,7 +7,6 @@ import {
   WHITE
 } from '@platformatic/ui-components/src/components/constants'
 
-import Resources from './Resources'
 import AutoscalerConfigration from './AutoscalerConfigration'
 import { useRouteLoaderData } from 'react-router-dom'
 
@@ -16,7 +15,6 @@ export default function Settings () {
   const { application } = useRouteLoaderData('appRoot')
 
   const sections = [
-    { label: 'Resources', component: <Resources applicationId={application.id} />, icon: Icons.ConfigureDatabaseIcon },
     { label: 'Autoscaler Configuration', component: <AutoscalerConfigration applicationId={application.id} />, icon: Icons.AppSettingsIcon }
   ]
   return (

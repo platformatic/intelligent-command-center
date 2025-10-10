@@ -6,7 +6,6 @@ import {
   setBaseUrl as setBaseUrlControlPlane,
   getApplicationById,
   getApplicationStatesForApplication,
-  getApplicationResources,
   getGenerationGraph
 } from '../clients/control-plane/control-plane.mjs'
 
@@ -169,12 +168,6 @@ export const getApiApplication = async (id) => {
     lastStarted,
     lastUpdated
   }
-}
-
-export const getApiApplicationUrl = async (id) => {
-  return { url: 'https://www.google.com' }
-  // const { body } = await getApplicationUrl({ id })
-  // return body
 }
 
 /* METRICS */
@@ -593,38 +586,6 @@ export const callApiInviteUser = async (emails) => {
   return await Promise.all(promises)
 }
 
-export const getApiEnvironments = async () => {
-  const activities = []
-  let response = await fetch(`${baseApiUrl}/events?limit=100&offset=0&search=IMPORT`, {
-    method: 'GET',
-    headers: getHeaders(),
-    credentials: 'include'
-  })
-  const totalCountImported = response.headers.get('X-Total-Count')
-
-  const importedActivities = await response.json()
-
-  for (const importedActivity of importedActivities) {
-    activities.push({ ...importedActivity, imported: true })
-  }
-
-  response = await fetch(`${baseApiUrl}/events?limit=100&offset=0&search=EXPORT`, {
-    method: 'GET',
-    headers: getHeaders(),
-    credentials: 'include'
-  })
-
-  const totalCountExported = response.headers.get('X-Total-Count')
-
-  const exportedActivities = await response.json()
-
-  for (const exportedActivity of exportedActivities) {
-    activities.push({ ...exportedActivity, imported: false })
-  }
-
-  return { activities, totalCount: Number(totalCountImported) + Number(totalCountExported) }
-}
-
 export const callApiGetApplicationHttpCache = async (appId, options) => {
   const url = `${baseUrl}/cache-manager/applications/${appId}/http-cache?`
 
@@ -691,42 +652,6 @@ export const callApiInvalidateApplicationHttpCache = async (appId, entries) => {
     const error = await response.text()
     console.error(`Failed to invalidate cache: ${error}`)
     throw new Error(`Failed to invalidate cache: ${error}`)
-  }
-  return true
-}
-
-export const callApiGetApplicationsConfigs = async (appId) => {
-  const { body: applicationResources, statusCode } = await getApplicationResources({ id: appId })
-  if (statusCode !== 200) {
-    const error = await applicationResources
-    console.error(`Failed to get applications configs: ${error}`)
-    throw new Error(`Failed to get applications configs: ${error}`)
-  }
-  const output = applicationResources
-  if (!output.services || Object.keys(output.services).length === 0) {
-    output.services = []
-  }
-  return output
-}
-
-export const callApiUpdateApplicationConfigs = async (appId, configs) => {
-  if (!Array.isArray(configs.services)) {
-    configs.services = Object.values(configs.services)
-  }
-  const url = `${baseUrl}/control-plane/applications/${appId}/resources`
-  const response = await fetch(url, {
-    method: 'POST',
-    credentials: 'include',
-    headers: getHeaders(),
-    body: JSON.stringify({
-      ...configs
-    })
-  })
-  const { status } = response
-  if (status !== 200) {
-    const error = await response.text()
-    console.error(`Failed to set application configs: ${error}`)
-    throw new Error(`Failed to set application configs: ${error}`)
   }
   return true
 }
