@@ -268,7 +268,9 @@ const ThreadUsage = ({
   }, [currentData, minMax, heightChart])
   function getThreadsAverage () {
     const totalThreads = currentData.reduce((partialSum, thread) => partialSum + thread[Object.keys(thread)[0]], 0)
-    return totalThreads / currentData.length
+    // return 0 decimal if the value is an integer, 1 if it's not
+    const average = totalThreads / currentData.length
+    return Number.isInteger(average) ? (average).toFixed(0) : (average).toFixed(1)
   }
   return (
     <div className={styles.container}>
