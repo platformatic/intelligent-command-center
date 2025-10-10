@@ -43,6 +43,9 @@ function ListView () {
 
   function getThreadsUsageArray (serviceId) {
     const data = applicationThreads[serviceId]
+    if (!data) {
+      return []
+    }
     return Object.keys(data).map(key => ({ [key]: data[key] }))
   }
   useEffect(() => {
