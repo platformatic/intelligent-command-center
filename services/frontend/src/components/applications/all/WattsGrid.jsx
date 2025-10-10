@@ -3,7 +3,7 @@ import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import styles from './WattsGrid.module.css'
 import { LoadingSpinnerV2, SearchBarV2 } from '@platformatic/ui-components'
-import ApplicationCard from './WattCard'
+import WattCard from './WattCard'
 import NoDataFound from '~/components/ui/NoDataFound'
 import { MEDIUM, WHITE } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
@@ -111,7 +111,7 @@ export default function WattsGrid () {
         {filteredApplications.length > 0 && (
           <div className={styles.gridContainer}>
             {filteredApplications.map(application => (
-              <ApplicationCard
+              <WattCard
                 key={`${application.id}`}
                 {...application}
               />

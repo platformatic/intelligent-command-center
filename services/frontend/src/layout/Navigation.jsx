@@ -172,27 +172,26 @@ export default function Navigation () {
   if (!breadCrumbs || breadCrumbs.length === 0) {
     return null
   }
-
+  function renderBreadcrumbs () {
+    return breadCrumbs.map((item, index) => {
+      let content
+      if (index < breadCrumbs.length - 1) {
+        content = <span onClick={() => handleItemClick(item)} className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70} ${styles.link}`}><span>{item.label}</span></span>
+      } else {
+        content = <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{item.label}</span>
+      }
+      return (
+        <span key={index} className={styles.navigationElement}>
+          {content}
+          {index < breadCrumbs.length - 1 && <PlatformaticIcon className={styles.separator} iconName='ArrowRightIcon' size={TINY} color={WHITE} />}
+        </span>
+      )
+    })
+  }
   return (
     <div className={styles.container}>
       <div className={styles.breadCrumbs}>
-        {breadCrumbs.map((item, index) => {
-          let content
-          if (index < breadCrumbs.length - 1) {
-            content = <span onClick={() => handleItemClick(item)} key={item.label} className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70} ${styles.link}`}><span>{item.label}</span></span>
-          } else {
-            content = <span key={item.label} className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{item.label}</span>
-          }
-          if (index < breadCrumbs.length - 1) {
-            return (
-              <span key={item.label} className={styles.navigationElement}>
-                {content}
-                <PlatformaticIcon className={styles.separator} iconName='ArrowRightIcon' size={TINY} color={WHITE} />
-              </span>
-            )
-          }
-          return content
-        })}
+        {renderBreadcrumbs()}
       </div>
     </div>
   )
