@@ -72,14 +72,14 @@ test('get thread count per pod for an application', async (t) => {
   prometheus.register(formBody)
   t.after(() => prometheus.close())
 
-  prometheus.post('/api/v1/query', async (req, reply) => {
+  prometheus.post('/api/v1/query_range', async (req, reply) => {
     const { query } = req.body
 
     if (query.includes('nodejs_eventloop_utilization')) {
       return {
         status: 'success',
         data: {
-          resultType: 'vector',
+          resultType: 'matrix',
           result: [
             {
               metric: {
@@ -87,7 +87,7 @@ test('get thread count per pod for an application', async (t) => {
                 serviceId: 'service-1',
                 instanceId: 'pod-1'
               },
-              value: [1721122686.143, 0.5]
+              values: [[1721122686.143, 0.5]]
             },
             {
               metric: {
@@ -96,7 +96,7 @@ test('get thread count per pod for an application', async (t) => {
                 instanceId: 'pod-1',
                 workerId: '1'
               },
-              value: [1721122686.143, 0.6]
+              values: [[1721122686.143, 0.6]]
             },
             {
               metric: {
@@ -105,7 +105,7 @@ test('get thread count per pod for an application', async (t) => {
                 instanceId: 'pod-2',
                 workerId: '0'
               },
-              value: [1721122686.143, 0.4]
+              values: [[1721122686.143, 0.4]]
             },
             {
               metric: {
@@ -113,7 +113,7 @@ test('get thread count per pod for an application', async (t) => {
                 serviceId: 'service-2',
                 instanceId: 'pod-3'
               },
-              value: [1721122686.143, 0.7]
+              values: [[1721122686.143, 0.7]]
             }
           ]
         }
@@ -122,7 +122,7 @@ test('get thread count per pod for an application', async (t) => {
 
     return {
       status: 'success',
-      data: { resultType: 'vector', result: [] }
+      data: { resultType: 'matrix', result: [] }
     }
   })
 
@@ -158,11 +158,11 @@ test('get thread count returns empty object when no data from prometheus', async
   prometheus.register(formBody)
   t.after(() => prometheus.close())
 
-  prometheus.post('/api/v1/query', async (req, reply) => {
+  prometheus.post('/api/v1/query_range', async (req, reply) => {
     return {
       status: 'success',
       data: {
-        resultType: 'vector',
+        resultType: 'matrix',
         result: []
       }
     }

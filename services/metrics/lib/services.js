@@ -1,6 +1,6 @@
 'use strict'
 
-const { queryPrometheus } = require('./prom')
+const { queryPrometheus, queryRangePrometheus } = require('./prom')
 
 const createMaxServiceCount = ({ timeWindow, offset = '1ms' }) =>
   'sum by (applicationId, serviceId, telemetry_id) ' +
@@ -148,6 +148,8 @@ function getTimeWindow ({ start, end }) {
   return `${duration}s`
 }
 
+const THREAD_COUNT_TIME_WINDOW_SECONDS = 60
+
 async function getThreadCountByPod ({ applicationId, serviceId = null }) {
   let query = `nodejs_eventloop_utilization{applicationId="${applicationId}"`
   if (serviceId) {
@@ -155,9 +157,13 @@ async function getThreadCountByPod ({ applicationId, serviceId = null }) {
   }
   query += '}'
 
+  const now = Math.floor(Date.now() / 1000)
+  const start = now - THREAD_COUNT_TIME_WINDOW_SECONDS
+  const end = now
+
   let result
   try {
-    result = await queryPrometheus(query)
+    result = await queryRangePrometheus(query, start, end, '15s')
   } catch (err) {
     const error = new Error(`Failed to query Prometheus: ${err.message}`)
     error.statusCode = 503
@@ -177,7 +183,9 @@ async function getThreadCountByPod ({ applicationId, serviceId = null }) {
 
   const threadCounts = {}
 
-  for (const { metric } of result.data.result) {
+  for (const { metric, values } of result.data.result) {
+    if (!values || values.length === 0) continue
+
     let { serviceId, instanceId, workerId } = metric
 
     if (!serviceId || !instanceId) continue
