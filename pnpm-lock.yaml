@@ -345,7 +345,7 @@ importers:
         version: 17.2.3
       mercurius:
         specifier: ^16.0.0
-        version: 16.4.0(graphql@16.11.0)
+        version: 16.5.0(graphql@16.11.0)
       mermaid:
         specifier: ^11.0.0
         version: 11.12.0
@@ -460,7 +460,7 @@ importers:
         version: 5.6.1
       mercurius:
         specifier: ^16.0.0
-        version: 16.4.0(graphql@16.11.0)
+        version: 16.5.0(graphql@16.11.0)
       nock:
         specifier: ^14.0.0
         version: 14.0.10
@@ -5401,6 +5401,12 @@ packages:
     peerDependencies:
       graphql: ^16.0.0
 
+  mercurius@16.5.0:
+    resolution: {integrity: sha512-l5SOEXYATLhlH1M3tEIF1lJdwcgxXdNCf7HsCHoZ9IFO4Sgs//lo/ymeRuXOnapQ6zo1yruecY7OsRVaSCC2LA==}
+    engines: {node: ^20.9.0 || >=22.0.0}
+    peerDependencies:
+      graphql: ^16.0.0
+
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
 
@@ -6145,6 +6151,10 @@ packages:
 
   quick-lru@7.2.0:
     resolution: {integrity: sha512-fG4L8TlD1CacJiGMGPxM1/K8l/GaKL2eFQZ6DWAjxZYxSf07DkumbC/Mhh+u/NHvxkfQVL25By0pxBS8QE9ZrQ==}
+    engines: {node: '>=18'}
+
+  quick-lru@7.3.0:
+    resolution: {integrity: sha512-k9lSsjl36EJdK7I06v7APZCbyGT2vMTsYSRX1Q2nbYmnkBqgUhRkAuzH08Ciotteu/PLJmIF2+tti7o3C/ts2g==}
     engines: {node: '>=18'}
 
   randombytes@2.1.0:
@@ -8755,9 +8765,10 @@ snapshots:
     dependencies:
       '@fastify/error': 4.2.0
       graphql: 16.11.0
-      mercurius: 16.4.0(graphql@16.11.0)
+      mercurius: 16.5.0(graphql@16.11.0)
     transitivePeerDependencies:
       - bufferutil
+      - monocart-coverage-reports
       - utf-8-validate
 
   '@mermaid-js/parser@0.6.2':
@@ -9194,7 +9205,7 @@ snapshots:
       graphql: 16.11.0
       help-me: 5.0.0
       json-schema-traverse: 1.0.0
-      mercurius: 16.4.0(graphql@16.11.0)
+      mercurius: 16.5.0(graphql@16.11.0)
       minimist: 1.2.8
       my-ua-parser: 2.0.4
       nunjucks: 3.2.4(chokidar@3.6.0)
@@ -9207,6 +9218,7 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - chokidar
+      - monocart-coverage-reports
       - supports-color
       - typescript
       - utf-8-validate
@@ -9258,6 +9270,7 @@ snapshots:
       fastify-plugin: 5.1.0
     transitivePeerDependencies:
       - bufferutil
+      - monocart-coverage-reports
       - pg-native
       - supports-color
       - typescript
@@ -9311,6 +9324,7 @@ snapshots:
       semgrator: 0.3.0
     transitivePeerDependencies:
       - bufferutil
+      - monocart-coverage-reports
       - pg-native
       - supports-color
       - typescript
@@ -9524,9 +9538,10 @@ snapshots:
       graphql-scalars: 1.24.2(graphql@16.11.0)
       graphql-type-json: 0.3.2(graphql@16.11.0)
       inflected: 2.1.0
-      mercurius: 16.4.0(graphql@16.11.0)
+      mercurius: 16.5.0(graphql@16.11.0)
     transitivePeerDependencies:
       - bufferutil
+      - monocart-coverage-reports
       - utf-8-validate
 
   '@platformatic/sql-inspector@0.2.0': {}
@@ -13431,7 +13446,7 @@ snapshots:
       graphql-jit: 0.8.6(graphql@16.11.0)
       mqemitter: 6.0.2
       p-map: 4.0.0
-      quick-lru: 7.2.0
+      quick-lru: 7.3.0
       readable-stream: 4.7.0
       safe-stable-stringify: 2.5.0
       secure-json-parse: 2.7.0
@@ -13462,6 +13477,29 @@ snapshots:
       ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
+      - utf-8-validate
+
+  mercurius@16.5.0(graphql@16.11.0):
+    dependencies:
+      '@fastify/error': 4.2.0
+      '@fastify/static': 8.2.0
+      '@fastify/websocket': 11.2.0
+      borp: 0.20.2
+      fastify-plugin: 5.1.0
+      graphql: 16.11.0
+      graphql-jit: 0.8.7(graphql@16.11.0)
+      mqemitter: 7.1.0
+      p-map: 4.0.0
+      quick-lru: 7.3.0
+      readable-stream: 4.7.0
+      safe-stable-stringify: 2.5.0
+      secure-json-parse: 4.1.0
+      single-user-cache: 2.1.0
+      tiny-lru: 11.4.5
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - monocart-coverage-reports
       - utf-8-validate
 
   merge-stream@2.0.0: {}
@@ -14299,6 +14337,8 @@ snapshots:
   quick-format-unescaped@4.0.4: {}
 
   quick-lru@7.2.0: {}
+
+  quick-lru@7.3.0: {}
 
   randombytes@2.1.0:
     dependencies:
