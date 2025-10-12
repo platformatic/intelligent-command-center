@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "@platformatic/db": "^2.70.1",
-    "borp": "^0.20.0",
+    "borp": "^0.21.0",
     "fastify": "^5.2.2",
     "standard": "^17.1.2"
   },

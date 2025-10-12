@@ -16,7 +16,7 @@
     "@types/node": "^24.3.0",
     "@typescript-eslint/eslint-plugin": "^8.40.0",
     "@typescript-eslint/parser": "^8.40.0",
-    "borp": "^0.20.1",
+    "borp": "^0.21.0",
     "eslint": "^9.33.0",
     "fastify": "^5.5.0",
     "typescript": "^5.9.2"

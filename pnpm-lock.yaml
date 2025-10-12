@@ -56,8 +56,8 @@ importers:
         version: 2.75.2(typescript@5.9.3)
     devDependencies:
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       fastify:
         specifier: ^5.2.1
         version: 5.6.1
@@ -111,8 +111,8 @@ importers:
         specifier: ^2.70.1
         version: 2.75.2(typescript@5.9.3)
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       fastify:
         specifier: ^5.2.1
         version: 5.6.1
@@ -163,8 +163,8 @@ importers:
         specifier: ^8.40.0
         version: 8.45.0(eslint@9.37.0(jiti@1.21.7))(typescript@5.9.3)
       borp:
-        specifier: ^0.20.1
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       eslint:
         specifier: ^9.33.0
         version: 9.37.0(jiti@1.21.7)
@@ -197,8 +197,8 @@ importers:
         version: 7.16.0
     devDependencies:
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       fastify:
         specifier: ^5.2.1
         version: 5.6.1
@@ -234,8 +234,8 @@ importers:
         specifier: ^2.70.1
         version: 2.75.2(typescript@5.9.3)
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       fastify:
         specifier: ^5.2.2
         version: 5.6.1
@@ -277,8 +277,8 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       fastify:
         specifier: ^5.01.0
         version: 5.6.1
@@ -332,8 +332,8 @@ importers:
         specifier: ^10.4.20
         version: 10.4.21(postcss@8.5.6)
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       d3:
         specifier: ~7.9.0
         version: 7.9.0
@@ -450,8 +450,8 @@ importers:
         specifier: ^8.2.0
         version: 8.2.0
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       fast-jwt:
         specifier: ^6.0.1
         version: 6.0.2
@@ -496,8 +496,8 @@ importers:
         version: 7.16.0
     devDependencies:
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       fastify:
         specifier: ^5.3.0
         version: 5.6.1
@@ -548,8 +548,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       fastify:
         specifier: ^5.2.1
         version: 5.6.1
@@ -597,8 +597,8 @@ importers:
         version: 7.5.4
     devDependencies:
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       fastify:
         specifier: ^5.2.1
         version: 5.6.1
@@ -649,8 +649,8 @@ importers:
         specifier: ^11.1.0
         version: 11.2.0
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       fastify:
         specifier: ^5.4.0
         version: 5.6.1
@@ -689,8 +689,8 @@ importers:
         specifier: ^2.70.1
         version: 2.75.2(typescript@5.9.3)
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       standard:
         specifier: ^17.1.2
         version: 17.1.2
@@ -717,8 +717,8 @@ importers:
         version: 5.1.0
     devDependencies:
       borp:
-        specifier: ^0.20.0
-        version: 0.20.2
+        specifier: ^0.21.0
+        version: 0.21.0
       fastify:
         specifier: ^5.2.1
         version: 5.6.1
@@ -3405,8 +3405,8 @@ packages:
     resolution: {integrity: sha512-1wEo1pNahY9js7Vkp1RQa/VWdWrXYJnVAmsHV3Pw/0YzspjABLw7dcekjukOMTIYWr8ir/aG0GX1eoEkYhpnUg==}
     hasBin: true
 
-  borp@0.20.2:
-    resolution: {integrity: sha512-WJl/vYU6KoD0SyppDWPCdgrrTt2e+hCqTk5443fOUD92cbHLDLIcVRVRh8FIP0uhJjcZQ82Ky0XhB7Kyh32d/w==}
+  borp@0.21.0:
+    resolution: {integrity: sha512-Qye8VdTHsdei7f7eIo3nfVucVgwBqV2nSd7dgIbKBpLujy8+MERFYH0WlUOWthZcUBjY7GGM0mfS3YNpCKbGWg==}
     hasBin: true
 
   bowser@2.12.1:
@@ -11135,7 +11135,7 @@ snapshots:
       commander: 6.2.1
       lodash: 4.17.21
 
-  borp@0.20.2:
+  borp@0.21.0:
     dependencies:
       '@reporters/github': 1.11.0
       c8: 10.1.3

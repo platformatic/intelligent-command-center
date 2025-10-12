@@ -18,7 +18,7 @@
     "protobufjs": "^7.5.0"
   },
   "devDependencies": {
-    "borp": "^0.20.0",
+    "borp": "^0.21.0",
     "fastify": "^5.2.1",
     "snazzy": "^9.0.0",
     "standard": "^17.1.2",
