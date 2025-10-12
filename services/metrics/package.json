@@ -11,7 +11,7 @@
     "fastify": "^5.3.0",
     "snazzy": "^9.0.0",
     "standard": "^17.1.2",
-    "undici-oidc-interceptor": "^0.7.0"
+    "undici-oidc-interceptor": "^0.8.0"
   },
   "dependencies": {
     "@fastify/env": "^5.0.2",

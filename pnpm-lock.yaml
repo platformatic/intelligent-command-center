@@ -508,8 +508,8 @@ importers:
         specifier: ^17.1.2
         version: 17.1.2
       undici-oidc-interceptor:
-        specifier: ^0.7.0
-        version: 0.7.0
+        specifier: ^0.8.0
+        version: 0.8.0
 
   services/risk-cold-storage:
     dependencies:
@@ -6982,8 +6982,8 @@ packages:
   undici-cache-redis@1.0.1:
     resolution: {integrity: sha512-WPggGOAmthr48gaBgZLltgEUp2g+1Ej0P2DFo48MNHbVw6GeHysr/4gDtl7k5BvmAj9391J+d5b0uGrTHaYArw==}
 
-  undici-oidc-interceptor@0.7.0:
-    resolution: {integrity: sha512-bUM1hGHHQnkf19mLzJPur7idlOk9ybnMWacXeihM1fkPkHyuFKccJ3NhfhGeLUf0CUmBsO5TjcNqMFl4UzNAgQ==}
+  undici-oidc-interceptor@0.8.0:
+    resolution: {integrity: sha512-SbWdP7i2yIBnoM3rLFO8/kwAfYZMlw18IgkPfniUv6X/EeQVJ0PwTm9RRwwc5zUHyHZo/dBlwSk9g+6Kv8nJ0Q==}
 
   undici-thread-interceptor@0.14.4:
     resolution: {integrity: sha512-SLQgNiuAJZA+scl2Oz6T6nHTtaIc9AsnlSZHFYZ0wCZoRQzF0GAtNg8HFXguLs56iVCgQACAL9NwsHkDAeRooA==}
@@ -15395,7 +15395,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  undici-oidc-interceptor@0.7.0:
+  undici-oidc-interceptor@0.8.0:
     dependencies:
       async-cache-dedupe: 3.1.0
       fast-jwt: 6.0.2
