@@ -432,7 +432,7 @@ importers:
         version: 11.0.3
       mqemitter-redis:
         specifier: ^7.0.0
-        version: 7.1.0
+        version: 7.2.0
       platformatic:
         specifier: ^2.70.1
         version: 2.75.2(@types/node@24.7.2)
@@ -634,7 +634,7 @@ importers:
         version: 0.3.3
       mqemitter-redis:
         specifier: ^7.1.0
-        version: 7.1.0
+        version: 7.2.0
       undici:
         specifier: ^7.8.0
         version: 7.16.0
@@ -3405,6 +3405,10 @@ packages:
     resolution: {integrity: sha512-1wEo1pNahY9js7Vkp1RQa/VWdWrXYJnVAmsHV3Pw/0YzspjABLw7dcekjukOMTIYWr8ir/aG0GX1eoEkYhpnUg==}
     hasBin: true
 
+  borp@0.20.2:
+    resolution: {integrity: sha512-WJl/vYU6KoD0SyppDWPCdgrrTt2e+hCqTk5443fOUD92cbHLDLIcVRVRh8FIP0uhJjcZQ82Ky0XhB7Kyh32d/w==}
+    hasBin: true
+
   borp@0.21.0:
     resolution: {integrity: sha512-Qye8VdTHsdei7f7eIo3nfVucVgwBqV2nSd7dgIbKBpLujy8+MERFYH0WlUOWthZcUBjY7GGM0mfS3YNpCKbGWg==}
     hasBin: true
@@ -4907,6 +4911,10 @@ packages:
     resolution: {integrity: sha512-AUXbKn9gvo9hHKvk6LbZJQSKn/qIfkWXrnsyL9Yrf+oeXmla9Nmf6XEumOddyhM8neynpK5oAV6r9r99KBuwzA==}
     engines: {node: '>=12.22.0'}
 
+  ioredis@5.8.1:
+    resolution: {integrity: sha512-Qho8TgIamqEPdgiMadJwzRMW3TudIg6vpg4YONokGDudy4eqRIJtDbVX72pfLBcWxvbn3qm/40TyGUObdW4tLQ==}
+    engines: {node: '>=12.22.0'}
+
   iovalkey@0.3.3:
     resolution: {integrity: sha512-4rTJX6Q5wTYEvxboXi8DsEiUo+OvqJGtLYOSGm37KpdRXsG5XJjbVtYKGJpPSWP+QT7rWscA4vsrdmzbEbenpw==}
     engines: {node: '>=18.12.0'}
@@ -5509,8 +5517,8 @@ packages:
   mqemitter-redis@6.1.0:
     resolution: {integrity: sha512-wZWs8I5VIzXIK2P/eFCKAcbX+iBgU/ka3HsS/KZtfe8VYyYwyyzhygJqrEf82TgH5HEBxbUjiJK33eDKh0ETEA==}
 
-  mqemitter-redis@7.1.0:
-    resolution: {integrity: sha512-YsOf0o2fauLz27jzb92rwD9uLZGekEWwTkIYstZcKBkvYkZCWY5bFnSbIt/2BaNpXcFO+NMBa6kK4Ah4CI/dVw==}
+  mqemitter-redis@7.2.0:
+    resolution: {integrity: sha512-YdYZgSab9kQsk6JXFYylJVctzAND6q7ps/g8PeqczSd0s+WKH7dXXfpiTrlUNDwmLkMpKPw0DyuQNeo2CeBxLg==}
     engines: {node: '>=20'}
 
   mqemitter@6.0.2:
@@ -11135,6 +11143,17 @@ snapshots:
       commander: 6.2.1
       lodash: 4.17.21
 
+  borp@0.20.2:
+    dependencies:
+      '@reporters/github': 1.11.0
+      c8: 10.1.3
+      execa: 9.6.0
+      find-up: 7.0.0
+      glob: 10.4.5
+      yaml: 2.8.1
+    transitivePeerDependencies:
+      - monocart-coverage-reports
+
   borp@0.21.0:
     dependencies:
       '@reporters/github': 1.11.0
@@ -12968,6 +12987,20 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  ioredis@5.8.1:
+    dependencies:
+      '@ioredis/commands': 1.4.0
+      cluster-key-slot: 1.1.2
+      debug: 4.4.3
+      denque: 2.1.0
+      lodash.defaults: 4.2.0
+      lodash.isarguments: 3.1.0
+      redis-errors: 1.2.0
+      redis-parser: 3.0.0
+      standard-as-callback: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
+
   iovalkey@0.3.3:
     dependencies:
       '@iovalkey/commands': 0.1.0
@@ -13613,18 +13646,18 @@ snapshots:
     dependencies:
       hyperid: 3.3.0
       inherits: 2.0.4
-      ioredis: 5.8.0
+      ioredis: 5.8.1
       lru-cache: 10.4.3
       mqemitter: 6.0.2
       msgpack-lite: 0.1.26
     transitivePeerDependencies:
       - supports-color
 
-  mqemitter-redis@7.1.0:
+  mqemitter-redis@7.2.0:
     dependencies:
       hyperid: 3.3.0
       inherits: 2.0.4
-      ioredis: 5.8.0
+      ioredis: 5.8.1
       lru-cache: 11.2.2
       mqemitter: 7.1.0
       msgpack-lite: 0.1.26
