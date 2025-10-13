@@ -11,7 +11,7 @@ import AutoscalerConfigration from './AutoscalerConfigration'
 import { useRouteLoaderData } from 'react-router-dom'
 
 export default function Settings () {
-  const [currentSection, setCurrentSection] = useState('Resources')
+  const [currentSection, setCurrentSection] = useState('Autoscaler Configuration')
   const { application } = useRouteLoaderData('appRoot')
 
   const sections = [
