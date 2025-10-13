@@ -53,6 +53,7 @@ test('receive and save flamegraph successfully', async (t) => {
   const savedFlamegraph = savedFlamegraphs[0]
   assert.strictEqual(savedFlamegraph.podId, podId)
   assert.strictEqual(savedFlamegraph.serviceId, serviceId)
+  assert.strictEqual(savedFlamegraph.profileType, 'cpu')
   assert.ok(Buffer.isBuffer(savedFlamegraph.flamegraph))
   assert.strictEqual(savedFlamegraph.flamegraph.toString(), flamegraphData.toString())
 
@@ -64,7 +65,8 @@ test('receive and save flamegraph successfully', async (t) => {
   assert.deepStrictEqual(update.message.data, {
     id: flamegraphEntity.id,
     serviceId,
-    podId
+    podId,
+    profileType: 'cpu'
   })
 })
 
@@ -212,6 +214,7 @@ test('receive and save flamegraph with alertId successfully', async (t) => {
   assert.strictEqual(savedFlamegraph.podId, podId)
   assert.strictEqual(savedFlamegraph.serviceId, serviceId)
   assert.strictEqual(savedFlamegraph.alertId, alertId)
+  assert.strictEqual(savedFlamegraph.profileType, 'cpu')
   assert.ok(Buffer.isBuffer(savedFlamegraph.flamegraph))
   assert.strictEqual(savedFlamegraph.flamegraph.toString(), flamegraphData.toString())
 
@@ -223,6 +226,69 @@ test('receive and save flamegraph with alertId successfully', async (t) => {
   assert.deepStrictEqual(update.message.data, {
     id: flamegraphEntity.id,
     serviceId,
-    podId
+    podId,
+    profileType: 'cpu'
+  })
+})
+
+test('receive and save heap profile successfully', async (t) => {
+  await cleanValkeyData()
+
+  const server = await buildServer(t)
+  const podId = 'test-pod-id'
+  const serviceId = 'test-service-id'
+  const heapProfileData = Buffer.from('test heap profile data')
+
+  const emittedUpdates = []
+  server.emitUpdate = async (namespace, message) => {
+    emittedUpdates.push({ namespace, message })
+  }
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  const response = await server.inject({
+    method: 'POST',
+    url: `/pods/${podId}/services/${serviceId}/flamegraph?profileType=heap`,
+    headers: {
+      'content-type': 'application/octet-stream',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    payload: heapProfileData
+  })
+
+  assert.strictEqual(response.statusCode, 200)
+
+  const flamegraphEntity = JSON.parse(response.body)
+  assert.ok(flamegraphEntity.id)
+
+  const savedFlamegraphs = await server.platformatic.entities.flamegraph.find({
+    where: {
+      podId: { eq: podId },
+      serviceId: { eq: serviceId },
+      profileType: { eq: 'heap' }
+    }
+  })
+
+  assert.strictEqual(savedFlamegraphs.length, 1)
+  const savedFlamegraph = savedFlamegraphs[0]
+  assert.strictEqual(savedFlamegraph.podId, podId)
+  assert.strictEqual(savedFlamegraph.serviceId, serviceId)
+  assert.strictEqual(savedFlamegraph.profileType, 'heap')
+  assert.ok(Buffer.isBuffer(savedFlamegraph.flamegraph))
+  assert.strictEqual(savedFlamegraph.flamegraph.toString(), heapProfileData.toString())
+
+  assert.strictEqual(emittedUpdates.length, 1)
+  const update = emittedUpdates[0]
+  assert.strictEqual(update.namespace, 'icc')
+  assert.strictEqual(update.message.topic, 'ui-updates/flamegraphs')
+  assert.strictEqual(update.message.type, 'flamegraph-created')
+  assert.deepStrictEqual(update.message.data, {
+    id: flamegraphEntity.id,
+    serviceId,
+    podId,
+    profileType: 'heap'
   })
 })

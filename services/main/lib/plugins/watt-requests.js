@@ -21,6 +21,13 @@ module.exports = fp(async function (fastify, opts) {
           params
         }))
         return { triggered: true }
+      },
+      'trigger-heapprofile': () => {
+        connection.send(JSON.stringify({
+          command: 'trigger-heapprofile',
+          params
+        }))
+        return { triggered: true }
       }
     }
 

@@ -184,3 +184,117 @@ test('execute unknown command returns error', async (t) => {
 
   socket.close()
 })
+
+test('execute trigger-heapprofile command on pod', async (t) => {
+  const applicationId = 'test-app-123'
+  const podId = 'test-pod-456'
+
+  const controlPlaneUrl = await startControlPlane(t, {
+    getPodDetails: async ({ podId }) => {
+      return { id: podId, applicationId }
+    }
+  })
+
+  const k8sAuth = await startK8sAuthService(t)
+
+  const server = await getServer(t, {
+    PLT_CONTROL_PLANE_URL: controlPlaneUrl,
+    PLT_DISABLE_K8S_AUTH: false
+  })
+
+  const url = await server.start()
+
+  const jwt = k8sAuth.generateToken(podId)
+  const wsUrl = url.replace('http', 'ws') + `/api/updates/applications/${applicationId}`
+
+  const socket = new WebSocket(wsUrl, {
+    headers: {
+      Authorization: `Bearer ${jwt}`
+    }
+  })
+
+  await once(socket, 'open')
+
+  const responsePromise = server.inject({
+    method: 'POST',
+    url: `/api/pods/${podId}/command`,
+    headers: {
+      'x-plt-icc-session-secret': 'test-secret'
+    },
+    payload: {
+      command: 'trigger-heapprofile'
+    }
+  })
+
+  const [data] = await once(socket, 'message')
+  const receivedCommand = JSON.parse(data)
+
+  const response = await responsePromise
+
+  assert.strictEqual(response.statusCode, 200)
+  const result = JSON.parse(response.body)
+  assert.strictEqual(result.success, true)
+  assert.strictEqual(result.message, `Command 'trigger-heapprofile' executed for pod ${podId}`)
+  assert.deepStrictEqual(result.data, { triggered: true })
+
+  assert.deepStrictEqual(receivedCommand, { command: 'trigger-heapprofile', params: {} })
+
+  socket.close()
+})
+
+test('execute trigger-heapprofile command with params on pod', async (t) => {
+  const applicationId = 'test-app-123'
+  const podId = 'test-pod-456'
+
+  const controlPlaneUrl = await startControlPlane(t, {
+    getPodDetails: async ({ podId }) => {
+      return { id: podId, applicationId }
+    }
+  })
+
+  const k8sAuth = await startK8sAuthService(t)
+
+  const server = await getServer(t, {
+    PLT_CONTROL_PLANE_URL: controlPlaneUrl,
+    PLT_DISABLE_K8S_AUTH: false
+  })
+
+  const url = await server.start()
+
+  const jwt = k8sAuth.generateToken(podId)
+  const wsUrl = url.replace('http', 'ws') + `/api/updates/applications/${applicationId}`
+
+  const socket = new WebSocket(wsUrl, {
+    headers: {
+      Authorization: `Bearer ${jwt}`
+    }
+  })
+
+  await once(socket, 'open')
+
+  const responsePromise = server.inject({
+    method: 'POST',
+    url: `/api/pods/${podId}/command`,
+    headers: {
+      'x-plt-icc-session-secret': 'test-secret'
+    },
+    payload: {
+      command: 'trigger-heapprofile',
+      params: { sampleSize: 512 }
+    }
+  })
+
+  const [data] = await once(socket, 'message')
+  const receivedCommand = JSON.parse(data)
+
+  const response = await responsePromise
+
+  assert.strictEqual(response.statusCode, 200)
+  const result = JSON.parse(response.body)
+  assert.strictEqual(result.success, true)
+  assert.strictEqual(result.message, `Command 'trigger-heapprofile' executed for pod ${podId}`)
+
+  assert.deepStrictEqual(receivedCommand, { command: 'trigger-heapprofile', params: { sampleSize: 512 } })
+
+  socket.close()
+})

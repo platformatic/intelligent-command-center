@@ -24,7 +24,8 @@ module.exports = async function (app) {
       querystring: {
         type: 'object',
         properties: {
-          alertId: { type: 'string' }
+          alertId: { type: 'string' },
+          profileType: { type: 'string', enum: ['cpu', 'heap'], default: 'cpu' }
         }
       }
     },
@@ -35,17 +36,18 @@ module.exports = async function (app) {
       }
 
       const { podId, serviceId } = req.params
-      const { alertId } = req.query
+      const { alertId, profileType = 'cpu' } = req.query
       const flamegraph = req.body
 
       app.log.debug({
         serviceId,
         podId,
         alertId,
+        profileType,
         flamegraphSize: flamegraph?.length
       }, 'received flamegraph')
 
-      const input = { serviceId, podId, flamegraph }
+      const input = { serviceId, podId, flamegraph, profileType }
       if (alertId) {
         input.alertId = alertId
       }
@@ -61,7 +63,8 @@ module.exports = async function (app) {
         data: {
           id: result.id,
           serviceId,
-          podId
+          podId,
+          profileType
         }
       }).catch((err) => {
         app.log.error({ err }, 'Failed to send notification to ui')

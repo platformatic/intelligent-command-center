@@ -16,7 +16,7 @@ module.exports = async function (fastify, opts) {
         properties: {
           command: {
             type: 'string',
-            enum: ['trigger-flamegraph']
+            enum: ['trigger-flamegraph', 'trigger-heapprofile']
           },
           params: {
             type: 'object',

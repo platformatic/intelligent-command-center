@@ -17,7 +17,8 @@ export default function Flamegraphs () {
   const { flamegraphs, pods } = useLoaderData()
   const [currentFlamegraphs, setCurrentFlamegraphs] = useState(flamegraphs)
   const { application } = useRouteLoaderData('appRoot')
-  const [collecting, setCollecting] = useState(false)
+  const [collectingCpu, setCollectingCpu] = useState(false)
+  const [collectingHeap, setCollectingHeap] = useState(false)
   const [rows, setRows] = useState([])
   const [scaleEventId] = useState(null) // TODO: add setScaleEventId function when needed.
   const { readyState, lastMessage } = useSubscribeToUpdates('flamegraphs')
@@ -77,6 +78,33 @@ export default function Flamegraphs () {
     setCurrentFlamegraphs(flamegraphs)
   }
 
+  async function collectProfile (command, setCollecting) {
+    let collected = false
+    setCollecting(true)
+    // call this api for each pod until we get a 200 response
+    // we do this because it may happen that a pod is 'running' in our db
+    // but it's not actually running in k8s
+    for (const pod of pods) {
+      try {
+        const res = await callApi('', `/api/pods/${pod.podId}/command`, 'POST', {
+          command
+        })
+        if (res.success) {
+          collected = true
+          break
+        }
+      } catch (error) {
+        // do nothing
+      }
+    }
+    setCollecting(false)
+    if (!collected) {
+      window.alert(`No ${command === 'trigger-heapprofile' ? 'heap profiles' : 'CPU profiles'} collected`)
+    } else {
+      refreshFlamegraphs()
+    }
+  }
+
   function renderRow (row) {
     const [date, alertId] = row.split('|')
     const flamegraphs = getFlamegraphsForRow(row)
@@ -103,41 +131,28 @@ export default function Flamegraphs () {
           <ExperimentalTag />
         </div>
 
-        <Button
-          textClass={typographyStyles.desktopButtonSmall}
-          paddingClass={commonStyles.mediumButtonPadding}
-          label={collecting ? 'Collecting flamegraphs...' : 'Get latest flamegraphs'}
-          onClick={async () => {
-            let collected = false
-            setCollecting(true)
-            // call this api for each pod until we get a 200 response
-            // we do this because it may happen that a pod is 'running' in our db
-            // but it's not actually running in k8s
-            for (const pod of pods) {
-              try {
-                const res = await callApi('', `/api/pods/${pod.podId}/command`, 'POST', {
-                  command: 'trigger-flamegraph'
-                })
-                if (res.success) {
-                  collected = true
-                  break
-                }
-              } catch (error) {
-                // do nothing
-              }
-            }
-            setCollecting(false)
-            if (!collected) {
-              window.alert('No flamegraphs collected')
-            } else {
-              refreshFlamegraphs()
-            }
-          }}
-          disabled={collecting}
-          color={RICH_BLACK}
-          backgroundColor={WHITE}
-          hoverEffect={DULLS_BACKGROUND_COLOR}
-        />
+        <div className={commonStyles.tinyFlexRow}>
+          <Button
+            textClass={typographyStyles.desktopButtonSmall}
+            paddingClass={commonStyles.mediumButtonPadding}
+            label={collectingCpu ? 'Collecting CPU profile...' : 'Get CPU profile'}
+            onClick={() => collectProfile('trigger-flamegraph', setCollectingCpu)}
+            disabled={collectingCpu || collectingHeap}
+            color={RICH_BLACK}
+            backgroundColor={WHITE}
+            hoverEffect={DULLS_BACKGROUND_COLOR}
+          />
+          <Button
+            textClass={typographyStyles.desktopButtonSmall}
+            paddingClass={commonStyles.mediumButtonPadding}
+            label={collectingHeap ? 'Collecting heap profile...' : 'Get heap profile'}
+            onClick={() => collectProfile('trigger-heapprofile', setCollectingHeap)}
+            disabled={collectingCpu || collectingHeap}
+            color={RICH_BLACK}
+            backgroundColor={WHITE}
+            hoverEffect={DULLS_BACKGROUND_COLOR}
+          />
+        </div>
       </div>
       <div className={styles.flamegraphsContainer}>
         {rows.map((row) => renderRow(row))}
@@ -187,6 +202,11 @@ function FlamegraphRow ({ date, flamegraphs, application, alertId = null, scaleE
                   <div>
                     <span className={styles.label}>Pod ID:</span>
                     <div className={styles.value}>{fg.podId}</div>
+                  </div>
+                  <div className={styles.separator}>|</div>
+                  <div>
+                    <span className={styles.label}>Type:</span>
+                    <div className={styles.value}>{fg.profileType || 'cpu'}</div>
                   </div>
                 </div>
                 <div
