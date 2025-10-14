@@ -5,8 +5,9 @@ export default function useSubscribeToUpdates (topic) {
   const { sendMessage, lastMessage, readyState } = useWebSocket(`${import.meta.env.VITE_SERVER_URL}/api/updates/icc`)
   useEffect(() => {
     if (!topic.startsWith('ui-updates/')) {
-      topic = `icc/ui-updates/${topic}`
+      topic = `ui-updates/${topic}`
     }
+    console.log('subscribe to topic', topic)
     sendMessage(JSON.stringify({ command: 'subscribe', topic }))
     return () => {
       sendMessage(JSON.stringify({ command: 'unsubscribe', topic }))

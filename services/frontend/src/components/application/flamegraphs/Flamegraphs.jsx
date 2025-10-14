@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useLoaderData, useNavigate, generatePath, useRouteLoaderData } from 'react-router-dom'
 import { DULLS_BACKGROUND_COLOR, MEDIUM, RICH_BLACK, SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
 import { Button } from '@platformatic/ui-components'
@@ -21,17 +21,49 @@ export default function Flamegraphs () {
   const [collectingHeap, setCollectingHeap] = useState(false)
   const [rows, setRows] = useState([])
   const [scaleEventId] = useState(null) // TODO: add setScaleEventId function when needed.
-  const { readyState, lastMessage } = useSubscribeToUpdates('flamegraphs')
+  const { lastMessage } = useSubscribeToUpdates('flamegraphs')
 
+  // Use refs to track collection state without causing re-renders
+  const isCollectingRef = useRef(false)
+  const collectedProfilesRef = useRef([])
+  const expectedServicesRef = useRef([])
+  const timeoutRef = useRef(null)
   useEffect(() => {
     if (lastMessage !== null) {
       const message = JSON.parse(lastMessage.data)
       if (message.type === 'flamegraph-created') {
-        const newFlamegraphs = [...currentFlamegraphs, message.data]
-        setCurrentFlamegraphs(newFlamegraphs)
+        // Always update the flamegraphs list for UI
+        setCurrentFlamegraphs(prev => [...prev, message.data])
+
+        // Only track collection if we're actively collecting
+        if (isCollectingRef.current) {
+          collectedProfilesRef.current = [...collectedProfilesRef.current, message.data.serviceId]
+          // Check if we've collected all expected profiles
+          const missingServices = expectedServicesRef.current.filter(
+            serviceId => !collectedProfilesRef.current.includes(serviceId)
+          )
+
+          if (missingServices.length === 0) {
+            // All profiles collected, clear timeout and reset
+            if (timeoutRef.current) {
+              clearTimeout(timeoutRef.current)
+              timeoutRef.current = null
+            }
+            resetCollectionState()
+          }
+        }
       }
     }
-  }, [lastMessage, readyState])
+  }, [lastMessage])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (currentFlamegraphs.length > 0) {
@@ -78,9 +110,22 @@ export default function Flamegraphs () {
     setCurrentFlamegraphs(flamegraphs)
   }
 
+  function resetCollectionState () {
+    isCollectingRef.current = false
+    collectedProfilesRef.current = []
+    expectedServicesRef.current = []
+  }
+
   async function collectProfile (command, setCollecting) {
     let collected = false
     setCollecting(true)
+
+    // Initialize collection tracking
+    const services = application.state.services
+    isCollectingRef.current = true
+    collectedProfilesRef.current = []
+    expectedServicesRef.current = services.map(service => service.id)
+
     // call this api for each pod until we get a 200 response
     // we do this because it may happen that a pod is 'running' in our db
     // but it's not actually running in k8s
@@ -97,12 +142,30 @@ export default function Flamegraphs () {
         // do nothing
       }
     }
+
     setCollecting(false)
+
     if (!collected) {
+      resetCollectionState()
       window.alert(`No ${command === 'trigger-heapprofile' ? 'heap profiles' : 'CPU profiles'} collected`)
-    } else {
-      refreshFlamegraphs()
+      return
     }
+
+    // Set timeout to check for missing services after 1000ms
+    timeoutRef.current = setTimeout(() => {
+      // check if all entries in expectedServices are in collectedProfiles
+      const missingServices = expectedServicesRef.current.filter(
+        serviceId => !collectedProfilesRef.current.includes(serviceId)
+      )
+
+      if (missingServices.length > 0) {
+        console.log('cannot collect profile for these services: ', missingServices.join(', '))
+        window.alert(`Could not collect profiles for applications: ${missingServices.join(', ')}. \n Hint: if ELU is low, CPU profiling is not available.`)
+      }
+
+      resetCollectionState()
+      refreshFlamegraphs()
+    }, 1000)
   }
 
   function renderRow (row) {
@@ -138,8 +201,8 @@ export default function Flamegraphs () {
             label={collectingCpu ? 'Collecting CPU profile...' : 'Get CPU profile'}
             onClick={() => collectProfile('trigger-flamegraph', setCollectingCpu)}
             disabled={collectingCpu || collectingHeap}
-            color={RICH_BLACK}
-            backgroundColor={WHITE}
+            color={WHITE}
+            backgroundColor={RICH_BLACK}
             hoverEffect={DULLS_BACKGROUND_COLOR}
           />
           <Button
@@ -148,8 +211,8 @@ export default function Flamegraphs () {
             label={collectingHeap ? 'Collecting heap profile...' : 'Get heap profile'}
             onClick={() => collectProfile('trigger-heapprofile', setCollectingHeap)}
             disabled={collectingCpu || collectingHeap}
-            color={RICH_BLACK}
-            backgroundColor={WHITE}
+            color={WHITE}
+            backgroundColor={RICH_BLACK}
             hoverEffect={DULLS_BACKGROUND_COLOR}
           />
         </div>
