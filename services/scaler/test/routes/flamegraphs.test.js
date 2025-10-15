@@ -9,6 +9,13 @@ const {
   cleanValkeyData
 } = require('../helper')
 
+function deepStrictEqualIgnoreCreatedAt (actual, expected) {
+  assert.ok(actual.createdAt)
+  delete actual.createdAt
+  delete expected.createdAt
+  assert.deepStrictEqual(actual, expected)
+}
+
 test('receive and save flamegraph successfully', async (t) => {
   await cleanValkeyData()
 
@@ -62,7 +69,7 @@ test('receive and save flamegraph successfully', async (t) => {
   assert.strictEqual(update.namespace, 'icc')
   assert.strictEqual(update.message.topic, 'ui-updates/flamegraphs')
   assert.strictEqual(update.message.type, 'flamegraph-created')
-  assert.deepStrictEqual(update.message.data, {
+  deepStrictEqualIgnoreCreatedAt(update.message.data, {
     id: flamegraphEntity.id,
     serviceId,
     podId,
@@ -223,7 +230,7 @@ test('receive and save flamegraph with alertId successfully', async (t) => {
   assert.strictEqual(update.namespace, 'icc')
   assert.strictEqual(update.message.topic, 'ui-updates/flamegraphs')
   assert.strictEqual(update.message.type, 'flamegraph-created')
-  assert.deepStrictEqual(update.message.data, {
+  deepStrictEqualIgnoreCreatedAt(update.message.data, {
     id: flamegraphEntity.id,
     serviceId,
     podId,
@@ -285,7 +292,8 @@ test('receive and save heap profile successfully', async (t) => {
   assert.strictEqual(update.namespace, 'icc')
   assert.strictEqual(update.message.topic, 'ui-updates/flamegraphs')
   assert.strictEqual(update.message.type, 'flamegraph-created')
-  assert.deepStrictEqual(update.message.data, {
+
+  deepStrictEqualIgnoreCreatedAt(update.message.data, {
     id: flamegraphEntity.id,
     serviceId,
     podId,

@@ -54,7 +54,7 @@ module.exports = async function (app) {
 
       const result = await app.platformatic.entities.flamegraph.save({
         input,
-        fields: ['id']
+        fields: ['id', 'createdAt']
       })
 
       await app.emitUpdate('icc', {
@@ -64,7 +64,8 @@ module.exports = async function (app) {
           id: result.id,
           serviceId,
           podId,
-          profileType
+          profileType,
+          createdAt: result.createdAt
         }
       }).catch((err) => {
         app.log.error({ err }, 'Failed to send notification to ui')

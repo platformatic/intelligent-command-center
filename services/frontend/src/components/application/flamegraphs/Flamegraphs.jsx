@@ -7,18 +7,22 @@ import Icons from '@platformatic/ui-components/src/components/icons'
 import styles from './Flamegraphs.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
+
+import { REFRESH_INTERVAL } from '~/ui-constants'
+
 import { getFormattedTimeAndDate } from '~/utilities/dates'
 import dayjs from 'dayjs'
 import callApi from '~/api/common'
 import useSubscribeToUpdates from '~/hooks/useSubscribeToUpdates'
 import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
+import Spinner from '~/components/common/Spinner'
+import useRefreshData from '~/hooks/useRefreshData'
 
 export default function Flamegraphs () {
   const { flamegraphs, pods } = useLoaderData()
   const [currentFlamegraphs, setCurrentFlamegraphs] = useState(flamegraphs)
   const { application } = useRouteLoaderData('appRoot')
-  const [collectingCpu, setCollectingCpu] = useState(false)
-  const [collectingHeap, setCollectingHeap] = useState(false)
+  const [collecting, setCollecting] = useState(false)
   const [rows, setRows] = useState([])
   const [scaleEventId] = useState(null) // TODO: add setScaleEventId function when needed.
   const { lastMessage } = useSubscribeToUpdates('flamegraphs')
@@ -64,6 +68,8 @@ export default function Flamegraphs () {
       }
     }
   }, [])
+
+  useRefreshData(REFRESH_INTERVAL, refreshFlamegraphs)
 
   useEffect(() => {
     if (currentFlamegraphs.length > 0) {
@@ -116,7 +122,7 @@ export default function Flamegraphs () {
     expectedServicesRef.current = []
   }
 
-  async function collectProfile (command, setCollecting) {
+  async function collectProfile (command) {
     let collected = false
     setCollecting(true)
 
@@ -142,30 +148,30 @@ export default function Flamegraphs () {
         // do nothing
       }
     }
-
-    setCollecting(false)
+    setTimeout(() => {
+      setCollecting(false)
+    }, 1000)
 
     if (!collected) {
       resetCollectionState()
-      window.alert(`No ${command === 'trigger-heapprofile' ? 'heap profiles' : 'CPU profiles'} collected`)
-      return
+      window.alert(`No ${command === 'trigger-heapprofile' ? 'Heap profiles' : 'CPU profiles'} collected`)
     }
 
     // Set timeout to check for missing services after 1000ms
-    timeoutRef.current = setTimeout(() => {
-      // check if all entries in expectedServices are in collectedProfiles
-      const missingServices = expectedServicesRef.current.filter(
-        serviceId => !collectedProfilesRef.current.includes(serviceId)
-      )
+    // timeoutRef.current = setTimeout(() => {
+    //   // check if all entries in expectedServices are in collectedProfiles
+    //   const missingServices = expectedServicesRef.current.filter(
+    //     serviceId => !collectedProfilesRef.current.includes(serviceId)
+    //   )
 
-      if (missingServices.length > 0) {
-        console.log('cannot collect profile for these services: ', missingServices.join(', '))
-        window.alert(`Could not collect profiles for applications: ${missingServices.join(', ')}. \n Hint: if ELU is low, CPU profiling is not available.`)
-      }
+    //   if (missingServices.length > 0) {
+    //     console.log('cannot collect profile for these services: ', missingServices.join(', '))
+    //     window.alert(`Could not collect profiles for applications: ${missingServices.join(', ')}. \nHint: if ELU is low, CPU profiling is not available.`)
+    //   }
 
-      resetCollectionState()
-      refreshFlamegraphs()
-    }, 1000)
+    //   resetCollectionState()
+    //   refreshFlamegraphs()
+    // }, 1000)
   }
 
   function renderRow (row) {
@@ -195,12 +201,13 @@ export default function Flamegraphs () {
         </div>
 
         <div className={commonStyles.tinyFlexRow}>
+          {collecting && <Spinner size={40} />}
           <Button
             textClass={typographyStyles.desktopButtonSmall}
             paddingClass={commonStyles.mediumButtonPadding}
-            label={collectingCpu ? 'Collecting CPU profile...' : 'Get CPU profile'}
-            onClick={() => collectProfile('trigger-flamegraph', setCollectingCpu)}
-            disabled={collectingCpu || collectingHeap}
+            label='Get CPU profile'
+            onClick={() => collectProfile('trigger-flamegraph')}
+            disabled={collecting}
             color={WHITE}
             backgroundColor={RICH_BLACK}
             hoverEffect={DULLS_BACKGROUND_COLOR}
@@ -208,9 +215,9 @@ export default function Flamegraphs () {
           <Button
             textClass={typographyStyles.desktopButtonSmall}
             paddingClass={commonStyles.mediumButtonPadding}
-            label={collectingHeap ? 'Collecting heap profile...' : 'Get heap profile'}
-            onClick={() => collectProfile('trigger-heapprofile', setCollectingHeap)}
-            disabled={collectingCpu || collectingHeap}
+            label='Get Heap profile'
+            onClick={() => collectProfile('trigger-heapprofile')}
+            disabled={collecting}
             color={WHITE}
             backgroundColor={RICH_BLACK}
             hoverEffect={DULLS_BACKGROUND_COLOR}
