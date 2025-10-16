@@ -200,29 +200,35 @@ export default function Flamegraphs () {
           <ExperimentalTag />
         </div>
 
-        <div className={commonStyles.tinyFlexRow}>
-          {collecting && <Spinner size={40} />}
-          <Button
-            textClass={typographyStyles.desktopButtonSmall}
-            paddingClass={commonStyles.mediumButtonPadding}
-            label='Get CPU profile'
-            onClick={() => collectProfile('trigger-flamegraph')}
-            disabled={collecting}
-            color={WHITE}
-            backgroundColor={RICH_BLACK}
-            hoverEffect={DULLS_BACKGROUND_COLOR}
-          />
-          <Button
-            textClass={typographyStyles.desktopButtonSmall}
-            paddingClass={commonStyles.mediumButtonPadding}
-            label='Get Heap profile'
-            onClick={() => collectProfile('trigger-heapprofile')}
-            disabled={collecting}
-            color={WHITE}
-            backgroundColor={RICH_BLACK}
-            hoverEffect={DULLS_BACKGROUND_COLOR}
-          />
+        <div className={styles.buttonsContainer}>
+          <div className={commonStyles.tinyFlexRow}>
+            {collecting && <Spinner size={40} />}
+            <Button
+              textClass={typographyStyles.desktopButtonSmall}
+              paddingClass={commonStyles.mediumButtonPadding}
+              label='Get CPU profile'
+              onClick={() => collectProfile('trigger-flamegraph')}
+              disabled={collecting}
+              color={WHITE}
+              backgroundColor={RICH_BLACK}
+              hoverEffect={DULLS_BACKGROUND_COLOR}
+            />
+            <Button
+              textClass={typographyStyles.desktopButtonSmall}
+              paddingClass={commonStyles.mediumButtonPadding}
+              label='Get Heap profile'
+              onClick={() => collectProfile('trigger-heapprofile')}
+              disabled={collecting}
+              color={WHITE}
+              backgroundColor={RICH_BLACK}
+              hoverEffect={DULLS_BACKGROUND_COLOR}
+            />
+          </div>
+          <div className={styles.helperText}>
+            CPU profiling is active only if ELU is high, flamegraphs might be not generated
+          </div>
         </div>
+
       </div>
       <div className={styles.flamegraphsContainer}>
         {rows.map((row) => renderRow(row))}
