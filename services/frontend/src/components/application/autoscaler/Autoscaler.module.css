@@ -8,7 +8,7 @@
   @apply bg-rich-black flex flex-col gap-y-2 w-full;
 }
 .autoscalerTabContent {
-  @apply min-h-[calc(100vH-10rem)] max-h-[calc(100vH-10rem)] overflow-y-auto flex flex-col gap-y-0; 
+  @apply flex flex-col gap-y-0;
 }
 .customTab {
   @apply min-w-[unset] mx-5;
