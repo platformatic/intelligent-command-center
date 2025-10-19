@@ -142,7 +142,7 @@ importers:
         version: 5.1.0
       pino:
         specifier: ^9.9.0
-        version: 9.13.1
+        version: 9.14.0
       undici:
         specifier: ^7.14.0
         version: 7.16.0
@@ -2097,6 +2097,9 @@ packages:
   '@orama/orama@3.1.16':
     resolution: {integrity: sha512-scSmQBD8eANlMUOglxHrN1JdSW8tDghsPuS83otqealBiIeMukCQMOf/wc0JJjDXomqwNdEQFLXLGHrU6PGxuA==}
     engines: {node: '>= 20.0.0'}
+
+  '@pinojs/redact@0.4.0':
+    resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -5940,6 +5943,10 @@ packages:
     resolution: {integrity: sha512-Szuj+ViDTjKPQYiKumGmEn3frdl+ZPSdosHyt9SnUevFosOkMY2b7ipxlEctNKPmMD/VibeBI+ZcZCJK+4DPuw==}
     hasBin: true
 
+  pino@9.14.0:
+    resolution: {integrity: sha512-8OEwKp5juEvb/MjpIc4hjqfgCNysrS94RIOMXYvpYCdm/jglrKEiAYmiumbmGhCvs+IcInsphYDFwqrjr7398w==}
+    hasBin: true
+
   pirates@4.0.7:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
@@ -9124,6 +9131,8 @@ snapshots:
 
   '@orama/orama@3.1.16': {}
 
+  '@pinojs/redact@0.4.0': {}
+
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
@@ -9137,7 +9146,7 @@ snapshots:
       '@platformatic/utils': 2.75.2
       execa: 9.6.0
       fast-json-patch: 3.1.1
-      pino: 9.13.1
+      pino: 9.14.0
       pino-abstract-transport: 2.0.0
       semver: 7.7.3
       split2: 4.2.0
@@ -9213,7 +9222,7 @@ snapshots:
       my-ua-parser: 2.0.4
       nunjucks: 3.2.4(chokidar@3.6.0)
       ora: 6.3.1
-      pino: 9.13.1
+      pino: 9.14.0
       pino-pretty: 13.1.2
       rfdc: 1.4.1
       semgrator: 0.3.0
@@ -9358,7 +9367,7 @@ snapshots:
       graphql: 16.11.0
       mercurius: 15.1.0(graphql@16.11.0)
       metaline: 1.1.0
-      pino: 9.13.1
+      pino: 9.14.0
       undici: 7.16.0
     transitivePeerDependencies:
       - bufferutil
@@ -14094,6 +14103,20 @@ snapshots:
       sonic-boom: 4.2.0
       thread-stream: 3.1.0
 
+  pino@9.14.0:
+    dependencies:
+      '@pinojs/redact': 0.4.0
+      atomic-sleep: 1.0.0
+      on-exit-leak-free: 2.1.2
+      pino-abstract-transport: 2.0.0
+      pino-std-serializers: 7.0.0
+      process-warning: 5.0.0
+      quick-format-unescaped: 4.0.4
+      real-require: 0.2.0
+      safe-stable-stringify: 2.5.0
+      sonic-boom: 4.2.0
+      thread-stream: 3.1.0
+
   pirates@4.0.7: {}
 
   pkg-conf@3.1.0:
@@ -15549,7 +15572,7 @@ snapshots:
       execa: 9.6.0
       help-me: 5.0.0
       minimist: 1.2.8
-      pino: 9.13.1
+      pino: 9.14.0
       pino-pretty: 13.1.2
       semver: 7.7.3
       split2: 4.2.0
