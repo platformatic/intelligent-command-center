@@ -141,8 +141,8 @@ importers:
         specifier: ^5.0.1
         version: 5.1.0
       pino:
-        specifier: ^9.9.0
-        version: 9.14.0
+        specifier: ^10.0.0
+        version: 10.1.0
       undici:
         specifier: ^7.14.0
         version: 7.16.0
@@ -5939,6 +5939,10 @@ packages:
   pino-std-serializers@7.0.0:
     resolution: {integrity: sha512-e906FRY0+tV27iq4juKzSYPbUj2do2X2JX4EzSca1631EB2QJQUqGbDuERal7LCtOpxl6x3+nvo9NPZcmjkiFA==}
 
+  pino@10.1.0:
+    resolution: {integrity: sha512-0zZC2ygfdqvqK8zJIr1e+wT1T/L+LF6qvqvbzEQ6tiMAoTqEVK9a1K3YRu8HEUvGEvNqZyPJTtb2sNIoTkB83w==}
+    hasBin: true
+
   pino@9.13.1:
     resolution: {integrity: sha512-Szuj+ViDTjKPQYiKumGmEn3frdl+ZPSdosHyt9SnUevFosOkMY2b7ipxlEctNKPmMD/VibeBI+ZcZCJK+4DPuw==}
     hasBin: true
@@ -9172,7 +9176,7 @@ snapshots:
       help-me: 5.0.0
       jsonpointer: 5.0.1
       minimist: 1.2.8
-      pino: 9.13.1
+      pino: 9.14.0
       pino-pretty: 13.1.2
       undici: 7.16.0
       yaml: 2.8.1
@@ -9255,7 +9259,7 @@ snapshots:
       '@platformatic/utils': 2.75.2
       commist: 3.2.0
       help-me: 5.0.0
-      pino: 9.13.1
+      pino: 9.14.0
       pino-pretty: 13.1.2
       table: 6.9.0
       undici: 7.16.0
@@ -9357,7 +9361,7 @@ snapshots:
       execa: 9.6.0
       fastify: 5.6.1
       glob: 11.0.3
-      pino: 9.13.1
+      pino: 9.14.0
       undici: 7.16.0
 
   '@platformatic/graphql-composer@0.10.0':
@@ -9625,7 +9629,7 @@ snapshots:
     dependencies:
       '@platformatic/utils': 2.75.2
       execa: 9.6.0
-      pino: 9.13.1
+      pino: 9.14.0
       pino-pretty: 13.1.2
       resolve: 1.22.10
 
@@ -11475,7 +11479,7 @@ snapshots:
       inquirer: 9.3.8(@types/node@24.8.1)
       minimist: 1.2.8
       ora: 6.3.1
-      pino: 9.13.1
+      pino: 9.14.0
       pino-pretty: 13.1.2
       resolve: 1.22.10
       semver: 7.7.3
@@ -14088,6 +14092,20 @@ snapshots:
       sonic-boom: 4.2.0
 
   pino-std-serializers@7.0.0: {}
+
+  pino@10.1.0:
+    dependencies:
+      '@pinojs/redact': 0.4.0
+      atomic-sleep: 1.0.0
+      on-exit-leak-free: 2.1.2
+      pino-abstract-transport: 2.0.0
+      pino-std-serializers: 7.0.0
+      process-warning: 5.0.0
+      quick-format-unescaped: 4.0.4
+      real-require: 0.2.0
+      safe-stable-stringify: 2.5.0
+      sonic-boom: 4.2.0
+      thread-stream: 3.1.0
 
   pino@9.13.1:
     dependencies:
