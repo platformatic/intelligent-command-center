@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useLoaderData, useNavigate, generatePath, useRouteLoaderData } from 'react-router-dom'
 import { DULLS_BACKGROUND_COLOR, MEDIUM, RICH_BLACK, SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
-import { Button } from '@platformatic/ui-components'
+import { Button, Tooltip } from '@platformatic/ui-components'
 import Icons from '@platformatic/ui-components/src/components/icons'
 
 import styles from './Flamegraphs.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
+import tooltipStyles from '~/styles/TooltipStyles.module.css'
 
 import { REFRESH_INTERVAL } from '~/ui-constants'
 
@@ -15,14 +16,14 @@ import dayjs from 'dayjs'
 import callApi from '~/api/common'
 import useSubscribeToUpdates from '~/hooks/useSubscribeToUpdates'
 import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
-import Spinner from '~/components/common/Spinner'
 import useRefreshData from '~/hooks/useRefreshData'
 
 export default function Flamegraphs () {
   const { flamegraphs, pods } = useLoaderData()
   const [currentFlamegraphs, setCurrentFlamegraphs] = useState(flamegraphs)
   const { application } = useRouteLoaderData('appRoot')
-  const [collecting, setCollecting] = useState(false)
+  const [collectingCPU, setCollectingCPU] = useState(false)
+  const [collectingHeap, setCollectingHeap] = useState(false)
   const [rows, setRows] = useState([])
   const [scaleEventId] = useState(null) // TODO: add setScaleEventId function when needed.
   const { lastMessage } = useSubscribeToUpdates('flamegraphs')
@@ -124,7 +125,11 @@ export default function Flamegraphs () {
 
   async function collectProfile (command) {
     let collected = false
-    setCollecting(true)
+    if (command === 'trigger-flamegraph') {
+      setCollectingCPU(true)
+    } else {
+      setCollectingHeap(true)
+    }
 
     // Initialize collection tracking
     const services = application.state.services
@@ -149,7 +154,11 @@ export default function Flamegraphs () {
       }
     }
     setTimeout(() => {
-      setCollecting(false)
+      if (command === 'trigger-flamegraph') {
+        setCollectingCPU(false)
+      } else {
+        setCollectingHeap(false)
+      }
     }, 1000)
 
     if (!collected) {
@@ -202,30 +211,37 @@ export default function Flamegraphs () {
 
         <div className={styles.buttonsContainer}>
           <div className={commonStyles.tinyFlexRow}>
-            {collecting && <Spinner size={40} />}
+            <Tooltip
+              tooltipClassName={tooltipStyles.tooltipDarkStyle}
+              content={(<span>Profiling is active only when ELU is high <br />otherwise, Flamegraphs may not be created.</span>)}
+              offset={40}
+              direction='top'
+              immediateActive={false}
+            >
+              <Icons.InfoCircleIcon color={WHITE} size={MEDIUM} />
+            </Tooltip>
             <Button
               textClass={typographyStyles.desktopButtonSmall}
               paddingClass={commonStyles.mediumButtonPadding}
-              label='Get CPU profile'
+              label={collectingCPU ? 'Collecting CPU profile...' : 'Get CPU profile'}
               onClick={() => collectProfile('trigger-flamegraph')}
-              disabled={collecting}
+              disabled={collectingCPU || collectingHeap}
               color={WHITE}
               backgroundColor={RICH_BLACK}
               hoverEffect={DULLS_BACKGROUND_COLOR}
+              loading={collectingCPU}
             />
             <Button
               textClass={typographyStyles.desktopButtonSmall}
               paddingClass={commonStyles.mediumButtonPadding}
-              label='Get Heap profile'
+              label={collectingHeap ? 'Collecting Heap profile...' : 'Get Heap profile'}
               onClick={() => collectProfile('trigger-heapprofile')}
-              disabled={collecting}
+              disabled={collectingHeap || collectingCPU}
               color={WHITE}
               backgroundColor={RICH_BLACK}
               hoverEffect={DULLS_BACKGROUND_COLOR}
+              loading={collectingHeap}
             />
-          </div>
-          <div className={styles.helperText}>
-            CPU profiling is active only if ELU is high, flamegraphs might be not generated
           </div>
         </div>
 

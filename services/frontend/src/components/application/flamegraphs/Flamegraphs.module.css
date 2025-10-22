@@ -60,10 +60,6 @@
   @apply text-white/70 text-sm;
 }
 
-.helperText {
-  @apply text-white/70 text-xs;
-}
-
 .buttonsContainer {
   @apply flex flex-col gap-2 items-end;
 }
