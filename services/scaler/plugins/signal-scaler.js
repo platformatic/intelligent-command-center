@@ -6,16 +6,20 @@ const { setTimeout } = require('timers/promises')
 async function plugin (app) {
   const algorithmVersion = app.env.PLT_SCALER_ALGORITHM_VERSION
 
-  if (algorithmVersion !== 'v1') {
-    app.log.info({ algorithmVersion }, '[Scaler V1] Scaler V1 plugin skipped - algorithm version is not v1')
+  if (algorithmVersion !== 'v2') {
+    app.log.info({ algorithmVersion }, 'Signal Scaler plugin skipped - algorithm version is not v2')
     return
   }
 
   let isServerClosed = false
-  const periodicTriggerInterval = (Number(process.env.PLT_SCALER_PERIODIC_TRIGGER) || 60) * 1000
+  const periodicTriggerInterval = (Number(process.env.PLT_SIGNALS_SCALER_PERIODIC_TRIGGER) || 60) * 1000
   let periodicTriggerController = null
 
   async function scheduleTrigger () {
+    if (!periodicTriggerController) {
+      return
+    }
+
     const { signal } = periodicTriggerController
 
     if (signal.aborted) {
@@ -25,29 +29,31 @@ async function plugin (app) {
     try {
       await setTimeout(periodicTriggerInterval, null, { signal })
       if (!signal.aborted) {
-        app.log.info('[Scaler V1] Executing periodic scaler V1 trigger')
+        app.log.info('[Signal Scaler] Executing periodic signal scaler trigger (leader-only)')
         try {
-          await app.scalerExecutor.checkScalingOnMetrics()
+          if (app.signalScalerExecutor) {
+            await app.signalScalerExecutor.checkScalingForAllApplications()
+          } else {
+            app.log.warn('[Signal Scaler] signalScalerExecutor not available')
+          }
         } catch (err) {
-          app.log.error({ err }, '[Scaler V1] Error during periodic trigger execution')
+          app.log.error({ err }, '[Signal Scaler] Error during periodic trigger execution')
         }
-        // Schedule next trigger
         scheduleTrigger()
       }
     } catch (err) {
       if (err.name === 'AbortError') {
         return
       }
-      app.log.error({ err }, 'Error in periodic trigger, retrying after delay')
+      app.log.error({ err }, '[Signal Scaler] Error in periodic trigger, retrying after delay')
       try {
         await setTimeout(1000, null, { signal })
-        // Retry scheduling
         scheduleTrigger()
       } catch (delayErr) {
         if (delayErr.name === 'AbortError') {
           return
         }
-        app.log.error({ err: delayErr }, 'Error in retry delay')
+        app.log.error({ err: delayErr }, '[Signal Scaler] Error in retry delay')
       }
     }
   }
@@ -58,9 +64,11 @@ async function plugin (app) {
     }
 
     periodicTriggerController = new AbortController()
-    app.log.info({ interval: periodicTriggerInterval }, '[Scaler V1] Starting periodic scaler V1 trigger')
+    app.log.info({
+      interval: periodicTriggerInterval,
+      algorithmVersion
+    }, '[Signal Scaler] Starting periodic signal scaler trigger')
 
-    // Start the recursive scheduling
     scheduleTrigger()
   }
 
@@ -68,7 +76,7 @@ async function plugin (app) {
     if (periodicTriggerController) {
       periodicTriggerController.abort()
       periodicTriggerController = null
-      app.log.info('Stopped periodic scaler trigger')
+      app.log.info('[Signal Scaler] Stopped periodic signal scaler trigger')
     }
   }
 
@@ -77,11 +85,13 @@ async function plugin (app) {
     stopPeriodicTrigger()
   })
 
-  app.decorate('startScalerTrigger', startPeriodicTrigger)
-  app.decorate('stopScalerTrigger', stopPeriodicTrigger)
+  app.decorate('startScalerV2Trigger', startPeriodicTrigger)
+  app.decorate('stopScalerV2Trigger', stopPeriodicTrigger)
+
+  app.log.info({ algorithmVersion }, '[Signal Scaler] Signal Scaler plugin initialized')
 }
 
 module.exports = fp(plugin, {
-  name: 'scaler',
-  dependencies: ['env', 'scaler-executor']
+  name: 'signal-scaler',
+  dependencies: ['env', 'leader', 'signal-scaler-executor']
 })

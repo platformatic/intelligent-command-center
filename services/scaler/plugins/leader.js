@@ -10,9 +10,14 @@ async function plugin (app) {
   let isLeader = false
 
   const startPeriodicServices = () => {
-    // Start periodic scaler trigger if available
+    // Start periodic scaler V1 trigger if available
     if (app.startScalerTrigger) {
       app.startScalerTrigger()
+    }
+
+    // Start periodic signal scaler trigger if available
+    if (app.startScalerV2Trigger) {
+      app.startScalerV2Trigger()
     }
 
     // Start prediction scheduling if available
@@ -27,9 +32,14 @@ async function plugin (app) {
   }
 
   const stopPeriodicServices = () => {
-    // Stop periodic scaler trigger if available
+    // Stop periodic scaler V1 trigger if available
     if (app.stopScalerTrigger) {
       app.stopScalerTrigger()
+    }
+
+    // Stop periodic signal scaler trigger if available
+    if (app.stopScalerV2Trigger) {
+      app.stopScalerV2Trigger()
     }
 
     // Stop prediction scheduling if available

@@ -68,5 +68,6 @@ module.exports = fp(async function (app) {
     return { scaleEvent: event }
   })
 }, {
+  name: 'controllers',
   dependencies: ['activities']
 })

@@ -248,9 +248,11 @@ async function setupMockPrometheusServer (responses = {}) {
 async function cleanValkeyData () {
   const redis = new Redis(valkeyConnectionString)
   try {
-    const keys = await scanKeys(redis, 'scaler:*')
-    if (keys.length > 0) {
-      await redis.del(...keys)
+    const scalerKeys = await scanKeys(redis, 'scaler:*')
+    const reactiveKeys = await scanKeys(redis, 'reactive:*')
+    const allKeys = [...scalerKeys, ...reactiveKeys]
+    if (allKeys.length > 0) {
+      await redis.del(...allKeys)
     }
   } finally {
     await redis.quit()

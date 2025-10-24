@@ -29,7 +29,18 @@ const schema = {
     PLT_SCALER_POD_MIN_DEFAULT_VALUE: { type: 'number', default: 1 },
     PLT_SCALER_POD_MAX_LABEL: { type: 'string', default: 'icc.platformatic.dev/scaler-max' },
     PLT_SCALER_POD_MAX_DEFAULT_VALUE: { type: 'number', default: 10 },
-    PLT_MACHINIST_URL: { type: 'string' }
+    PLT_MACHINIST_URL: { type: 'string' },
+    PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1', enum: ['v1', 'v2'] },
+    PLT_SIGNALS_SCALER_FW: { type: 'number', default: 15000 },
+    PLT_SIGNALS_SCALER_SW: { type: 'number', default: 60000 },
+    PLT_SIGNALS_SCALER_LW: { type: 'number', default: 300000 },
+    PLT_SIGNALS_SCALER_HOT_RATE_THRESHOLD: { type: 'number', default: 0.5 },
+    PLT_SIGNALS_SCALER_UP_FW_RATE_THRESHOLD: { type: 'number', default: 0.05 },
+    PLT_SIGNALS_SCALER_UP_SW_RATE_THRESHOLD: { type: 'number', default: 0.05 },
+    PLT_SIGNALS_SCALER_UP_VELOCITY_THRESHOLD: { type: 'number', default: 0.02 },
+    PLT_SIGNALS_SCALER_DOWN_SW_RATE_THRESHOLD: { type: 'number', default: 0.01 },
+    PLT_SIGNALS_SCALER_DOWN_LW_RATE_THRESHOLD: { type: 'number', default: 0.004 },
+    PLT_SIGNALS_SCALER_PERIODIC_TRIGGER: { type: 'number', default: 60 }
   }
 }
 
