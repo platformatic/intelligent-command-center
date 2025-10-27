@@ -302,7 +302,7 @@ importers:
         version: 1.4.0
       cronstrue:
         specifier: ^3.0.0
-        version: 3.3.0
+        version: 3.9.0
       fgh:
         specifier: ^2.4.0
         version: 2.4.1
@@ -3755,8 +3755,8 @@ packages:
     resolution: {integrity: sha512-B/CJj5yL3sjtlun6RtYHvoSB26EmQ2NUmhq9ZiJSyKIM4K/fqfh9aelDFlIayD2YMeFZqWLi9hHV+c+pq2Djkw==}
     engines: {node: '>=18.x'}
 
-  cronstrue@3.3.0:
-    resolution: {integrity: sha512-iwJytzJph1hosXC09zY8F5ACDJKerr0h3/2mOxg9+5uuFObYlgK0m35uUPk4GCvhHc2abK7NfnR9oMqY0qZFAg==}
+  cronstrue@3.9.0:
+    resolution: {integrity: sha512-T3S35zmD0Ai2B4ko6+mEM+k9C6tipe2nB9RLiGT6QL2Wn0Vsn2cCZAC8Oeuf4CaE00GZWVdpYitbpWCNlIWqdA==}
     hasBin: true
 
   cross-spawn@7.0.6:
@@ -11565,7 +11565,7 @@ snapshots:
       '@types/luxon': 3.7.1
       luxon: 3.7.2
 
-  cronstrue@3.3.0: {}
+  cronstrue@3.9.0: {}
 
   cross-spawn@7.0.6:
     dependencies:
