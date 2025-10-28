@@ -3,6 +3,10 @@
 const fp = require('fastify-plugin')
 const createLeaderElector = require('../lib/leader')
 
+// Notification channel names
+const CHANNEL_REACTIVE_SCALER = 'trigger_scaler'
+const CHANNEL_SIGNAL_SCALER = 'trigger_signal_scaler'
+
 async function plugin (app) {
   const lock = Number(process.env.PLT_SCALER_LOCK) || 4242
   const poll = Number(process.env.PLT_SCALER_LEADER_POLL) || 10000
@@ -53,19 +57,32 @@ async function plugin (app) {
     }
   }
 
-  // Create leader elector to manage leadership
+  // Create leader elector with multiple notification channels
   const leaderElector = createLeaderElector({
     db,
     lock,
     poll,
-    channel: 'trigger_scaler',
-    log: app.log,
-    onNotification: (payload) => {
-      // Delegate notification handling to scaler if available
-      if (app.scalerExecutor && app.scalerExecutor.checkScalingOnAlert) {
-        return app.scalerExecutor.checkScalingOnAlert(payload)
+    channels: [
+      {
+        channel: CHANNEL_REACTIVE_SCALER,
+        onNotification: (payload) => {
+          // Delegate notification handling to v1 reactive scaler if available
+          if (app.scalerExecutor && app.scalerExecutor.checkScalingOnAlert) {
+            return app.scalerExecutor.checkScalingOnAlert(payload)
+          }
+        }
+      },
+      {
+        channel: CHANNEL_SIGNAL_SCALER,
+        onNotification: (payload) => {
+          // Delegate notification handling to v2 signal scaler if available
+          if (app.signalScalerExecutor && app.signalScalerExecutor.checkScalingOnSignals) {
+            return app.signalScalerExecutor.checkScalingOnSignals(payload)
+          }
+        }
       }
-    },
+    ],
+    log: app.log,
     onLeadershipChange: async (newIsLeader) => {
       if (newIsLeader !== isLeader) {
         isLeader = newIsLeader
@@ -84,7 +101,11 @@ async function plugin (app) {
   })
 
   app.decorate('notifyScaler', async function (podId, serviceId) {
-    await leaderElector.notify({ podId, serviceId })
+    await leaderElector.notify({ podId, serviceId }, CHANNEL_REACTIVE_SCALER)
+  })
+
+  app.decorate('notifySignalScaler', async function (applicationId, serviceId) {
+    await leaderElector.notify({ applicationId, serviceId }, CHANNEL_SIGNAL_SCALER)
   })
 
   app.decorate('isScalerLeader', function () {

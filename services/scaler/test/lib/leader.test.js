@@ -38,18 +38,22 @@ test('should notify through PostgreSQL notification', async (t) => {
     db: pool,
     sql,
     lock: 9999,
-    channel: 'test_channel',
+    channels: [
+      {
+        channel: 'test_channel',
+        onNotification: () => {}
+      }
+    ],
     log: {
       info: () => {},
       debug: () => {},
       warn: () => {},
       error: () => {}
-    },
-    onNotification: () => {}
+    }
   })
 
   const testPayload = 'test-payload-123'
-  await leaderElection.notify(testPayload)
+  await leaderElection.notify(testPayload, 'test_channel')
 
   await sleep(1000)
 
@@ -88,18 +92,22 @@ test('leaderElector notifies through PostgreSQL notification with an object', as
     db: pool,
     sql,
     lock: 9999,
-    channel: 'test_channel',
+    channels: [
+      {
+        channel: 'test_channel',
+        onNotification: () => {}
+      }
+    ],
     log: {
       info: () => {},
       debug: () => {},
       warn: () => {},
       error: () => {}
-    },
-    onNotification: () => {}
+    }
   })
 
   const testPayload = { test: 'payload-123' }
-  await leaderElection.notify(testPayload)
+  await leaderElection.notify(testPayload, 'test_channel')
 
   await sleep(1000)
 
@@ -125,16 +133,20 @@ test('leadedElector properly passes payload to callback', async (t) => {
     db: pool,
     lock: 9999,
     poll: 200,
-    channel: 'test_callback_channel',
+    channels: [
+      {
+        channel: 'test_callback_channel',
+        onNotification: (payload) => {
+          callbackCount++
+          callbackPayload = payload
+        }
+      }
+    ],
     log: {
       info: () => {},
       debug: () => {},
       warn: () => {},
       error: () => {}
-    },
-    onNotification: (payload) => {
-      callbackCount++
-      callbackPayload = payload
     }
   })
 
@@ -143,7 +155,7 @@ test('leadedElector properly passes payload to callback', async (t) => {
   await sleep(500)
 
   const testPayload = 'test-callback-payload'
-  await leaderElector.notify(testPayload)
+  await leaderElector.notify(testPayload, 'test_callback_channel')
 
   await sleep(1000)
 
@@ -189,10 +201,14 @@ test('if one instance is shut down, the other is elected', async (t) => {
   const leaderElector1 = createLeaderElector({
     db: pool1,
     lock: lockId,
-    poll: 200, // Fast polling for test
-    channel: 'test_re_election_channel',
-    log: logger,
-    onNotification: () => {}
+    poll: 200,
+    channels: [
+      {
+        channel: 'test_re_election_channel',
+        onNotification: () => {}
+      }
+    ],
+    log: logger
   })
 
   // Start the first instance (this should become the leader)
@@ -203,10 +219,14 @@ test('if one instance is shut down, the other is elected', async (t) => {
   const leaderElector2 = createLeaderElector({
     db: pool2,
     lock: lockId,
-    poll: 200, // Fast polling for test
-    channel: 'test_re_election_channel',
-    log: logger,
-    onNotification: () => {}
+    poll: 200,
+    channels: [
+      {
+        channel: 'test_re_election_channel',
+        onNotification: () => {}
+      }
+    ],
+    log: logger
   })
 
   leaderElector2.start()
@@ -268,23 +288,31 @@ test('only the leader instance executes notification callbacks and leadership tr
   const leaderElector1 = createLeaderElector({
     db: pool1,
     lock: lockId,
-    poll: 100, // Even faster polling for test
-    channel: testChannel,
-    log: logger,
-    onNotification: () => {
-      instance1Notifications++
-    }
+    poll: 100,
+    channels: [
+      {
+        channel: testChannel,
+        onNotification: () => {
+          instance1Notifications++
+        }
+      }
+    ],
+    log: logger
   })
 
   const leaderElector2 = createLeaderElector({
     db: pool2,
     lock: lockId,
-    poll: 100, // Even faster polling for test
-    channel: testChannel,
-    log: logger,
-    onNotification: () => {
-      instance2Notifications++
-    }
+    poll: 100,
+    channels: [
+      {
+        channel: testChannel,
+        onNotification: () => {
+          instance2Notifications++
+        }
+      }
+    ],
+    log: logger
   })
 
   // Start both instances
@@ -298,7 +326,7 @@ test('only the leader instance executes notification callbacks and leadership tr
   assert.ok(!leaderElector2.isLeader(), 'Second instance should not be leader')
 
   const testPayload1 = 'test-notification-payload-1'
-  await leaderElector1.notify(testPayload1)
+  await leaderElector1.notify(testPayload1, testChannel)
 
   await sleep(300)
 
@@ -316,7 +344,7 @@ test('only the leader instance executes notification callbacks and leadership tr
 
   // Send a notification while instance2 is now leader
   const testPayload2 = 'test-notification-payload-2'
-  await leaderElector2.notify(testPayload2)
+  await leaderElector2.notify(testPayload2, testChannel)
 
   await sleep(300)
 
@@ -338,7 +366,7 @@ test('should throw error when required parameters are missing', async (t) => {
 
   assert.throws(() => {
     createLeaderElector({ db: {}, lock: 123, log: { info: () => {} } })
-  }, { message: 'onNotification is required' })
+  }, { message: 'channels array is required' })
 
   assert.throws(() => {
     createLeaderElector({})
@@ -357,14 +385,18 @@ test('should trigger onLeadershipChange callback when leadership changes', async
     db: pool,
     lock: 8888,
     poll: 200,
-    channel: 'test_leadership_change',
+    channels: [
+      {
+        channel: 'test_leadership_change',
+        onNotification: () => {}
+      }
+    ],
     log: {
       info: () => {},
       debug: () => {},
       warn: () => {},
       error: () => {}
     },
-    onNotification: () => {},
     onLeadershipChange: (isLeader) => {
       leadershipChanges.push(isLeader)
     }
@@ -392,22 +424,26 @@ test('should handle errors in onNotification callback', async (t) => {
     db: pool,
     lock: 7777,
     poll: 200,
-    channel: 'test_notification_error',
+    channels: [
+      {
+        channel: 'test_notification_error',
+        onNotification: () => {
+          throw new Error('Test notification error')
+        }
+      }
+    ],
     log: {
       info: () => {},
       debug: () => {},
       warn: (data, msg) => logMessages.push({ level: 'warn', data, msg }),
       error: () => {}
-    },
-    onNotification: () => {
-      throw new Error('Test notification error')
     }
   })
 
   leaderElector.start()
   await sleep(500)
 
-  await leaderElector.notify('test-error-payload')
+  await leaderElector.notify('test-error-payload', 'test_notification_error')
   await sleep(500)
 
   await leaderElector.stop()
@@ -416,4 +452,148 @@ test('should handle errors in onNotification callback', async (t) => {
   const warnLog = logMessages.find(log => log.level === 'warn' && log.data.err)
   assert.ok(warnLog)
   assert.strictEqual(warnLog.data.err.message, 'Test notification error')
+})
+
+test('should support multiple notification channels', async (t) => {
+  const pool = createConnectionPool({
+    connectionString,
+    bigIntMode: 'bigint'
+  })
+
+  const channel1Notifications = []
+  const channel2Notifications = []
+
+  const leaderElector = createLeaderElector({
+    db: pool,
+    lock: 9999,
+    poll: 200,
+    channels: [
+      {
+        channel: 'test_channel_1',
+        onNotification: (payload) => {
+          channel1Notifications.push(payload)
+        }
+      },
+      {
+        channel: 'test_channel_2',
+        onNotification: (payload) => {
+          channel2Notifications.push(payload)
+        }
+      }
+    ],
+    log: {
+      info: () => {},
+      debug: () => {},
+      warn: () => {},
+      error: () => {}
+    }
+  })
+
+  leaderElector.start()
+  await sleep(500)
+
+  // Notify on channel 1
+  await leaderElector.notify({ message: 'hello from channel 1' }, 'test_channel_1')
+  await sleep(300)
+
+  // Notify on channel 2
+  await leaderElector.notify({ message: 'hello from channel 2' }, 'test_channel_2')
+  await sleep(300)
+
+  // Notify on channel 1 again
+  await leaderElector.notify({ message: 'second message on channel 1' }, 'test_channel_1')
+  await sleep(300)
+
+  await leaderElector.stop()
+  await pool.dispose()
+
+  // Verify channel 1 received 2 notifications
+  assert.strictEqual(channel1Notifications.length, 2)
+  assert.strictEqual(channel1Notifications[0].message, 'hello from channel 1')
+  assert.strictEqual(channel1Notifications[1].message, 'second message on channel 1')
+
+  // Verify channel 2 received 1 notification
+  assert.strictEqual(channel2Notifications.length, 1)
+  assert.strictEqual(channel2Notifications[0].message, 'hello from channel 2')
+})
+
+test('should route notifications to correct channel handler', async (t) => {
+  const pool = createConnectionPool({
+    connectionString,
+    bigIntMode: 'bigint'
+  })
+
+  const receivedNotifications = []
+
+  const leaderElector = createLeaderElector({
+    db: pool,
+    lock: 10000,
+    poll: 200,
+    channels: [
+      {
+        channel: 'channel_a',
+        onNotification: (payload) => {
+          receivedNotifications.push({ channel: 'a', payload })
+        }
+      },
+      {
+        channel: 'channel_b',
+        onNotification: (payload) => {
+          receivedNotifications.push({ channel: 'b', payload })
+        }
+      }
+    ],
+    log: {
+      info: () => {},
+      debug: () => {},
+      warn: () => {},
+      error: () => {}
+    }
+  })
+
+  leaderElector.start()
+  await sleep(500)
+
+  await leaderElector.notify({ id: 1 }, 'channel_a')
+  await sleep(300)
+  await leaderElector.notify({ id: 2 }, 'channel_b')
+  await sleep(300)
+  await leaderElector.notify({ id: 3 }, 'channel_a')
+  await sleep(300)
+
+  await leaderElector.stop()
+  await pool.dispose()
+
+  assert.strictEqual(receivedNotifications.length, 3)
+  assert.strictEqual(receivedNotifications[0].channel, 'a')
+  assert.strictEqual(receivedNotifications[0].payload.id, 1)
+  assert.strictEqual(receivedNotifications[1].channel, 'b')
+  assert.strictEqual(receivedNotifications[1].payload.id, 2)
+  assert.strictEqual(receivedNotifications[2].channel, 'a')
+  assert.strictEqual(receivedNotifications[2].payload.id, 3)
+})
+
+test('should throw error when channels array has invalid entries', async (t) => {
+  assert.throws(() => {
+    createLeaderElector({
+      db: {},
+      lock: 123,
+      log: { info: () => {} },
+      channels: [
+        { channel: 'test', onNotification: () => {} },
+        { channel: 'test2' } // Missing onNotification
+      ]
+    })
+  }, { message: 'onNotification is required for each notification channel' })
+
+  assert.throws(() => {
+    createLeaderElector({
+      db: {},
+      lock: 123,
+      log: { info: () => {} },
+      channels: [
+        { onNotification: () => {} } // Missing channel
+      ]
+    })
+  }, { message: 'channel is required for each notification channel' })
 })

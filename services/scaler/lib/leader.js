@@ -8,9 +8,8 @@ function createLeaderElector (options) {
     db,
     lock,
     poll = 10000,
-    channel = 'trigger_scaler',
+    channels,
     log,
-    onNotification,
     onLeadershipChange = null
   } = options
 
@@ -28,9 +27,21 @@ function createLeaderElector (options) {
     throw new Error('log is required')
   }
 
-  if (!onNotification) {
-    throw new Error('onNotification is required')
+  if (!channels || !Array.isArray(channels) || channels.length === 0) {
+    throw new Error('channels array is required')
   }
+
+  // Validate channels
+  for (const ch of channels) {
+    if (!ch.channel) {
+      throw new Error('channel is required for each notification channel')
+    }
+    if (!ch.onNotification) {
+      throw new Error('onNotification is required for each notification channel')
+    }
+  }
+
+  const notificationChannels = channels
 
   let elected = false
   const abortController = new AbortController()
@@ -57,13 +68,27 @@ function createLeaderElector (options) {
           log.info('This instance is the leader')
           updateLeadershipStatus(true)
           ;(async () => {
-            await t.query(sql.__dangerous__rawValue(`LISTEN "${channel}";`))
+            // Listen to all configured channels
+            for (const ch of notificationChannels) {
+              await t.query(sql.__dangerous__rawValue(`LISTEN "${ch.channel}";`))
+              log.info({ channel: ch.channel }, 'Listening to notification channel')
+            }
+
+            // Process notifications from any channel
             for await (const notification of on(t._driver.client, 'notification', { signal: abortController.signal })) {
               log.debug({ notification }, 'Received notification')
               try {
                 const msg = notification[0]
                 const payload = JSON.parse(msg.payload)
-                await onNotification(payload)
+                const channelName = msg.channel
+
+                // Find the handler for this channel
+                const channelConfig = notificationChannels.find(ch => ch.channel === channelName)
+                if (channelConfig) {
+                  await channelConfig.onNotification(payload)
+                } else {
+                  log.warn({ channel: channelName }, 'No handler found for notification channel')
+                }
               } catch (err) {
                 log.warn({ err }, 'error while processing notification')
               }
@@ -113,12 +138,16 @@ function createLeaderElector (options) {
     })
   }
 
-  async function notify (payload) {
+  async function notify (payload, channelName) {
+    if (!channelName) {
+      throw new Error('channelName is required')
+    }
+
     payload = JSON.stringify(payload)
 
     const sql = db.sql
     // Use direct SQL string for NOTIFY since it doesn't support parameters
-    await db.query(sql.__dangerous__rawValue(`NOTIFY "${channel}", '${payload}';`))
+    await db.query(sql.__dangerous__rawValue(`NOTIFY "${channelName}", '${payload}';`))
   }
 
   async function stop () {

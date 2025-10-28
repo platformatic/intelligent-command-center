@@ -40,7 +40,10 @@ const schema = {
     PLT_SIGNALS_SCALER_UP_VELOCITY_THRESHOLD: { type: 'number', default: 0.02 },
     PLT_SIGNALS_SCALER_DOWN_SW_RATE_THRESHOLD: { type: 'number', default: 0.01 },
     PLT_SIGNALS_SCALER_DOWN_LW_RATE_THRESHOLD: { type: 'number', default: 0.004 },
-    PLT_SIGNALS_SCALER_PERIODIC_TRIGGER: { type: 'number', default: 60 }
+    PLT_SIGNALS_SCALER_PERIODIC_TRIGGER: { type: 'number', default: 60 },
+    PLT_SIGNALS_SCALER_LOCK_TTL: { type: 'number', default: 10 },
+    PLT_SIGNALS_SCALER_MAX_ITERATIONS: { type: 'number', default: 10 },
+    PLT_SIGNALS_SCALER_PENDING_TTL: { type: 'number', default: 60 }
   }
 }
 

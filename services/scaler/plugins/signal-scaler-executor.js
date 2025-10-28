@@ -24,9 +24,17 @@ class MultiSignalReactiveScaler {
 
     this.algorithm = new SignalScalerAlgorithm(app, options)
 
+    // Configuration for concurrent processing control
+    this.lockTTL = Number(process.env.PLT_SIGNALS_SCALER_LOCK_TTL) || 10
+    this.maxIterations = Number(process.env.PLT_SIGNALS_SCALER_MAX_ITERATIONS) || 10
+    this.pendingTTL = Number(process.env.PLT_SIGNALS_SCALER_PENDING_TTL) || 60
+
     app.log.info({
       algorithm: 'Multi-Signal Reactive',
-      config: options
+      config: options,
+      lockTTL: this.lockTTL,
+      maxIterations: this.maxIterations,
+      pendingTTL: this.pendingTTL
     }, 'Multi-Signal Reactive Scaler initialized')
   }
 
@@ -112,41 +120,133 @@ class MultiSignalReactiveScaler {
       }
     })
 
-    const totalSignals = signals.length
+    // Check if this instance is the leader
+    const isLeader = this.app.isScalerLeader ? this.app.isScalerLeader() : false
 
-    const currentPodCount = await this.getCurrentPodCount(applicationId)
-    const { minPods, maxPods } = await this.getScaleConfig(applicationId)
-    const applicationName = await getApplicationName(applicationId, this.app.log)
+    if (!isLeader) {
+      // If not leader, notify the leader to process the signals
+      this.app.log.debug({
+        applicationId,
+        serviceId,
+        podId
+      }, '[Multi-Signal Reactive] Not leader, notifying leader to process signals')
 
-    const scalingDecision = await this.algorithm.calculateScalingDecision(
-      applicationId,
-      currentPodCount,
-      minPods,
-      maxPods,
-      applicationName
-    )
+      if (this.app.notifySignalScaler) {
+        await this.app.notifySignalScaler(applicationId, serviceId)
+      }
 
-    const scalingAction = scalingDecision.nfinal > currentPodCount
-      ? 'SCALE UP'
-      : scalingDecision.nfinal < currentPodCount ? 'SCALE DOWN' : 'NO CHANGE'
-
-    this.app.log.info({
-      algorithm: 'Multi-Signal Reactive',
-      applicationId,
-      podId,
-      nfinal: scalingDecision.nfinal,
-      currentPodCount,
-      action: scalingAction,
-      reason: scalingDecision.reason,
-      signalCount: totalSignals,
-      groupCount: signalsBySecond.size
-    }, `[Multi-Signal Reactive] Scaling decision: ${scalingAction}`)
-
-    if (scalingDecision.nfinal !== currentPodCount) {
-      await this.executeScaling(applicationId, scalingDecision.nfinal, scalingDecision.reason)
+      return { scalingDecision: null }
     }
 
+    // This is the leader, proceed to process signals
+    const scalingDecision = await this.runScalingAlgorithm(applicationId)
+
     return { scalingDecision }
+  }
+
+  async runScalingAlgorithm (applicationId) {
+    const lockKey = `reactive:lock:${applicationId}`
+    const lockValue = `${Date.now()}-${Math.random()}`
+    const pendingKey = `reactive:pending:${applicationId}`
+
+    // Try to acquire lock atomically using SET NX EX
+    const acquired = await this.app.store.valkey.set(lockKey, lockValue, 'NX', 'EX', this.lockTTL)
+
+    if (!acquired) {
+      // Another process is already running the algorithm, mark that new data arrived
+      await this.app.store.valkey.set(pendingKey, '1', 'EX', this.pendingTTL)
+      this.app.log.debug({ applicationId }, '[Multi-Signal Reactive] Algorithm already running, marked pending')
+      return null
+    }
+
+    let scalingDecision = null
+    let iteration = 0
+
+    try {
+      let shouldContinue = true
+
+      while (shouldContinue && iteration < this.maxIterations) {
+        iteration++
+
+        // Clear the pending flag before we start processing
+        await this.app.store.valkey.del(pendingKey)
+
+        const currentPodCount = await this.getCurrentPodCount(applicationId)
+        const { minPods, maxPods } = await this.getScaleConfig(applicationId)
+        const applicationName = await getApplicationName(applicationId, this.app.log)
+
+        scalingDecision = await this.algorithm.calculateScalingDecision(
+          applicationId,
+          currentPodCount,
+          minPods,
+          maxPods,
+          applicationName
+        )
+
+        const scalingAction = scalingDecision.nfinal > currentPodCount
+          ? 'SCALE UP'
+          : scalingDecision.nfinal < currentPodCount ? 'SCALE DOWN' : 'NO CHANGE'
+
+        this.app.log.info({
+          algorithm: 'Multi-Signal Reactive',
+          applicationId,
+          nfinal: scalingDecision.nfinal,
+          currentPodCount,
+          action: scalingAction,
+          reason: scalingDecision.reason,
+          iteration
+        }, `[Multi-Signal Reactive] Scaling decision: ${scalingAction}`)
+
+        if (scalingDecision.nfinal !== currentPodCount) {
+          await this.executeScaling(applicationId, scalingDecision.nfinal, scalingDecision.reason)
+        }
+
+        // Check if new data arrived while we were processing
+        const pending = await this.app.store.valkey.get(pendingKey)
+        if (pending) {
+          this.app.log.debug({ applicationId, iteration }, '[Multi-Signal Reactive] New data arrived during processing, reprocessing')
+          shouldContinue = true
+        } else {
+          shouldContinue = false
+        }
+      }
+
+      if (iteration >= this.maxIterations) {
+        this.app.log.warn({
+          applicationId,
+          maxIterations: this.maxIterations
+        }, '[Multi-Signal Reactive] Reached maximum iterations, stopping reprocessing loop')
+      }
+    } finally {
+      await this.app.store.valkey.del(pendingKey)
+      await this.app.store.valkey.del(lockKey)
+    }
+
+    return scalingDecision
+  }
+
+  async checkScalingOnSignals ({ applicationId, serviceId } = {}) {
+    this.app.log.info({ applicationId, serviceId }, '[Multi-Signal Reactive] Received notification to check scaling')
+
+    if (!applicationId) {
+      this.app.log.error('[Multi-Signal Reactive] Application ID is required')
+      return { success: false, timestamp: Date.now(), error: 'Application ID is required' }
+    }
+
+    try {
+      const scalingDecision = await this.runScalingAlgorithm(applicationId)
+
+      return {
+        success: true,
+        applicationId,
+        timestamp: Date.now(),
+        nfinal: scalingDecision?.nfinal,
+        scaled: scalingDecision !== null
+      }
+    } catch (err) {
+      this.app.log.error({ err, applicationId }, '[Multi-Signal Reactive] Error processing notification')
+      return { success: false, timestamp: Date.now(), error: err.message }
+    }
   }
 
   async executeScaling (applicationId, targetReplicas, reason) {

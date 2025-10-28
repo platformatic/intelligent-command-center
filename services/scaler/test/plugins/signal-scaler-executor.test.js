@@ -83,6 +83,9 @@ test('getScaleConfig should return undefined when no config found', async (t) =>
 test('processSignals should store signal event and make scaling decision', async (t) => {
   const app = await buildServer(t)
 
+  // Mock as leader for this test
+  app.isScalerLeader = () => true
+
   const applicationId = randomUUID()
   const serviceId = randomUUID()
   const podId = 'test-pod-1'
@@ -146,4 +149,122 @@ test('checkScalingForAllApplications should return success', async (t) => {
 
   assert.ok(result.success)
   assert.ok(Array.isArray(result.results))
+})
+
+test('concurrent processSignals should queue algorithm execution', async (t) => {
+  const app = await buildServer(t)
+
+  // Mock as leader for this test
+  app.isScalerLeader = () => true
+
+  const applicationId = randomUUID()
+  const serviceId = randomUUID()
+  const podId = 'test-pod-1'
+  const controllerData = createTestController(applicationId, 2)
+
+  await app.platformatic.entities.controller.save({
+    input: controllerData
+  })
+
+  const signals1 = [
+    { type: 'cpu', value: 0.8, timestamp: Date.now() }
+  ]
+
+  const signals2 = [
+    { type: 'cpu', value: 0.9, timestamp: Date.now() + 1000 }
+  ]
+
+  const results = await Promise.all([
+    app.signalScalerExecutor.processSignals({
+      applicationId,
+      serviceId,
+      podId,
+      signals: signals1,
+      elu: 0.7,
+      heapUsed: 111,
+      heapTotal: 222
+    }),
+    app.signalScalerExecutor.processSignals({
+      applicationId,
+      serviceId,
+      podId,
+      signals: signals2,
+      elu: 0.8,
+      heapUsed: 121,
+      heapTotal: 222
+    })
+  ])
+
+  assert.ok(results[0].scalingDecision || results[1].scalingDecision, 'At least one should have scaling decision')
+
+  const alerts = await app.platformatic.entities.alert.find({
+    where: {
+      applicationId: { eq: applicationId }
+    }
+  })
+
+  assert.strictEqual(alerts.length, 2, 'Should create two alerts for two batches')
+})
+
+test('runScalingAlgorithm should not run concurrently for same application', async (t) => {
+  const app = await buildServer(t)
+
+  const applicationId = randomUUID()
+  const controllerData = createTestController(applicationId, 2)
+
+  await app.platformatic.entities.controller.save({
+    input: controllerData
+  })
+
+  // Acquire the lock manually to simulate another process holding it
+  const lockKey = `reactive:lock:${applicationId}`
+  await app.store.valkey.set(lockKey, 'test-lock', 'EX', 60)
+
+  const result = await app.signalScalerExecutor.runScalingAlgorithm(applicationId)
+
+  assert.strictEqual(result, null, 'Should return null when lock is already held')
+
+  // Clean up the lock
+  await app.store.valkey.del(lockKey)
+})
+
+test('runScalingAlgorithm uses atomic locking correctly', async (t) => {
+  const app = await buildServer(t)
+
+  const applicationId = randomUUID()
+  const podId = 'test-pod-1'
+  const controllerData = createTestController(applicationId, 2)
+
+  await app.platformatic.entities.controller.save({
+    input: controllerData
+  })
+
+  await app.signalScalerExecutor.algorithm.storeSignalEvent(
+    applicationId,
+    podId,
+    { cpu: 0.5 },
+    Date.now()
+  )
+
+  let algorithmCallCount = 0
+  const originalCalculateScalingDecision = app.signalScalerExecutor.algorithm.calculateScalingDecision.bind(app.signalScalerExecutor.algorithm)
+
+  app.signalScalerExecutor.algorithm.calculateScalingDecision = async (...args) => {
+    algorithmCallCount++
+    return originalCalculateScalingDecision(...args)
+  }
+
+  // Run algorithm twice concurrently
+  const [result1, result2] = await Promise.all([
+    app.signalScalerExecutor.runScalingAlgorithm(applicationId),
+    app.signalScalerExecutor.runScalingAlgorithm(applicationId)
+  ])
+
+  // One should acquire lock and succeed, one should return null and set pending flag
+  const successCount = [result1, result2].filter(r => r !== null).length
+  assert.strictEqual(successCount, 1, 'Only one concurrent call should successfully acquire the lock')
+
+  // The lock holder should reprocess when it sees the pending flag set by the second call
+  assert.ok(algorithmCallCount >= 1, 'Algorithm should be called at least once')
+  assert.ok(algorithmCallCount <= 2, 'Algorithm should reprocess at most once when pending flag is set')
 })

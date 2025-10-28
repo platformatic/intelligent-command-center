@@ -30,6 +30,9 @@ test('POST /signals should process signals with v2 algorithm', async (t) => {
     PLT_SCALER_ALGORITHM_VERSION: 'v2'
   })
 
+  // Mock as leader for this test
+  server.isScalerLeader = () => true
+
   t.after(async () => {
     await server.close()
   })
