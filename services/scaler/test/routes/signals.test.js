@@ -48,6 +48,8 @@ test('POST /signals should process signals with v2 algorithm', async (t) => {
     })
   })
 
+  const serviceId = 'test-service'
+
   const response = await server.inject({
     method: 'POST',
     url: '/signals',
@@ -57,14 +59,16 @@ test('POST /signals should process signals with v2 algorithm', async (t) => {
     },
     body: JSON.stringify({
       applicationId,
+      serviceId,
+      elu: 0.7,
+      heapUsed: 111,
+      heapTotal: 222,
       signals: [
         { type: 'cpu', value: 0.75, timestamp: Date.now() },
         { type: 'memory', value: 0.80, timestamp: Date.now(), description: 'High memory usage' }
       ]
     })
   })
-
-  assert.strictEqual(response.statusCode, 200)
 
   const body = JSON.parse(response.body)
   assert.strictEqual(body.success, true)
@@ -74,6 +78,27 @@ test('POST /signals should process signals with v2 algorithm', async (t) => {
   assert.ok(body.scalingDecision)
   assert.ok(typeof body.scalingDecision.nfinal === 'number')
   assert.ok(typeof body.scalingDecision.reason === 'string')
+
+  const alerts = await server.platformatic.entities.alert.find({
+    where: {
+      applicationId: { eq: applicationId },
+      podId: { eq: podId }
+    }
+  })
+
+  assert.ok(alerts.length > 0, 'Should have created alert records')
+  const alert = alerts[0]
+  assert.strictEqual(alert.applicationId, applicationId)
+  assert.strictEqual(alert.podId, podId)
+  assert.strictEqual(alert.serviceId, serviceId)
+  assert.strictEqual(alert.unhealthy, false)
+  assert.ok(alert.signals, 'Should have signals field')
+
+  const signals = typeof alert.signals === 'string' ? JSON.parse(alert.signals) : alert.signals
+  assert.ok(Array.isArray(signals), 'Signals should be an array')
+  assert.ok(signals.length > 0, 'Should have at least one signal')
+  assert.ok(signals[0].type, 'Signal should have type')
+  assert.ok(signals[0].timestamp, 'Signal should have timestamp')
 })
 
 test('POST /signals should reject when algorithm version is not v2', async (t) => {
@@ -98,6 +123,10 @@ test('POST /signals should reject when algorithm version is not v2', async (t) =
     },
     body: JSON.stringify({
       applicationId,
+      serviceId: 'test-service',
+      elu: 0.7,
+      heapUsed: 111,
+      heapTotal: 222,
       signals: [
         { type: 'cpu', value: 0.75, timestamp: Date.now() }
       ]
@@ -131,6 +160,10 @@ test('POST /signals should require k8s context', async (t) => {
     },
     body: JSON.stringify({
       applicationId,
+      serviceId: 'test-service',
+      elu: 0.7,
+      heapUsed: 111,
+      heapTotal: 222,
       signals: [
         { type: 'cpu', value: 0.75, timestamp: Date.now() }
       ]

@@ -83,6 +83,10 @@ test('E2E: signal ingestion should trigger scale up decision', async (t) => {
     },
     body: JSON.stringify({
       applicationId,
+      serviceId: 'test-service',
+      elu: 0.7,
+      heapUsed: 111,
+      heapTotal: 222,
       signals
     })
   })
@@ -165,6 +169,10 @@ test('E2E: multiple pods sending signals should aggregate for scaling decision',
       },
       body: JSON.stringify({
         applicationId,
+        serviceId: 'test-service',
+        elu: 0.7,
+        heapUsed: 111,
+        heapTotal: 222,
         signals: [{
           type: 'cpu',
           value: 0.9,
@@ -184,6 +192,10 @@ test('E2E: multiple pods sending signals should aggregate for scaling decision',
       },
       body: JSON.stringify({
         applicationId,
+        serviceId: 'test-service',
+        elu: 0.7,
+        heapUsed: 111,
+        heapTotal: 222,
         signals: [{
           type: 'cpu',
           value: 0.88,
@@ -271,6 +283,10 @@ test('E2E: low signal values are processed correctly', async (t) => {
     },
     body: JSON.stringify({
       applicationId,
+      serviceId: 'test-service',
+      elu: 0.7,
+      heapUsed: 111,
+      heapTotal: 222,
       signals
     })
   })
@@ -351,6 +367,10 @@ test('E2E: respects min/max pod constraints', async (t) => {
     },
     body: JSON.stringify({
       applicationId,
+      serviceId: 'test-service',
+      elu: 0.7,
+      heapUsed: 111,
+      heapTotal: 222,
       signals: highSignals
     })
   })
@@ -378,6 +398,10 @@ test('E2E: respects min/max pod constraints', async (t) => {
     },
     body: JSON.stringify({
       applicationId,
+      serviceId: 'test-service',
+      elu: 0.7,
+      heapUsed: 111,
+      heapTotal: 222,
       signals: lowSignals
     })
   })
@@ -445,6 +469,10 @@ test('E2E: signal grouping by timestamp works correctly', async (t) => {
     },
     body: JSON.stringify({
       applicationId,
+      serviceId: 'test-service',
+      elu: 0.7,
+      heapUsed: 111,
+      heapTotal: 222,
       signals
     })
   })
@@ -517,6 +545,10 @@ test('E2E: mixed signal types (cpu, memory, custom) are processed', async (t) =>
     },
     body: JSON.stringify({
       applicationId,
+      serviceId: 'test-service',
+      elu: 0.7,
+      heapUsed: 111,
+      heapTotal: 222,
       signals
     })
   })
@@ -601,6 +633,9 @@ test('E2E: periodic trigger processes accumulated signals', async (t) => {
       },
       body: JSON.stringify({
         applicationId,
+        elu: 0.7,
+        heapUsed: 111,
+        heapTotal: 222,
         signals
       })
     })

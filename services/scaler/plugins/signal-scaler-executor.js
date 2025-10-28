@@ -72,7 +72,7 @@ class MultiSignalReactiveScaler {
     }, '[Multi-Signal Reactive] Stored signal event')
   }
 
-  async processSignals ({ applicationId, podId, signals }) {
+  async processSignals ({ applicationId, serviceId, podId, signals, elu, heapUsed, heapTotal }) {
     const signalsBySecond = new Map()
     for (const signal of signals) {
       const timestampInSeconds = Math.floor(signal.timestamp / 1000) * 1000
@@ -90,6 +90,27 @@ class MultiSignalReactiveScaler {
         timestamp
       })
     }
+
+    const signalsArray = signals.map(s => ({
+      type: s.type,
+      value: s.value,
+      timestamp: s.timestamp,
+      description: s.description
+    }))
+
+    await this.app.platformatic.entities.alert.save({
+      input: {
+        applicationId,
+        serviceId,
+        podId,
+        elu,
+        heapUsed,
+        heapTotal,
+        unhealthy: false,
+        signals: JSON.stringify(signalsArray),
+        createdAt: new Date()
+      }
+    })
 
     const totalSignals = signals.length
 

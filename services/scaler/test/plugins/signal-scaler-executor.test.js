@@ -84,6 +84,7 @@ test('processSignals should store signal event and make scaling decision', async
   const app = await buildServer(t)
 
   const applicationId = randomUUID()
+  const serviceId = randomUUID()
   const podId = 'test-pod-1'
   const controllerData = createTestController(applicationId, 2)
 
@@ -92,19 +93,41 @@ test('processSignals should store signal event and make scaling decision', async
   })
 
   const signals = [
-    { type: 'cpu', value: 0.8, timestamp: Date.now() },
-    { type: 'memory', value: 0.7, timestamp: Date.now() }
+    { type: 'cpu', value: 0.8, timestamp: Date.now(), description: 'CPU signal' },
+    { type: 'memory', value: 0.7, timestamp: Date.now(), description: 'Memory signal' }
   ]
 
   const result = await app.signalScalerExecutor.processSignals({
     applicationId,
+    serviceId,
     podId,
-    signals
+    signals,
+    elu: 0.7,
+    heapUsed: 111,
+    heapTotal: 222
   })
 
   assert.ok(result.scalingDecision)
   assert.ok(typeof result.scalingDecision.nfinal === 'number')
   assert.ok(typeof result.scalingDecision.reason === 'string')
+
+  const alerts = await app.platformatic.entities.alert.find({
+    where: {
+      applicationId: { eq: applicationId },
+      podId: { eq: podId }
+    }
+  })
+
+  assert.strictEqual(alerts.length, 1, 'Should create exactly one alert per batch')
+  assert.strictEqual(alerts[0].applicationId, applicationId)
+  assert.strictEqual(alerts[0].serviceId, serviceId)
+  assert.strictEqual(alerts[0].podId, podId)
+  assert.ok(alerts[0].signals, 'Alert should have signals')
+
+  const storedSignals = typeof alerts[0].signals === 'string' ? JSON.parse(alerts[0].signals) : alerts[0].signals
+  assert.strictEqual(storedSignals.length, 2, 'Alert should contain all signals from the batch')
+  assert.ok(storedSignals.some(s => s.type === 'cpu'), 'Should contain cpu signal')
+  assert.ok(storedSignals.some(s => s.type === 'memory'), 'Should contain memory signal')
 })
 
 test('check Scaling For Application should handle errors gracefully', async (t) => {

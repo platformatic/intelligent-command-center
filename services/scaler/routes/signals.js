@@ -7,6 +7,10 @@ module.exports = async function (app) {
         type: 'object',
         properties: {
           applicationId: { type: 'string' },
+          serviceId: { type: 'string' },
+          elu: { type: 'number' },
+          heapUsed: { type: 'number' },
+          heapTotal: { type: 'number' },
           signals: {
             type: 'array',
             items: {
@@ -21,7 +25,7 @@ module.exports = async function (app) {
             }
           }
         },
-        required: ['applicationId', 'signals']
+        required: ['applicationId', 'serviceId', 'signals']
       },
       response: {
         200: {
@@ -58,7 +62,14 @@ module.exports = async function (app) {
       }
 
       const podId = k8sContext.pod?.name
-      const { applicationId, signals } = req.body
+      const {
+        applicationId,
+        serviceId,
+        elu,
+        heapUsed,
+        heapTotal,
+        signals
+      } = req.body
 
       if (!podId) {
         throw new Error('Missing pod ID from k8s context')
@@ -66,6 +77,7 @@ module.exports = async function (app) {
 
       app.log.debug({
         applicationId,
+        serviceId,
         podId,
         signalCount: signals.length
       }, 'Received signals')
@@ -76,8 +88,12 @@ module.exports = async function (app) {
 
       const { scalingDecision } = await app.signalScalerExecutor.processSignals({
         applicationId,
+        serviceId,
         podId,
-        signals
+        signals,
+        elu,
+        heapUsed,
+        heapTotal
       })
 
       return {
