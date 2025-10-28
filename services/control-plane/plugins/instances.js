@@ -8,6 +8,7 @@ const errors = require('./errors')
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
   const enableCacheRecommendations = app.env.PLT_FEATURE_CACHE_RECOMMENDATIONS
+  const scalerVersion = app.env.PLT_SCALER_ALGORITHM_VERSION
 
   app.decorate('getInstanceByPodId', async (podId, namespace) => {
     const instances = await app.platformatic.entities.instance.find({
@@ -168,9 +169,14 @@ module.exports = fp(async function (app) {
     const enableSlicerInterceptor = enableCacheRecommendations ?? false
     const enableTrafficInterceptor = enableCacheRecommendations ?? false
 
+    const scaler = {
+      version: scalerVersion
+    }
+
     return {
       application,
       config,
+      scaler,
       httpCache,
       iccServices,
       enableOpenTelemetry,

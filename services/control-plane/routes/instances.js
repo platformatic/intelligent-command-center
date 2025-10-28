@@ -100,6 +100,14 @@ module.exports = fp(async function (app) {
                 required: ['url'],
                 additionalProperties: false
               }
+            },
+            scaler: {
+              type: 'object',
+              properties: {
+                version: { type: 'string', enum: ['v1', 'v2'] }
+              },
+              required: ['version'],
+              additionalProperties: false
             }
           },
           required: [

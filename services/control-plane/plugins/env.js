@@ -51,7 +51,8 @@ const schema = {
     PLT_CONTROL_PLANE_DB_LOCK_MIN_TIMEOUT: { type: 'number', default: 100 },
     PLT_ICC_SESSION_SECRET: { type: 'string' },
     PLT_FEATURE_CACHE: { type: 'boolean', default: false },
-    PLT_FEATURE_CACHE_RECOMMENDATIONS: { type: 'boolean', default: false }
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: { type: 'boolean', default: false },
+    PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1', enum: ['v1', 'v2'] }
   }
 }
 

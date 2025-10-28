@@ -74,6 +74,7 @@ test('should save an instance of a new application', async (t) => {
     applicationId,
     applicationName: responseApplicationName,
     config,
+    scaler,
     httpCache,
     iccServices,
     enableOpenTelemetry,
@@ -116,6 +117,8 @@ test('should save an instance of a new application', async (t) => {
     'trafficante', // v2 default
     'userManager'
   ])
+
+  assert.deepStrictEqual(scaler, { version: 'v1' })
 
   const { entities } = controlPlane.platformatic
 
@@ -265,7 +268,8 @@ test('should save a new app instance with the same image', async (t) => {
   })
 
   const controlPlane = await startControlPlane(t, {}, {
-    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'true'
+    PLT_FEATURE_CACHE_RECOMMENDATIONS: 'true',
+    PLT_SCALER_ALGORITHM_VERSION: 'v2'
   })
 
   const {
@@ -317,6 +321,7 @@ test('should save a new app instance with the same image', async (t) => {
     applicationId,
     applicationName: responseApplicationName,
     config,
+    scaler,
     enableOpenTelemetry,
     enableSlicerInterceptor,
     enableTrafficInterceptor
@@ -431,6 +436,8 @@ test('should save a new app instance with the same image', async (t) => {
   assert.strictEqual(generation2Configs.length, 2)
 
   assert.strictEqual(activities.length, 0)
+
+  assert.deepStrictEqual(scaler, { version: 'v2' })
 })
 
 test('should detect the same pod with the same image', async (t) => {
