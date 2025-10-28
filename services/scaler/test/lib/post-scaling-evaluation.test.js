@@ -414,7 +414,10 @@ test('Integration: full post-scaling evaluation cycle', async (t) => {
   )
 
   assert.ok(result.nfinal > 2, 'Should scale up')
-  assert.strictEqual(result.reason, 'Scaling up for high utilization', 'Should have correct reason for scale up')
+  assert.ok(result.reason.includes('Scaling up'), 'Reason should indicate scaling up')
+  assert.ok(result.reason.includes('pod-1'), 'Reason should mention triggering pod')
+  assert.ok(result.reason.includes('ELU'), 'Reason should mention ELU metric')
+  assert.ok(result.reason.includes('%'), 'Reason should show metric percentage')
 
   const history = await store.loadPerfHistory('app-1')
   assert.strictEqual(history.length, 1, 'Should have one history event')

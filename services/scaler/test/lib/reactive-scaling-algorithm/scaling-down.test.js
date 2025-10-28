@@ -175,7 +175,11 @@ test('scaling algorithm with metrics-low.json data', async (t) => {
 
   assert.strictEqual(result.nfinal, expectedTargetPods, 'Should scale down to 1 pod due to low utilization')
   assert.ok(result.nfinal < currentPodCount, 'Target pod count should be less than current pod count')
-  assert.strictEqual(result.reason, 'Scaling down due to low utilization', 'Reason should indicate scaling down due to low utilization')
+  assert.ok(result.reason.includes('Scaling down'), 'Reason should indicate scaling down')
+  assert.ok(result.reason.includes('Low utilization'), 'Reason should mention low utilization')
+  assert.ok(result.reason.includes('ELU'), 'Reason should mention ELU metric')
+  assert.ok(result.reason.includes('%'), 'Reason should show metric percentages')
+  assert.ok(result.reason.includes('threshold'), 'Reason should mention threshold values')
   assert.ok(result.nfinal >= minPods, 'Should not scale below minimum pod count')
 
   const shouldScaleDown = avgEluOverall < 0.45 || avgHeapOverall < 0.425
@@ -217,7 +221,9 @@ test('scaling progression: scale down then stop', async (t) => {
 
   assert.ok(result1.nfinal < 4, 'Should scale down from 4 pods due to very low utilization')
   assert.ok(result1.nfinal >= minPods, 'Should not scale below minimum pod count')
-  assert.strictEqual(result1.reason, 'Scaling down due to low utilization')
+  assert.ok(result1.reason.includes('Scaling down'), 'Reason should indicate scaling down')
+  assert.ok(result1.reason.includes('Low utilization'), 'Reason should mention low utilization')
+  assert.ok(result1.reason.includes('%'), 'Reason should show metric percentages')
 
   console.log('\n--- Phase 2: After scale down, moderate utilization ---')
   await store.valkey.set('scaler:last-scaling:test-app-progression', (Date.now() - 600000).toString())

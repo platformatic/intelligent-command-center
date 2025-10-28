@@ -138,7 +138,10 @@ test('algorithm processes real alert structure correctly', async (t) => {
   // With ELU at 99.67%, this should trigger scaling
   if (realAlerts[0].elu > 0.95) {
     assert.ok(result.nfinal > currentPodCount, 'Should scale up due to very high ELU (>95%)')
-    assert.strictEqual(result.reason, 'Scaling up for high utilization', 'Should have correct reason for scale up')
+    assert.ok(result.reason.includes('Scaling up'), 'Reason should indicate scaling up')
+    assert.ok(result.reason.includes('platformatic-platformatic-596c7c99c8-42rtv'), 'Reason should mention triggering pod')
+    assert.ok(result.reason.includes('ELU'), 'Reason should mention ELU metric')
+    assert.ok(result.reason.includes('%'), 'Reason should show ELU percentage')
   }
 
   console.log('=================================')
@@ -225,7 +228,10 @@ test('should test enhanced scaling logic with high score factor', async (t) => {
   // Verify scaling occurs due to high utilization
   assert.ok(result.nfinal > currentPodCount, 'Should scale up with high utilization')
   assert.ok(result.nfinal >= currentPodCount + 1, 'Should add at least one pod')
-  assert.strictEqual(result.reason, 'Scaling up for high utilization')
+  assert.ok(result.reason.includes('Scaling up'), 'Reason should indicate scaling up')
+  assert.ok(result.reason.includes('pods triggered scaling'), 'Reason should mention pods triggering')
+  assert.ok(result.reason.includes('ELU'), 'Reason should mention ELU metric')
+  assert.ok(result.reason.includes('%'), 'Reason should show metric percentages')
 
   console.log('✓ Enhanced scaling logic tested successfully')
   console.log('  Note: The scoreFactor > 0.7 condition requires extreme metrics')

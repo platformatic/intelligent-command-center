@@ -134,10 +134,11 @@ class SignalScalerAlgorithm {
     await this.store.valkey.set(key, timestamp.toString(), 'EX', retention)
   }
 
-  async calculateScalingDecision (applicationId, currentPodCount, minPods, maxPods) {
+  async calculateScalingDecision (applicationId, currentPodCount, minPods, maxPods, applicationName = null) {
     const minPodsValue = minPods !== undefined ? minPods : this.minPodsDefault
     const maxPodsValue = maxPods !== undefined ? maxPods : this.maxPodsDefault
     const now = Date.now()
+    const appLabel = applicationName ? `${applicationName}: ` : ''
 
     const cooldown = await this.getCooldownInfo(applicationId)
 
@@ -176,8 +177,8 @@ class SignalScalerAlgorithm {
           await this.setCooldown(applicationId, 'scaleup', now)
 
           const reason = hotspotScaleUp
-            ? `Hotspot detected (max rate ${statsFW.maxRate.toFixed(3)} > ${this.HOT_RATE_THRESHOLD})`
-            : `Breadth scaling (FW rate ${statsFW.avgRate.toFixed(3)}, SW rate ${statsSW.avgRate.toFixed(3)}, velocity ${velocity.toFixed(3)})`
+            ? `Scaling up ${appLabel}Hotspot detected (max rate ${statsFW.maxRate.toFixed(3)} > ${this.HOT_RATE_THRESHOLD})`
+            : `Scaling up ${appLabel}Breadth scaling (FW rate ${statsFW.avgRate.toFixed(3)}, SW rate ${statsSW.avgRate.toFixed(3)}, velocity ${velocity.toFixed(3)})`
 
           this.log.info({
             applicationId,
@@ -213,7 +214,7 @@ class SignalScalerAlgorithm {
 
       await this.setCooldown(applicationId, 'scaledown', now)
 
-      const reason = `Low utilization (FW events: 0, SW rate ${statsSW.avgRate.toFixed(3)}, LW rate ${statsLW.avgRate.toFixed(3)})`
+      const reason = `Scaling down ${appLabel}Low utilization (FW events: 0, SW rate ${statsSW.avgRate.toFixed(3)}, LW rate ${statsLW.avgRate.toFixed(3)})`
 
       this.log.info({
         applicationId,

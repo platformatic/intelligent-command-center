@@ -2,6 +2,7 @@
 
 const fp = require('fastify-plugin')
 const ReactiveScalingAlgorithm = require('../lib/reactive-scaling-algorithm')
+const { getApplicationName } = require('../lib/executor-utils')
 
 class ScalerExecutor {
   constructor (app) {
@@ -48,6 +49,7 @@ class ScalerExecutor {
   async #calculateAndApplyScaling (applicationId, podsMetrics, alerts = [], logContext = {}) {
     const currentPodCount = await this.getCurrentPodCount(applicationId)
     const { minPods, maxPods } = await this.getScaleConfig(applicationId)
+    const applicationName = await getApplicationName(applicationId, this.app.log)
 
     const result = await this.scalingAlgorithm.calculateScalingDecision(
       applicationId,
@@ -55,7 +57,8 @@ class ScalerExecutor {
       currentPodCount,
       minPods,
       maxPods,
-      alerts
+      alerts,
+      applicationName
     )
 
     // Log scaling decision with clear action and reason

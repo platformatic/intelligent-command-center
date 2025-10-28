@@ -2,6 +2,7 @@
 
 const fp = require('fastify-plugin')
 const SignalScalerAlgorithm = require('../lib/signal-scaler-algorithm')
+const { getApplicationName } = require('../lib/executor-utils')
 
 class MultiSignalReactiveScaler {
   constructor (app) {
@@ -94,12 +95,14 @@ class MultiSignalReactiveScaler {
 
     const currentPodCount = await this.getCurrentPodCount(applicationId)
     const { minPods, maxPods } = await this.getScaleConfig(applicationId)
+    const applicationName = await getApplicationName(applicationId, this.app.log)
 
     const scalingDecision = await this.algorithm.calculateScalingDecision(
       applicationId,
       currentPodCount,
       minPods,
-      maxPods
+      maxPods,
+      applicationName
     )
 
     const scalingAction = scalingDecision.nfinal > currentPodCount
@@ -168,12 +171,14 @@ class MultiSignalReactiveScaler {
     try {
       const currentPodCount = await this.getCurrentPodCount(applicationId)
       const { minPods, maxPods } = await this.getScaleConfig(applicationId)
+      const applicationName = await getApplicationName(applicationId, this.app.log)
 
       const scalingDecision = await this.algorithm.calculateScalingDecision(
         applicationId,
         currentPodCount,
         minPods,
-        maxPods
+        maxPods,
+        applicationName
       )
 
       const scalingAction = scalingDecision.nfinal > currentPodCount

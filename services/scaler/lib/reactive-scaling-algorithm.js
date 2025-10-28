@@ -35,9 +35,10 @@ class ReactiveScalingAlgorithm {
    * @param {number} minPods - Minimum number of pods required (uses default if undefined)
    * @param {number} maxPods - Maximum number of pods allowed (uses default if undefined)
    * @param {Array} alerts - Array of alerts related to this application
+   * @param {string} applicationName - Optional name of the application for better logging
    * @returns {Object} Object containing nfinal (target total pod count) and optional reason
    */
-  async calculateScalingDecision (applicationId, podsMetrics, currentPodCount, minPods, maxPods, alerts = []) {
+  async calculateScalingDecision (applicationId, podsMetrics, currentPodCount, minPods, maxPods, alerts = [], applicationName = null) {
     const minPodsValue = minPods !== undefined ? minPods : this.minPodsDefault
     const maxPodsValue = maxPods !== undefined ? maxPods : this.maxPodsDefault
     // Load historical data
@@ -233,7 +234,9 @@ class ReactiveScalingAlgorithm {
             heapThreshold: this.heapThreshold
           })
 
-          return { nfinal: newPodCount, reason: 'Scaling down due to low utilization' }
+          const appLabel = applicationName ? `${applicationName}: ` : ''
+          const reason = `Scaling down ${appLabel}Low utilization across ${podCount} pods. Avg ELU ${(avgElu * 100).toFixed(1)}% (threshold ${(this.eluThreshold * 100).toFixed(0)}%), avg heap ${(avgHeap * 100).toFixed(1)}% (threshold ${(this.heapThreshold * 100).toFixed(0)}%)`
+          return { nfinal: newPodCount, reason }
         }
       }
 
@@ -272,6 +275,26 @@ class ReactiveScalingAlgorithm {
 
     const actualPodsChange = nfinal - currentPodCount
 
+    // Build detailed reason with pod information
+    const triggeringPods = Object.entries(processedPods)
+      .filter(([_, pod]) => pod.shouldScale)
+      .sort((a, b) => Math.max(b[1].eluMax, b[1].heapMax) - Math.max(a[1].eluMax, a[1].heapMax))
+      .slice(0, 3) // Top 3 pods
+
+    const podDetails = triggeringPods.map(([podId, pod]) => {
+      const metrics = []
+      if (pod.eluMax >= this.eluThreshold) {
+        metrics.push(`ELU ${(pod.eluMax * 100).toFixed(1)}%`)
+      }
+      if (pod.heapMax >= this.heapThreshold) {
+        metrics.push(`heap ${(pod.heapMax * 100).toFixed(1)}%`)
+      }
+      return `${podId} (${metrics.join(', ')})`
+    }).join(', ')
+
+    const appLabel = applicationName ? `${applicationName}: ` : ''
+    const reason = `Scaling up ${appLabel}${triggerCount} of ${podCount} pods triggered scaling. Top pods: ${podDetails}`
+
     // Record the scaling event
     await this.#performanceHistory.scalingEvaluation({
       applicationId,
@@ -285,7 +308,7 @@ class ReactiveScalingAlgorithm {
       heapThreshold: this.heapThreshold
     })
 
-    return { nfinal, reason: 'Scaling up for high utilization' }
+    return { nfinal, reason }
   }
 }
 

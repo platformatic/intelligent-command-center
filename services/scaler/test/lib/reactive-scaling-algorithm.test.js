@@ -319,8 +319,12 @@ test('calculateScalingDecision computes nfinal correctly', async (t) => {
   assert.ok(result.nfinal > currentPodCount, 'Should scale up from current pod count')
   // The maximum scale up should not exceed current + 8
   assert.ok(result.nfinal <= currentPodCount + 8, 'Should not scale up by more than 8 pods')
-  // Should have the correct reason for scaling up
-  assert.strictEqual(result.reason, 'Scaling up for high utilization', 'Should have correct reason for scale up')
+  // Should have the correct reason for scaling up with pod details
+  assert.ok(result.reason.includes('Scaling up'), 'Reason should indicate scaling up')
+  assert.ok(result.reason.includes('pod-1'), 'Reason should mention triggering pod')
+  assert.ok(result.reason.includes('ELU'), 'Reason should mention ELU metric')
+  assert.ok(result.reason.includes('95.0%'), 'Reason should show ELU percentage')
+  assert.ok(result.reason.includes('heap'), 'Reason should mention heap metric')
 })
 
 test('updateClusters creates new cluster when none exist', async (t) => {
@@ -516,7 +520,10 @@ test('calculateScalingDecision scales up with alerts', async (t) => {
 
   // Should scale up from current pod count when alert triggers
   assert.ok(result.nfinal > currentPodCount, 'Should scale up when alert indicates high ELU')
-  assert.strictEqual(result.reason, 'Scaling up for high utilization', 'Should have correct reason for scale up')
+  assert.ok(result.reason.includes('Scaling up'), 'Reason should indicate scaling up')
+  assert.ok(result.reason.includes('pod-alert'), 'Reason should mention triggering pod')
+  assert.ok(result.reason.includes('ELU'), 'Reason should mention ELU metric')
+  assert.ok(result.reason.includes('%'), 'Reason should show metric percentage')
 })
 
 test('calculateScalingDecision scales up with high metrics', async (t) => {
@@ -557,7 +564,10 @@ test('calculateScalingDecision scales up with high metrics', async (t) => {
 
   // Should scale up from current pod count when metrics are high
   assert.ok(result.nfinal > currentPodCount, 'Should scale up when metrics indicate high load')
-  assert.strictEqual(result.reason, 'Scaling up for high utilization', 'Should have correct reason for scale up')
+  assert.ok(result.reason.includes('Scaling up'), 'Reason should indicate scaling up')
+  assert.ok(result.reason.includes('pod-1'), 'Reason should mention triggering pod')
+  assert.ok(result.reason.includes('ELU'), 'Reason should mention ELU metric')
+  assert.ok(result.reason.includes('95.0%'), 'Reason should show ELU percentage')
 })
 
 test('calculateScalingDecision maintains pod count with normal metrics', async (t) => {
@@ -641,7 +651,11 @@ test('calculateScalingDecision with low metrics should scale down', async (t) =>
   // The improved algorithm should now scale down with low metrics
   assert.ok(result.nfinal < currentPodCount, 'Should scale down when metrics are low')
   assert.ok(result.nfinal >= minPods, 'Should not scale below minimum pod count')
-  assert.strictEqual(result.reason, 'Scaling down due to low utilization', 'Reason should indicate scaling down due to low utilization')
+  assert.ok(result.reason.includes('Scaling down'), 'Reason should indicate scaling down')
+  assert.ok(result.reason.includes('Low utilization'), 'Reason should mention low utilization')
+  assert.ok(result.reason.includes('ELU'), 'Reason should mention ELU metric')
+  assert.ok(result.reason.includes('30.0%'), 'Reason should show ELU percentage')
+  assert.ok(result.reason.includes('threshold'), 'Reason should mention threshold values')
 })
 
 test('calculateScalingDecision should respect minimum pod count when scaling down', async (t) => {
