@@ -12,6 +12,7 @@ const k8sAllowedRoutes = [
   [/\/control-plane\/pods\/[a-zA-z0-9-]+\/instance\/state/, ['POST']],
   [/\/compliance\/metadata/, ['POST']],
   ['/scaler/alerts', ['POST']],
+  ['/scaler/signals', ['POST']],
   [/\/scaler\/pods\/[a-zA-z0-9-]+\/services\/[a-zA-z0-9-]+\/flamegraph/, ['POST']]
 ]
 
