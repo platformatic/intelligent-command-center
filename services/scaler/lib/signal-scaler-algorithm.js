@@ -13,8 +13,8 @@ class SignalScalerAlgorithm {
     this.LW = options.LW || 300000
 
     this.HOT_RATE_THRESHOLD = options.HOT_RATE_THRESHOLD || 0.5
-    this.SCALE_UP_FW_RATE_THRESHOLD = options.SCALE_UP_FW_RATE_THRESHOLD || 0.05
-    this.SCALE_UP_SW_RATE_THRESHOLD = options.SCALE_UP_SW_RATE_THRESHOLD || 0.05
+    this.SCALE_UP_FW_RATE_THRESHOLD = options.SCALE_UP_FW_RATE_THRESHOLD || 0.2
+    this.SCALE_UP_SW_RATE_THRESHOLD = options.SCALE_UP_SW_RATE_THRESHOLD || 0.1
     this.SCALE_UP_VELOCITY_THRESHOLD = options.SCALE_UP_VELOCITY_THRESHOLD || 0.02
     this.SCALE_DOWN_SW_RATE_THRESHOLD = options.SCALE_DOWN_SW_RATE_THRESHOLD || 0.01
     this.SCALE_DOWN_LW_RATE_THRESHOLD = options.SCALE_DOWN_LW_RATE_THRESHOLD || 0.004
@@ -86,7 +86,7 @@ class SignalScalerAlgorithm {
     return rate
   }
 
-  calculateStats (events, windowMs) {
+  calculateStats (events, podsCount, windowMs) {
     const podIds = [...new Set(events.map(e => e.podId))]
 
     if (podIds.length === 0) {
@@ -104,15 +104,10 @@ class SignalScalerAlgorithm {
     }
 
     const rateValues = Object.values(rates)
-    const avgRate = rateValues.reduce((sum, r) => sum + r, 0) / rateValues.length
+    const avgRate = rateValues.reduce((sum, r) => sum + r, 0) / podsCount
     const maxRate = Math.max(...rateValues)
 
-    return {
-      podCount: podIds.length,
-      rates,
-      avgRate,
-      maxRate
-    }
+    return { rates, avgRate, maxRate }
   }
 
   async getCooldownInfo (applicationId) {
@@ -135,18 +130,28 @@ class SignalScalerAlgorithm {
   }
 
   async calculateScalingDecision (applicationId, currentPodCount, minPods, maxPods, applicationName = null) {
+    const cooldown = await this.getCooldownInfo(applicationId)
+    const now = Date.now()
+
+    const scaleUpAllowed = (now - cooldown.lastScaleDown) >= this.SW &&
+                           (now - cooldown.lastScaleUp) >= this.SW
+
+    const scaleDownAllowed = (now - cooldown.lastScaleDown) >= this.SW &&
+                             (now - cooldown.lastScaleUp) >= this.LW
+
+    if (!scaleUpAllowed && !scaleDownAllowed) {
+      return { nfinal: currentPodCount, reason: 'Scaling blocked by cooldown' }
+    }
+
     const minPodsValue = minPods !== undefined ? minPods : this.minPodsDefault
     const maxPodsValue = maxPods !== undefined ? maxPods : this.maxPodsDefault
-    const now = Date.now()
     const appLabel = applicationName ? `${applicationName}: ` : ''
-
-    const cooldown = await this.getCooldownInfo(applicationId)
 
     const { eventsFW, eventsSW, eventsLW } = await this.getAllEventsGroupedByWindows(applicationId, now)
 
-    const statsFW = this.calculateStats(eventsFW, this.FW)
-    const statsSW = this.calculateStats(eventsSW, this.SW)
-    const statsLW = this.calculateStats(eventsLW, this.LW)
+    const statsFW = this.calculateStats(eventsFW, currentPodCount, this.FW)
+    const statsSW = this.calculateStats(eventsSW, currentPodCount, this.SW)
+    const statsLW = this.calculateStats(eventsLW, currentPodCount, this.LW)
 
     const velocity = statsFW.avgRate - statsSW.avgRate
 
@@ -159,18 +164,16 @@ class SignalScalerAlgorithm {
       velocity
     }, 'Calculated scaling statistics')
 
-    const hotspotScaleUp = statsFW.maxRate > this.HOT_RATE_THRESHOLD
-    const breadthScaleUp = statsFW.avgRate > this.SCALE_UP_FW_RATE_THRESHOLD &&
+    if (scaleUpAllowed) {
+      const hotspotScaleUp = statsFW.maxRate > this.HOT_RATE_THRESHOLD
+      const breadthScaleUp = statsFW.avgRate > this.SCALE_UP_FW_RATE_THRESHOLD &&
                           statsSW.avgRate > this.SCALE_UP_SW_RATE_THRESHOLD &&
                           velocity > this.SCALE_UP_VELOCITY_THRESHOLD
 
-    const scaleUpNeeded = hotspotScaleUp || breadthScaleUp
+      const scaleUpNeeded = hotspotScaleUp || breadthScaleUp
 
-    if (scaleUpNeeded) {
-      const scaleUpAllowed = (now - cooldown.lastScaleDown) >= this.FW
-
-      if (scaleUpAllowed) {
-        const scaleUpAmount = Math.ceil(currentPodCount / 2)
+      if (scaleUpNeeded) {
+        const scaleUpAmount = breadthScaleUp ? Math.ceil(currentPodCount / 2) : 1
         const newPodCount = Math.min(currentPodCount + scaleUpAmount, maxPodsValue)
 
         if (newPodCount > currentPodCount) {
@@ -196,39 +199,34 @@ class SignalScalerAlgorithm {
           reason: 'Already at maximum pod count'
         }
       }
-
-      return {
-        nfinal: currentPodCount,
-        reason: 'Scale up blocked by cooldown'
-      }
     }
 
-    const scaleDownNeeded = eventsFW.length === 0 &&
+    if (scaleDownAllowed) {
+      const scaleDownNeeded = eventsFW.length === 0 &&
                            statsSW.avgRate <= this.SCALE_DOWN_SW_RATE_THRESHOLD &&
                            statsLW.avgRate <= this.SCALE_DOWN_LW_RATE_THRESHOLD
-    const scaleDownAllowed = (now - cooldown.lastScaleDown) >= this.SW &&
-                            (now - cooldown.lastScaleUp) >= this.SW
 
-    if (scaleDownNeeded && scaleDownAllowed && currentPodCount > minPodsValue) {
-      const newPodCount = currentPodCount - 1
+      if (scaleDownNeeded && currentPodCount > minPodsValue) {
+        const newPodCount = currentPodCount - 1
 
-      await this.setCooldown(applicationId, 'scaledown', now)
+        await this.setCooldown(applicationId, 'scaledown', now)
 
-      const reason = `Scaling down ${appLabel}Low utilization (FW events: 0, SW rate ${statsSW.avgRate.toFixed(3)}, LW rate ${statsLW.avgRate.toFixed(3)})`
+        const reason = `Scaling down ${appLabel}Low utilization (FW events: 0, SW rate ${statsSW.avgRate.toFixed(3)}, LW rate ${statsLW.avgRate.toFixed(3)})`
 
-      this.log.info({
-        applicationId,
-        from: currentPodCount,
-        to: newPodCount,
-        reason
-      }, 'Scaling down')
+        this.log.info({
+          applicationId,
+          from: currentPodCount,
+          to: newPodCount,
+          reason
+        }, 'Scaling down')
 
-      return { nfinal: newPodCount, reason }
+        return { nfinal: newPodCount, reason }
+      }
     }
 
     return {
       nfinal: currentPodCount,
-      reason: 'No scaling needed'
+      reason: 'No scaling needed or blocked by cooldown'
     }
   }
 }

@@ -1,8 +1,9 @@
 'use strict'
 
-const { test } = require('node:test')
+const { test, beforeEach } = require('node:test')
 const { randomUUID } = require('node:crypto')
 const assert = require('node:assert/strict')
+const { MockAgent, setGlobalDispatcher, getGlobalDispatcher } = require('undici')
 const { setTimeout: sleep } = require('node:timers/promises')
 const {
   buildServer,
@@ -10,6 +11,35 @@ const {
   startMachinist,
   cleanValkeyData
 } = require('../helper')
+
+beforeEach(async (t) => {
+  const originalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  setGlobalDispatcher(mockAgent)
+  t.after(() => setGlobalDispatcher(originalDispatcher))
+
+  // Mock control-plane GET request
+  const mockControlPlane = mockAgent.get('http://control-plane.plt.local')
+  mockControlPlane
+    .intercept({
+      path: () => true,
+      method: 'GET'
+    })
+    .reply(200, { name: 'test-app' })
+    .persist()
+
+  // Mock activities POST request
+  const mockActivities = mockAgent.get('http://activities.plt.local')
+  mockActivities
+    .intercept({
+      path: '/events',
+      method: 'POST'
+    })
+    .reply((opts) => {
+      return { statusCode: 201, data: {} }
+    })
+    .persist()
+})
 
 test('E2E: signal ingestion should trigger scale up decision', async (t) => {
   await cleanValkeyData()
