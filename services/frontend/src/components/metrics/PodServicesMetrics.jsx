@@ -71,14 +71,13 @@ export default function PodServicesMetrics ({
     chart.forEach(parsedMetric => {
       const { date, cpu, elu, rss, totalHeapSize, usedHeapSize, newSpaceSize, oldSpaceSize } = parsedMetric
       const time = new Date(date)
-      const eluPercentage = elu * 100
       memory.push({
         time,
         values: [rss, totalHeapSize, usedHeapSize, newSpaceSize, oldSpaceSize].map(toMB)
       })
       cpuEL.push({
         time,
-        values: [cpu, eluPercentage]
+        values: [cpu, elu]
       })
     })
     if (service) {
@@ -102,19 +101,13 @@ export default function PodServicesMetrics ({
 
   useInterval(async () => {
     try {
-      const [responseDataServices, responseDataAggregated] = await Promise.all([
+      const [dataService, dataAggregated] = await Promise.all([
         getApiMetricsPodPerService(applicationId, podId, serviceId),
         getApiMetricsPod(applicationId, podId)
       ])
       setShowNoResult(false)
-      if (responseDataServices.status === 200) {
-        const dataService = await responseDataServices.json()
-        const dataAggregated = await responseDataAggregated.json()
-        handleMetrics(dataService, true)
-        handleMetrics(dataAggregated)
-      } else {
-        console.error('error on status', responseDataServices.status)
-      }
+      handleMetrics(dataService, true)
+      handleMetrics(dataAggregated)
     } catch (e) {
       console.error(e)
       setError(e)

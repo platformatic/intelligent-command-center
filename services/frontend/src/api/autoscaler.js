@@ -91,7 +91,8 @@ export async function getPodSignals (applicationId, podId) {
     const signals = alerts.map(alert => {
       // Determine signal type based on alert data
       let type = 'elu'
-      let value = Math.round((alert.elu || 0) * 100) // Convert to percentage
+      // ELU is stored as a decimal value in the database, convert to percentage
+      let value = Math.round((alert.elu || 0) * 100)
       const delta = 0 // We don't have historical data to calculate delta
 
       // If heap usage is significantly high, classify as heap signal

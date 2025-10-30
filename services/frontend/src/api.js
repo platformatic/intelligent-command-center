@@ -183,11 +183,13 @@ export const getApiMetricsPod = async (applicationId, podId, radix) => {
   if (radix) {
     url += `/${radix}`
   }
-  return fetch(url, {
+  const res = await fetch(url, {
     method: 'GET',
     headers: getHeaders(),
     credentials: 'include'
   })
+  const output = await res.json()
+  return output
 }
 
 export const getApiMetricsPodPerService = async (applicationId, podId, serviceId, radix) => {
@@ -195,11 +197,13 @@ export const getApiMetricsPodPerService = async (applicationId, podId, serviceId
   if (radix) {
     url += `/${radix}`
   }
-  return fetch(url, {
+  const res = await fetch(url, {
     method: 'GET',
     headers: getHeaders(),
     credentials: 'include'
   })
+  const output = await res.json()
+  return output
 }
 
 /* KUBERNETES RESOURCES */
@@ -344,13 +348,10 @@ export const getApiApplicationScaleConfig = async (applicationId) => {
 export const getApiPods = async (applicationId) => {
   const { pods } = await callApi('control-plane', `/applications/${applicationId}/k8s/state`, 'GET')
   const output = await Promise.all(pods.map(async (pod) => {
-    const [dataMem, dataCpu] = await Promise.all([
+    const [dataValuesMem, dataValuesCpu] = await Promise.all([
       getApiMetricsPod(applicationId, pod.id, 'mem'),
       getApiMetricsPod(applicationId, pod.id, 'cpu')
     ])
-
-    const dataValuesMem = await dataMem.json()
-    const dataValuesCpu = await dataCpu.json()
     return {
       id: pod.id,
       dataValues: { ...dataValuesMem, ...dataValuesCpu },
@@ -361,14 +362,10 @@ export const getApiPods = async (applicationId) => {
 }
 
 export const getApiPod = async (applicationId, podId) => {
-  const [dataMem, dataCpu] = await Promise.all([
+  const [dataValuesMem, dataValuesCpu] = await Promise.all([
     getApiMetricsPod(applicationId, podId, 'mem'),
     getApiMetricsPod(applicationId, podId, 'cpu')
   ])
-
-  const dataValuesMem = await dataMem.json()
-  const dataValuesCpu = await dataCpu.json()
-
   return { ...dataValuesMem, ...dataValuesCpu }
 }
 

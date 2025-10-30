@@ -75,14 +75,9 @@ export default function Metrics ({
 
   useInterval(async () => {
     try {
-      const res = await getApiMetricsPod(applicationId, podId)
+      const data = await getApiMetricsPod(applicationId, podId)
       setShowNoResult(false)
-      if (res.status === 200) {
-        const data = await res.json()
-        handleMetrics(data)
-      } else {
-        console.error('error on status', res.status)
-      }
+      handleMetrics(data)
     } catch (e) {
       console.error(e)
       setError(e)

@@ -9,8 +9,7 @@ export function calculateHexagonPerformance (podData) {
 
   // Handle null/undefined values
   // ELU values from API are in decimal form (0-1), convert to percentage for comparison
-  const eluPercent = eventLoop > 1 ? eventLoop : eventLoop * 100
-  const eluPerformance = eluPercent < ELU_THRESHOLD ? 'good' : 'low'
+  const eluPerformance = eventLoop < ELU_THRESHOLD ? 'good' : 'low'
 
   // Handle heap performance
   let heapPerformance = 'good'

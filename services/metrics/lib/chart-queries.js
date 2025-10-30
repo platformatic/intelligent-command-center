@@ -43,7 +43,7 @@ const createCPUPodChartQuery = (podId, serviceId = null) => {
 // We need the `max` because we have different ELU per service in the same pod. We cannot average (if we have 10 services, one can be 99% and the other 0%) and we cannot sum up.
 // So we take the max, which is also coherent with teh pod detail (where we also take the max).
 const createEventLoopPodChartQuery = (podId, serviceId = null) =>
-  `max(nodejs_eventloop_utilization{instanceId="${podId}"${serviceIdFilter(serviceId)}})`
+  `max(nodejs_eventloop_utilization{instanceId="${podId}"${serviceIdFilter(serviceId)}}) * 100`
 
 // quantile as fraction, so 0.95 for 95th percentile
 const createLatencyPodChartQuery = (podId, serviceId, quantile) =>

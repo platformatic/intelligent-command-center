@@ -87,19 +87,12 @@ export default function PodSummary ({ pod }) {
 function Metric ({ label, value, totalHeap, signals = [], unit, threshold, thresholdUnit }) {
   function normalizeValue (value, label) {
     // Handle null/undefined values
-    if (value == null) {
+    if (value === null || value === undefined) {
       return '0.0'
     }
 
     if (label === 'ELU') {
-      // Check if ELU is already in percentage (>1) or decimal (0-1)
-      if (value > 1) {
-        // Already in percentage form
-        return value.toFixed(1)
-      } else {
-        // In decimal form, convert to percentage
-        return (value * 100).toFixed(1)
-      }
+      return value.toFixed(1)
     }
     if (label === 'Heap') {
       // The API returns heap values in GB, we need to convert to MB
