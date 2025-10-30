@@ -25,11 +25,10 @@ The algorithm uses three overlapping time windows for analysis:
 | Threshold | Default Value | Purpose |
 |-----------|--------------|---------|
 | `HOT_RATE_THRESHOLD` | 0.5 | Maximum rate threshold for hotspot detection |
-| `SCALE_UP_FW_RATE_THRESHOLD` | 0.05 | Fast window rate threshold for breadth scaling |
-| `SCALE_UP_SW_RATE_THRESHOLD` | 0.05 | Slow window rate threshold for breadth scaling |
-| `SCALE_UP_VELOCITY_THRESHOLD` | 0.02 | Velocity threshold for breadth scaling |
-| `SCALE_DOWN_SW_RATE_THRESHOLD` | 0.01 | Slow window rate threshold for scale down |
-| `SCALE_DOWN_LW_RATE_THRESHOLD` | 0.004 | Long window rate threshold for scale down |
+| `SCALE_UP_FW_RATE_THRESHOLD` | 0.2 | Fast window rate threshold for breadth scaling |
+| `SCALE_UP_SW_RATE_THRESHOLD` | 0.15 | Slow window rate threshold for breadth scaling |
+| `SCALE_DOWN_SW_RATE_THRESHOLD` | 0.05 | Slow window rate threshold for scale down |
+| `SCALE_DOWN_LW_RATE_THRESHOLD` | 0.03 | Long window rate threshold for scale down |
 
 ### Metrics
 
@@ -39,7 +38,6 @@ For each pod `p` and time window `W`:
 2. **Event Rate**: `rate_p(W) = count_p(W) / W` (events per second)
 3. **Average Rate**: `rate_watt(W) = mean_p(rate_p(W))`
 4. **Maximum Rate**: `max_rate_pod(W) = max_p(rate_p(W))`
-5. **Velocity**: `velocity() = rate_watt(FW) - rate_watt(SW)`
 
 ## Scaling Logic
 
@@ -59,11 +57,10 @@ max_rate_pod(FW) > HOT_RATE_THRESHOLD
 
 ```
 rate_watt(FW) > SCALE_UP_FW_RATE_THRESHOLD AND
-rate_watt(SW) > SCALE_UP_SW_RATE_THRESHOLD AND
-velocity() > SCALE_UP_VELOCITY_THRESHOLD
+rate_watt(SW) > SCALE_UP_SW_RATE_THRESHOLD
 ```
 
-**Rationale**: When average rates are high across both windows AND the rate is accelerating (positive velocity), the entire application is under increasing load.
+**Rationale**: When average rates are high across both windows, the entire application is under increasing load.
 
 **Example**:
 - 2 pods → scale up by Math.ceil(2/2) = 1 → 3 pods
@@ -92,12 +89,12 @@ Cooldowns prevent rapid scaling oscillations:
 
 ## Implementation Details
 
-### Event Storage
+### Signals storage
 
-Events are stored in Redis/Valkey with the following key pattern:
+Signals are stored in Redis/Valkey with the following key pattern:
 
 ```
-reactive:events:app:{applicationId}:pod:{podId}:{timestamp}
+reactive:signals:app:{applicationId}:pod:{podId}:signal:{signalId}
 ```
 
 Events are automatically expired after `LW` (300 seconds) to prevent memory buildup.
@@ -123,7 +120,6 @@ const algorithm = new MultiSignalReactiveAlgorithm(app, {
   HOT_RATE_THRESHOLD: 0.5,
   SCALE_UP_FW_RATE_THRESHOLD: 0.05,
   SCALE_UP_SW_RATE_THRESHOLD: 0.05,
-  SCALE_UP_VELOCITY_THRESHOLD: 0.02,
   SCALE_DOWN_SW_RATE_THRESHOLD: 0.01,
   SCALE_DOWN_LW_RATE_THRESHOLD: 0.004,
   minPodsDefault: 1,
@@ -136,12 +132,10 @@ const algorithm = new MultiSignalReactiveAlgorithm(app, {
 ### Storing Signal Events
 
 ```javascript
-await algorithm.storeSignalEvent(applicationId, podId, {
-  cpu: 0.85,
-  memory: 0.72,
-  latency: 150,
-  errorRate: 0.03,
-  customMetric: 42
+await algorithm.storeSignal(applicationId, podId, {
+  type: 'cpu',
+  value: 0.85,
+  timestamp: Date.now()
 })
 ```
 
@@ -170,7 +164,6 @@ const decision = await algorithm.calculateScalingDecision(
 5. **Aggressive Scale Up**: Scales by 50% of current capacity for rapid response
 6. **Conservative Scale Down**: Removes only 1 pod at a time to prevent over-correction
 7. **Hotspot Detection**: Identifies and responds to single-pod issues
-8. **Velocity-Based**: Considers rate of change, not just absolute values
 
 ## Comparison to ELU/HEAP Algorithm
 
@@ -180,7 +173,6 @@ const decision = await algorithm.calculateScalingDecision(
 | Scale Up Amount | +Math.ceil(n/2) | Variable based on scores |
 | Time Windows | 3 (FW/SW/LW) | Single cooldown |
 | Hotspot Detection | Yes (per-pod max rate) | Yes (immediate triggers) |
-| Velocity Analysis | Yes (FW vs SW) | No |
 | Historical Learning | No | Yes (clusters) |
 | Complexity | Low | High |
 

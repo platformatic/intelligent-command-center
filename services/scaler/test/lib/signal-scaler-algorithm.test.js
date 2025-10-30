@@ -15,10 +15,9 @@ test('SignalScalerAlgorithm - basic initialization', async (t) => {
   assert.equal(algorithm.LW, 300000)
   assert.equal(algorithm.HOT_RATE_THRESHOLD, 0.5)
   assert.equal(algorithm.SCALE_UP_FW_RATE_THRESHOLD, 0.2)
-  assert.equal(algorithm.SCALE_UP_SW_RATE_THRESHOLD, 0.1)
-  assert.equal(algorithm.SCALE_UP_VELOCITY_THRESHOLD, 0.02)
-  assert.equal(algorithm.SCALE_DOWN_SW_RATE_THRESHOLD, 0.01)
-  assert.equal(algorithm.SCALE_DOWN_LW_RATE_THRESHOLD, 0.004)
+  assert.equal(algorithm.SCALE_UP_SW_RATE_THRESHOLD, 0.15)
+  assert.equal(algorithm.SCALE_DOWN_SW_RATE_THRESHOLD, 0.05)
+  assert.equal(algorithm.SCALE_DOWN_LW_RATE_THRESHOLD, 0.03)
 })
 
 test('SignalScalerAlgorithm - custom options', async (t) => {
@@ -41,26 +40,6 @@ test('SignalScalerAlgorithm - custom options', async (t) => {
   assert.equal(algorithm.maxPodsDefault, 20)
 })
 
-test('SignalScalerAlgorithm - store and retrieve signal events', async (t) => {
-  const app = await buildServer(t)
-  const algorithm = new SignalScalerAlgorithm(app)
-
-  const applicationId = 'test-app-1'
-  const podId = 'pod-1'
-  const signals = {
-    cpu: 0.8,
-    memory: 0.7,
-    latency: 150
-  }
-
-  await algorithm.storeSignalEvent(applicationId, podId, signals)
-
-  const { eventsFW } = await algorithm.getAllEventsGroupedByWindows(applicationId)
-  assert.equal(eventsFW.length, 1)
-  assert.equal(eventsFW[0].podId, podId)
-  assert.ok(eventsFW[0].timestamp)
-})
-
 test('SignalScalerAlgorithm - filter events by time window', async (t) => {
   const app = await buildServer(t)
   const algorithm = new SignalScalerAlgorithm(app, {
@@ -71,13 +50,15 @@ test('SignalScalerAlgorithm - filter events by time window', async (t) => {
   const applicationId = 'test-app-2'
   const now = Date.now()
 
-  await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.8 }, now - 5000)
-  await algorithm.storeSignalEvent(applicationId, 'pod-2', { cpu: 0.7 }, now - 20000)
-  await algorithm.storeSignalEvent(applicationId, 'pod-3', { cpu: 0.9 }, now - 40000)
+  await algorithm.storeSignal(applicationId, 'pod-1', { type: 'cpu', value: 0.8, timestamp: now - 5000 })
+  await algorithm.storeSignal(applicationId, 'pod-2', { type: 'cpu', value: 0.7, timestamp: now - 20000 })
+  await algorithm.storeSignal(applicationId, 'pod-3', { type: 'cpu', value: 0.9, timestamp: now - 40000 })
 
-  const { eventsFW, eventsSW } = await algorithm.getAllEventsGroupedByWindows(applicationId, now)
-  assert.equal(eventsFW.length, 1)
-  assert.equal(eventsSW.length, 2)
+  const podsSignals = await algorithm.getAppPodsSignals(applicationId)
+  const { statsFW, statsSW } = algorithm.calculateStats(podsSignals, 1, now)
+
+  assert.equal(statsFW.eventsCount, 1)
+  assert.equal(statsSW.eventsCount, 2)
 })
 
 test('SignalScalerAlgorithm - calculate rate per pod', async (t) => {
@@ -88,19 +69,19 @@ test('SignalScalerAlgorithm - calculate rate per pod', async (t) => {
   const now = Date.now()
 
   for (let i = 0; i < 5; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.8 }, now - i * 1000)
+    const signal = { type: 'cpu', value: 0.8, timestamp: now - i * 1000 }
+    await algorithm.storeSignal(applicationId, 'pod-1', signal)
   }
 
   for (let i = 0; i < 3; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-2', { cpu: 0.7 }, now - i * 1000)
+    const signal = { type: 'cpu', value: 0.7, timestamp: now - i * 1000 }
+    await algorithm.storeSignal(applicationId, 'pod-2', signal)
   }
 
-  const { eventsFW } = await algorithm.getAllEventsGroupedByWindows(applicationId, now)
+  const podsSignals = await algorithm.getAppPodsSignals(applicationId)
+  const { statsFW } = algorithm.calculateStats(podsSignals, 1, now)
 
-  const ratePod1 = algorithm.calculateRatePerPod(eventsFW, algorithm.FW, 'pod-1')
-  const ratePod2 = algorithm.calculateRatePerPod(eventsFW, algorithm.FW, 'pod-2')
-
-  assert.ok(ratePod1 > ratePod2)
+  assert.ok(statsFW.eventRates['pod-1'] > statsFW.eventRates['pod-2'])
 })
 
 test('SignalScalerAlgorithm - calculate stats', async (t) => {
@@ -112,20 +93,22 @@ test('SignalScalerAlgorithm - calculate stats', async (t) => {
   const podCount = 2
 
   for (let i = 0; i < 10; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.9 }, now - i * 1000)
+    const signal = { type: 'cpu', value: 0.9, timestamp: now - i * 1000 }
+    await algorithm.storeSignal(applicationId, 'pod-1', signal)
   }
 
   for (let i = 0; i < 3; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-2', { cpu: 0.6 }, now - i * 1000)
+    const signal = { type: 'cpu', value: 0.6, timestamp: now - i * 1000 }
+    await algorithm.storeSignal(applicationId, 'pod-2', signal)
   }
 
-  const { eventsFW } = await algorithm.getAllEventsGroupedByWindows(applicationId, now)
-  const stats = algorithm.calculateStats(eventsFW, podCount, algorithm.FW)
+  const podsSignals = await algorithm.getAppPodsSignals(applicationId)
+  const { statsFW: stats } = algorithm.calculateStats(podsSignals, podCount)
 
-  assert.ok(stats.avgRate > 0)
-  assert.ok(stats.maxRate >= stats.avgRate)
-  assert.ok('pod-1' in stats.rates)
-  assert.ok('pod-2' in stats.rates)
+  assert.ok(stats.avgEventRate > 0)
+  assert.ok(stats.maxEventRate >= stats.avgEventRate)
+  assert.ok('pod-1' in stats.eventRates)
+  assert.ok('pod-2' in stats.eventRates)
 })
 
 test('SignalScalerAlgorithm - hotspot scale up', async (t) => {
@@ -138,8 +121,9 @@ test('SignalScalerAlgorithm - hotspot scale up', async (t) => {
   const applicationId = 'test-app-5'
   const now = Date.now()
 
-  for (let i = 0; i < 10; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.95 }, now - i * 500)
+  for (let i = 0; i < 12; i++) {
+    const signal = { type: 'cpu', value: 0.95, timestamp: now - i * 500 }
+    await algorithm.storeSignal(applicationId, 'pod-1', signal)
   }
 
   const decision = await algorithm.calculateScalingDecision(applicationId, 4, 1, 10)
@@ -148,27 +132,49 @@ test('SignalScalerAlgorithm - hotspot scale up', async (t) => {
   assert.ok(decision.reason.includes('Hotspot'))
 })
 
+test('SignalScalerAlgorithm - scale up if there is at least one critical signal', async (t) => {
+  const app = await buildServer(t)
+  const algorithm = new SignalScalerAlgorithm(app, { FW: 10000 })
+
+  const applicationId = 'test-app-5'
+  const now = Date.now()
+
+  const signal = {
+    type: 'kafka',
+    level: 'critical',
+    value: 10,
+    timestamp: now
+  }
+  await algorithm.storeSignal(applicationId, 'pod-1', signal)
+
+  const decision = await algorithm.calculateScalingDecision(applicationId, 4, 1, 10)
+
+  assert.equal(decision.nfinal, 5)
+  assert.ok(decision.reason.includes('Received critical signals'))
+})
+
 test('SignalScalerAlgorithm - breadth scale up', async (t) => {
   const app = await buildServer(t)
   const algorithm = new SignalScalerAlgorithm(app, {
     FW: 10000,
     SW: 30000,
     SCALE_UP_FW_RATE_THRESHOLD: 0.1,
-    SCALE_UP_SW_RATE_THRESHOLD: 0.05,
-    SCALE_UP_VELOCITY_THRESHOLD: 0.02
+    SCALE_UP_SW_RATE_THRESHOLD: 0.05
   })
 
   const applicationId = 'test-app-6'
   const now = Date.now()
 
   for (let i = 0; i < 3; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.8 }, now - i * 1000)
-    await algorithm.storeSignalEvent(applicationId, 'pod-2', { cpu: 0.8 }, now - i * 1000)
+    const signal = { type: 'cpu', value: 0.8, timestamp: now - i * 1000 }
+    await algorithm.storeSignal(applicationId, 'pod-1', signal)
+    await algorithm.storeSignal(applicationId, 'pod-2', signal)
   }
 
   for (let i = 0; i < 4; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.8 }, now - 15000 - i * 1000)
-    await algorithm.storeSignalEvent(applicationId, 'pod-2', { cpu: 0.8 }, now - 15000 - i * 1000)
+    const signal = { type: 'cpu', value: 0.8, timestamp: now - 15000 - i * 1000 }
+    await algorithm.storeSignal(applicationId, 'pod-1', signal)
+    await algorithm.storeSignal(applicationId, 'pod-2', signal)
   }
 
   const decision = await algorithm.calculateScalingDecision(applicationId, 2, 1, 10)
@@ -190,7 +196,8 @@ test('SignalScalerAlgorithm - scale down', async (t) => {
   const applicationId = 'test-app-7'
   const now = Date.now()
 
-  await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.3 }, now - 50000)
+  const signal = { type: 'cpu', value: 0.3, timestamp: now - 50000 }
+  await algorithm.storeSignal(applicationId, 'pod-1', signal)
 
   const decision = await algorithm.calculateScalingDecision(applicationId, 3, 1, 10)
 
@@ -222,7 +229,8 @@ test('SignalScalerAlgorithm - respect maximum pods', async (t) => {
   const now = Date.now()
 
   for (let i = 0; i < 20; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.95 }, now - i * 500)
+    const signal = { type: 'cpu', value: 0.95, timestamp: now - i * 500 }
+    await algorithm.storeSignal(applicationId, 'pod-1', signal)
   }
 
   const decision = await algorithm.calculateScalingDecision(applicationId, 5, 1, 5)
@@ -244,7 +252,8 @@ test('SignalScalerAlgorithm -scale up cooldown after scale down', async (t) => {
   await algorithm.setCooldown(applicationId, 'scaledown', now - 5000)
 
   for (let i = 0; i < 20; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.95 }, now - i * 500)
+    const signal = { type: 'cpu', value: 0.95, timestamp: now - i * 500 }
+    await algorithm.storeSignal(applicationId, 'pod-1', signal)
   }
 
   const decision = await algorithm.calculateScalingDecision(applicationId, 2, 1, 10)
@@ -289,58 +298,25 @@ test('SignalScalerAlgorithm - multiple signal types', async (t) => {
   const applicationId = 'test-app-multi-signals-' + Date.now()
   const podId = 'pod-1'
 
-  const signals1 = {
-    cpu: 0.8,
-    memory: 0.7,
-    latency: 150,
-    errorRate: 0.05
-  }
-
-  const signals2 = {
-    cpu: 0.9,
-    diskIO: 0.6,
-    networkThroughput: 1000
-  }
-
   const timestamp = Date.now()
-  await algorithm.storeSignalEvent(applicationId, podId, signals1, timestamp)
-  await algorithm.storeSignalEvent(applicationId, podId, signals2, timestamp + 1000)
 
-  const { eventsFW } = await algorithm.getAllEventsGroupedByWindows(applicationId, timestamp + 2000)
+  await algorithm.storeSignals(applicationId, podId, [
+    { type: 'cpu', value: 0.8, timestamp },
+    { type: 'memory', value: 0.7, timestamp },
+    { type: 'custom_metric', value: 100, timestamp },
+    { type: 'errorRate', value: 0.05, timestamp }
+  ])
 
-  assert.equal(eventsFW.length, 2)
-  assert.equal(eventsFW[0].podId, podId)
-  assert.equal(eventsFW[1].podId, podId)
-  assert.ok(eventsFW[0].timestamp)
-  assert.ok(eventsFW[1].timestamp)
-})
+  await algorithm.storeSignals(applicationId, podId, [
+    { type: 'cpu', value: 0.9, timestamp: timestamp + 1000 },
+    { type: 'diskIO', value: 0.6, timestamp: timestamp + 1000 },
+    { type: 'networkThroughput', value: 1000, timestamp: timestamp + 1000 }
+  ])
 
-test('SignalScalerAlgorithm - velocity calculation', async (t) => {
-  const app = await buildServer(t)
-  const algorithm = new SignalScalerAlgorithm(app, {
-    FW: 10000,
-    SW: 30000
-  })
+  const podsSignals = await algorithm.getAppPodsSignals(applicationId)
+  const { statsFW } = algorithm.calculateStats(podsSignals, 1, timestamp + 2000)
 
-  const applicationId = 'test-app-14'
-  const now = Date.now()
-
-  for (let i = 0; i < 5; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.8 }, now - i * 1000)
-  }
-
-  for (let i = 0; i < 2; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.8 }, now - 20000 - i * 1000)
-  }
-
-  const { eventsFW, eventsSW } = await algorithm.getAllEventsGroupedByWindows(applicationId, now)
-
-  const statsFW = algorithm.calculateStats(eventsFW, 1, algorithm.FW)
-  const statsSW = algorithm.calculateStats(eventsSW, 1, algorithm.SW)
-
-  const velocity = statsFW.avgRate - statsSW.avgRate
-
-  assert.ok(velocity > 0)
+  assert.equal(statsFW.eventsCount, 2)
 })
 
 test('SignalScalerAlgorithm - scale up by Math.ceil(n/2)', async (t) => {
@@ -353,9 +329,10 @@ test('SignalScalerAlgorithm - scale up by Math.ceil(n/2)', async (t) => {
   const applicationId = 'test-app-scale-amount-' + Date.now()
   const now = Date.now()
 
-  for (let i = 0; i < 10; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.95 }, now - i * 500)
-    await algorithm.storeSignalEvent(applicationId, 'pod-2', { cpu: 0.95 }, now - i * 500)
+  for (let i = 0; i < 12; i++) {
+    const signal = { type: 'cpu', value: 0.95, timestamp: now - i * 500 }
+    await algorithm.storeSignal(applicationId, 'pod-1', signal)
+    await algorithm.storeSignal(applicationId, 'pod-2', signal)
   }
 
   const decision2 = await algorithm.calculateScalingDecision(applicationId, 2, 1, 20)
@@ -372,11 +349,13 @@ test('SignalScalerAlgorithm - scale up by Math.ceil(n/2)', async (t) => {
   const applicationId = 'test-app-scale-amount-' + Date.now()
   const now = Date.now()
 
-  for (let i = 0; i < 10; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.95 }, now - i * 500)
-    await algorithm.storeSignalEvent(applicationId, 'pod-2', { cpu: 0.95 }, now - i * 500)
-    await algorithm.storeSignalEvent(applicationId, 'pod-3', { cpu: 0.95 }, now - i * 500)
-    await algorithm.storeSignalEvent(applicationId, 'pod-4', { cpu: 0.95 }, now - i * 500)
+  for (let i = 0; i < 15; i++) {
+    const signal = { type: 'cpu', value: 0.95, timestamp: now - i * 2000 }
+    await algorithm.storeSignal(applicationId, 'pod-1', signal)
+    await algorithm.storeSignal(applicationId, 'pod-2', signal)
+    await algorithm.storeSignal(applicationId, 'pod-3', signal)
+    await algorithm.storeSignal(applicationId, 'pod-4', signal)
+    await algorithm.storeSignal(applicationId, 'pod-5', signal)
   }
 
   const decision5 = await algorithm.calculateScalingDecision(applicationId, 5, 1, 20)
@@ -393,14 +372,16 @@ test('SignalScalerAlgorithm - scale up by Math.ceil(n/2)', async (t) => {
   const applicationId = 'test-app-scale-amount-' + Date.now()
   const now = Date.now()
 
-  for (let i = 0; i < 10; i++) {
-    await algorithm.storeSignalEvent(applicationId, 'pod-1', { cpu: 0.95 }, now - i * 500)
-    await algorithm.storeSignalEvent(applicationId, 'pod-2', { cpu: 0.95 }, now - i * 500)
-    await algorithm.storeSignalEvent(applicationId, 'pod-3', { cpu: 0.95 }, now - i * 500)
-    await algorithm.storeSignalEvent(applicationId, 'pod-4', { cpu: 0.95 }, now - i * 500)
-    await algorithm.storeSignalEvent(applicationId, 'pod-5', { cpu: 0.95 }, now - i * 500)
-    await algorithm.storeSignalEvent(applicationId, 'pod-6', { cpu: 0.95 }, now - i * 500)
-    await algorithm.storeSignalEvent(applicationId, 'pod-7', { cpu: 0.95 }, now - i * 500)
+  for (let i = 0; i < 20; i++) {
+    const signal = { type: 'cpu', value: 0.95, timestamp: now - i * 2000 }
+    await algorithm.storeSignal(applicationId, 'pod-1', signal)
+    await algorithm.storeSignal(applicationId, 'pod-2', signal)
+    await algorithm.storeSignal(applicationId, 'pod-3', signal)
+    await algorithm.storeSignal(applicationId, 'pod-4', signal)
+    await algorithm.storeSignal(applicationId, 'pod-5', signal)
+    await algorithm.storeSignal(applicationId, 'pod-6', signal)
+    await algorithm.storeSignal(applicationId, 'pod-7', signal)
+    await algorithm.storeSignal(applicationId, 'pod-8', signal)
   }
 
   const decision10 = await algorithm.calculateScalingDecision(applicationId, 10, 1, 20)

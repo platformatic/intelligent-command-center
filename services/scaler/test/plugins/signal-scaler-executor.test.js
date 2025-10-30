@@ -239,10 +239,10 @@ test('runScalingAlgorithm uses atomic locking correctly', async (t) => {
     input: controllerData
   })
 
-  await app.signalScalerExecutor.algorithm.storeSignalEvent(
+  await app.signalScalerExecutor.algorithm.storeSignal(
     applicationId,
     podId,
-    { cpu: 0.5 },
+    { type: 'cpu', value: 0.5, timestamp: Date.now() },
     Date.now()
   )
 

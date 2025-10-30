@@ -89,6 +89,7 @@ async function buildServer (t, options = {}) {
   }
 
   await cleanDb(server)
+  await cleanValkeyData()
 
   return server
 }

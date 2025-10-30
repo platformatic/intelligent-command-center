@@ -14,10 +14,9 @@ class MultiSignalReactiveScaler {
       LW: Number(process.env.PLT_SIGNALS_SCALER_LW) || 300000,
       HOT_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_HOT_RATE_THRESHOLD) || 0.5,
       SCALE_UP_FW_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_UP_FW_RATE_THRESHOLD) || 0.2,
-      SCALE_UP_SW_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_UP_SW_RATE_THRESHOLD) || 0.1,
-      SCALE_UP_VELOCITY_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_UP_VELOCITY_THRESHOLD) || 0.02,
-      SCALE_DOWN_SW_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_DOWN_SW_RATE_THRESHOLD) || 0.01,
-      SCALE_DOWN_LW_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_DOWN_LW_RATE_THRESHOLD) || 0.004,
+      SCALE_UP_SW_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_UP_SW_RATE_THRESHOLD) || 0.15,
+      SCALE_DOWN_SW_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_DOWN_SW_RATE_THRESHOLD) || 0.05,
+      SCALE_DOWN_LW_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_DOWN_LW_RATE_THRESHOLD) || 0.03,
       minPodsDefault: Number(process.env.PLT_SCALER_MIN_PODS_DEFAULT) || 1,
       maxPodsDefault: Number(process.env.PLT_SCALER_MAX_PODS_DEFAULT) || 10
     }
@@ -62,49 +61,16 @@ class MultiSignalReactiveScaler {
     return { minPods: undefined, maxPods: undefined }
   }
 
-  async storeSignals ({ applicationId, podId, signals, timestamp }) {
-    const signalsMap = {}
-    for (const signal of signals) {
-      signalsMap[signal.type] = signal.value
-    }
-
-    await this.algorithm.storeSignalEvent(applicationId, podId, signalsMap, timestamp)
+  async processSignals ({ applicationId, serviceId, podId, signals, elu, heapUsed, heapTotal }) {
+    await this.algorithm.storeSignals(applicationId, podId, signals)
 
     this.app.log.debug({
       algorithm: 'Multi-Signal Reactive',
       applicationId,
       podId,
       signalTypes: signals.map(s => s.type),
-      signalCount: signals.length,
-      timestamp
-    }, '[Multi-Signal Reactive] Stored signal event')
-  }
-
-  async processSignals ({ applicationId, serviceId, podId, signals, elu, heapUsed, heapTotal }) {
-    const signalsBySecond = new Map()
-    for (const signal of signals) {
-      const timestampInSeconds = Math.floor(signal.timestamp / 1000) * 1000
-      if (!signalsBySecond.has(timestampInSeconds)) {
-        signalsBySecond.set(timestampInSeconds, [])
-      }
-      signalsBySecond.get(timestampInSeconds).push(signal)
-    }
-
-    for (const [timestamp, signalsGroup] of signalsBySecond) {
-      await this.storeSignals({
-        applicationId,
-        podId,
-        signals: signalsGroup,
-        timestamp
-      })
-    }
-
-    const signalsArray = signals.map(s => ({
-      type: s.type,
-      value: s.value,
-      timestamp: s.timestamp,
-      description: s.description
-    }))
+      signalCount: signals.length
+    }, '[Multi-Signal Reactive] Stored signals')
 
     await this.app.platformatic.entities.alert.save({
       input: {
@@ -115,7 +81,7 @@ class MultiSignalReactiveScaler {
         heapUsed,
         heapTotal,
         unhealthy: false,
-        signals: JSON.stringify(signalsArray),
+        signals: JSON.stringify(signals),
         createdAt: new Date()
       }
     })

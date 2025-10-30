@@ -1,6 +1,6 @@
 'use strict'
 
-const { scanKeys } = require('../../../lib/redis-utils')
+const { randomUUID } = require('node:crypto')
 
 class SignalScalerAlgorithm {
   constructor (app, options = {}) {
@@ -14,100 +14,144 @@ class SignalScalerAlgorithm {
 
     this.HOT_RATE_THRESHOLD = options.HOT_RATE_THRESHOLD || 0.5
     this.SCALE_UP_FW_RATE_THRESHOLD = options.SCALE_UP_FW_RATE_THRESHOLD || 0.2
-    this.SCALE_UP_SW_RATE_THRESHOLD = options.SCALE_UP_SW_RATE_THRESHOLD || 0.1
-    this.SCALE_UP_VELOCITY_THRESHOLD = options.SCALE_UP_VELOCITY_THRESHOLD || 0.02
-    this.SCALE_DOWN_SW_RATE_THRESHOLD = options.SCALE_DOWN_SW_RATE_THRESHOLD || 0.01
-    this.SCALE_DOWN_LW_RATE_THRESHOLD = options.SCALE_DOWN_LW_RATE_THRESHOLD || 0.004
+    this.SCALE_UP_SW_RATE_THRESHOLD = options.SCALE_UP_SW_RATE_THRESHOLD || 0.15
+    this.SCALE_DOWN_SW_RATE_THRESHOLD = options.SCALE_DOWN_SW_RATE_THRESHOLD || 0.05
+    this.SCALE_DOWN_LW_RATE_THRESHOLD = options.SCALE_DOWN_LW_RATE_THRESHOLD || 0.03
 
     this.minPodsDefault = options.minPodsDefault || 1
     this.maxPodsDefault = options.maxPodsDefault || 10
   }
 
-  async storeSignalEvent (applicationId, podId, signals, timestamp = Date.now()) {
-    const eventKey = `reactive:events:app:${applicationId}:pod:${podId}:${timestamp}`
-    const signalCount = Object.keys(signals).length
+  async storeSignals (applicationId, podId, signals) {
+    const promises = []
+    for (const signal of signals) {
+      const promise = this.storeSignal(applicationId, podId, signal)
+      promises.push(promise)
+    }
+    await Promise.all(promises)
+  }
+
+  async storeSignal (applicationId, podId, signal) {
+    const signalId = randomUUID()
+    const signalKey = this.#serializeSignalKey({ applicationId, podId, signalId })
 
     const maxRetention = Math.ceil(this.LW / 1000)
-    const newCount = await this.store.valkey.incrby(eventKey, signalCount)
 
-    if (newCount === signalCount) {
-      // Key was newly created, set expiration
-      await this.store.valkey.expire(eventKey, maxRetention)
-    }
+    await this.store.valkey.hset(signalKey, 'type', signal.type)
+    await this.store.valkey.hset(signalKey, 'value', signal.value)
+    await this.store.valkey.hset(signalKey, 'level', signal.level ?? 'normal')
+    await this.store.valkey.hset(signalKey, 'timestamp', signal.timestamp)
+    await this.store.valkey.expire(signalKey, maxRetention)
 
-    this.log.debug({
-      applicationId,
-      podId,
-      signalCount,
-      timestamp,
-      totalCount: newCount
-    }, 'Stored signal event')
+    this.log.debug({ applicationId, podId, signal }, 'Stored signal')
   }
 
-  async getAllEventsGroupedByWindows (applicationId, now = Date.now()) {
-    const pattern = `reactive:events:app:${applicationId}:pod:*`
-    const allKeys = await scanKeys(this.store.valkey, pattern, 100)
+  async getAppPodsSignals (applicationId) {
+    const podsSignals = {}
 
-    const eventsFW = []
-    const eventsSW = []
-    const eventsLW = []
-
-    for (const key of allKeys) {
-      const parts = key.split(':')
-      const timestamp = parseInt(parts[parts.length - 1])
-
-      if (isNaN(timestamp)) {
-        this.log.warn({ key }, 'Invalid timestamp in key')
-        continue
+    const pattern = `reactive:signals:app:${applicationId}:pod:*`
+    await this.#scanByPattern(pattern, async (keys) => {
+      const promises = new Array(keys.length)
+      for (let i = 0; i < keys.length; i++) {
+        promises[i] = this.store.valkey.hgetall(keys[i])
       }
+      const signals = await Promise.all(promises)
 
-      const age = now - timestamp
-      const podId = parts[parts.length - 2]
-      const event = { podId, timestamp }
+      for (let i = 0; i < keys.length; i++) {
+        const { podId } = this.#parseSignalKey(keys[i])
 
-      if (age <= this.FW) {
-        eventsFW.push(event)
+        const signal = signals[i]
+        if (signal) {
+          podsSignals[podId] ??= []
+          podsSignals[podId].push(signal)
+        }
       }
-      if (age <= this.SW) {
-        eventsSW.push(event)
-      }
-      if (age <= this.LW) {
-        eventsLW.push(event)
-      }
-    }
+    })
 
-    return { eventsFW, eventsSW, eventsLW }
+    return podsSignals
   }
 
-  calculateRatePerPod (events, windowMs, podId) {
-    const podEvents = events.filter(e => e.podId === podId)
-    const count = podEvents.length
-    const rate = count / (windowMs / 1000)
-    return rate
-  }
+  calculateStats (podsSignals, podsCount, now = Date.now()) {
+    const nowSec = Math.floor(now / 1000) * 1000
 
-  calculateStats (events, podsCount, windowMs) {
-    const podIds = [...new Set(events.map(e => e.podId))]
+    const timeWindows = {
+      FW: this.FW,
+      SW: this.SW,
+      LW: this.LW
+    }
 
-    if (podIds.length === 0) {
-      return {
-        podCount: 0,
-        rates: {},
-        avgRate: 0,
-        maxRate: 0
+    const stats = {}
+
+    for (const timeWindow in timeWindows) {
+      stats[timeWindow] = {
+        eventRates: {},
+        avgEventRate: 0,
+        maxEventRate: 0,
+        events: new Set(),
+        eventsCount: 0,
+        signalsCount: 0,
+        signalsCountByLevel: {
+          normal: 0,
+          critical: 0
+        }
       }
     }
 
-    const rates = {}
-    for (const podId of podIds) {
-      rates[podId] = this.calculateRatePerPod(events, windowMs, podId)
+    for (const podId in podsSignals) {
+      const podSignals = podsSignals[podId]
+
+      const podEventsByWindow = {}
+      for (const timeWindow in timeWindows) {
+        podEventsByWindow[timeWindow] = new Set()
+      }
+
+      for (const signal of podSignals) {
+        const timestamp = parseInt(signal.timestamp)
+        if (isNaN(timestamp)) {
+          this.log.warn({ signal }, 'Invalid timestamp in signal')
+          continue
+        }
+
+        const timestampInSeconds = Math.floor(timestamp / 1000) * 1000
+        const age = nowSec - timestampInSeconds
+
+        for (const timeWindow in timeWindows) {
+          if (age < timeWindows[timeWindow]) {
+            stats[timeWindow].events.add(timestampInSeconds)
+            podEventsByWindow[timeWindow].add(timestampInSeconds)
+            stats[timeWindow].signalsCount++
+
+            const signalLevel = signal.level ?? 'normal'
+            stats[timeWindow].signalsCountByLevel[signalLevel] ??= 0
+            stats[timeWindow].signalsCountByLevel[signalLevel]++
+          }
+        }
+      }
+
+      for (const timeWindow in timeWindows) {
+        const timeWindowSeconds = timeWindows[timeWindow] / 1000
+
+        const podEvents = podEventsByWindow[timeWindow]
+        const podEventsCount = podEvents.size
+        const podEventsRate = podEventsCount / timeWindowSeconds
+
+        stats[timeWindow].eventRates[podId] = podEventsRate
+        stats[timeWindow].avgEventRate += podEventsRate
+        stats[timeWindow].maxEventRate = Math.max(stats[timeWindow].maxEventRate, podEventsRate)
+      }
     }
 
-    const rateValues = Object.values(rates)
-    const avgRate = rateValues.reduce((sum, r) => sum + r, 0) / podsCount
-    const maxRate = Math.max(...rateValues)
+    for (const timeWindow in timeWindows) {
+      stats[timeWindow].avgEventRate /= podsCount
+      stats[timeWindow].eventsCount = stats[timeWindow].events.size
+      delete stats[timeWindow].events
+    }
 
-    return { rates, avgRate, maxRate }
+    return {
+      statsFW: stats.FW,
+      statsSW: stats.SW,
+      statsLW: stats.LW
+    }
   }
 
   async getCooldownInfo (applicationId) {
@@ -137,7 +181,7 @@ class SignalScalerAlgorithm {
                            (now - cooldown.lastScaleUp) >= this.SW
 
     const scaleDownAllowed = (now - cooldown.lastScaleDown) >= this.SW &&
-                             (now - cooldown.lastScaleUp) >= this.LW
+                             (now - cooldown.lastScaleUp) >= this.SW
 
     if (!scaleUpAllowed && !scaleDownAllowed) {
       return { nfinal: currentPodCount, reason: 'Scaling blocked by cooldown' }
@@ -147,30 +191,24 @@ class SignalScalerAlgorithm {
     const maxPodsValue = maxPods !== undefined ? maxPods : this.maxPodsDefault
     const appLabel = applicationName ? `${applicationName}: ` : ''
 
-    const { eventsFW, eventsSW, eventsLW } = await this.getAllEventsGroupedByWindows(applicationId, now)
-
-    const statsFW = this.calculateStats(eventsFW, currentPodCount, this.FW)
-    const statsSW = this.calculateStats(eventsSW, currentPodCount, this.SW)
-    const statsLW = this.calculateStats(eventsLW, currentPodCount, this.LW)
-
-    const velocity = statsFW.avgRate - statsSW.avgRate
+    const appPodsSignals = await this.getAppPodsSignals(applicationId)
+    const { statsFW, statsSW, statsLW } = this.calculateStats(appPodsSignals, currentPodCount)
 
     this.log.debug({
       applicationId,
       currentPodCount,
-      fw: { count: eventsFW.length, avgRate: statsFW.avgRate, maxRate: statsFW.maxRate },
-      sw: { count: eventsSW.length, avgRate: statsSW.avgRate, maxRate: statsSW.maxRate },
-      lw: { count: eventsLW.length, avgRate: statsLW.avgRate, maxRate: statsLW.maxRate },
-      velocity
+      fw: statsFW,
+      sw: statsSW,
+      lw: statsLW
     }, 'Calculated scaling statistics')
 
     if (scaleUpAllowed) {
-      const hotspotScaleUp = statsFW.maxRate > this.HOT_RATE_THRESHOLD
-      const breadthScaleUp = statsFW.avgRate > this.SCALE_UP_FW_RATE_THRESHOLD &&
-                          statsSW.avgRate > this.SCALE_UP_SW_RATE_THRESHOLD &&
-                          velocity > this.SCALE_UP_VELOCITY_THRESHOLD
+      const criticalSingals = statsFW.signalsCountByLevel.critical > 0
+      const hotspotScaleUp = statsFW.maxEventRate > this.HOT_RATE_THRESHOLD
+      const breadthScaleUp = statsFW.avgEventRate > this.SCALE_UP_FW_RATE_THRESHOLD &&
+                             statsSW.avgEventRate > this.SCALE_UP_SW_RATE_THRESHOLD
 
-      const scaleUpNeeded = hotspotScaleUp || breadthScaleUp
+      const scaleUpNeeded = hotspotScaleUp || breadthScaleUp || criticalSingals
 
       if (scaleUpNeeded) {
         const scaleUpAmount = breadthScaleUp ? Math.ceil(currentPodCount / 2) : 1
@@ -179,9 +217,14 @@ class SignalScalerAlgorithm {
         if (newPodCount > currentPodCount) {
           await this.setCooldown(applicationId, 'scaleup', now)
 
-          const reason = hotspotScaleUp
-            ? `Scaling up ${appLabel}Hotspot detected (max rate ${statsFW.maxRate.toFixed(3)} > ${this.HOT_RATE_THRESHOLD})`
-            : `Scaling up ${appLabel}Breadth scaling (FW rate ${statsFW.avgRate.toFixed(3)}, SW rate ${statsSW.avgRate.toFixed(3)}, velocity ${velocity.toFixed(3)})`
+          let reason = `Scaling up ${appLabel}`
+          if (criticalSingals) {
+            reason += 'Received critical signals'
+          } else if (hotspotScaleUp) {
+            reason += `Hotspot detected (max rate ${statsFW.maxEventRate.toFixed(3)} > ${this.HOT_RATE_THRESHOLD})`
+          } else {
+            reason += `Breadth scaling (FW rate ${statsFW.avgEventRate.toFixed(3)}, SW rate ${statsSW.avgEventRate.toFixed(3)})`
+          }
 
           this.log.info({
             applicationId,
@@ -202,16 +245,18 @@ class SignalScalerAlgorithm {
     }
 
     if (scaleDownAllowed) {
-      const scaleDownNeeded = eventsFW.length === 0 &&
-                           statsSW.avgRate <= this.SCALE_DOWN_SW_RATE_THRESHOLD &&
-                           statsLW.avgRate <= this.SCALE_DOWN_LW_RATE_THRESHOLD
+      const scaleDownNeeded = statsFW.eventsCount === 0 &&
+                              statsSW.avgEventRate <= this.SCALE_DOWN_SW_RATE_THRESHOLD &&
+                              statsLW.avgEventRate <= this.SCALE_DOWN_LW_RATE_THRESHOLD &&
+                              statsFW.signalsCountByLevel.critical === 0 &&
+                              statsSW.signalsCountByLevel.critical === 0
 
       if (scaleDownNeeded && currentPodCount > minPodsValue) {
         const newPodCount = currentPodCount - 1
 
         await this.setCooldown(applicationId, 'scaledown', now)
 
-        const reason = `Scaling down ${appLabel}Low utilization (FW events: 0, SW rate ${statsSW.avgRate.toFixed(3)}, LW rate ${statsLW.avgRate.toFixed(3)})`
+        const reason = `Scaling down ${appLabel}Low utilization (FW events: 0, SW rate ${statsSW.avgEventRate.toFixed(3)}, LW rate ${statsLW.avgEventRate.toFixed(3)})`
 
         this.log.info({
           applicationId,
@@ -228,6 +273,28 @@ class SignalScalerAlgorithm {
       nfinal: currentPodCount,
       reason: 'No scaling needed or blocked by cooldown'
     }
+  }
+
+  #scanByPattern (pattern, callback) {
+    const stream = this.store.valkey.scanStream({ match: pattern })
+    const promises = []
+
+    return new Promise((resolve, reject) => {
+      stream.on('data', (keys) => promises.push(callback(keys)))
+      stream.on('end', () => Promise.all(promises).then(() => resolve(), reject))
+      stream.on('error', reject)
+    })
+  }
+
+  #serializeSignalKey ({ applicationId, podId, signalId }) {
+    return `reactive:signals:app:${applicationId}:pod:${podId}:signal:${signalId}`
+  }
+
+  #parseSignalKey (key) {
+    const parts = key.split(':')
+    const podId = parts.at(-3)
+    const applicationId = parts.at(-5)
+    return { applicationId, podId }
   }
 }
 

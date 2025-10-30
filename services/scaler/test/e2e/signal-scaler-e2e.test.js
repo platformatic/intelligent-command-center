@@ -135,6 +135,93 @@ test('E2E: signal ingestion should trigger scale up decision', async (t) => {
   assert.strictEqual(typeof body.scalingDecision.reason, 'string')
 })
 
+test('E2E: critical signal should trigger scale up decision', async (t) => {
+  await cleanValkeyData()
+
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const podId = 'test-pod-1'
+  const namespace = 'platformatic'
+  const controllerId = 'test-controller'
+
+  await startMachinist(t, {
+    getPodController: () => ({
+      name: controllerId,
+      namespace,
+      kind: 'Deployment',
+      apiVersion: 'apps/v1',
+      replicas: 2
+    })
+  })
+
+  const server = await buildServer(t, {
+    PLT_SCALER_ALGORITHM_VERSION: 'v2',
+    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString()
+  })
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  await server.inject({
+    method: 'POST',
+    url: '/controllers',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      applicationId,
+      deploymentId,
+      namespace,
+      podId
+    })
+  })
+
+  await server.platformatic.entities.applicationScaleConfig.save({
+    input: {
+      applicationId,
+      minPods: 1,
+      maxPods: 10
+    }
+  })
+
+  const response = await server.inject({
+    method: 'POST',
+    url: '/signals',
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId, namespace)
+    },
+    body: JSON.stringify({
+      applicationId,
+      serviceId: 'test-service',
+      elu: 0.7,
+      heapUsed: 111,
+      heapTotal: 222,
+      signals: [{
+        type: 'kafka',
+        level: 'critical',
+        value: 10,
+        timestamp: Date.now()
+      }]
+    })
+  })
+
+  assert.strictEqual(response.statusCode, 200)
+
+  const body = JSON.parse(response.body)
+  assert.strictEqual(body.success, true)
+  assert.strictEqual(body.applicationId, applicationId)
+  assert.strictEqual(body.podId, podId)
+  assert.strictEqual(body.signalCount, 1)
+  assert.ok(body.scalingDecision)
+  assert.ok(typeof body.scalingDecision.nfinal === 'number')
+  assert.ok(body.scalingDecision.nfinal > 2, 'Should recommend scaling up from 2 pods')
+  assert.ok(body.scalingDecision.reason)
+  assert.strictEqual(typeof body.scalingDecision.reason, 'string')
+})
+
 test('E2E: multiple pods sending signals should aggregate for scaling decision', async (t) => {
   await cleanValkeyData()
 
