@@ -51,14 +51,13 @@ export default function Metrics ({
     chart.forEach(parsedMetric => {
       const { date, cpu, elu, rss, totalHeapSize, usedHeapSize, newSpaceSize, oldSpaceSize } = parsedMetric
       const time = new Date(date)
-      const eluPercentage = elu * 100
       memory.push({
         time,
         values: [rss, totalHeapSize, usedHeapSize, newSpaceSize, oldSpaceSize].map(toMB)
       })
       cpuEL.push({
         time,
-        values: [cpu, eluPercentage]
+        values: [cpu, elu]
       })
     })
 
