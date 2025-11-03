@@ -1,7 +1,5 @@
 'use strict'
 
-const { randomUUID } = require('node:crypto')
-
 class SignalScalerAlgorithm {
   constructor (app, options = {}) {
     this.app = app
@@ -32,7 +30,11 @@ class SignalScalerAlgorithm {
   }
 
   async storeSignal (applicationId, podId, signal) {
-    const signalId = randomUUID()
+    if (!signal || !signal.id) {
+      this.log.error({ applicationId, podId, signal }, 'Invalid signal, missing id')
+      throw new Error('Invalid signal, missing id')
+    }
+    const signalId = signal.id
     const signalKey = this.#serializeSignalKey({ applicationId, podId, signalId })
 
     const maxRetention = Math.ceil(this.LW / 1000)

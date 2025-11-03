@@ -1,1 +1,1 @@
-ALTER TABLE alerts DROP COLUMN signals;
+DROP TABLE IF EXISTS signals;

@@ -95,11 +95,20 @@ test('POST /signals should process signals with v2 algorithm', async (t) => {
   assert.strictEqual(alert.podId, podId)
   assert.strictEqual(alert.serviceId, serviceId)
   assert.strictEqual(alert.unhealthy, false)
-  assert.ok(alert.signals, 'Should have signals field')
 
-  const signals = typeof alert.signals === 'string' ? JSON.parse(alert.signals) : alert.signals
-  assert.ok(Array.isArray(signals), 'Signals should be an array')
-  assert.ok(signals.length > 0, 'Should have at least one signal')
+  const signals = await server.platformatic.entities.signal.find({
+    where: {
+      applicationId: { eq: applicationId },
+      podId: { eq: podId }
+    }
+  })
+
+  assert.ok(signals.length > 0, 'Should have created signal records')
+  assert.strictEqual(signals.length, 2)
+  assert.strictEqual(signals[0].applicationId, applicationId)
+  assert.strictEqual(signals[0].podId, podId)
+  assert.strictEqual(signals[0].serviceId, serviceId)
+  assert.strictEqual(signals[0].alertId, alert.id, 'Signal should be linked to alert')
   assert.ok(signals[0].type, 'Signal should have type')
   assert.ok(signals[0].timestamp, 'Signal should have timestamp')
 })

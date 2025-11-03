@@ -3,6 +3,7 @@
 const fp = require('fastify-plugin')
 const SignalScalerAlgorithm = require('../lib/signal-scaler-algorithm')
 const { getApplicationName } = require('../lib/executor-utils')
+const { randomUUID } = require('node:crypto')
 
 class MultiSignalReactiveScaler {
   constructor (app) {
@@ -62,7 +63,11 @@ class MultiSignalReactiveScaler {
   }
 
   async processSignals ({ applicationId, serviceId, podId, signals, elu, heapUsed, heapTotal }) {
-    await this.algorithm.storeSignals(applicationId, podId, signals)
+    const signalsWithIds = signals.map((signal) => ({
+      id: randomUUID(),
+      ...signal
+    }))
+    await this.algorithm.storeSignals(applicationId, podId, signalsWithIds)
 
     this.app.log.debug({
       algorithm: 'Multi-Signal Reactive',
@@ -72,7 +77,7 @@ class MultiSignalReactiveScaler {
       signalCount: signals.length
     }, '[Multi-Signal Reactive] Stored signals')
 
-    await this.app.platformatic.entities.alert.save({
+    const alert = await this.app.platformatic.entities.alert.save({
       input: {
         applicationId,
         serviceId,
@@ -81,10 +86,28 @@ class MultiSignalReactiveScaler {
         heapUsed,
         heapTotal,
         unhealthy: false,
-        signals: JSON.stringify(signals),
         createdAt: new Date()
       }
     })
+
+    await Promise.all(
+      signalsWithIds.map(signal =>
+        this.app.platformatic.entities.signal.save({
+          input: {
+            id: signal.id,
+            alertId: alert.id,
+            applicationId,
+            serviceId,
+            podId,
+            type: signal.type,
+            value: signal.value,
+            timestamp: signal.timestamp,
+            description: signal.description,
+            createdAt: new Date()
+          }
+        })
+      )
+    )
 
     // Check if this instance is the leader
     const isLeader = this.app.isScalerLeader ? this.app.isScalerLeader() : false
@@ -164,7 +187,8 @@ class MultiSignalReactiveScaler {
         }, `[Multi-Signal Reactive] Scaling decision: ${scalingAction}`)
 
         if (scalingDecision.nfinal !== currentPodCount) {
-          await this.executeScaling(applicationId, scalingDecision.nfinal, scalingDecision.reason)
+          const signals = scalingDecision?.signals || []
+          await this.executeScaling(applicationId, scalingDecision.nfinal, scalingDecision.reason, signals)
         }
 
         // Check if new data arrived while we were processing
@@ -215,7 +239,7 @@ class MultiSignalReactiveScaler {
     }
   }
 
-  async executeScaling (applicationId, targetReplicas, reason) {
+  async executeScaling (applicationId, targetReplicas, reason, signals = []) {
     this.app.log.info({
       algorithm: 'Multi-Signal Reactive',
       applicationId,
@@ -231,13 +255,26 @@ class MultiSignalReactiveScaler {
       )
 
       await this.app.store.saveLastScalingTime(applicationId, Date.now())
+      const signalIds = signals ? signals.map(s => s.id) : []
+
+      if (scaleEvent?.id && signalIds.length > 0) {
+        await Promise.all(
+          signalIds.map(signalId =>
+            this.app.platformatic.entities.signal.save({
+              input: { id: signalId, scaleEventId: scaleEvent.id },
+              fields: ['id']
+            })
+          )
+        )
+      }
 
       this.app.log.info({
         algorithm: 'Multi-Signal Reactive',
         applicationId,
         targetReplicas,
         reason,
-        scaleEventId: scaleEvent?.id
+        scaleEventId: scaleEvent?.id,
+        linkedSignals: signalIds.length
       }, '[Multi-Signal Reactive] Successfully executed scaling action')
 
       return { success: true, scaleEvent }

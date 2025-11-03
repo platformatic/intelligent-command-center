@@ -39,6 +39,10 @@ async function getConfig () {
         {
           method: 'POST',
           path: '/flamegraphs'
+        },
+        {
+          method: 'POST',
+          path: '/signals'
         }
       ]
     },
@@ -115,6 +119,9 @@ async function buildServerWithPlugins (t, options = {}, plugins = []) {
 
 async function cleanDb (app) {
   const { db, sql } = app.platformatic
+  try {
+    await db.query(sql`DELETE FROM "signals"`)
+  } catch (err) {}
   try {
     await db.query(sql`DELETE FROM "performance_history"`)
   } catch (err) {}

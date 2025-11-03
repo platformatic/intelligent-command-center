@@ -125,12 +125,69 @@ test('processSignals should store signal event and make scaling decision', async
   assert.strictEqual(alerts[0].applicationId, applicationId)
   assert.strictEqual(alerts[0].serviceId, serviceId)
   assert.strictEqual(alerts[0].podId, podId)
-  assert.ok(alerts[0].signals, 'Alert should have signals')
 
-  const storedSignals = typeof alerts[0].signals === 'string' ? JSON.parse(alerts[0].signals) : alerts[0].signals
-  assert.strictEqual(storedSignals.length, 2, 'Alert should contain all signals from the batch')
+  const storedSignals = await app.platformatic.entities.signal.find({
+    where: {
+      applicationId: { eq: applicationId },
+      podId: { eq: podId }
+    }
+  })
+
+  assert.strictEqual(storedSignals.length, 2, 'Should store all signals from the batch')
+  assert.strictEqual(storedSignals[0].applicationId, applicationId)
+  assert.strictEqual(storedSignals[0].serviceId, serviceId)
+  assert.strictEqual(storedSignals[0].podId, podId)
+  assert.strictEqual(storedSignals[0].alertId, alerts[0].id, 'Signals should be linked to alert')
   assert.ok(storedSignals.some(s => s.type === 'cpu'), 'Should contain cpu signal')
   assert.ok(storedSignals.some(s => s.type === 'memory'), 'Should contain memory signal')
+})
+
+test('processSignals should store signals with matching IDs in DB and Valkey', async (t) => {
+  const app = await buildServer(t)
+
+  const applicationId = randomUUID()
+  const serviceId = randomUUID()
+  const podId = 'test-pod-1'
+  const controllerData = createTestController(applicationId, 2)
+
+  await app.platformatic.entities.controller.save({
+    input: controllerData
+  })
+
+  const signals = [
+    { type: 'cpu', value: 0.8, timestamp: Date.now() },
+    { type: 'memory', value: 0.7, timestamp: Date.now() }
+  ]
+
+  await app.signalScalerExecutor.processSignals({
+    applicationId,
+    serviceId,
+    podId,
+    signals,
+    elu: 0.7,
+    heapUsed: 111,
+    heapTotal: 222
+  })
+
+  const storedSignals = await app.platformatic.entities.signal.find({
+    where: {
+      applicationId: { eq: applicationId },
+      podId: { eq: podId }
+    }
+  })
+
+  assert.strictEqual(storedSignals.length, 2, 'Should store all signals from the batch')
+
+  const valkeySignals = await app.signalScalerExecutor.algorithm.getAppPodsSignals(applicationId)
+  const valkeySignalsForPod = valkeySignals[podId] || []
+
+  assert.strictEqual(valkeySignalsForPod.length, 2, 'Should store signals in Valkey')
+
+  for (const dbSignal of storedSignals) {
+    const valkeySignal = valkeySignalsForPod.find(vs => vs.id === dbSignal.id)
+    assert.ok(valkeySignal, `Signal ${dbSignal.id} should exist in Valkey with matching ID`)
+    assert.strictEqual(valkeySignal.type, dbSignal.type, 'Signal type should match')
+  }
 })
 
 test('check Scaling For Application should handle errors gracefully', async (t) => {
@@ -204,6 +261,15 @@ test('concurrent processSignals should queue algorithm execution', async (t) => 
   })
 
   assert.strictEqual(alerts.length, 2, 'Should create two alerts for two batches')
+
+  const signals = await app.platformatic.entities.signal.find({
+    where: {
+      applicationId: { eq: applicationId }
+    }
+  })
+
+  assert.strictEqual(signals.length, 2, 'Should create two signals for two batches')
+  assert.ok(signals.every(s => s.alertId), 'All signals should be linked to alerts')
 })
 
 test('runScalingAlgorithm should not run concurrently for same application', async (t) => {
@@ -242,8 +308,7 @@ test('runScalingAlgorithm uses atomic locking correctly', async (t) => {
   await app.signalScalerExecutor.algorithm.storeSignal(
     applicationId,
     podId,
-    { type: 'cpu', value: 0.5, timestamp: Date.now() },
-    Date.now()
+    { id: randomUUID(), type: 'cpu', value: 0.5, timestamp: Date.now() }
   )
 
   let algorithmCallCount = 0
