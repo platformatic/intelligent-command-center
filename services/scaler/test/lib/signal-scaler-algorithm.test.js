@@ -129,7 +129,16 @@ test('SignalScalerAlgorithm - hotspot scale up', async (t) => {
   const decision = await algorithm.calculateScalingDecision(applicationId, 4, 1, 10)
 
   assert.equal(decision.nfinal, 5)
-  assert.ok(decision.reason.includes('Hotspot'))
+  assert.strictEqual(decision.reason, 'Pod "pod-1" sent 12 signals for 10 seconds')
+
+  const signals = decision.signals
+  assert.strictEqual(signals.length, 12)
+
+  for (const signal of signals) {
+    assert.ok(signal.id)
+    assert.strictEqual(signal.type, 'cpu')
+    assert.strictEqual(signal.value, '0.95')
+  }
 })
 
 test('SignalScalerAlgorithm - scale up if there is at least one critical signal', async (t) => {
@@ -150,7 +159,15 @@ test('SignalScalerAlgorithm - scale up if there is at least one critical signal'
   const decision = await algorithm.calculateScalingDecision(applicationId, 4, 1, 10)
 
   assert.equal(decision.nfinal, 5)
-  assert.ok(decision.reason.includes('Received critical signals'))
+  assert.ok(decision.reason.includes('Received 1 critical signals'))
+
+  const signals = decision.signals
+  assert.strictEqual(signals.length, 1)
+
+  assert.ok(signals[0].id)
+  assert.strictEqual(signals[0].type, 'kafka')
+  assert.strictEqual(signals[0].level, 'critical')
+  assert.strictEqual(signals[0].value, '10')
 })
 
 test('SignalScalerAlgorithm - breadth scale up', async (t) => {
@@ -180,7 +197,16 @@ test('SignalScalerAlgorithm - breadth scale up', async (t) => {
   const decision = await algorithm.calculateScalingDecision(applicationId, 2, 1, 10)
 
   assert.equal(decision.nfinal, 3)
-  assert.ok(decision.reason.includes('Breadth'))
+  assert.strictEqual(decision.reason, 'Received 6 signals from multiple pods for 10 seconds')
+
+  const signals = decision.signals
+  assert.strictEqual(signals.length, 6)
+
+  for (const signal of signals) {
+    assert.ok(signal.id)
+    assert.strictEqual(signal.type, 'cpu')
+    assert.strictEqual(signal.value, '0.8')
+  }
 })
 
 test('SignalScalerAlgorithm - scale down', async (t) => {
@@ -202,7 +228,14 @@ test('SignalScalerAlgorithm - scale down', async (t) => {
   const decision = await algorithm.calculateScalingDecision(applicationId, 3, 1, 10)
 
   assert.equal(decision.nfinal, 2)
-  assert.ok(decision.reason.includes('Low utilization'))
+  assert.strictEqual(
+    decision.reason,
+    'Application signals rates are low (' +
+      '0 signals for 10 seconds, ' +
+      '0 signals for 30 seconds, ' +
+      '1 signals for 60 seconds)'
+  )
+  assert.strictEqual(decision.signals.length, 0)
 })
 
 test('SignalScalerAlgorithm - respect minimum pods', async (t) => {
@@ -238,7 +271,7 @@ test('SignalScalerAlgorithm - respect maximum pods', async (t) => {
   assert.equal(decision.nfinal, 5)
 })
 
-test('SignalScalerAlgorithm -scale up cooldown after scale down', async (t) => {
+test('SignalScalerAlgorithm - scale up cooldown after scale down', async (t) => {
   const app = await buildServer(t)
   const algorithm = new SignalScalerAlgorithm(app, {
     FW: 10000,
@@ -260,6 +293,9 @@ test('SignalScalerAlgorithm -scale up cooldown after scale down', async (t) => {
 
   assert.equal(decision.nfinal, 2)
   assert.ok(decision.reason.includes('cooldown'))
+
+  const signals = decision.signals
+  assert.strictEqual(signals.length, 0)
 })
 
 test('SignalScalerAlgorithm - scale down cooldown', async (t) => {
@@ -329,14 +365,23 @@ test('SignalScalerAlgorithm - scale up by Math.ceil(n/2)', async (t) => {
   const applicationId = 'test-app-scale-amount-' + Date.now()
   const now = Date.now()
 
-  for (let i = 0; i < 12; i++) {
-    const signal = { type: 'cpu', value: 0.95, timestamp: now - i * 500 }
+  for (let i = 0; i < 15; i++) {
+    const signal = { type: 'cpu', value: 0.95, timestamp: now - i * 2000 }
     await algorithm.storeSignal(applicationId, 'pod-1', signal)
     await algorithm.storeSignal(applicationId, 'pod-2', signal)
   }
 
   const decision2 = await algorithm.calculateScalingDecision(applicationId, 2, 1, 20)
   assert.equal(decision2.nfinal, 3)
+
+  const signals = decision2.signals
+  assert.strictEqual(signals.length, 10)
+
+  for (const signal of signals) {
+    assert.ok(signal.id)
+    assert.strictEqual(signal.type, 'cpu')
+    assert.strictEqual(signal.value, '0.95')
+  }
 })
 
 test('SignalScalerAlgorithm - scale up by Math.ceil(n/2)', async (t) => {
@@ -360,6 +405,15 @@ test('SignalScalerAlgorithm - scale up by Math.ceil(n/2)', async (t) => {
 
   const decision5 = await algorithm.calculateScalingDecision(applicationId, 5, 1, 20)
   assert.equal(decision5.nfinal, 8)
+
+  const signals = decision5.signals
+  assert.strictEqual(signals.length, 25)
+
+  for (const signal of signals) {
+    assert.ok(signal.id)
+    assert.strictEqual(signal.type, 'cpu')
+    assert.strictEqual(signal.value, '0.95')
+  }
 })
 
 test('SignalScalerAlgorithm - scale up by Math.ceil(n/2)', async (t) => {
@@ -386,4 +440,13 @@ test('SignalScalerAlgorithm - scale up by Math.ceil(n/2)', async (t) => {
 
   const decision10 = await algorithm.calculateScalingDecision(applicationId, 10, 1, 20)
   assert.equal(decision10.nfinal, 15)
+
+  const signals = decision10.signals
+  assert.strictEqual(signals.length, 40)
+
+  for (const signal of signals) {
+    assert.ok(signal.id)
+    assert.strictEqual(signal.type, 'cpu')
+    assert.strictEqual(signal.value, '0.95')
+  }
 })

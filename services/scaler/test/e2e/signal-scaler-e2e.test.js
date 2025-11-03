@@ -830,7 +830,7 @@ test('E2E: scale down when no recent signals', async (t) => {
   assert.strictEqual(latestEvent.direction, 'down', 'Should be scaling down')
   assert.strictEqual(latestEvent.replicas, 4, 'Should scale down to 4 pods')
   assert.strictEqual(latestEvent.replicasDiff, -1, 'Should scale down by 1')
-  assert.ok(latestEvent.reason.includes('Low utilization'), 'Reason should mention low utilization')
+  assert.ok(latestEvent.reason.includes('Application signals rates are low'), 'Reason should mention low utilization')
 
   assert.strictEqual(server.isScalerLeader(), true, 'Server should be the leader')
 })

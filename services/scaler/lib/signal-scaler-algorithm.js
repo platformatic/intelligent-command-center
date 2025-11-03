@@ -58,12 +58,12 @@ class SignalScalerAlgorithm {
       const signals = await Promise.all(promises)
 
       for (let i = 0; i < keys.length; i++) {
-        const { podId } = this.#parseSignalKey(keys[i])
+        const { id, podId } = this.#parseSignalKey(keys[i])
 
         const signal = signals[i]
         if (signal) {
           podsSignals[podId] ??= []
-          podsSignals[podId].push(signal)
+          podsSignals[podId].push({ id, podId, ...signal })
         }
       }
     })
@@ -87,12 +87,14 @@ class SignalScalerAlgorithm {
         eventRates: {},
         avgEventRate: 0,
         maxEventRate: 0,
+        maxEventRatePodId: null,
         events: new Set(),
         eventsCount: 0,
-        signalsCount: 0,
-        signalsCountByLevel: {
-          normal: 0,
-          critical: 0
+        signals: [],
+        signalsByPod: {},
+        signalsByLevel: {
+          normal: [],
+          critical: []
         }
       }
     }
@@ -119,11 +121,14 @@ class SignalScalerAlgorithm {
           if (age < timeWindows[timeWindow]) {
             stats[timeWindow].events.add(timestampInSeconds)
             podEventsByWindow[timeWindow].add(timestampInSeconds)
-            stats[timeWindow].signalsCount++
+            stats[timeWindow].signals.push(signal)
+
+            stats[timeWindow].signalsByPod[podId] ??= []
+            stats[timeWindow].signalsByPod[podId].push(signal)
 
             const signalLevel = signal.level ?? 'normal'
-            stats[timeWindow].signalsCountByLevel[signalLevel] ??= 0
-            stats[timeWindow].signalsCountByLevel[signalLevel]++
+            stats[timeWindow].signalsByLevel[signalLevel] ??= []
+            stats[timeWindow].signalsByLevel[signalLevel].push(signal)
           }
         }
       }
@@ -137,7 +142,11 @@ class SignalScalerAlgorithm {
 
         stats[timeWindow].eventRates[podId] = podEventsRate
         stats[timeWindow].avgEventRate += podEventsRate
-        stats[timeWindow].maxEventRate = Math.max(stats[timeWindow].maxEventRate, podEventsRate)
+
+        if (podEventsRate > stats[timeWindow].maxEventRate) {
+          stats[timeWindow].maxEventRate = podEventsRate
+          stats[timeWindow].maxEventRatePodId = podId
+        }
       }
     }
 
@@ -173,7 +182,7 @@ class SignalScalerAlgorithm {
     await this.store.valkey.set(key, timestamp.toString(), 'EX', retention)
   }
 
-  async calculateScalingDecision (applicationId, currentPodCount, minPods, maxPods, applicationName = null) {
+  async calculateScalingDecision (applicationId, currentPodCount, minPods, maxPods) {
     const cooldown = await this.getCooldownInfo(applicationId)
     const now = Date.now()
 
@@ -184,12 +193,15 @@ class SignalScalerAlgorithm {
                              (now - cooldown.lastScaleUp) >= this.SW
 
     if (!scaleUpAllowed && !scaleDownAllowed) {
-      return { nfinal: currentPodCount, reason: 'Scaling blocked by cooldown' }
+      return {
+        nfinal: currentPodCount,
+        reason: 'Scaling blocked by cooldown',
+        signals: []
+      }
     }
 
     const minPodsValue = minPods !== undefined ? minPods : this.minPodsDefault
     const maxPodsValue = maxPods !== undefined ? maxPods : this.maxPodsDefault
-    const appLabel = applicationName ? `${applicationName}: ` : ''
 
     const appPodsSignals = await this.getAppPodsSignals(applicationId)
     const { statsFW, statsSW, statsLW } = this.calculateStats(appPodsSignals, currentPodCount)
@@ -203,28 +215,37 @@ class SignalScalerAlgorithm {
     }, 'Calculated scaling statistics')
 
     if (scaleUpAllowed) {
-      const criticalSingals = statsFW.signalsCountByLevel.critical > 0
+      const criticalSignals = statsFW.signalsByLevel.critical.length > 0
       const hotspotScaleUp = statsFW.maxEventRate > this.HOT_RATE_THRESHOLD
       const breadthScaleUp = statsFW.avgEventRate > this.SCALE_UP_FW_RATE_THRESHOLD &&
                              statsSW.avgEventRate > this.SCALE_UP_SW_RATE_THRESHOLD
 
-      const scaleUpNeeded = hotspotScaleUp || breadthScaleUp || criticalSingals
+      const scaleUpNeeded = hotspotScaleUp || breadthScaleUp || criticalSignals
 
       if (scaleUpNeeded) {
-        const scaleUpAmount = breadthScaleUp ? Math.ceil(currentPodCount / 2) : 1
+        let scaleUpAmount = breadthScaleUp ? Math.ceil(currentPodCount / 2) : 1
+        let reason = null
+        let triggeredSignals = null
+
+        if (breadthScaleUp) {
+          scaleUpAmount = Math.ceil(currentPodCount / 2)
+          triggeredSignals = statsFW.signals
+          reason = `Received ${triggeredSignals.length} signals from multiple pods for ${this.FW / 1000} seconds`
+        } else if (criticalSignals) {
+          scaleUpAmount = 1
+          triggeredSignals = statsFW.signalsByLevel.critical
+          reason = `Received ${triggeredSignals.length} critical signals`
+        } else if (hotspotScaleUp) {
+          const hotspotPodId = statsFW.maxEventRatePodId
+          scaleUpAmount = 1
+          triggeredSignals = statsFW.signalsByPod[hotspotPodId]
+          reason = `Pod "${hotspotPodId}" sent ${triggeredSignals.length} signals for ${this.FW / 1000} seconds`
+        }
+
         const newPodCount = Math.min(currentPodCount + scaleUpAmount, maxPodsValue)
 
         if (newPodCount > currentPodCount) {
           await this.setCooldown(applicationId, 'scaleup', now)
-
-          let reason = `Scaling up ${appLabel}`
-          if (criticalSingals) {
-            reason += 'Received critical signals'
-          } else if (hotspotScaleUp) {
-            reason += `Hotspot detected (max rate ${statsFW.maxEventRate.toFixed(3)} > ${this.HOT_RATE_THRESHOLD})`
-          } else {
-            reason += `Breadth scaling (FW rate ${statsFW.avgEventRate.toFixed(3)}, SW rate ${statsSW.avgEventRate.toFixed(3)})`
-          }
 
           this.log.info({
             applicationId,
@@ -234,12 +255,13 @@ class SignalScalerAlgorithm {
             reason
           }, 'Scaling up')
 
-          return { nfinal: newPodCount, reason }
+          return { nfinal: newPodCount, reason, signals: triggeredSignals }
         }
 
         return {
           nfinal: currentPodCount,
-          reason: 'Already at maximum pod count'
+          reason: 'Already at maximum pod count',
+          signals: []
         }
       }
     }
@@ -248,15 +270,18 @@ class SignalScalerAlgorithm {
       const scaleDownNeeded = statsFW.eventsCount === 0 &&
                               statsSW.avgEventRate <= this.SCALE_DOWN_SW_RATE_THRESHOLD &&
                               statsLW.avgEventRate <= this.SCALE_DOWN_LW_RATE_THRESHOLD &&
-                              statsFW.signalsCountByLevel.critical === 0 &&
-                              statsSW.signalsCountByLevel.critical === 0
+                              statsFW.signalsByLevel.critical.length === 0 &&
+                              statsSW.signalsByLevel.critical.length === 0
 
       if (scaleDownNeeded && currentPodCount > minPodsValue) {
         const newPodCount = currentPodCount - 1
 
         await this.setCooldown(applicationId, 'scaledown', now)
 
-        const reason = `Scaling down ${appLabel}Low utilization (FW events: 0, SW rate ${statsSW.avgEventRate.toFixed(3)}, LW rate ${statsLW.avgEventRate.toFixed(3)})`
+        const reason = 'Application signals rates are low (' +
+          `${statsFW.signals.length} signals for ${this.FW / 1000} seconds, ` +
+          `${statsSW.signals.length} signals for ${this.SW / 1000} seconds, ` +
+          `${statsLW.signals.length} signals for ${this.LW / 1000} seconds)`
 
         this.log.info({
           applicationId,
@@ -265,13 +290,14 @@ class SignalScalerAlgorithm {
           reason
         }, 'Scaling down')
 
-        return { nfinal: newPodCount, reason }
+        return { nfinal: newPodCount, reason, signals: [] }
       }
     }
 
     return {
       nfinal: currentPodCount,
-      reason: 'No scaling needed or blocked by cooldown'
+      reason: 'No scaling needed or blocked by cooldown',
+      signals: []
     }
   }
 
@@ -292,9 +318,10 @@ class SignalScalerAlgorithm {
 
   #parseSignalKey (key) {
     const parts = key.split(':')
+    const id = parts.at(-1)
     const podId = parts.at(-3)
     const applicationId = parts.at(-5)
-    return { applicationId, podId }
+    return { id, applicationId, podId }
   }
 }
 
