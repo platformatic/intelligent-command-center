@@ -17,7 +17,7 @@ module.exports = async function (app) {
               type: 'object',
               properties: {
                 type: { type: 'string' },
-                value: {},
+                value: { type: ['string', 'number', 'null'] },
                 timestamp: { type: 'number' },
                 description: { type: 'string' }
               },

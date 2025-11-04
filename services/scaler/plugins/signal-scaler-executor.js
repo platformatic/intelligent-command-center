@@ -63,10 +63,14 @@ class MultiSignalReactiveScaler {
   }
 
   async processSignals ({ applicationId, serviceId, podId, signals, elu, heapUsed, heapTotal }) {
-    const signalsWithIds = signals.map((signal) => ({
-      id: randomUUID(),
-      ...signal
-    }))
+    const signalsWithIds = signals.map((signal) => {
+      let value = parseFloat(signal.value)
+      if (isNaN(value)) {
+        value = null
+      }
+      return { id: randomUUID(), value, ...signal }
+    })
+
     await this.algorithm.storeSignals(applicationId, podId, signalsWithIds)
 
     this.app.log.debug({

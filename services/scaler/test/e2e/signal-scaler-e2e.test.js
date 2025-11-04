@@ -100,6 +100,7 @@ test('E2E: signal ingestion should trigger scale up decision', async (t) => {
     signals.push({
       type: 'cpu',
       value: 0.85,
+      description: 'Test signal',
       timestamp: now + (i * 1000)
     })
   }
@@ -133,6 +134,20 @@ test('E2E: signal ingestion should trigger scale up decision', async (t) => {
   assert.ok(body.scalingDecision.nfinal > 2, 'Should recommend scaling up from 2 pods')
   assert.ok(body.scalingDecision.reason)
   assert.strictEqual(typeof body.scalingDecision.reason, 'string')
+
+  const storedSignals = await server.platformatic.entities.signal.find()
+  assert.strictEqual(storedSignals.length, 20)
+
+  for (const signal of storedSignals) {
+    assert.ok(signal.id)
+    assert.strictEqual(signal.applicationId, applicationId)
+    assert.strictEqual(signal.serviceId, 'test-service')
+    assert.strictEqual(signal.podId, podId)
+    assert.strictEqual(signal.type, 'cpu')
+    assert.strictEqual(signal.value, 0.85)
+    assert.strictEqual(signal.description, 'Test signal')
+    assert.ok(signal.timestamp)
+  }
 })
 
 test('E2E: critical signal should trigger scale up decision', async (t) => {

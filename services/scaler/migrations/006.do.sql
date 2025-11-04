@@ -6,7 +6,7 @@ CREATE TABLE signals (
   pod_id VARCHAR(255) NOT NULL,
   scale_event_id uuid REFERENCES scale_events(id) ON DELETE SET NULL,
   type VARCHAR(255) NOT NULL,
-  value JSONB,
+  value FLOAT,
   timestamp BIGINT NOT NULL,
   description TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
