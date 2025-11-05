@@ -17,16 +17,19 @@ export async function getScalingHistory (applicationId, limit = 10) {
     return []
   }
 
-  return res.map((r) => {
-    return {
+  const output = []
+  for (const r of res) {
+    output.push({
       id: r.id,
       time: r.createdAt,
       values: [r.replicas],
       direction: r.direction,
       reason: r.reason,
       replicasDiff: r.replicasDiff
-    }
-  })
+
+    })
+  }
+  return output
 }
 
 export async function getScalingHistorySummary (applicationId) {

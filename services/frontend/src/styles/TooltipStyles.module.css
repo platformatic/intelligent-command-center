@@ -2,3 +2,8 @@
   @apply font-inter font-light text-[0.75rem] leading-[1.125rem] text-rich-black p-2 border-0 z-20 w-max;
   background-color: white !important;
 }
+
+.limitedWidthTooltip {
+  @apply font-inter font-light text-[0.75rem] leading-[1.125rem] text-rich-black p-2 border-0 z-20 w-[250px];
+  background-color: white !important;
+}

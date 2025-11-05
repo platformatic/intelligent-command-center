@@ -78,3 +78,11 @@ export function isAdmin (user) {
 export function isRegularUser (user) {
   return user.role === ROLE_USER
 }
+
+export function toPercentage (value, max = 1, fixed = 1) {
+  const perc = (value / max) * 100
+  if (!Number.isInteger(perc)) {
+    return perc.toFixed(fixed)
+  }
+  return perc
+}

@@ -16,6 +16,8 @@ module.exports = async function (app) {
       output[item.slug] = !!app.config[item.env]
     })
 
+    output['scaler-algorithm-version'] = app.config.PLT_SCALER_ALGORITHM_VERSION
+
     return res.send(output)
   })
 }

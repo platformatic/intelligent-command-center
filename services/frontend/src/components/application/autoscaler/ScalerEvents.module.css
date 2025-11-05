@@ -62,3 +62,51 @@
 .metrics > div {
   @apply bg-black-russian p-2;
 }
+
+.signalDetails {
+  @apply flex flex-col gap-2 bg-rich-black p-2;
+}
+
+.signalDetailsHeader {
+  @apply flex flex-row gap-2 items-center justify-between;
+}
+
+.signalDetailsTitle {
+  @apply font-bold;
+}
+
+.signalDetailsServiceId {
+  @apply text-white/70 font-normal text-sm;
+}
+
+.signalDetailsListTitle {
+  @apply text-lg font-bold;
+}
+.signalDetailsHeaderLeft {
+  @apply flex flex-row gap-2 items-center;
+}
+
+.signalDetailsValue {
+  @apply flex flex-row gap-2 items-center;
+}
+
+.signalDetailsContainer {
+  @apply flex flex-col bg-black-russian p-1;
+}
+
+.signalDetailsContainer > div {
+  @apply flex flex-row gap-2 items-center justify-between bg-rich-black p-2;
+}
+
+.signalDetailsContainer > div > span {
+  @apply flex flex-row gap-2 items-center;
+}
+.signalDetailsContainer > div > span:first-child {
+  @apply text-[14px] font-bold;
+}
+.signalDetailsContainer > div > span:last-child {
+  @apply text-white/70 font-normal text-sm;
+}
+.signalDetailsServiceId {
+  @apply text-white/70 font-normal text-sm;
+}

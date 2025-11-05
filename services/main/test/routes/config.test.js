@@ -37,6 +37,38 @@ test('should return the config', async (t) => {
     cache: true,
     'cache-recommendations': true,
     'risk-service-dump': true,
-    'fusion-fission-cascade': true
+    'fusion-fission-cascade': true,
+    'scaler-algorithm-version': 'v1'
   })
+})
+
+test('should return the config with scaler algorithm version v2', async (t) => {
+  const server = await getServer(t, {
+    PLT_SCALER_ALGORITHM_VERSION: 'v2'
+  })
+
+  mockAuthorizeEndpoint(null, (method, path, cookie) => {
+    assert.equal(cookie, 'AUTH_COOKIE')
+    assert.equal(method, 'GET')
+    assert.equal(path, '/api/config')
+    return {
+      user: {},
+      authorized: true
+    }
+  })
+
+  await server.start()
+
+  const { statusCode, headers, body } = await server.inject({
+    method: 'GET',
+    url: '/api/config',
+    headers: {
+      cookie: 'auth-cookie-name=AUTH_COOKIE'
+    }
+  })
+  assert.equal(statusCode, 200)
+  assert.equal(headers['content-type'], 'application/json; charset=utf-8')
+  const config = JSON.parse(body)
+  assert.equal(config['scaler-algorithm-version'], 'v2')
+  await server.close()
 })

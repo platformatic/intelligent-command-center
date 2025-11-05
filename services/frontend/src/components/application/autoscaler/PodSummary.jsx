@@ -11,18 +11,28 @@ import { MAIN_GREEN, MEDIUM } from '@platformatic/ui-components/src/components/c
 import { generatePath, useRouteLoaderData, useNavigate } from 'react-router-dom'
 import { AUTOSCALER_POD_DETAIL_PATH } from '../../../paths'
 import { ELU_THRESHOLD, HEAP_THRESHOLD, calculateHexagonPerformance } from '../../../utils/podPerformance'
+import useICCStore from '../../../useICCStore'
 
 export default function PodSummary ({ pod }) {
   const [signals, setSignals] = useState([])
   const { application } = useRouteLoaderData('appRoot')
   const navigate = useNavigate()
-
+  const { config } = useICCStore()
   async function getSignals () {
     // Get alerts from last 60 minutes
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
     const query = `where.podId.eq=${pod.id}&where.createdAt.gte=${oneHourAgo}`
-    const response = await callApi('scaler', `alerts?${query}`, 'GET')
-    setSignals(response)
+    let response = []
+    if (config['scaler-algorithm-version'] === 'v2') {
+      response = await callApi('scaler', `/signals?${query}`, 'GET')
+    } else {
+      response = await callApi('scaler', `alerts?${query}`, 'GET')
+    }
+    const signalsFromAlerts = response.reduce((acc, alert) => {
+      acc = acc.concat(Object.values(alert.signals))
+      return acc
+    }, [])
+    setSignals(signalsFromAlerts)
   }
   useEffect(() => {
     getSignals()

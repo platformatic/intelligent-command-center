@@ -1,21 +1,28 @@
 import React, { useEffect, useState } from 'react'
 import AutoscalerEventsTable from './AutoscalerEventsTable'
-import styles from './ScalerEvents.module.css'
+import callApi from '~/api/common'
+
 import AutoscalerHistory from './AutoscalerHistory'
-import { LoadingSpinnerV2 } from '@platformatic/ui-components'
+import { LoadingSpinnerV2, Tooltip } from '@platformatic/ui-components'
 import ScalerPill from './ScalerPill'
 import { getFormattedTimeAndDate } from '../../../utilities/dates'
 import { SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import Hexagon from './Hexagon'
-import AlertEvent from './AlertEvent'
+
 import { useSearchParams } from 'react-router-dom'
+
+import styles from './ScalerEvents.module.css'
+import tooltipStyles from '~/styles/TooltipStyles.module.css'
+import { toPercentage } from '../../../utils'
+import useICCStore from '../../../useICCStore'
 
 function EventsTableContainer ({ applicationId, deploymentId, limit = 10 }) {
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [searchParams] = useSearchParams()
   const eventId = searchParams.get('eventId')
 
+  const { config } = useICCStore()
   function handleSelectEvent (event) {
     setSelectedEvent(event)
   }
@@ -33,7 +40,7 @@ function EventsTableContainer ({ applicationId, deploymentId, limit = 10 }) {
           onEventLoaded={setSelectedEvent}
         />
         {selectedEvent && (
-          <ScalerEventDetails event={selectedEvent} />
+          <ScalerEventDetails event={selectedEvent} scalerAlgorithmVersion={config['scaler-algorithm-version']} />
         )}
       </div>
 
@@ -65,38 +72,24 @@ function renderMathElements (event) {
     </>
   )
 }
-function ScalerEventDetails ({ event }) {
+function ScalerEventDetails ({ event, scalerAlgorithmVersion }) {
   const [eventDetails, setEventDetails] = useState(null)
+  const [signalsByPod, setSignalsByPod] = useState({})
   async function loadEventDetails () {
-    // TODO: get event details from API
-    // const response = await getScalingHistory(event.id)
+    let eventSignals = []
+    const endpoint = scalerAlgorithmVersion === 'v2' ? '/signals' : '/alerts'
+    eventSignals = await callApi('scaler', `${endpoint}?where.scaleEventId.eq=${event.id}`, 'GET')
+    const signalsByPod = eventSignals.reduce((acc, signal) => {
+      if (!acc[signal.podId]) {
+        acc[signal.podId] = []
+      }
+      acc[signal.podId].push(signal)
+      return acc
+    }, {})
+    setSignalsByPod(signalsByPod)
     setEventDetails({
       ...event,
-      pods: []
-      // pods: [
-      //   {
-      //     id: 'xyz-123',
-      //     heap: {
-      //       value: 1024,
-      //       delta: 250
-      //     },
-      //     elu: {
-      //       value: 0.875,
-      //       delta: 0.075
-      //     }
-      //   },
-      //   {
-      //     id: 'abc-456',
-      //     heap: {
-      //       value: 512,
-      //       delta: 125
-      //     },
-      //     elu: {
-      //       value: 0.75,
-      //       delta: 0.025
-      //     }
-      //   }
-      // ]
+      signals: eventSignals
     })
   }
 
@@ -123,54 +116,116 @@ function ScalerEventDetails ({ event }) {
         </div>
       </div>
       <div className={styles.content}>
-        {eventDetails.pods.length === 0 && (
+        {eventDetails.signals.length === 0 && (
           <div className={styles.reason}>
             <p className={styles.reasonText}>{eventDetails.reason}</p>
           </div>
         )}
-        {eventDetails.pods.length > 0 && eventDetails.pods.map(pod => (
-          <PodDetails key={pod.id} pod={pod} time={eventDetails.time} />
+        {Object.keys(signalsByPod).map((podId) => (
+          <SignalsFromPod
+            key={podId}
+            signals={signalsByPod[podId]}
+            podId={podId}
+            time={eventDetails.time}
+            scalerAlgorithmVersion={scalerAlgorithmVersion}
+          />
         ))}
+        {/* {eventDetails.signals.length > 0 && eventDetails.signals.map(signal => (
+          // <SignalDetails key={signal.id} signals={signalsByPod[signal.podId]} podId={signal.podId} time={eventDetails.time} />
+
+          <SignalsFromPod key={signal.id} signals={signalsByPod[signal.podId]} podId={signal.podId} time={eventDetails.time} />
+        ))} */}
       </div>
     </div>
   )
 }
 
-function PodDetails ({ pod, time }) {
+function SignalsFromPod ({ podId, signals, scalerAlgorithmVersion }) {
+  function renderType (type) {
+    return type.toUpperCase()
+  }
+
+  function renderValue (value, type) {
+    if (type === 'elu') {
+      return `${toPercentage(value)}%`
+    } else {
+      return value
+    }
+  }
+  function renderSignal (sig) {
+    if (scalerAlgorithmVersion === 'v2') {
+      return (
+        <div key={sig.id} className={styles.signalDetailsContainer}>
+          <Tooltip
+            tooltipClassName={tooltipStyles.limitedWidthTooltip}
+            content={(<span>{sig.description}</span>)}
+            offset={0}
+            direction='top'
+            immediateActive={false}
+          >
+            <div className={styles.signalDetails}>
+              <div className={styles.signalDetailsHeader}>
+                <div className={styles.signalDetailsHeaderLeft}>
+                  <p className={styles.signalDetailsTitle}>{renderType(sig.type)}</p>
+                  <p className={styles.signalDetailsServiceId}>({sig.serviceId})</p>
+                </div>
+                <div className={styles.signalDetailsValue}>
+                  {renderValue(sig.value, sig.type)}
+                </div>
+
+              </div>
+              <p className={styles.signalDetailsServiceId}>{getFormattedTimeAndDate(sig.createdAt)}</p>
+            </div>
+          </Tooltip>
+        </div>
+      )
+    } else {
+      return (
+        <div key={sig.id} className={styles.signalDetailsContainer}>
+
+          <div>
+            <span>
+              <Icons.HeartBeatIcon size={SMALL} color={WHITE} />
+              ELU
+            </span>
+            <span>{toPercentage(sig.elu)} %</span>
+          </div>
+          <div>
+            <span>
+              <Icons.TechIcon size={SMALL} color={WHITE} />
+              Heap
+            </span>
+            <span>{(sig.heapUsed / 1024 / 1024).toFixed(1)} MB</span>
+          </div>
+
+          <div className={styles.signalDetailsServiceId}>
+            Application {sig.serviceId} generated this signal at {getFormattedTimeAndDate(sig.createdAt)}
+          </div>
+        </div>
+      )
+    }
+  }
+  function renderSignals () {
+    return (
+      <div className={styles.signalDetailsList}>
+        <span className={styles.signalDetailsListTitle}>Signals List</span>
+        {signals.map((sig) => {
+          return renderSignal(sig)
+        })}
+      </div>
+
+    )
+  }
+
   return (
     <div className={styles.podDetails}>
       <div className={styles.podDetailsHeader}>
         <p className={styles.podDetailsTitle}>Pod </p>
-        <p className={styles.podDetailsId}>{pod.id}</p>
+        <p className={styles.podDetailsId}>{podId}</p>
       </div>
       <div className={styles.metrics}>
-        <AlertEvent time={time} value={pod.heap.value} delta={pod.heap.delta} label='Heap' />
-        <AlertEvent time={time} value={pod.elu.value} delta={pod.elu.delta} label='ELU' />
+        {renderSignals()}
       </div>
     </div>
   )
 }
-
-// function Metric ({ time, value, delta, label }) {
-//   let unit = 'MB'
-//   if (label === 'ELU') {
-//     unit = '%'
-//   }
-//   const iconElement = label === 'Heap' ? <Icons.HeartBeatIcon size={SMALL} color={WHITE} /> : <Icons.TechIcon size={SMALL} color={WHITE} />
-
-//   return (
-//     <div className={styles.metric}>
-//       <div className={styles.metricLeft}>
-//         <p className={styles.metricLabel}>
-//           {iconElement}
-//           {label}
-//         </p>
-//         <p className={styles.metricTime}>{getFormattedTime(time)}</p>
-//       </div>
-//       <div className={styles.metricRight}>
-//         <p className={styles.metricValue}>{value} {unit}</p>
-//         <p className={styles.metricDelta}>+ {delta} {unit}</p>
-//       </div>
-//     </div>
-//   )
-// }
