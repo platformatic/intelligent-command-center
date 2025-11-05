@@ -102,7 +102,11 @@ export const getApplicationsWithMetadata = async () => {
       id: currentApplication.id
     })
     if (applicationState.length > 0) {
+      // sort applicationState by createdAt descending
+      applicationState.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
       applicationsWithMetadata[i].state = applicationState[0].state
+      applicationsWithMetadata[i].latestChange = applicationState[0].createdAt
       applicationsWithMetadata[i].pltVersion = applicationState[0].pltVersion
     }
   }

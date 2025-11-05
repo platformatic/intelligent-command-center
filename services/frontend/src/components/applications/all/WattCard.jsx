@@ -12,7 +12,8 @@ export default function WattCard ({
   name = '',
   createdAt = '-',
   url = null,
-  state = {}
+  state = {},
+  latestChange = '-'
 }) {
   const navigate = useNavigate()
 
@@ -57,7 +58,7 @@ export default function WattCard ({
         {hasValidState() && (
           <div className={`${commonStyles.smallFlexRow} ${commonStyles.itemsCenter} ${commonStyles.fullWidth} ${styles.smallLeftPadding}`}>
             <p>
-              <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}  ${typographyStyles.opacity70}`}>Latest change: </span><span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{getFormattedDate(createdAt)}</span>
+              <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}  ${typographyStyles.opacity70}`}>Latest change: </span><span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite}`}>{getFormattedDate(latestChange)}</span>
             </p>
             <VerticalSeparator color={WHITE} backgroundColorOpacity={OPACITY_30} />
             <p>
