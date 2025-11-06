@@ -19,20 +19,16 @@ export default function PodSummary ({ pod }) {
   const navigate = useNavigate()
   const { config } = useICCStore()
   async function getSignals () {
-    // Get alerts from last 60 minutes
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-    const query = `where.podId.eq=${pod.id}&where.createdAt.gte=${oneHourAgo}`
+    // Get alerts from last 60 seconds
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString()
+    const query = `where.podId.eq=${pod.id}&where.createdAt.gte=${oneMinuteAgo}`
     let response = []
     if (config['scaler-algorithm-version'] === 'v2') {
       response = await callApi('scaler', `/signals?${query}`, 'GET')
     } else {
       response = await callApi('scaler', `alerts?${query}`, 'GET')
     }
-    const signalsFromAlerts = response.reduce((acc, alert) => {
-      acc = acc.concat(Object.values(alert.signals))
-      return acc
-    }, [])
-    setSignals(signalsFromAlerts)
+    setSignals(response)
   }
   useEffect(() => {
     getSignals()
@@ -61,14 +57,14 @@ export default function PodSummary ({ pod }) {
         <div className={styles.signalsCount}>
           <span className={styles.signalsCountValue}>{signals.length}</span>
           <span className={styles.signalsCountUnit}>Signals</span>
-          <span className={styles.signalsCountTimeWindow}>(last 60')</span>
+          <span className={styles.signalsCountTimeWindow}>(last 60s)</span>
         </div>
       )
     } else {
       return (
         <div className={styles.signalsCount}>
           <Icons.CircleCheckMarkIcon color={MAIN_GREEN} size={MEDIUM} />
-          <span className={styles.signalsCountValue}>No signals in the last 60'</span>
+          <span className={styles.signalsCountValue}>No signals in the last 60s</span>
         </div>
       )
     }
