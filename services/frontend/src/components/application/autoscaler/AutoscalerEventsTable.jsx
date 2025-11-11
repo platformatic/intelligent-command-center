@@ -89,11 +89,10 @@ const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10
 
   function renderDescription (event) {
     const direction = event.direction
-    const replicas = event.values[0]
     if (direction === 'up') {
-      return `+${replicas} Pods`
+      return `+${event.replicasDiff} Pods`
     }
-    return `-${replicas} Pods`
+    return `${event.replicasDiff} Pods`
   }
 
   function renderTotals (event) {
