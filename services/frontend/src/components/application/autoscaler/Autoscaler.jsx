@@ -7,6 +7,7 @@ import { MEDIUM, WHITE } from '@platformatic/ui-components/src/components/consta
 import Pods from '~/components/pods/Pods'
 import { TabbedWindow } from '@platformatic/ui-components'
 import ScalerEvents from './ScalerEvents'
+import SignalsHistory from './SignalsHistory'
 import { useRouteLoaderData, useSearchParams } from 'react-router-dom'
 import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
 
@@ -56,6 +57,14 @@ export default function Autoscaler () {
                 <ScalerEvents
                   applicationId={application?.id}
                   deploymentId={application?.latestDeployment.id}
+                  limit={100}
+                />
+            }, {
+              label: 'Signals History',
+              key: 'signals_history',
+              component: () =>
+                <SignalsHistory
+                  wattId={application?.id}
                   limit={100}
                 />
             }

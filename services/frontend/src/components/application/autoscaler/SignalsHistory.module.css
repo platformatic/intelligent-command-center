@@ -1,0 +1,15 @@
+.signalsHistoryContainer {
+  @apply flex flex-col gap-4 mt-4;
+}
+
+.timestamp, .viewScaleEventLink, .terminated {
+  @apply text-white/70 font-normal text-sm;
+}
+
+.signalType {
+  @apply flex items-center gap-2;
+}
+
+.viewScaleEventLink {
+  @apply cursor-pointer text-white/70 font-normal text-sm;
+}
