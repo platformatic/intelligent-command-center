@@ -9,14 +9,14 @@ class ScalerExecutor {
     this.app = app
 
     const options = {
-      maxHistoryEvents: Number(process.env.PLT_SCALER_MAX_HISTORY) || 10,
-      maxClusters: Number(process.env.PLT_SCALER_MAX_CLUSTERS) || 5,
-      eluThreshold: Number(process.env.PLT_SCALER_ELU_THRESHOLD) || 0.9,
-      heapThreshold: Number(process.env.PLT_SCALER_HEAP_THRESHOLD) || 0.85,
-      postScalingWindow: Number(process.env.PLT_SCALER_POST_EVAL_WINDOW) || 300,
-      cooldownPeriod: Number(process.env.PLT_SCALER_COOLDOWN) || 300,
-      minPodsDefault: Number(process.env.PLT_SCALER_MIN_PODS_DEFAULT) || 1,
-      maxPodsDefault: Number(process.env.PLT_SCALER_MAX_PODS_DEFAULT) || 10
+      maxHistoryEvents: Number(app.env.PLT_SCALER_MAX_HISTORY),
+      maxClusters: Number(app.env.PLT_SCALER_MAX_CLUSTERS),
+      eluThreshold: Number(app.env.PLT_SCALER_ELU_THRESHOLD),
+      heapThreshold: Number(app.env.PLT_SCALER_HEAP_THRESHOLD),
+      postScalingWindow: Number(app.env.PLT_SCALER_POST_EVAL_WINDOW),
+      cooldownPeriod: Number(app.env.PLT_SCALER_COOLDOWN),
+      minPodsDefault: Number(app.env.PLT_SCALER_MIN_PODS_DEFAULT),
+      maxPodsDefault: Number(app.env.PLT_SCALER_MAX_PODS_DEFAULT)
     }
 
     this.scalingAlgorithm = new ReactiveScalingAlgorithm(app, options)

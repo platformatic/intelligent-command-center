@@ -10,24 +10,24 @@ class MultiSignalReactiveScaler {
     this.app = app
 
     const options = {
-      FW: Number(process.env.PLT_SIGNALS_SCALER_FW) || 15000,
-      SW: Number(process.env.PLT_SIGNALS_SCALER_SW) || 60000,
-      LW: Number(process.env.PLT_SIGNALS_SCALER_LW) || 300000,
-      HOT_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_HOT_RATE_THRESHOLD) || 0.5,
-      SCALE_UP_FW_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_UP_FW_RATE_THRESHOLD) || 0.2,
-      SCALE_UP_SW_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_UP_SW_RATE_THRESHOLD) || 0.15,
-      SCALE_DOWN_SW_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_DOWN_SW_RATE_THRESHOLD) || 0.05,
-      SCALE_DOWN_LW_RATE_THRESHOLD: Number(process.env.PLT_SIGNALS_SCALER_DOWN_LW_RATE_THRESHOLD) || 0.03,
-      minPodsDefault: Number(process.env.PLT_SCALER_MIN_PODS_DEFAULT) || 1,
-      maxPodsDefault: Number(process.env.PLT_SCALER_MAX_PODS_DEFAULT) || 10
+      FW: Number(app.env.PLT_SIGNALS_SCALER_FW),
+      SW: Number(app.env.PLT_SIGNALS_SCALER_SW),
+      LW: Number(app.env.PLT_SIGNALS_SCALER_LW),
+      HOT_RATE_THRESHOLD: Number(app.env.PLT_SIGNALS_SCALER_HOT_RATE_THRESHOLD),
+      SCALE_UP_FW_RATE_THRESHOLD: Number(app.env.PLT_SIGNALS_SCALER_UP_FW_RATE_THRESHOLD),
+      SCALE_UP_SW_RATE_THRESHOLD: Number(app.env.PLT_SIGNALS_SCALER_UP_SW_RATE_THRESHOLD),
+      SCALE_DOWN_SW_RATE_THRESHOLD: Number(app.env.PLT_SIGNALS_SCALER_DOWN_SW_RATE_THRESHOLD),
+      SCALE_DOWN_LW_RATE_THRESHOLD: Number(app.env.PLT_SIGNALS_SCALER_DOWN_LW_RATE_THRESHOLD),
+      minPodsDefault: Number(app.env.PLT_SCALER_MIN_PODS_DEFAULT),
+      maxPodsDefault: Number(app.env.PLT_SCALER_MAX_PODS_DEFAULT)
     }
 
     this.algorithm = new SignalScalerAlgorithm(app, options)
 
     // Configuration for concurrent processing control
-    this.lockTTL = Number(process.env.PLT_SIGNALS_SCALER_LOCK_TTL) || 10
-    this.maxIterations = Number(process.env.PLT_SIGNALS_SCALER_MAX_ITERATIONS) || 10
-    this.pendingTTL = Number(process.env.PLT_SIGNALS_SCALER_PENDING_TTL) || 60
+    this.lockTTL = Number(app.env.PLT_SIGNALS_SCALER_LOCK_TTL)
+    this.maxIterations = Number(app.env.PLT_SIGNALS_SCALER_MAX_ITERATIONS)
+    this.pendingTTL = Number(app.env.PLT_SIGNALS_SCALER_PENDING_TTL)
 
     app.log.info({
       algorithm: 'Multi-Signal Reactive',
