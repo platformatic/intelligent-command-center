@@ -11,10 +11,12 @@ class ScalerExecutor {
     const options = {
       maxHistoryEvents: Number(app.env.PLT_SCALER_MAX_HISTORY),
       maxClusters: Number(app.env.PLT_SCALER_MAX_CLUSTERS),
-      eluThreshold: Number(app.env.PLT_SCALER_ELU_THRESHOLD),
       heapThreshold: Number(app.env.PLT_SCALER_HEAP_THRESHOLD),
       postScalingWindow: Number(app.env.PLT_SCALER_POST_EVAL_WINDOW),
-      cooldownPeriod: Number(app.env.PLT_SCALER_COOLDOWN),
+      // cooldownPeriod: Number(app.env.PLT_SCALER_COOLDOWN),
+      cooldownPeriod: 15, // Temporary override
+      // eluThreshold: Number(app.env.PLT_SCALER_ELU_THRESHOLD),
+      eluThreshold: 0.8, // Temporary override
       minPodsDefault: Number(app.env.PLT_SCALER_MIN_PODS_DEFAULT),
       maxPodsDefault: Number(app.env.PLT_SCALER_MAX_PODS_DEFAULT)
     }

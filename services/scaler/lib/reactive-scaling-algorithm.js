@@ -19,7 +19,7 @@ class ReactiveScalingAlgorithm {
     this.eluThreshold = options.eluThreshold || 0.9
     this.heapThreshold = options.heapThreshold || 0.85
     this.postScalingWindow = options.postScalingWindow || 300
-    this.cooldownPeriod = options.cooldownPeriod || 300
+    this.cooldownPeriod = options.cooldownPeriod || 15
     this.minPodsDefault = options.minPodsDefault || 1
     this.maxPodsDefault = options.maxPodsDefault || 10
 

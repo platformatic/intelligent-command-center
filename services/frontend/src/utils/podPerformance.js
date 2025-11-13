@@ -1,8 +1,8 @@
 // Shared pod performance calculation logic for hexagon display
 // These are Platformatic defaults - we might want to tune them in the future
 // TODO: Make thresholds configurable per application
-const ELU_THRESHOLD = 99 // 99% for ELU
-const HEAP_THRESHOLD = 99 // 99% for Heap usage
+const ELU_THRESHOLD = 80
+const HEAP_THRESHOLD = 99
 
 export function calculateHexagonPerformance (podData) {
   const { eventLoop = 0, usedHeap = 0, totalHeap = 0 } = podData
