@@ -35,7 +35,7 @@ importers:
         version: 2.75.2
       bats:
         specifier: ^1.12.0
-        version: 1.12.0
+        version: 1.13.0
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -3509,8 +3509,8 @@ packages:
     resolution: {integrity: sha512-616V5YX4bepJFzNyOfce5Fa8fDJMfoxzOIzDCZwaGL8MKVpFrXqfNUoIpRn9YMI5pXf/VKgzjB4htFMsFKKdiQ==}
     hasBin: true
 
-  bats@1.12.0:
-    resolution: {integrity: sha512-1HTv2n+fjn3bmY9SNDgmzS6bjoKtVlSK2pIHON5aSA2xaqGkZFoCCWP46/G6jm9zZ7MCi84mD+3Byw4t3KGwBg==}
+  bats@1.13.0:
+    resolution: {integrity: sha512-giSYKGTOcPZyJDbfbTtzAedLcNWdjCLbXYU3/MwPnjyvDXzu6Dgw8d2M+8jHhZXSmsCMSQqCp+YBsJ603UO4vQ==}
     hasBin: true
 
   better-opn@3.0.2:
@@ -11369,7 +11369,7 @@ snapshots:
 
   baseline-browser-mapping@2.8.23: {}
 
-  bats@1.12.0: {}
+  bats@1.13.0: {}
 
   better-opn@3.0.2:
     dependencies:
