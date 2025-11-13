@@ -46,10 +46,10 @@ test('saveAlert - saves an alert to Redis with timestamp', async (t) => {
 
   await store.saveAlert(alert)
 
-  const appAlertKeys = await scanKeys(store.valkey, `${ALERTS_PREFIX}app:${alert.applicationId}:*`)
+  const appAlertKeys = await scanKeys(store.valkey, `${ALERTS_PREFIX}{app:${alert.applicationId}}:*`)
   assert.strictEqual(appAlertKeys.length, 1, 'Should have one app alert key')
 
-  const podAlertKeys = await scanKeys(store.valkey, `${ALERTS_PREFIX}app:*:pod:${alert.podId}:*`)
+  const podAlertKeys = await scanKeys(store.valkey, `${ALERTS_PREFIX}{app:*}:pod:${alert.podId}:*`)
   assert.strictEqual(podAlertKeys.length, 1, 'Should have one pod alert key')
 
   const alertKey = appAlertKeys[0]
@@ -550,7 +550,7 @@ test('getAlertsByPattern - handles JSON parse errors gracefully', async (t) => {
   })
 
   const applicationId = 'test:' + randomUUID()
-  const alertKey = `${ALERTS_PREFIX}app:${applicationId}:pod:${randomUUID()}:${Date.now().toString().padStart(13, '0')}`
+  const alertKey = `${ALERTS_PREFIX}{app:${applicationId}}:pod:${randomUUID()}:${Date.now().toString().padStart(13, '0')}`
 
   // Manually insert invalid JSON data
   await store.valkey.set(alertKey, 'invalid json data', 'EX', 60)

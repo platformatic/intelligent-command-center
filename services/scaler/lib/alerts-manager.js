@@ -2,8 +2,7 @@
 
 const { randomUUID } = require('crypto')
 const { scanKeys } = require('../../../lib/redis-utils')
-// Define Redis key prefix for triggered pods
-const TRIGGERED_PODS_PREFIX = 'scaler:triggered-pods:'
+const TRIGGERED_PODS_PREFIX = 'scaler:{triggered-pods}:'
 
 class AlertsManager {
   constructor (app, options = {}) {
@@ -47,7 +46,11 @@ class AlertsManager {
       const keys = await scanKeys(this.app.store.valkey, `${TRIGGERED_PODS_PREFIX}${pattern}`)
 
       if (keys.length > 0) {
-        await this.app.store.valkey.del(...keys)
+        const pipeline = this.app.store.valkey.pipeline()
+        for (const key of keys) {
+          pipeline.del(key)
+        }
+        await pipeline.exec()
         this.app.log.debug({ deletedCount: keys.length }, 'Deleted triggered pod entries')
       }
 

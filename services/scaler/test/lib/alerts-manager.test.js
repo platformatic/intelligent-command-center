@@ -20,15 +20,15 @@ test('AlertsManager clearRecentTriggers', async (t) => {
 
   const manager = new AlertsManager(mockApp)
 
-  await mockValkey.set('scaler:triggered-pods:pod1', Date.now(), 'EX', 30)
-  await mockValkey.set('scaler:triggered-pods:pod2', Date.now(), 'EX', 30)
+  await mockValkey.set('scaler:{triggered-pods}:pod1', Date.now(), 'EX', 30)
+  await mockValkey.set('scaler:{triggered-pods}:pod2', Date.now(), 'EX', 30)
 
-  const initialKeys = await scanKeys(mockValkey, 'scaler:triggered-pods:*')
+  const initialKeys = await scanKeys(mockValkey, 'scaler:{triggered-pods}:*')
   assert.strictEqual(initialKeys.length, 2)
 
   await manager.clearRecentTriggers()
 
-  const remainingKeys = await scanKeys(mockValkey, 'scaler:triggered-pods:*')
+  const remainingKeys = await scanKeys(mockValkey, 'scaler:{triggered-pods}:*')
   assert.strictEqual(remainingKeys.length, 0)
 
   await mockValkey.quit()
@@ -67,7 +67,7 @@ test('AlertsManager getLastTriggeredTime and setLastTriggeredTime', async (t) =>
   const retrievedValue = await manager.getLastTriggeredTime(podId)
   assert.strictEqual(retrievedValue, timestamp)
 
-  const key = `scaler:triggered-pods:${podId}`
+  const key = `scaler:{triggered-pods}:${podId}`
   const ttl = await mockValkey.ttl(key)
   assert.ok(ttl > 0, 'Key should have a TTL')
 
@@ -126,7 +126,7 @@ test('AlertsManager processAlert - unhealthy alert triggers scaler', async (t) =
   assert.strictEqual(notifyScalerCalled.length, 1)
   assert.strictEqual(notifyScalerCalled[0], unhealthyAlert.podId)
 
-  const key = `scaler:triggered-pods:${unhealthyAlert.podId}`
+  const key = `scaler:{triggered-pods}:${unhealthyAlert.podId}`
   const exists = await mockValkey.exists(key)
   assert.strictEqual(exists, 1, 'Should have a Redis key for the triggered pod')
 
@@ -183,7 +183,7 @@ test('AlertsManager processAlert - debounces subsequent unhealthy alerts', async
   await manager.processAlert(firstAlert)
   assert.strictEqual(notifyScalerCalled.length, 1)
 
-  const exists = await mockValkey.exists(`scaler:triggered-pods:${podId}`)
+  const exists = await mockValkey.exists(`scaler:{triggered-pods}:${podId}`)
   assert.strictEqual(exists, 1, 'Valkey should have the pod key')
 
   const secondAlert = {

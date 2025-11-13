@@ -36,12 +36,18 @@ class Store {
     const now = Date.now()
     const alerts = []
 
-    const values = await this.valkey.mget(keys)
-    for (let i = 0; i < values.length; i++) {
-      if (!values[i]) continue
+    const pipeline = this.valkey.pipeline()
+    for (const key of keys) {
+      pipeline.get(key)
+    }
+    const results = await pipeline.exec()
+
+    for (let i = 0; i < results.length; i++) {
+      const [err, value] = results[i]
+      if (err || !value) continue
 
       try {
-        const alert = JSON.parse(values[i])
+        const alert = JSON.parse(value)
         if (timeWindow > 0 && (now - alert.timestamp) > timeWindow) {
           continue
         }
@@ -75,7 +81,7 @@ class Store {
     }
 
     const timestampStr = timestamp.toString().padStart(13, '0') // to be "sortable"
-    const alertKey = `${ALERTS_PREFIX}app:${applicationId}:pod:${podId}:${timestampStr}`
+    const alertKey = `${ALERTS_PREFIX}{app:${applicationId}}:pod:${podId}:${timestampStr}`
 
     const alertStr = JSON.stringify(alertWithTimestamp)
     await this.valkey.set(alertKey, alertStr, 'EX', this.alertRetention)
@@ -86,7 +92,7 @@ class Store {
       return []
     }
 
-    const pattern = `${ALERTS_PREFIX}app:${applicationId}:pod:*`
+    const pattern = `${ALERTS_PREFIX}{app:${applicationId}}:pod:*`
     return this.#getAlertsByPattern(pattern, timeWindow)
   }
 
@@ -95,7 +101,7 @@ class Store {
       return []
     }
 
-    const pattern = `${ALERTS_PREFIX}app:*:pod:${podId}:*`
+    const pattern = `${ALERTS_PREFIX}{app:*}:pod:${podId}:*`
     return this.#getAlertsByPattern(pattern, timeWindow)
   }
 
