@@ -9,15 +9,25 @@ import { SMALL, WHITE } from '@platformatic/ui-components/src/components/constan
 import { Icons } from '@platformatic/ui-components'
 
 import styles from './SignalsHistory.module.css'
+import Paginator from '../../ui/Paginator'
 
 export default function SignalsHistory ({ wattId, limit }) {
+  const ROWS = 10
   const { config } = useICCStore()
   const [instances, setInstances] = useState([])
+  const [data, setData] = useState([])
+  const [visibleData, setVisibleData] = useState([])
+  const [page, setPage] = useState(0)
   const navigate = useNavigate()
   useEffect(() => {
     loadData()
     loadInstances()
   }, [])
+
+  useEffect(() => {
+    const visible = data.slice(page * ROWS, (page + 1) * ROWS)
+    setVisibleData(visible)
+  }, [page, data])
 
   async function loadInstances () {
     const instances = await callApi('control-plane', `/instances?where.applicationId.eq=${wattId}`, 'GET')
@@ -35,12 +45,18 @@ export default function SignalsHistory ({ wattId, limit }) {
     const data = await callApi('scaler', `${endpoint}?${query.toString()}`, 'GET')
     setData(data)
   }
-  const [data, setData] = useState([])
   const columns = [
     {
       label: 'Timestamp',
       key: 'createdAt',
       render: (row, value) => <span className={styles.timestamp}>{getFormattedTimeAndDate(value)}</span>
+    },
+    {
+      label: 'Application',
+      key: 'serviceId',
+      render: (row, value) => {
+        return <div className={styles.serviceId}>{value}</div>
+      }
     },
     {
       label: 'Pod Id',
@@ -57,7 +73,8 @@ export default function SignalsHistory ({ wattId, limit }) {
           return <div className={styles.podId}>{instance.podId} <span className={styles.terminated}>(terminated)</span></div>
         }
       }
-    }]
+    }
+  ]
   if (config['scaler-algorithm-version'] === 'v2') {
     columns.push({
       label: 'Signal Type',
@@ -126,7 +143,16 @@ export default function SignalsHistory ({ wattId, limit }) {
   })
   return (
     <div className={styles.signalsHistoryContainer}>
-      <Table data={data} columns={columns} />
+      <Table data={visibleData} columns={columns} />
+      {data.length > ROWS && (
+        <Paginator
+          pagesNumber={Math.ceil(data.length / ROWS)}
+          onClickPage={(page) => {
+            setPage(page)
+          }}
+          selectedPage={page}
+        />
+      )}
     </div>
   )
 }
