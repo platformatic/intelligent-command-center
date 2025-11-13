@@ -17,7 +17,7 @@ import tooltipStyles from '~/styles/TooltipStyles.module.css'
 import { toPercentage } from '../../../utils'
 import useICCStore from '../../../useICCStore'
 
-function EventsTableContainer ({ applicationId, deploymentId, limit = 10 }) {
+function EventsTableContainer ({ applicationId, limit = 10 }) {
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [searchParams] = useSearchParams()
   const eventId = searchParams.get('eventId')
@@ -33,7 +33,6 @@ function EventsTableContainer ({ applicationId, deploymentId, limit = 10 }) {
       <div className={styles.eventsTableContainer}>
         <AutoscalerEventsTable
           applicationId={applicationId}
-          deploymentId={deploymentId}
           limit={limit}
           onSelectEvent={handleSelectEvent}
           selectedEventId={eventId}
@@ -47,11 +46,11 @@ function EventsTableContainer ({ applicationId, deploymentId, limit = 10 }) {
     </div>
   )
 }
-export default function ScalerEvents ({ applicationId, deploymentId, limit = 10 }) {
+export default function ScalerEvents ({ applicationId, limit = 10 }) {
   return (
     <div className={styles.scalerEventsContainer}>
       <AutoscalerHistory applicationId={applicationId} />
-      <EventsTableContainer applicationId={applicationId} deploymentId={deploymentId} limit={limit} />
+      <EventsTableContainer applicationId={applicationId} limit={limit} />
 
     </div>
   )

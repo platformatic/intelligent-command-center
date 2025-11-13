@@ -8,11 +8,11 @@ import ScalerPill from './ScalerPill'
 import dayjs from 'dayjs'
 import useRefreshData from '../../../hooks/useRefreshData'
 
-const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10, limit = 10, onSelectEvent, selectedEventId, onEventLoaded }) {
+const AutoscalerEventsTable = function ({ applicationId, rows = 10, limit = 10, onSelectEvent, selectedEventId, onEventLoaded }) {
   const [selectedEvent, setSelectedEvent] = useState(null)
+  const [allEvents, setAllEvents] = useState([])
   const [totalCount, setTotalCount] = useState(null)
   const [page, setPage] = useState(0)
-  const [startPolling/*, setStartPolling */] = useState(false)
   const [groupedEvents, setGroupedEvents] = useState({})
   function groupEventsByDate (events) {
     return events.reduce((acc, event) => {
@@ -36,12 +36,13 @@ const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10
   useRefreshData(REFRESH_INTERVAL_METRICS, loadScalerEvents)
 
   async function loadScalerEvents () {
+    // if the the page is not the first one, or an event is selected, don't load the events
+    if (page !== 0 || selectedEventId) {
+      return
+    }
     const response = await getScalingHistory(applicationId, limit)
     if (response.length > 0) {
-      const visibleEvents = response.slice(page * rows, (page + 1) * rows)
-      // setEvents(visibleEvents)
-      const groupedEvents = groupEventsByDate(visibleEvents)
-      setGroupedEvents(groupedEvents)
+      setAllEvents(response)
       setTotalCount(response.length)
 
       // Auto-select event if selectedEventId is provided
@@ -55,22 +56,14 @@ const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10
       }
     }
   }
-
   useEffect(() => {
-    loadScalerEvents().then(() => {
-      // setStartPolling(true)
-    })
-  }, [page])
-
+    loadScalerEvents()
+  }, [])
   useEffect(() => {
-    let intervalId
-    if (startPolling) {
-      intervalId = setInterval(async () => await loadScalerEvents(), REFRESH_INTERVAL_METRICS)
-    }
-    return () => {
-      return clearInterval(intervalId)
-    }
-  }, [startPolling])
+    const visibleEvents = allEvents.slice(page * rows, (page + 1) * rows)
+    const groupedEvents = groupEventsByDate(visibleEvents)
+    setGroupedEvents(groupedEvents)
+  }, [page, allEvents])
 
   function handleSelectEvent (event) {
     if (selectedEvent?.id === event.id) {
@@ -140,7 +133,9 @@ const AutoscalerEventsTable = function ({ applicationId, deploymentId, rows = 10
       {totalCount > rows && (
         <Paginator
           pagesNumber={Math.ceil(totalCount / rows)}
-          onClickPage={(page) => setPage(page)}
+          onClickPage={(page) => {
+            setPage(page)
+          }}
           selectedPage={page}
         />
       )}

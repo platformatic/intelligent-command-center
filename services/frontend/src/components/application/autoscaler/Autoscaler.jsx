@@ -56,7 +56,6 @@ export default function Autoscaler () {
               component: () =>
                 <ScalerEvents
                   applicationId={application?.id}
-                  deploymentId={application?.latestDeployment.id}
                   limit={100}
                 />
             }, {
