@@ -1,5 +1,5 @@
 {
-  "version": "3.2.0",
+  "version": "3.3.1",
   "scripts": {
     "start": "platformatic service start",
     "test": "NODE_OPTIONS=--trace-deprecation npm run lint | borp --concurrency 1",
