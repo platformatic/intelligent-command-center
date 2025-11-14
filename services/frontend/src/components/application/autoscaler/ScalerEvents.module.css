@@ -2,7 +2,14 @@
   @apply flex flex-col gap-4 bg-black-russian p-4;
 }
 .eventsTableContainer {
-  @apply flex flex-row gap-4;
+  @apply flex flex-row gap-4 h-[100vh];
+}
+/* The left child defines the height of both. The right child will have vertical scroll*/
+.eventsTableContainer > div {
+  @apply flex flex-col grow w-1/2;
+}
+.eventsTableContainer > div:last-child {
+  overflow-y: scroll;
 }
 .scalerEventsContainer {
   @apply flex flex-col gap-4;
@@ -17,7 +24,7 @@
 }
 
 .eventDetailsContainer {
-  @apply flex flex-col gap-4 w-1/2 bg-black-russian;
+@apply flex flex-col gap-4 bg-black-russian overflow-y-scroll;
 }
 
 .eventDetailsHeader {

@@ -37,7 +37,7 @@ const AutoscalerEventsTable = function ({ applicationId, rows = 10, limit = 10, 
 
   async function loadScalerEvents () {
     // if the the page is not the first one, or an event is selected, don't load the events
-    if (page !== 0 || selectedEventId) {
+    if (page !== 0) {
       return
     }
     const response = await getScalingHistory(applicationId, limit)
