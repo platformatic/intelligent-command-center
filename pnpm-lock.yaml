@@ -13,7 +13,7 @@ importers:
         version: 2.75.2
       fastify:
         specifier: ^5.2.1
-        version: 5.6.1
+        version: 5.6.2
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.1.0
@@ -60,7 +60,7 @@ importers:
         version: 0.21.0
       fastify:
         specifier: ^5.2.1
-        version: 5.6.1
+        version: 5.6.2
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -115,7 +115,7 @@ importers:
         version: 0.21.0
       fastify:
         specifier: ^5.2.1
-        version: 5.6.1
+        version: 5.6.2
       next:
         specifier: ^15.0.0
         version: 15.5.6(@opentelemetry/api@1.9.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -170,7 +170,7 @@ importers:
         version: 9.39.1(jiti@1.21.7)
       fastify:
         specifier: ^5.5.0
-        version: 5.6.1
+        version: 5.6.2
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
@@ -201,7 +201,7 @@ importers:
         version: 0.21.0
       fastify:
         specifier: ^5.2.1
-        version: 5.6.1
+        version: 5.6.2
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -238,7 +238,7 @@ importers:
         version: 0.21.0
       fastify:
         specifier: ^5.2.2
-        version: 5.6.1
+        version: 5.6.2
       standard:
         specifier: ^17.1.2
         version: 17.1.2
@@ -281,7 +281,7 @@ importers:
         version: 0.21.0
       fastify:
         specifier: ^5.01.0
-        version: 5.6.1
+        version: 5.6.2
       platformatic:
         specifier: ^2.70.1
         version: 2.75.2(@types/node@24.10.1)
@@ -457,7 +457,7 @@ importers:
         version: 6.0.2
       fastify:
         specifier: ^5.2.1
-        version: 5.6.1
+        version: 5.6.2
       mercurius:
         specifier: ^16.0.0
         version: 16.5.0(graphql@16.12.0)
@@ -500,7 +500,7 @@ importers:
         version: 0.21.0
       fastify:
         specifier: ^5.3.0
-        version: 5.6.1
+        version: 5.6.2
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -552,7 +552,7 @@ importers:
         version: 0.21.0
       fastify:
         specifier: ^5.2.1
-        version: 5.6.1
+        version: 5.6.2
       moment:
         specifier: ^2.30.1
         version: 2.30.1
@@ -601,7 +601,7 @@ importers:
         version: 0.21.0
       fastify:
         specifier: ^5.2.1
-        version: 5.6.1
+        version: 5.6.2
       snazzy:
         specifier: ^9.0.0
         version: 9.0.0
@@ -653,7 +653,7 @@ importers:
         version: 0.21.0
       fastify:
         specifier: ^5.4.0
-        version: 5.6.1
+        version: 5.6.2
       node-cron:
         specifier: ^4.2.1
         version: 4.2.1
@@ -721,7 +721,7 @@ importers:
         version: 0.21.0
       fastify:
         specifier: ^5.2.1
-        version: 5.6.1
+        version: 5.6.2
 
 packages:
 
@@ -4638,8 +4638,8 @@ packages:
   fastify-user@1.4.0:
     resolution: {integrity: sha512-VqGa60xX3nFCz2gIJHfdVjDlJIsdJ9bwigDdazaKlZ/lSxsyeXOnxsyxtZ9XeMht2drc6WLUtJ0MMeo1BSvXCg==}
 
-  fastify@5.6.1:
-    resolution: {integrity: sha512-WjjlOciBF0K8pDUPZoGPhqhKrQJ02I8DKaDIfO51EL0kbSMwQFl85cRwhOvmSDWoukNOdTo27gLN549pLCcH7Q==}
+  fastify@5.6.2:
+    resolution: {integrity: sha512-dPugdGnsvYkBlENLhCgX8yhyGCsCPrpA8lFWbTNU428l+YOnLgYHR69hzV8HWPC79n536EqzqQtvhtdaCE0dKg==}
 
   fastparallel@2.4.1:
     resolution: {integrity: sha512-qUmhxPgNHmvRjZKBFUNI0oZuuH9OlSIOXmJ98lhKPxMZZ7zS/Fi0wRHOihDSz0R1YiIOjxzOY4bq65YTcdBi2Q==}
@@ -9380,7 +9380,7 @@ snapshots:
       es-main: 1.4.0
       execa: 9.6.0
       fast-deep-equal: 3.1.3
-      fastify: 5.6.1
+      fastify: 5.6.2
       fastify-plugin: 5.1.0
       graphql: 16.12.0
       help-me: 5.0.0
@@ -9487,8 +9487,8 @@ snapshots:
       env-schema: 6.1.0
       es-main: 1.4.0
       execa: 9.6.0
-      fastify: 5.6.1
-      fastify-metrics: 12.1.0(fastify@5.6.1)
+      fastify: 5.6.2
+      fastify-metrics: 12.1.0(fastify@5.6.2)
       fastify-plugin: 5.1.0
       fastify-print-routes: 4.1.0
       graphql: 16.12.0
@@ -9523,7 +9523,7 @@ snapshots:
       '@platformatic/utils': 2.75.2
       change-case-all: 2.1.0
       execa: 9.6.0
-      fastify: 5.6.1
+      fastify: 5.6.2
       glob: 11.0.3
       pino: 9.14.0
       undici: 7.16.0
@@ -9531,7 +9531,7 @@ snapshots:
   '@platformatic/graphql-composer@0.10.0':
     dependencies:
       abstract-logger: 0.2.5
-      fastify: 5.6.1
+      fastify: 5.6.2
       graphql: 16.12.0
       mercurius: 15.1.0(graphql@16.12.0)
       metaline: 1.1.0
@@ -9622,7 +9622,7 @@ snapshots:
       dotenv-tool: 0.1.1
       es-main: 1.4.0
       fastest-levenshtein: 1.0.16
-      fastify: 5.6.1
+      fastify: 5.6.2
       graphql: 16.12.0
       help-me: 5.0.0
       minimist: 1.2.8
@@ -9676,8 +9676,8 @@ snapshots:
       es-main: 1.4.0
       execa: 9.6.0
       fast-json-patch: 3.1.1
-      fastify: 5.6.1
-      fastify-metrics: 12.1.0(fastify@5.6.1)
+      fastify: 5.6.2
+      fastify-metrics: 12.1.0(fastify@5.6.2)
       fastify-plugin: 5.1.0
       graphql: 16.12.0
       help-me: 5.0.0
@@ -9827,7 +9827,7 @@ snapshots:
       '@platformatic/config': 2.75.2
       '@platformatic/node': 2.75.2
       '@platformatic/utils': 2.75.2
-      fastify: 5.6.1
+      fastify: 5.6.2
       semver: 7.7.3
     transitivePeerDependencies:
       - bufferutil
@@ -12744,9 +12744,9 @@ snapshots:
     dependencies:
       reusify: 1.1.0
 
-  fastify-metrics@12.1.0(fastify@5.6.1):
+  fastify-metrics@12.1.0(fastify@5.6.2):
     dependencies:
-      fastify: 5.6.1
+      fastify: 5.6.2
       fastify-plugin: 5.1.0
       prom-client: 15.1.3
 
@@ -12766,11 +12766,11 @@ snapshots:
     dependencies:
       '@fastify/error': 4.2.0
       '@fastify/jwt': 9.1.0
-      fastify: 5.6.1
+      fastify: 5.6.2
       fastify-plugin: 5.1.0
       get-jwks: 11.0.3
 
-  fastify@5.6.1:
+  fastify@5.6.2:
     dependencies:
       '@fastify/ajv-compiler': 4.0.5
       '@fastify/error': 4.2.0
@@ -12781,7 +12781,7 @@ snapshots:
       fast-json-stringify: 6.1.1
       find-my-way: 9.3.0
       light-my-request: 6.6.0
-      pino: 9.14.0
+      pino: 10.1.0
       process-warning: 5.0.0
       rfdc: 1.4.1
       secure-json-parse: 4.1.0
