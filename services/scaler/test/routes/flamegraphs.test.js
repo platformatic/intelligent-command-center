@@ -22,7 +22,10 @@ test('receive and save flamegraph successfully', async (t) => {
   const server = await buildServer(t)
   const podId = 'test-pod-id'
   const serviceId = 'test-service-id'
+  const applicationId = randomUUID()
   const flamegraphData = Buffer.from('test flamegraph data')
+
+  server.getInstanceByPodId = async () => ({ applicationId })
 
   const emittedUpdates = []
   server.emitUpdate = async (namespace, message) => {
@@ -58,6 +61,7 @@ test('receive and save flamegraph successfully', async (t) => {
 
   assert.strictEqual(savedFlamegraphs.length, 1)
   const savedFlamegraph = savedFlamegraphs[0]
+  assert.strictEqual(savedFlamegraph.applicationId, applicationId)
   assert.strictEqual(savedFlamegraph.podId, podId)
   assert.strictEqual(savedFlamegraph.serviceId, serviceId)
   assert.strictEqual(savedFlamegraph.profileType, 'cpu')
@@ -110,7 +114,10 @@ test('flamegraph saves successfully even if WebSocket update fails', async (t) =
   const server = await buildServer(t)
   const podId = 'test-pod-id'
   const serviceId = 'test-service-id'
+  const applicationId = randomUUID()
   const flamegraphData = Buffer.from('test flamegraph data')
+
+  server.getInstanceByPodId = async () => ({ applicationId })
 
   let errorLogged = false
   server.emitUpdate = async () => {
@@ -167,6 +174,8 @@ test('receive and save flamegraph with alertId successfully', async (t) => {
   const applicationId = randomUUID()
   const flamegraphData = Buffer.from('test flamegraph data with alert')
 
+  server.getInstanceByPodId = async () => ({ applicationId })
+
   // Create a valid alert first
   const alert = await server.platformatic.entities.alert.save({
     input: {
@@ -218,6 +227,7 @@ test('receive and save flamegraph with alertId successfully', async (t) => {
 
   assert.strictEqual(savedFlamegraphs.length, 1)
   const savedFlamegraph = savedFlamegraphs[0]
+  assert.strictEqual(savedFlamegraph.applicationId, applicationId)
   assert.strictEqual(savedFlamegraph.podId, podId)
   assert.strictEqual(savedFlamegraph.serviceId, serviceId)
   assert.strictEqual(savedFlamegraph.alertId, alertId)
@@ -244,7 +254,10 @@ test('receive and save heap profile successfully', async (t) => {
   const server = await buildServer(t)
   const podId = 'test-pod-id'
   const serviceId = 'test-service-id'
+  const applicationId = randomUUID()
   const heapProfileData = Buffer.from('test heap profile data')
+
+  server.getInstanceByPodId = async () => ({ applicationId })
 
   const emittedUpdates = []
   server.emitUpdate = async (namespace, message) => {
@@ -281,6 +294,7 @@ test('receive and save heap profile successfully', async (t) => {
 
   assert.strictEqual(savedFlamegraphs.length, 1)
   const savedFlamegraph = savedFlamegraphs[0]
+  assert.strictEqual(savedFlamegraph.applicationId, applicationId)
   assert.strictEqual(savedFlamegraph.podId, podId)
   assert.strictEqual(savedFlamegraph.serviceId, serviceId)
   assert.strictEqual(savedFlamegraph.profileType, 'heap')
@@ -299,4 +313,34 @@ test('receive and save heap profile successfully', async (t) => {
     podId,
     profileType: 'heap'
   })
+})
+
+test('flamegraph endpoint fails when instance not found', async (t) => {
+  await cleanValkeyData()
+
+  const server = await buildServer(t)
+  const podId = 'test-pod-id'
+  const serviceId = 'test-service-id'
+  const flamegraphData = Buffer.from('test flamegraph data')
+
+  server.getInstanceByPodId = async () => null
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  const response = await server.inject({
+    method: 'POST',
+    url: `/pods/${podId}/services/${serviceId}/flamegraph`,
+    headers: {
+      'content-type': 'application/octet-stream',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    payload: flamegraphData
+  })
+
+  assert.strictEqual(response.statusCode, 500)
+  const result = JSON.parse(response.body)
+  assert.ok(result.message.includes('Instance not found'))
 })

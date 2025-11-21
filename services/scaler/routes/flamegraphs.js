@@ -1,4 +1,7 @@
 'use strict'
+
+const errors = require('../lib/errors')
+
 module.exports = async function (app) {
   app.addContentTypeParser(
     'application/octet-stream',
@@ -34,10 +37,16 @@ module.exports = async function (app) {
       if (!k8sContext) {
         throw new Error('Missing k8s context')
       }
+      const namespace = k8sContext.namespace
 
       const { podId, serviceId } = req.params
       const { alertId, profileType = 'cpu' } = req.query
       const flamegraph = req.body
+
+      const instance = await app.getInstanceByPodId(podId, namespace)
+      if (instance === null) {
+        throw new errors.INSTANCE_NOT_FOUND(podId)
+      }
 
       app.log.debug({
         serviceId,
@@ -47,7 +56,13 @@ module.exports = async function (app) {
         flamegraphSize: flamegraph?.length
       }, 'received flamegraph')
 
-      const input = { serviceId, podId, flamegraph, profileType }
+      const input = {
+        applicationId: instance.applicationId,
+        serviceId,
+        podId,
+        flamegraph,
+        profileType
+      }
       if (alertId) {
         input.alertId = alertId
       }

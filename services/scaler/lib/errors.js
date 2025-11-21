@@ -25,5 +25,8 @@ module.exports = {
   ),
   FAILED_TO_GET_CONTROLLERS: createError(
     `${ERROR_PREFIX}_FAILED_TO_GET_CONTROLLERS`, 'Failed to get controllers: %s'
+  ),
+  INSTANCE_NOT_FOUND: createError(
+    `${ERROR_PREFIX}_INSTANCE_NOT_FOUND`, 'Instance not found for pod "%s"'
   )
 }
