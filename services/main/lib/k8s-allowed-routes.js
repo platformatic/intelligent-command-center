@@ -13,7 +13,8 @@ const k8sAllowedRoutes = [
   [/\/compliance\/metadata/, ['POST']],
   ['/scaler/alerts', ['POST']],
   ['/scaler/signals', ['POST']],
-  [/\/scaler\/pods\/[a-zA-z0-9-]+\/services\/[a-zA-z0-9-]+\/flamegraph/, ['POST']]
+  [/\/scaler\/pods\/[a-zA-z0-9-]+\/services\/[a-zA-z0-9-]+\/flamegraph/, ['POST']],
+  [/\/scaler\/flamegraphs\/[a-zA-z0-9-]+\/alerts/, ['POST']]
 ]
 
 function methodIsAllowed (method, allowedMethods) {

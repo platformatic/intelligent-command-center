@@ -28,5 +28,11 @@ module.exports = {
   ),
   INSTANCE_NOT_FOUND: createError(
     `${ERROR_PREFIX}_INSTANCE_NOT_FOUND`, 'Instance not found for pod "%s"'
+  ),
+  ALERT_NOT_FOUND: createError(
+    `${ERROR_PREFIX}_ALERT_NOT_FOUND`, 'Alert not found: "%s"', 404
+  ),
+  FLAMEGRAPH_NOT_FOUND: createError(
+    `${ERROR_PREFIX}_FLAMEGRAPH_NOT_FOUND`, 'Flamegraph not found: "%s"', 404
   )
 }

@@ -113,8 +113,43 @@ export default function Flamegraphs () {
   }, [currentFlamegraphs])
 
   async function refreshFlamegraphs () {
-    const flamegraphs = await callApi('scaler', `flamegraphs?where.applicationId.eq=${application.id}`, 'GET')
-    setCurrentFlamegraphs(flamegraphs)
+    const query = `where.applicationId.eq=${application.id}`
+    const [flamegraphs, alerts] = await Promise.all([
+      callApi('scaler', `flamegraphs?${query}`, 'GET'),
+      callApi('scaler', `alerts?${query}`, 'GET')
+    ])
+
+    // Build a map of flamegraphId -> array of alertIds (one flamegraph can have multiple alerts)
+    const flamegraphToAlerts = {}
+    if (Array.isArray(alerts)) {
+      for (const alert of alerts) {
+        if (alert.flamegraphId) {
+          if (!flamegraphToAlerts[alert.flamegraphId]) {
+            flamegraphToAlerts[alert.flamegraphId] = []
+          }
+          flamegraphToAlerts[alert.flamegraphId].push(alert.id)
+        }
+      }
+    }
+
+    // Create flamegraph entries - duplicate flamegraphs for each related alert
+    const flamegraphsWithAlerts = []
+    if (Array.isArray(flamegraphs)) {
+      for (const fg of flamegraphs) {
+        const alertIds = flamegraphToAlerts[fg.id]
+        if (alertIds && alertIds.length > 0) {
+          // Create one entry per alert
+          for (const alertId of alertIds) {
+            flamegraphsWithAlerts.push({ ...fg, alertId })
+          }
+        } else {
+          // No alerts - add without alertId
+          flamegraphsWithAlerts.push({ ...fg, alertId: null })
+        }
+      }
+    }
+
+    setCurrentFlamegraphs(flamegraphsWithAlerts)
   }
 
   function resetCollectionState () {

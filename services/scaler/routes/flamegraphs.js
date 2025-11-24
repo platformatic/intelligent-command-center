@@ -63,14 +63,19 @@ module.exports = async function (app) {
         flamegraph,
         profileType
       }
-      if (alertId) {
-        input.alertId = alertId
-      }
 
       const result = await app.platformatic.entities.flamegraph.save({
         input,
         fields: ['id', 'createdAt']
       })
+
+      // If alertId is provided, update the alert to link to this flamegraph
+      if (alertId) {
+        await app.platformatic.entities.alert.save({
+          input: { id: alertId, flamegraphId: result.id },
+          fields: ['id']
+        })
+      }
 
       await app.emitUpdate('icc', {
         topic: 'ui-updates/flamegraphs',
@@ -87,6 +92,50 @@ module.exports = async function (app) {
       })
 
       return result
+    }
+  })
+
+  app.post('/flamegraphs/:flamegraphId/alerts', {
+    schema: {
+      params: {
+        type: 'object',
+        properties: {
+          flamegraphId: { type: 'string', format: 'uuid' }
+        },
+        required: ['flamegraphId']
+      },
+      body: {
+        type: 'object',
+        properties: {
+          alertIds: {
+            type: 'array',
+            items: { type: 'string', format: 'uuid' },
+            minItems: 1
+          }
+        },
+        required: ['alertIds']
+      }
+    },
+    handler: async (req) => {
+      const { flamegraphId } = req.params
+      const { alertIds } = req.body
+
+      // Verify flamegraph exists
+      const flamegraphs = await app.platformatic.entities.flamegraph.find({
+        where: { id: { eq: flamegraphId } },
+        fields: ['id']
+      })
+      if (flamegraphs.length === 0) {
+        throw new errors.FLAMEGRAPH_NOT_FOUND(flamegraphId)
+      }
+
+      // Link all alerts to the flamegraph
+      await app.platformatic.entities.alert.updateMany({
+        where: {
+          id: { in: alertIds }
+        },
+        input: { flamegraphId }
+      })
     }
   })
 

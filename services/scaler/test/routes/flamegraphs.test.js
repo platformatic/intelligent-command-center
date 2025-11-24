@@ -220,8 +220,7 @@ test('receive and save flamegraph with alertId successfully', async (t) => {
   const savedFlamegraphs = await server.platformatic.entities.flamegraph.find({
     where: {
       podId: { eq: podId },
-      serviceId: { eq: serviceId },
-      alertId: { eq: alertId }
+      serviceId: { eq: serviceId }
     }
   })
 
@@ -230,10 +229,16 @@ test('receive and save flamegraph with alertId successfully', async (t) => {
   assert.strictEqual(savedFlamegraph.applicationId, applicationId)
   assert.strictEqual(savedFlamegraph.podId, podId)
   assert.strictEqual(savedFlamegraph.serviceId, serviceId)
-  assert.strictEqual(savedFlamegraph.alertId, alertId)
   assert.strictEqual(savedFlamegraph.profileType, 'cpu')
   assert.ok(Buffer.isBuffer(savedFlamegraph.flamegraph))
   assert.strictEqual(savedFlamegraph.flamegraph.toString(), flamegraphData.toString())
+
+  // Verify the alert was updated with the flamegraph_id
+  const updatedAlerts = await server.platformatic.entities.alert.find({
+    where: { id: { eq: alertId } }
+  })
+  assert.strictEqual(updatedAlerts.length, 1)
+  assert.strictEqual(updatedAlerts[0].flamegraphId, savedFlamegraph.id)
 
   assert.strictEqual(emittedUpdates.length, 1)
   const update = emittedUpdates[0]
@@ -343,4 +348,130 @@ test('flamegraph endpoint fails when instance not found', async (t) => {
   assert.strictEqual(response.statusCode, 500)
   const result = JSON.parse(response.body)
   assert.ok(result.message.includes('Instance not found'))
+})
+
+test('link flamegraph to multiple alerts', async (t) => {
+  await cleanValkeyData()
+
+  const server = await buildServer(t)
+  const podId = 'test-pod-id'
+  const serviceId = 'test-service-id'
+  const applicationId = randomUUID()
+
+  server.getInstanceByPodId = async () => ({ applicationId })
+  server.emitUpdate = async () => {}
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  // Create a flamegraph
+  const flamegraphResponse = await server.inject({
+    method: 'POST',
+    url: `/pods/${podId}/services/${serviceId}/flamegraph`,
+    headers: {
+      'content-type': 'application/octet-stream',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    payload: Buffer.from('test flamegraph data')
+  })
+  assert.strictEqual(flamegraphResponse.statusCode, 200)
+  const flamegraph = JSON.parse(flamegraphResponse.body)
+
+  // Create multiple alerts
+  const alert1 = await server.platformatic.entities.alert.save({
+    input: {
+      applicationId,
+      serviceId,
+      podId,
+      elu: 0.5,
+      heapUsed: 100,
+      heapTotal: 200,
+      unhealthy: true,
+      healthHistory: []
+    },
+    fields: ['id']
+  })
+
+  const alert2 = await server.platformatic.entities.alert.save({
+    input: {
+      applicationId,
+      serviceId,
+      podId,
+      elu: 0.6,
+      heapUsed: 150,
+      heapTotal: 200,
+      unhealthy: true,
+      healthHistory: []
+    },
+    fields: ['id']
+  })
+
+  const alert3 = await server.platformatic.entities.alert.save({
+    input: {
+      applicationId,
+      serviceId,
+      podId,
+      elu: 0.7,
+      heapUsed: 180,
+      heapTotal: 200,
+      unhealthy: true,
+      healthHistory: []
+    },
+    fields: ['id']
+  })
+
+  // Link flamegraph to multiple alerts
+  const linkResponse = await server.inject({
+    method: 'POST',
+    url: `/flamegraphs/${flamegraph.id}/alerts`,
+    headers: {
+      'content-type': 'application/json'
+    },
+    payload: {
+      alertIds: [alert1.id, alert2.id, alert3.id]
+    }
+  })
+
+  assert.strictEqual(linkResponse.statusCode, 200)
+
+  // Verify all alerts are linked to the flamegraph
+  const updatedAlerts = await server.platformatic.entities.alert.find({
+    where: {
+      id: { in: [alert1.id, alert2.id, alert3.id] }
+    }
+  })
+
+  assert.strictEqual(updatedAlerts.length, 3)
+  for (const alert of updatedAlerts) {
+    assert.strictEqual(alert.flamegraphId, flamegraph.id)
+  }
+})
+
+test('link flamegraph to alerts fails when flamegraph not found', async (t) => {
+  await cleanValkeyData()
+
+  const server = await buildServer(t)
+  const nonExistentFlamegraphId = randomUUID()
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  const response = await server.inject({
+    method: 'POST',
+    url: `/flamegraphs/${nonExistentFlamegraphId}/alerts`,
+    headers: {
+      'content-type': 'application/json'
+    },
+    payload: {
+      alertIds: [randomUUID()]
+    }
+  })
+
+  assert.strictEqual(response.statusCode, 404)
+  const result = JSON.parse(response.body)
+  assert.ok(result.message.includes('Flamegraph not found'))
 })
