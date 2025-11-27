@@ -290,7 +290,7 @@ test('calculateScalingDecision respects maximum pods limit', async (t) => {
   assert.strictEqual(result.nfinal, 5, 'Should return current pod count when at maximum')
 })
 
-test('calculateScalingDecision computes nfinal correctly', async (t) => {
+test('calculateScalingDecision computes nfinal correctly with alerts', async (t) => {
   const store = await setupStore(t)
   const log = createMockLog()
 
@@ -312,8 +312,18 @@ test('calculateScalingDecision computes nfinal correctly', async (t) => {
     }
   }
 
+  // Alerts are required for scale-up
+  const alerts = [{
+    podId: 'pod-1',
+    serviceId: 'service-1',
+    elu: 0.95,
+    heapUsed: 0.9 * 8 * 1024 * 1024 * 1024,
+    heapTotal: 8 * 1024 * 1024 * 1024,
+    unhealthy: true
+  }]
+
   const currentPodCount = 2
-  const result = await algorithm.calculateScalingDecision('app-1', highLoadMetrics, currentPodCount)
+  const result = await algorithm.calculateScalingDecision('app-1', highLoadMetrics, currentPodCount, undefined, undefined, alerts)
 
   // New nfinal should be greater than current pod count when scaling up
   assert.ok(result.nfinal > currentPodCount, 'Should scale up from current pod count')
@@ -526,7 +536,7 @@ test('calculateScalingDecision scales up with alerts', async (t) => {
   assert.ok(result.reason.includes('%'), 'Reason should show metric percentage')
 })
 
-test('calculateScalingDecision scales up with high metrics', async (t) => {
+test('calculateScalingDecision does NOT scale up with high metrics without alerts', async (t) => {
   const store = await setupStore(t)
   const log = createMockLog()
 
@@ -536,16 +546,16 @@ test('calculateScalingDecision scales up with high metrics', async (t) => {
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
 
-  // Create high load pod metrics that will definitely trigger scaling
+  // Create high load pod metrics that would normally trigger scaling
   const highLoadPodMetrics = {
     'pod-1': {
       eventLoopUtilization: [{
         metric: { podId: 'pod-1' },
-        values: [[Date.now(), '0.95']] // 95% ELU - should trigger immediate scaling
+        values: [[Date.now(), '0.95']] // 95% ELU - would trigger scaling if alerts present
       }],
       heapSize: [{
         metric: { podId: 'pod-1' },
-        values: [[Date.now(), (0.9 * 8 * 1024 * 1024 * 1024).toString()]] // 90% heap - should trigger immediate scaling
+        values: [[Date.now(), (0.9 * 8 * 1024 * 1024 * 1024).toString()]] // 90% heap
       }]
     }
   }
@@ -553,21 +563,19 @@ test('calculateScalingDecision scales up with high metrics', async (t) => {
   // Current pod count of 3
   const currentPodCount = 3
 
-  // Execute the scaling decision
+  // Execute the scaling decision WITHOUT alerts (simulating periodic check)
   const result = await algorithm.calculateScalingDecision(
     'app-1',
     highLoadPodMetrics,
     currentPodCount,
     1, // minPods
     10 // maxPods
+    // No alerts - periodic check can only scale down
   )
 
-  // Should scale up from current pod count when metrics are high
-  assert.ok(result.nfinal > currentPodCount, 'Should scale up when metrics indicate high load')
-  assert.ok(result.reason.includes('Scaling up'), 'Reason should indicate scaling up')
-  assert.ok(result.reason.includes('pod-1'), 'Reason should mention triggering pod')
-  assert.ok(result.reason.includes('ELU'), 'Reason should mention ELU metric')
-  assert.ok(result.reason.includes('95.0%'), 'Reason should show ELU percentage')
+  // Should NOT scale up without alerts (periodic check can only scale down)
+  assert.strictEqual(result.nfinal, currentPodCount, 'Should NOT scale up without alerts')
+  assert.ok(result.reason.includes('periodic check can only scale down'), 'Reason should explain limitation')
 })
 
 test('calculateScalingDecision maintains pod count with normal metrics', async (t) => {

@@ -147,7 +147,7 @@ test('algorithm processes real alert structure correctly', async (t) => {
   console.log('=================================')
 })
 
-test('should test enhanced scaling logic with high score factor', async (t) => {
+test('should NOT scale up without alerts even with high metrics (periodic check)', async (t) => {
   const store = await setupStore(t)
   const log = createMockLog()
 
@@ -161,7 +161,7 @@ test('should test enhanced scaling logic with high score factor', async (t) => {
   const minPods = 1
   const maxPods = 10
 
-  // Create high utilization metrics that will generate significant ELU and heap scores
+  // Create high utilization metrics that would normally trigger scale-up
   const podsMetrics = {
     'pod-1': {
       eventLoopUtilization: [{
@@ -209,32 +209,27 @@ test('should test enhanced scaling logic with high score factor', async (t) => {
     }
   }
 
+  // No alerts - simulating periodic metrics check
   const result = await algorithm.calculateScalingDecision(
     applicationId,
     podsMetrics,
     currentPodCount,
     minPods,
     maxPods,
-    []
+    [] // Empty alerts = periodic check, can only scale down
   )
 
-  console.log('=== Enhanced Scaling Logic Test ===')
-  console.log('Testing the enhanced scaling algorithm with high utilization metrics')
+  console.log('=== Periodic Check Scale-Up Prevention Test ===')
+  console.log('Testing that periodic check (no alerts) does NOT scale up')
   console.log(`Current pods: ${currentPodCount}`)
   console.log(`Target pods: ${result.nfinal}`)
-  console.log(`Pods to add: ${result.nfinal - currentPodCount}`)
   console.log(`Reason: ${result.reason}`)
 
-  // Verify scaling occurs due to high utilization
-  assert.ok(result.nfinal > currentPodCount, 'Should scale up with high utilization')
-  assert.ok(result.nfinal >= currentPodCount + 1, 'Should add at least one pod')
-  assert.ok(result.reason.includes('Scaling up'), 'Reason should indicate scaling up')
-  assert.ok(result.reason.includes('pods triggered scaling'), 'Reason should mention pods triggering')
-  assert.ok(result.reason.includes('ELU'), 'Reason should mention ELU metric')
-  assert.ok(result.reason.includes('%'), 'Reason should show metric percentages')
+  // Verify NO scaling up occurs without alerts
+  assert.strictEqual(result.nfinal, currentPodCount, 'Should NOT scale up without alerts')
+  assert.ok(result.reason.includes('periodic check can only scale down'), 'Reason should explain periodic check limitation')
 
-  console.log('✓ Enhanced scaling logic tested successfully')
-  console.log('  Note: The scoreFactor > 0.7 condition requires extreme metrics')
-  console.log('  that are difficult to achieve in realistic scenarios')
+  console.log('✓ Periodic check correctly prevented scale-up')
+  console.log('  Scale-up requires alerts to ensure response to actual application stress')
   console.log('==================================')
 })

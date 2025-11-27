@@ -244,6 +244,15 @@ class ReactiveScalingAlgorithm {
       return { nfinal: currentPodCount, reason: 'No pods triggered scaling' }
     }
 
+    // When triggered by periodic metrics check (no alerts), only allow scale-down
+    if (alerts.length === 0) {
+      this.log.info(
+        { applicationId, triggerCount, podCount },
+        'Skipping scale-up: periodic check can only scale down, alerts required for scale-up'
+      )
+      return { nfinal: currentPodCount, reason: 'Scale-up requires alerts, periodic check can only scale down' }
+    }
+
     const preMetrics = calculatePreMetrics(processedPods)
 
     // Calculate base number of pods to add

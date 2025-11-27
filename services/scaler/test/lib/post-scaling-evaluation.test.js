@@ -405,12 +405,24 @@ test('Integration: full post-scaling evaluation cycle', async (t) => {
     }
   }
 
+  const alerts = [{
+    id: 1,
+    podId: 'pod-1',
+    serviceId: 'service-1',
+    applicationId: 'app-1',
+    elu: 0.96,
+    heapUsed: 0.88 * 8 * 1024 * 1024 * 1024,
+    heapTotal: 8 * 1024 * 1024 * 1024,
+    timestamp: Date.now()
+  }]
+
   const result = await algorithm.calculateScalingDecision(
     'app-1',
     highLoadMetrics,
     2,
     1,
-    10
+    10,
+    alerts
   )
 
   assert.ok(result.nfinal > 2, 'Should scale up')
