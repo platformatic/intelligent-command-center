@@ -1,5 +1,5 @@
 {
-  "version": "3.3.2",
+  "version": "3.4.0",
   "scripts": {
     "start": "platformatic start",
     "test": "npm run lint && DOTENV_CONFIG_QUIET=true borp --concurrency 1 --timeout=60000",
