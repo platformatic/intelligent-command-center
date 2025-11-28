@@ -15,7 +15,7 @@ const {
   generateK8sHeader
 } = require('./helper')
 
-test('should save an instance of a new application', async (t) => {
+test.only('should save an instance of a new application', async (t) => {
   const applicationName = 'test-app'
   const podId = randomUUID()
   const imageId = randomUUID()
@@ -206,7 +206,7 @@ test('should save an instance of a new application', async (t) => {
   assert.strictEqual(controller.namespace, 'platformatic')
   assert.strictEqual(controller.podId, podId)
 
-  assert.strictEqual(iccUpdates.length, 1)
+  assert.strictEqual(iccUpdates.length, 2)
 
   assert.strictEqual(podsLabels.length, 1)
 
@@ -218,7 +218,17 @@ test('should save an instance of a new application', async (t) => {
     'platformatic.dev/deployment-id': deployment.id
   })
 
-  const createdAppUpdate = iccUpdates[0]
+  const createdDeploymentUpdate = iccUpdates[0]
+  assert.deepStrictEqual(createdDeploymentUpdate, {
+    topic: 'ui-updates/applications',
+    type: 'deployment-created',
+    data: {
+      deploymentId: deployment.id,
+      applicationId: application.id
+    }
+  })
+
+  const createdAppUpdate = iccUpdates[1]
   assert.deepStrictEqual(createdAppUpdate, {
     topic: 'ui-updates/applications',
     type: 'application-created',

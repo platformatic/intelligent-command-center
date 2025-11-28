@@ -21,12 +21,14 @@ export default function WattsGrid () {
   useEffect(() => {
     if (lastMessage !== null) {
       const message = JSON.parse(lastMessage.data)
-      if (message.type === 'application-created') {
-        loadApplications()
-      }
-
-      if (message.type === 'application-state-created') {
-        loadApplications()
+      switch (message.type) {
+        case 'application-created':
+        case 'application-state-created':
+        case 'deployment-created':
+          loadApplications()
+          break
+        default:
+          break
       }
     }
   }, [lastMessage, readyState])

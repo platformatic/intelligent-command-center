@@ -238,6 +238,17 @@ module.exports = fp(async function (app) {
           })
           generation = newGeneration
         }, ctx)
+
+        await app.emitUpdate('icc', {
+          topic: 'ui-updates/applications',
+          type: 'deployment-created',
+          data: {
+            deploymentId: deployment.id,
+            applicationId: application.id
+          }
+        }).catch((err) => {
+          ctx.logger.error({ err }, 'Failed to send notification to ui')
+        })
       }
 
       const instance = await entities.instance.save({
