@@ -78,6 +78,7 @@ test('POST /signals should process signals with v2 algorithm', async (t) => {
   assert.strictEqual(body.applicationId, applicationId)
   assert.strictEqual(body.podId, podId)
   assert.strictEqual(body.signalCount, 2)
+  assert.ok(body.alertId)
   assert.ok(body.scalingDecision)
   assert.ok(typeof body.scalingDecision.nfinal === 'number')
   assert.ok(typeof body.scalingDecision.reason === 'string')

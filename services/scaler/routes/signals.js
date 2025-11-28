@@ -34,6 +34,7 @@ module.exports = async function (app) {
             success: { type: 'boolean' },
             applicationId: { type: 'string' },
             podId: { type: 'string' },
+            alertId: { type: 'string' },
             signalCount: { type: 'number' },
             scalingDecision: {
               type: 'object',
@@ -86,7 +87,7 @@ module.exports = async function (app) {
         throw new Error('Signal Scaler executor not initialized')
       }
 
-      const { scalingDecision } = await app.signalScalerExecutor.processSignals({
+      const { alert, scalingDecision } = await app.signalScalerExecutor.processSignals({
         applicationId,
         serviceId,
         podId,
@@ -100,6 +101,7 @@ module.exports = async function (app) {
         success: true,
         applicationId,
         podId,
+        alertId: alert.id,
         signalCount: signals.length,
         scalingDecision
       }

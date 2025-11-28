@@ -134,7 +134,7 @@ class MultiSignalReactiveScaler {
     // This is the leader, proceed to process signals
     const scalingDecision = await this.runScalingAlgorithm(applicationId)
 
-    return { scalingDecision }
+    return { alert, scalingDecision }
   }
 
   async runScalingAlgorithm (applicationId) {
