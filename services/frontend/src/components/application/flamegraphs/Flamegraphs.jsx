@@ -19,7 +19,7 @@ import ExperimentalTag from '@platformatic/ui-components/src/components/Experime
 import useRefreshData from '~/hooks/useRefreshData'
 
 export default function Flamegraphs () {
-  const { flamegraphs, pods } = useLoaderData()
+  const { flamegraphs } = useLoaderData()
   const [currentFlamegraphs, setCurrentFlamegraphs] = useState(flamegraphs)
   const { application } = useRouteLoaderData('appRoot')
   const [collectingCPU, setCollectingCPU] = useState(false)
@@ -158,9 +158,9 @@ export default function Flamegraphs () {
     expectedServicesRef.current = []
   }
 
-  async function collectProfile (command) {
+  async function collectProfile (type) {
     let collected = false
-    if (command === 'trigger-flamegraph') {
+    if (type === 'cpu') {
       setCollectingCPU(true)
     } else {
       setCollectingHeap(true)
@@ -168,28 +168,27 @@ export default function Flamegraphs () {
 
     // Initialize collection tracking
     const services = application.state.services
+    const serviceIds = services.map(service => service.id)
     isCollectingRef.current = true
     collectedProfilesRef.current = []
-    expectedServicesRef.current = services.map(service => service.id)
+    expectedServicesRef.current = serviceIds
 
-    // call this api for each pod until we get a 200 response
-    // we do this because it may happen that a pod is 'running' in our db
-    // but it's not actually running in k8s
-    for (const pod of pods) {
-      try {
-        const res = await callApi('', `/api/pods/${pod.podId}/command`, 'POST', {
-          command
-        })
-        if (res.success) {
-          collected = true
-          break
-        }
-      } catch (error) {
-        // do nothing
+    try {
+      const res = await callApi('scaler', '/flamegraphs/requests', 'POST', {
+        applicationId: application.id,
+        serviceIds,
+        type
+      })
+      if (res.success) {
+        collected = true
       }
+    } catch (error) {
+      console.error(error)
+      // do nothing
     }
+
     setTimeout(() => {
-      if (command === 'trigger-flamegraph') {
+      if (type === 'cpu') {
         setCollectingCPU(false)
       } else {
         setCollectingHeap(false)
@@ -198,7 +197,7 @@ export default function Flamegraphs () {
 
     if (!collected) {
       resetCollectionState()
-      window.alert(`No ${command === 'trigger-heapprofile' ? 'Heap profiles' : 'CPU profiles'} collected`)
+      window.alert(`No ${type === 'heap' ? 'Heap profiles' : 'CPU profiles'} collected`)
     }
 
     // Set timeout to check for missing services after 1000ms
@@ -259,7 +258,7 @@ export default function Flamegraphs () {
               textClass={typographyStyles.desktopButtonSmall}
               paddingClass={commonStyles.mediumButtonPadding}
               label={collectingCPU ? 'Collecting CPU profile...' : 'Get CPU profile'}
-              onClick={() => collectProfile('trigger-flamegraph')}
+              onClick={() => collectProfile('cpu')}
               disabled={collectingCPU || collectingHeap}
               color={WHITE}
               backgroundColor={RICH_BLACK}
@@ -270,7 +269,7 @@ export default function Flamegraphs () {
               textClass={typographyStyles.desktopButtonSmall}
               paddingClass={commonStyles.mediumButtonPadding}
               label={collectingHeap ? 'Collecting Heap profile...' : 'Get Heap profile'}
-              onClick={() => collectProfile('trigger-heapprofile')}
+              onClick={() => collectProfile('heap')}
               disabled={collectingHeap || collectingCPU}
               color={WHITE}
               backgroundColor={RICH_BLACK}

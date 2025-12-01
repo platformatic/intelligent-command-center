@@ -14,6 +14,58 @@ module.exports = async function (app) {
       payload.on('error', done)
     })
 
+  app.post('/flamegraphs/requests', {
+    schema: {
+      body: {
+        type: 'object',
+        properties: {
+          type: { type: 'string', default: 'cpu' },
+          applicationId: { type: 'string' },
+          serviceIds: {
+            type: 'array',
+            items: { type: 'string' }
+          }
+        },
+        required: ['applicationId', 'serviceIds', 'type']
+      }
+    },
+    handler: async (req) => {
+      const { applicationId, serviceIds, type } = req.body
+      app.log.info({ applicationId, serviceIds, type }, 'requesting flamegraph')
+
+      const instance = await app.getApplicationInstances(applicationId)
+
+      // PodIds sorced from oldest to newest
+      // The chance that profiler is already enabled on older pod is higher
+      const podIds = instance
+        .sort((a, b) => a.createdAt - b.createdAt)
+        .map(i => i.podId)
+
+      if (podIds.length === 0) {
+        throw new Error('No instances found for application')
+      }
+
+      const command = type === 'cpu'
+        ? 'trigger-flamegraph'
+        : 'trigger-heapprofile'
+
+      for (const podId of podIds) {
+        try {
+          app.log.info({ podId, command }, 'sending command to pod')
+          await app.sendPodCommand(podId, command, { serviceIds })
+          return { success: true }
+        } catch (err) {
+          app.log.error(
+            { err, podId, command },
+            'Failed to start profling on pod. Trying next one'
+          )
+        }
+      }
+
+      return { success: false }
+    }
+  })
+
   app.post('/pods/:podId/services/:serviceId/flamegraph', {
     schema: {
       params: {
@@ -56,8 +108,9 @@ module.exports = async function (app) {
         flamegraphSize: flamegraph?.length
       }, 'received flamegraph')
 
+      const applicationId = instance.applicationId
       const input = {
-        applicationId: instance.applicationId,
+        applicationId,
         serviceId,
         podId,
         flamegraph,

@@ -475,3 +475,46 @@ test('link flamegraph to alerts fails when flamegraph not found', async (t) => {
   const result = JSON.parse(response.body)
   assert.ok(result.message.includes('Flamegraph not found'))
 })
+
+test('request flamegraph successfully', async (t) => {
+  await cleanValkeyData()
+
+  const server = await buildServer(t)
+  const podId = 'test-pod-id'
+  const serviceId = 'test-service-id'
+  const applicationId = randomUUID()
+
+  server.getApplicationInstances = async () => [{ podId }]
+
+  const receivedCommands = []
+  server.sendPodCommand = (podId, command, params) => {
+    receivedCommands.push({ podId, command, params })
+  }
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  const response = await server.inject({
+    method: 'POST',
+    url: '/flamegraphs/requests',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: {
+      applicationId,
+      serviceIds: [serviceId],
+      type: 'cpu'
+    }
+  })
+
+  assert.strictEqual(response.statusCode, 200)
+
+  assert.strictEqual(receivedCommands.length, 1)
+  assert.deepStrictEqual(receivedCommands[0], {
+    podId,
+    command: 'trigger-flamegraph',
+    params: { serviceIds: [serviceId] }
+  })
+})

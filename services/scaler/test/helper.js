@@ -258,7 +258,8 @@ async function cleanValkeyData () {
   try {
     const scalerKeys = await scanKeys(redis, 'scaler:*')
     const reactiveKeys = await scanKeys(redis, 'reactive:*')
-    const allKeys = [...scalerKeys, ...reactiveKeys]
+    const flamegraphsKeys = await scanKeys(redis, 'flamegraphs:*')
+    const allKeys = [...scalerKeys, ...reactiveKeys, ...flamegraphsKeys]
     if (allKeys.length > 0) {
       await redis.del(...allKeys)
     }

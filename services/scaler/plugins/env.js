@@ -10,6 +10,8 @@ const schema = {
     'PLT_MACHINIST_URL'
   ],
   properties: {
+    PLT_CONTROL_PLANE_URL: { type: 'string', default: 'http://control-plane.plt.local' },
+    PLT_MAIN_SERVICE_URL: { type: 'string', default: 'http://main.plt.local' },
     PLT_ICC_VALKEY_CONNECTION_STRING: { type: 'string' },
     PLT_METRICS_PROMETHEUS_URL: { type: 'string' },
     PLT_METRICS_TIME_RANGE: { type: 'number', default: 60 }, // in seconds
@@ -42,7 +44,8 @@ const schema = {
     PLT_SIGNALS_SCALER_PERIODIC_TRIGGER: { type: 'number', default: 60 },
     PLT_SIGNALS_SCALER_LOCK_TTL: { type: 'number', default: 10 },
     PLT_SIGNALS_SCALER_MAX_ITERATIONS: { type: 'number', default: 10 },
-    PLT_SIGNALS_SCALER_PENDING_TTL: { type: 'number', default: 60 }
+    PLT_SIGNALS_SCALER_PENDING_TTL: { type: 'number', default: 60 },
+    PLT_ICC_SESSION_SECRET: { type: 'string' }
   }
 }
 
