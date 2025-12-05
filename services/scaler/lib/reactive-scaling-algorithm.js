@@ -19,7 +19,17 @@ class ReactiveScalingAlgorithm {
     this.eluThreshold = options.eluThreshold || 0.9
     this.heapThreshold = options.heapThreshold || 0.85
     this.postScalingWindow = options.postScalingWindow || 300
-    this.cooldownPeriod = options.cooldownPeriod || 15
+    this.scaleUpCooldownPeriod = options.scaleUpCooldownPeriod || 15
+    this.scaleDownCooldownPeriod = options.scaleDownCooldownPeriod
+    if (!this.scaleDownCooldownPeriod) {
+      // If scaleDownCooldownPeriod is not set, use scaleUpCooldownPeriod * 6
+      // with a minimum of 60s and a maximum of 180s
+      let scaleDownCooldownPeriod = this.scaleUpCooldownPeriod * 6
+      scaleDownCooldownPeriod = Math.max(scaleDownCooldownPeriod, 60)
+      scaleDownCooldownPeriod = Math.min(scaleDownCooldownPeriod, 180)
+      this.scaleDownCooldownPeriod = scaleDownCooldownPeriod
+    }
+
     this.minPodsDefault = options.minPodsDefault || 1
     this.maxPodsDefault = options.maxPodsDefault || 10
 
@@ -43,11 +53,12 @@ class ReactiveScalingAlgorithm {
     const maxPodsValue = maxPods !== undefined ? maxPods : this.maxPodsDefault
     // Load historical data
     const clusters = await this.store.loadClusters(applicationId)
-    const lastScalingTime = await this.store.getLastScalingTime(applicationId)
-    const now = Date.now()
 
-    // Check cooldown period first to avoid expensive calculations
-    if (now - lastScalingTime < this.cooldownPeriod * 1000) {
+    const now = Date.now()
+    const direction = alerts.length > 0 ? 'up' : 'down'
+
+    const isInCooldownPeriod = await this.isInCooldownPeriod(applicationId, direction)
+    if (isInCooldownPeriod) {
       return { nfinal: currentPodCount, reason: 'In cooldown period' }
     }
 
@@ -318,6 +329,31 @@ class ReactiveScalingAlgorithm {
     })
 
     return { nfinal, reason }
+  }
+
+  async isInCooldownPeriod (applicationId, direction) {
+    const lastScalingUpTime = await this.store.getLastScalingTime(applicationId, 'up')
+    const lastScalingDownTime = await this.store.getLastScalingTime(applicationId, 'down')
+
+    const now = Date.now()
+    const timeSinceLastScalingUp = now - lastScalingUpTime
+    const timeSinceLastScalingDown = now - lastScalingDownTime
+
+    if (direction === 'up') {
+      return (
+        timeSinceLastScalingUp < this.scaleUpCooldownPeriod * 1000 ||
+        timeSinceLastScalingDown < this.scaleUpCooldownPeriod * 1000
+      )
+    }
+
+    if (direction === 'down') {
+      return (
+        timeSinceLastScalingUp < this.scaleDownCooldownPeriod * 1000 ||
+        timeSinceLastScalingDown < this.scaleDownCooldownPeriod * 1000
+      )
+    }
+
+    throw new Error('Scaling direction is not provided')
   }
 }
 

@@ -388,7 +388,7 @@ test('Integration: full post-scaling evaluation cycle', async (t) => {
 
   const app = createMockApp(store, log, metricsService)
   const algorithm = new ReactiveScalingAlgorithm(app, {
-    cooldownPeriod: 0.1,
+    scaleUpCooldownPeriod: 0.1,
     postScalingWindow: 0.1
   })
 

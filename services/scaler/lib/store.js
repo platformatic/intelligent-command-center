@@ -165,9 +165,9 @@ class Store {
     }
   }
 
-  async getLastScalingTime (applicationId) {
+  async getLastScalingTime (applicationId, direction) {
     try {
-      const key = `${LAST_SCALING_PREFIX}${applicationId}`
+      const key = `${LAST_SCALING_PREFIX}${applicationId}:${direction}`
       const timeStr = await this.valkey.get(key)
       return timeStr ? Number(timeStr) : 0
     } catch (err) {
@@ -176,9 +176,9 @@ class Store {
     }
   }
 
-  async saveLastScalingTime (applicationId, time) {
+  async saveLastScalingTime (applicationId, time, direction) {
     try {
-      const key = `${LAST_SCALING_PREFIX}${applicationId}`
+      const key = `${LAST_SCALING_PREFIX}${applicationId}:${direction}`
       await this.valkey.set(key, time.toString())
     } catch (err) {
       this.log.error({ err, applicationId }, 'Failed to save last scaling time')

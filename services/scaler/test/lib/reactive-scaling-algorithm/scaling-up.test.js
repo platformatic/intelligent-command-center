@@ -65,7 +65,8 @@ test('algorithm processes real alert structure correctly', async (t) => {
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
 
-  await store.valkey.set('scaler:last-scaling:test-app-alert', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app-alert:up', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app-alert:down', (Date.now() - 600000).toString())
 
   // Load real alert structure
   const alertPath = path.join(__dirname, 'alert.json')
@@ -154,7 +155,8 @@ test('should NOT scale up without alerts even with high metrics (periodic check)
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
 
-  await store.valkey.set('scaler:last-scaling:test-enhanced-app', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-enhanced-app:up', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-enhanced-app:down', (Date.now() - 600000).toString())
 
   const applicationId = 'test-enhanced-app'
   const currentPodCount = 2

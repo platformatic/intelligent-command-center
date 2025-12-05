@@ -85,7 +85,8 @@ test('scaling algorithm with metrics-low.json data', async (t) => {
   const store = await setupStore(t)
   const log = createMockLog()
 
-  await store.valkey.set('scaler:last-scaling:test-app', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app:up', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app:down', (Date.now() - 600000).toString())
 
   const app = createMockApp(store, log)
   const algorithm = new ReactiveScalingAlgorithm(app)
@@ -200,7 +201,8 @@ test('scaling progression: scale down then stop', async (t) => {
   console.log('=== Scaling Progression Test ===')
 
   console.log('\n--- Phase 1: Initial scale down ---')
-  await store.valkey.set('scaler:last-scaling:test-app-progression', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app-progression:up', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app-progression:down', (Date.now() - 600000).toString())
 
   const veryLowMetrics = loadMetricsFile('metrics-very-low.json')
   const veryLowAnalysis = analyzeMetrics(veryLowMetrics)
@@ -226,7 +228,8 @@ test('scaling progression: scale down then stop', async (t) => {
   assert.ok(result1.reason.includes('%'), 'Reason should show metric percentages')
 
   console.log('\n--- Phase 2: After scale down, moderate utilization ---')
-  await store.valkey.set('scaler:last-scaling:test-app-progression', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app-progression:up', (Date.now() - 600000).toString())
+  await store.valkey.set('scaler:last-scaling:test-app-progression:down', (Date.now() - 600000).toString())
 
   const moderateMetrics = loadMetricsFile('metrics-moderate.json')
   const moderateAnalysis = analyzeMetrics(moderateMetrics)

@@ -177,9 +177,6 @@ class PerformanceHistory {
 
     const now = Date.now()
 
-    // Update last scaling time
-    await store.saveLastScalingTime(applicationId, now)
-
     // Record pre-scaling metrics for performance history
     const preScalingMetrics = {
       timestamp: now,

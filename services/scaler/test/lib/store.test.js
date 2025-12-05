@@ -426,7 +426,7 @@ test('saveClusters and loadClusters store and retrieve data correctly', async (t
 
 test('getLastScalingTime returns 0 when no data exists', async (t) => {
   const store = await setup(t)
-  const time = await store.getLastScalingTime('app-1')
+  const time = await store.getLastScalingTime('app-1', 'up')
   assert.strictEqual(time, 0)
 })
 
@@ -434,8 +434,8 @@ test('saveLastScalingTime and getLastScalingTime store and retrieve data correct
   const store = await setup(t)
   const testTime = 1620000000
 
-  await store.saveLastScalingTime('app-1', testTime)
-  const loadedTime = await store.getLastScalingTime('app-1')
+  await store.saveLastScalingTime('app-1', testTime, 'up')
+  const loadedTime = await store.getLastScalingTime('app-1', 'up')
 
   assert.strictEqual(loadedTime, testTime)
 })
@@ -693,7 +693,7 @@ test('getLastScalingTime - handles Redis errors gracefully', async (t) => {
   // Close the connection to simulate an error
   await store.valkey.quit()
 
-  const time = await store.getLastScalingTime('test-app')
+  const time = await store.getLastScalingTime('test-app', 'up')
 
   // Should return 0 and log error
   assert.strictEqual(time, 0)
@@ -715,7 +715,7 @@ test('saveLastScalingTime - handles Redis errors gracefully', async (t) => {
   // Close the connection to simulate an error
   await store.valkey.quit()
 
-  await store.saveLastScalingTime('test-app', 123456)
+  await store.saveLastScalingTime('test-app', 123456, 'up')
 
   // Should log error
   assert.strictEqual(logCalls.length, 1)

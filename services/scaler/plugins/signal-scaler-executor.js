@@ -258,7 +258,7 @@ class MultiSignalReactiveScaler {
         reason
       )
 
-      await this.app.store.saveLastScalingTime(applicationId, Date.now())
+      await this.app.store.saveLastScalingTime(applicationId, Date.now(), scaleEvent.direction)
       const signalIds = signals ? signals.map(s => s.id) : []
 
       if (scaleEvent?.id && signalIds.length > 0) {

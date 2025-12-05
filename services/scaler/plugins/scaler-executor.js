@@ -13,8 +13,8 @@ class ScalerExecutor {
       maxClusters: Number(app.env.PLT_SCALER_MAX_CLUSTERS),
       heapThreshold: Number(app.env.PLT_SCALER_HEAP_THRESHOLD),
       postScalingWindow: Number(app.env.PLT_SCALER_POST_EVAL_WINDOW),
-      // cooldownPeriod: Number(app.env.PLT_SCALER_COOLDOWN),
-      cooldownPeriod: 15, // Temporary override
+      // scaleUpCooldownPeriod: Number(app.env.PLT_SCALER_COOLDOWN),
+      scaleUpCooldownPeriod: 15, // Temporary override
       // eluThreshold: Number(app.env.PLT_SCALER_ELU_THRESHOLD),
       eluThreshold: 0.8, // Temporary override
       minPodsDefault: Number(app.env.PLT_SCALER_MIN_PODS_DEFAULT),
@@ -84,6 +84,9 @@ class ScalerExecutor {
     }, logMessage)
 
     if (result.nfinal !== currentPodCount) {
+      const direction = result.nfinal > currentPodCount ? 'up' : 'down'
+      await this.app.store.saveLastScalingTime(applicationId, Date.now(), direction)
+
       const { scaleEvent } = await this.executeScaling(
         applicationId,
         result.nfinal,
