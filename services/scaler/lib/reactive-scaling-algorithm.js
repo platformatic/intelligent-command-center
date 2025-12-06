@@ -191,6 +191,14 @@ class ReactiveScalingAlgorithm {
 
     // If no pods trigger scaling, check if we should scale down instead
     if (triggerCount === 0) {
+      if (alerts.length !== 0) {
+        this.log.info(
+          { applicationId, triggerCount, podCount },
+          'Skipping scale-down: scale-down is not allowed if it was triggered by an alert'
+        )
+        return { nfinal: currentPodCount, reason: 'Scale-down is not allowed if it was triggered by an alert' }
+      }
+
       // IMPLEMENTATION ADDITION NOT IN MATHEMATICAL SPEC:
       // The mathematical specification in the whitepaper focuses exclusively on scale-up decisions
       // and does not define any scale-down mechanism. Sections 1-7 only address scaling up.

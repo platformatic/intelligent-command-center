@@ -959,3 +959,48 @@ test('calculateScalingDecision blocks scale-up within scaleUpCooldownPeriod', as
   assert.strictEqual(result.nfinal, 2, 'Should not scale up within scaleUpCooldownPeriod')
   assert.strictEqual(result.reason, 'In cooldown period', 'Reason should indicate cooldown period')
 })
+
+test('calculateScalingDecision blocks scale-down when alerts are present', async (t) => {
+  const store = await setupStore(t)
+  const log = createMockLog()
+
+  const app = createMockApp(store, log)
+  const algorithm = new ReactiveScalingAlgorithm(app)
+
+  const now = Date.now()
+
+  const alerts = [{
+    podId: 'pod-1',
+    serviceId: 'service-1',
+    elu: 0.9, // At threshold - alert just triggered
+    heapUsed: 3.5 * 1024 * 1024 * 1024,
+    heapTotal: 4 * 1024 * 1024 * 1024, // 4GB = 50% of 8GB (below 90% immediate trigger)
+    unhealthy: true,
+    timestamp: now,
+    // healthHistory: 30 entries at LOW load (40% ELU, 3.5GB heap)
+    // This dilutes current high ELU to ~44.8% average
+    healthHistory: Array(30).fill().map((_, i) => ({
+      timestamp: (now - (30 - i) * 1000).toString(),
+      currentHealth: {
+        elu: 0.40, // Low load
+        heapTotal: 3.5 * 1024 * 1024 * 1024, // 3.5GB
+        heapUsed: 2.5 * 1024 * 1024 * 1024
+      }
+    }))
+  }]
+
+  const currentPodCount = 2
+
+  // Execute the scaling decision with alerts
+  const result = await algorithm.calculateScalingDecision(
+    'app-1',
+    {},
+    currentPodCount,
+    1, // minPods
+    10, // maxPods
+    alerts
+  )
+
+  assert.strictEqual(result.nfinal, currentPodCount, 'Should not scale down when alerts are present')
+  assert.strictEqual(result.reason, 'Scale-down is not allowed if it was triggered by an alert', 'Reason should indicate alerts prevent scale-down')
+})

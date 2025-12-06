@@ -93,11 +93,15 @@ class ScalerExecutor {
         result.reason
       )
 
-      if (scaleEvent && alerts.length > 0) {
+      if (scaleEvent && scaleEvent.direction === 'up' && alerts.length > 0) {
+        const scaleEventDate = new Date(scaleEvent.createdAt)
+        const minuteAgo = new Date(scaleEventDate.getTime() - 60000)
+
         await this.app.platformatic.entities.alert.updateMany({
           where: {
             id: { in: alerts.map(a => a.id) },
-            scaleEventId: { eq: null }
+            scaleEventId: { eq: null },
+            createdAt: { gte: minuteAgo.toISOString() }
           },
           input: { scaleEventId: scaleEvent.id }
         }).catch(err => {
