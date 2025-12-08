@@ -67,13 +67,14 @@ const LineChart = ({
       // We always show 10 labels on the x axis
       const labelSecondsInterval = windowInMinutes * 60 / 10
       const yAxisTickValues = [...getTicks(yMin, maxy, 2, false)]
+
       const xAxis = d3
         .axisBottom()
         .scale(x)
         .tickFormat(d3.timeFormat('%H:%M:%S'))
         .ticks(d3.timeSecond.every(labelSecondsInterval))
 
-      const yAxis = d3
+      d3
         .axisLeft()
         .scale(y)
         .tickValues(yAxisTickValues)
@@ -88,21 +89,23 @@ const LineChart = ({
         .append('g')
         .attr('transform', `translate(0, ${h - yMargin})`)
 
-      const $yAxis = svg
-        .append('g')
-        .attr('transform', `translate(${xMargin})`)
-
       svg.append('g')
         .attr('class', styles.grid)
-        .call(d3.axisLeft(y).tickValues(yAxisTickValues).tickSize(-(w - (xMargin * 2))).tickFormat(''))
+        .call(d3
+          .axisLeft(y)
+          .tickValues(yAxisTickValues)
+          .tickSize(-(w - (xMargin * 2)))
+          .tickFormat((d) => {
+            if (d > 1024 && unit === 'MB') {
+              return d3.format('.0f')(d / 1024) + ' GB'
+            }
+            return d3.format('.0f')(d)
+          })
+        )
         .attr('transform', `translate(${xMargin})`)
-        .call(g => g.select('.domain').remove())
-
-      $yAxis
-        .call(yAxis)
+        .attr('class', styles.axis)
         .call(g => g.select('.domain').remove())
         .call(g => g.selectAll('.tick > line').remove())
-        .attr('class', styles.axis)
 
       $xAxis
         .call(xAxis)
