@@ -55,7 +55,7 @@ const ThreadUsage = ({
   useEffect(() => {
     if (!svgRef.current || currentData.length === 0) return
 
-    const h = svgRef.current.clientHeight
+    const h = svgRef.current.clientHeight - 1 // -1 to avoid the border of the svg
     const w = svgRef.current.clientWidth
 
     const svg = d3.select(svgRef.current)

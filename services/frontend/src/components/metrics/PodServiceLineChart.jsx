@@ -35,7 +35,7 @@ const PodServiceLineChart = ({
 
   useEffect(() => {
     if (svgRef.current && tooltipRef.current && !paused && numberLabelsOnXAxis && heightChart && data.length > 0) {
-      const h = svgRef.current.clientHeight
+      const h = svgRef.current.clientHeight - 1 // -1 to avoid the border of the svg
       const w = svgRef.current.clientWidth
 
       const svg = d3
@@ -71,7 +71,7 @@ const PodServiceLineChart = ({
       const xAxis = d3
         .axisBottom()
         .scale(x)
-        .tickFormat(d3.timeFormat('%H:%M:%S'))
+        .tickFormat(d3.utcFormat('%H:%M:%S'))
         .ticks(d3.timeSecond.every(labelSecondsInterval))
 
       const yAxis = d3
@@ -181,7 +181,7 @@ const PodServiceLineChart = ({
         }
 
         // Prepare the tooltip
-        const timeString = d3.timeFormat('%H:%M:%S.%L %p')(data.time)
+        const timeString = d3.utcFormat('%H:%M:%S.%L %p')(data.time)
 
         const valuesData = data.values.map((v, i) => {
           return {

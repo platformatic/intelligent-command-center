@@ -10,7 +10,6 @@ const AutoscalerHistoryChart = ({
   // We assume the data is an array of objects with a time and a value
   // { time: new Date(), values: [actual, projected] }
   data,
-  maxNumberOfPods = 10,
   tooltipPosition = POSITION_ABSOLUTE
 }) => {
   const svgRef = useRef()
@@ -22,7 +21,7 @@ const AutoscalerHistoryChart = ({
   useEffect(() => {
     if (svgRef.current && tooltipRef.current && data.length > 0) {
       const width = svgRef.current.clientWidth
-      const height = svgRef.current.clientHeight
+      const height = svgRef.current.clientHeight - 1 // -1 to avoid the border of the svg
       const tooltip = d3
         .select(tooltipRef.current)
 
@@ -71,7 +70,7 @@ const AutoscalerHistoryChart = ({
         .range([0, width - 2 * xMargin]) // For data visualization
 
       const xAxis = d3.axisBottom(x)
-        .tickFormat(d3.timeFormat('%H:%M:%S'))
+        .tickFormat(d3.utcFormat('%H:%M:%S'))
         .ticks(4)
 
       svg
@@ -182,8 +181,8 @@ const AutoscalerHistoryChart = ({
         focus.select(`circle.${styles['tooltip-point']}`)
           .attr('transform', `translate(${xPos},${y(d0.values[1]) + yMargin})`)
 
-        // Prepare the tooltip
-        const timeString = d3.timeFormat('%H:%M:%S.%L %p')(x0)
+        // Prepare the tooltip, ensure timestring is always in the same format
+        const timeString = d3.utcFormat('%H:%M:%S.%L %p')(x0)
         const valuesData = [{
           label: 'Scaled from:',
           value: d0.values[0]
@@ -233,7 +232,7 @@ const AutoscalerHistoryChart = ({
 
   return (
     <div className={`${commonStyles.smallFlexRow} ${commonStyles.fullWidth} ${commonStyles.justifyCenter} ${commonStyles.itemsCenter}`}>
-      <svg ref={svgRef} style={{ width: '100%', height: '113px', overflowX: 'scroll' }} />
+      <svg ref={svgRef} style={{ width: '100%', height: '120px', overflowX: 'scroll' }} />
       <div ref={tooltipRef} className={`${tooltipPosition === POSITION_ABSOLUTE ? styles.tooltipAbsolute : styles.tooltipFixed} ${styles.tooltip}`} />
     </div>
   )

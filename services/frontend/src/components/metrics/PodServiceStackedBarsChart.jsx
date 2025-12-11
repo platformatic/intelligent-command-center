@@ -37,7 +37,7 @@ const PodServiceStackedBarsChart = ({
 
   useEffect(() => {
     if (svgRef.current && tooltipRef.current && !paused && numberLabelsOnXAxis && heightChart && data.length > 0) {
-      const h = svgRef.current.clientHeight
+      const h = svgRef.current.clientHeight - 1 // -1 to avoid the border of the svg
       const w = svgRef.current.clientWidth
 
       const svg = d3
@@ -72,7 +72,7 @@ const PodServiceStackedBarsChart = ({
 
       // We always show 10 labels on the x axis
       const labelSecondsInterval = windowInMinutes * 60 / numberLabelsOnXAxis
-      const xAxis = d3.axisBottom().scale(x).tickFormat(d3.timeFormat('%H:%M:%S')).ticks(d3.timeSecond.every(labelSecondsInterval))
+      const xAxis = d3.axisBottom().scale(x).tickFormat(d3.utcFormat('%H:%M:%S')).ticks(d3.timeSecond.every(labelSecondsInterval))
       const yAxis = d3.axisLeft().scale(y).tickValues(yAxisTickValues)
 
       svg.attr('width', w)
@@ -158,7 +158,7 @@ const PodServiceStackedBarsChart = ({
         }
 
         // Prepare the tooltip
-        const timeString = d3.timeFormat('%H:%M:%S.%L %p')(data.time)
+        const timeString = d3.utcFormat('%H:%M:%S.%L %p')(data.time)
         const valuesData = labels.map((label, i) => {
           return {
             label,

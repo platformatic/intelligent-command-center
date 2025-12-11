@@ -26,7 +26,7 @@ const LatencyChart = ({
 
   useEffect(() => {
     if (svgRef.current && tooltipRef.current && data.length > 0) {
-      const h = svgRef.current.clientHeight
+      const h = svgRef.current.clientHeight - 1 // -1 to avoid the border of the svg
       const w = svgRef.current.clientWidth
 
       const svg = d3
@@ -126,7 +126,7 @@ const LatencyChart = ({
         }
 
         // Prepare the tooltip
-        const timeString = d3.timeFormat('%H:%M:%S.%L %p')(data.time)
+        const timeString = d3.utcFormat('%H:%M:%S.%L %p')(data.time)
         const valuesData = labels.map((label, i) => {
           return {
             name: label.name,

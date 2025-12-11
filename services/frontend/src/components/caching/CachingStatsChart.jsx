@@ -20,7 +20,7 @@ const CachingStatsChart = ({
 
   useEffect(() => {
     if (svgRef.current && data.length > 0) {
-      const h = svgRef.current.clientHeight
+      const h = svgRef.current.clientHeight - 1 // -1 to avoid the border of the svg
       const w = svgRef.current.clientWidth
       const Y_AXIS_BANDS = 2
       const svg = d3.select(svgRef.current)
