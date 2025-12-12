@@ -1,0 +1,54 @@
+{
+  "name": "intelligent-command-center",
+  "version": "3.4.4",
+  "description": "Open-source intelligent command center for cloud application management",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test test/*.test.js && pnpm -r --workspace-concurrency=1 test",
+    "test:scripts": "bats --tap test/",
+    "build": "wattpm build",
+    "cleanall": "rm pnpm-lock.yaml && rm -rf node_modules && rm -rf services/*/node_modules",
+    "clean": "rm -rf node_modules && rm -rf services/*/node_modules",
+    "start": "wattpm start",
+    "dev": "wattpm dev",
+    "lint": "pnpm -r --workspace-concurrency=1 lint"
+},
+  "keywords": [
+    "kubernetes",
+    "cloud",
+    "management",
+    "platformatic",
+    "microservices",
+    "monitoring",
+    "open-source"
+  ],
+  "author": "Platformatic Team",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/platformatic/intelligent-command-center.git"
+  },
+  "bugs": {
+    "url": "https://github.com/platformatic/intelligent-command-center/issues"
+  },
+  "homepage": "https://github.com/platformatic/intelligent-command-center#readme",
+  "dependencies": {
+    "@platformatic/client": "^2.70.1",
+    "fastify": "^5.2.1",
+    "fastify-plugin": "^5.0.1",
+    "platformatic": "^2.70.1",
+    "unique-names-generator": "^4.7.1",
+    "wattpm": "^2.70.1"
+},
+  "devDependencies": {
+    "@platformatic/config": "^2.70.1",
+    "@platformatic/runtime": "^2.70.1",
+    "bats": "^1.12.0",
+    "snazzy": "^9.0.0",
+    "standard": "^17.1.2",
+    "undici": "^7.3.0"
+},
+  "engines": {
+    "node": ">=18.8.0"
+  }
+}
