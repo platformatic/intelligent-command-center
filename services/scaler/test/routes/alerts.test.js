@@ -6,33 +6,9 @@ const assert = require('node:assert')
 const {
   buildServer,
   generateK8sHeader,
-  cleanValkeyData
+  cleanValkeyData,
+  createAlert
 } = require('../helper')
-
-// Helper function to create a valid alert
-function createAlert (applicationId, serviceId) {
-  return {
-    id: randomUUID(),
-    serviceId,
-    service: serviceId,
-    applicationId,
-    currentHealth: {
-      elu: 0.5,
-      heapUsed: 100,
-      heapTotal: 200
-    },
-    unhealthy: true,
-    healthConfig: {
-      enabled: true,
-      interval: 60,
-      gracePeriod: 120,
-      maxUnhealthyChecks: 3,
-      maxELU: 0.8,
-      maxHeapUsed: 150,
-      maxHeapTotal: 250
-    }
-  }
-}
 
 test('receive and save alert successfully', async (t) => {
   await cleanValkeyData()

@@ -332,7 +332,7 @@ function FlamegraphRow ({ date, flamegraphs, application, alertId = null, scaleE
                   <div className={styles.separator}>|</div>
                   <div>
                     <span className={styles.label}>Type:</span>
-                    <div className={styles.value}>{fg.profileType || 'cpu'}</div>
+                    <div className={styles.value}>{fg.type || 'cpu'}</div>
                   </div>
                 </div>
                 <div

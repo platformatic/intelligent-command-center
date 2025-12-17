@@ -2,6 +2,7 @@
 
 const { beforeEach, afterEach } = require('node:test')
 const { join } = require('node:path')
+const { randomUUID } = require('node:crypto')
 const { setGlobalDispatcher, Agent } = require('undici')
 const { buildServer: buildDbServer } = require('@platformatic/db')
 const fastify = require('fastify')
@@ -38,6 +39,10 @@ async function getConfig () {
         },
         {
           method: 'POST',
+          path: '/flamegraphs'
+        },
+        {
+          method: 'GET',
           path: '/flamegraphs'
         },
         {
@@ -268,6 +273,30 @@ async function cleanValkeyData () {
   }
 }
 
+function createAlert (applicationId, serviceId) {
+  return {
+    id: randomUUID(),
+    serviceId,
+    service: serviceId,
+    applicationId,
+    currentHealth: {
+      elu: 0.5,
+      heapUsed: 100,
+      heapTotal: 200
+    },
+    unhealthy: true,
+    healthConfig: {
+      enabled: true,
+      interval: 60,
+      gracePeriod: 120,
+      maxUnhealthyChecks: 3,
+      maxELU: 0.8,
+      maxHeapUsed: 150,
+      maxHeapTotal: 250
+    }
+  }
+}
+
 module.exports = {
   setUpEnvironment,
   buildServer,
@@ -280,5 +309,6 @@ module.exports = {
   valkeyConnectionString,
   connectionString,
   startMachinist,
-  setupMockPrometheusServer
+  setupMockPrometheusServer,
+  createAlert
 }

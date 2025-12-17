@@ -337,8 +337,11 @@ export function getRouter () {
             const query = new URLSearchParams({
               'where.applicationId.eq': params.applicationId
             })
+            const flamegraphsQuery = new URLSearchParams({
+              applicationId: params.applicationId
+            })
             const [flamegraphs, alerts] = await Promise.all([
-              callApi('scaler', `flamegraphs?${query.toString()}`, 'GET'),
+              callApi('scaler', `flamegraphs?${flamegraphsQuery.toString()}`, 'GET'),
               callApi('scaler', `alerts?${query.toString()}`, 'GET')
             ])
 

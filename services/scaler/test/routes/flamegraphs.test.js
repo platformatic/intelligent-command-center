@@ -6,7 +6,8 @@ const assert = require('node:assert')
 const {
   buildServer,
   generateK8sHeader,
-  cleanValkeyData
+  cleanValkeyData,
+  createAlert
 } = require('../helper')
 
 function deepStrictEqualIgnoreCreatedAt (actual, expected) {
@@ -77,7 +78,8 @@ test('receive and save flamegraph successfully', async (t) => {
     id: flamegraphEntity.id,
     serviceId,
     podId,
-    profileType: 'cpu'
+    type: 'cpu',
+    alertsCount: 0
   })
 })
 
@@ -249,7 +251,8 @@ test('receive and save flamegraph with alertId successfully', async (t) => {
     id: flamegraphEntity.id,
     serviceId,
     podId,
-    profileType: 'cpu'
+    type: 'cpu',
+    alertsCount: 1
   })
 })
 
@@ -316,7 +319,8 @@ test('receive and save heap profile successfully', async (t) => {
     id: flamegraphEntity.id,
     serviceId,
     podId,
-    profileType: 'heap'
+    type: 'heap',
+    alertsCount: 0
   })
 })
 
@@ -517,4 +521,243 @@ test('request flamegraph successfully', async (t) => {
     command: 'trigger-flamegraph',
     params: { serviceIds: [serviceId] }
   })
+})
+
+test('POST /flamegraphs/states saves profiling states', async (t) => {
+  await cleanValkeyData()
+
+  const server = await buildServer(t)
+  const applicationId = randomUUID()
+  const podId = 'test-pod-state'
+  const expiresIn = 15000
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  const response = await server.inject({
+    method: 'POST',
+    url: '/flamegraphs/states',
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    payload: {
+      applicationId,
+      podId,
+      expiresIn,
+      states: [
+        { isProfiling: true, isPaused: false, profileType: 'cpu' },
+        { isProfiling: true, isPaused: false, profileType: 'heap' }
+      ]
+    }
+  })
+
+  assert.strictEqual(response.statusCode, 200)
+
+  // Verify states were saved
+  const states = await server.getProfilingStates(applicationId)
+  assert.strictEqual(states.length, 2)
+  assert.strictEqual(states[0].isProfiling, true)
+  assert.strictEqual(states[0].isPaused, false)
+  assert.strictEqual(states[0].podId, podId)
+})
+
+test('GET /flamegraphs/states retrieves profiling states', async (t) => {
+  await cleanValkeyData()
+
+  const server = await buildServer(t)
+  const applicationId = randomUUID()
+  const podId = 'test-pod-get-state'
+  const expiresIn = 15000
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  // Save some states first
+  await server.saveProfilingStates(applicationId, podId, expiresIn, [
+    { isProfiling: true, isPaused: false, profileType: 'cpu' }
+  ])
+
+  const response = await server.inject({
+    method: 'GET',
+    url: `/flamegraphs/states?applicationId=${applicationId}`
+  })
+
+  assert.strictEqual(response.statusCode, 200)
+  const states = JSON.parse(response.body)
+  assert.strictEqual(states.length, 1)
+  assert.strictEqual(states[0].isProfiling, true)
+  assert.strictEqual(states[0].isPaused, false)
+  assert.strictEqual(states[0].podId, podId)
+})
+
+test('POST /flamegraphs/states requires k8s context', async (t) => {
+  await cleanValkeyData()
+
+  const server = await buildServer(t)
+  const applicationId = randomUUID()
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  const response = await server.inject({
+    method: 'POST',
+    url: '/flamegraphs/states',
+    headers: {
+      'content-type': 'application/json'
+    },
+    payload: {
+      applicationId,
+      podId: 'test-pod',
+      states: [{ isProfiling: true, isPaused: false }]
+    }
+  })
+
+  assert.strictEqual(response.statusCode, 500)
+  const result = JSON.parse(response.body)
+  assert.ok(result.message.includes('Missing k8s context'))
+})
+
+test('/GET /flamegraphs returns flamegraphs for application', async (t) => {
+  await cleanValkeyData()
+
+  const server = await buildServer(t)
+  const applicationId = randomUUID()
+  const podId1 = 'test-pod-id-1'
+  const serviceId1 = 'test-service-id-1'
+
+  const podId2 = 'test-pod-id-2'
+  const serviceId2 = 'test-service-id-2'
+
+  const flamegraphData1 = Buffer.from('test flamegraph data')
+  const flamegraphData2 = Buffer.from('test flamegraph data')
+
+  server.getInstanceByPodId = async () => ({ applicationId })
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  let allertId1 = null
+  let allertId2 = null
+  let flamegraphId1 = null
+
+  {
+    const alert = createAlert(applicationId, serviceId1)
+    const { statusCode, body } = await server.inject({
+      method: 'POST',
+      url: '/alerts',
+      headers: {
+        'content-type': 'application/json',
+        'x-k8s': generateK8sHeader(podId1)
+      },
+      payload: JSON.stringify({
+        applicationId,
+        alert,
+        healthHistory: [alert]
+      })
+    })
+    assert.strictEqual(statusCode, 200)
+
+    const { id } = JSON.parse(body)
+    allertId1 = id
+  }
+
+  {
+    const alert = createAlert(applicationId, serviceId1)
+    const { statusCode, body } = await server.inject({
+      method: 'POST',
+      url: '/alerts',
+      headers: {
+        'content-type': 'application/json',
+        'x-k8s': generateK8sHeader(podId1)
+      },
+      payload: JSON.stringify({
+        applicationId,
+        alert,
+        healthHistory: [alert]
+      })
+    })
+    assert.strictEqual(statusCode, 200)
+
+    const { id } = JSON.parse(body)
+    allertId2 = id
+  }
+
+  {
+    const { statusCode, body } = await server.inject({
+      method: 'POST',
+      url: `/pods/${podId1}/services/${serviceId1}/flamegraph`,
+      query: { profileType: 'cpu' },
+      headers: {
+        'content-type': 'application/octet-stream',
+        'x-k8s': generateK8sHeader(podId1)
+      },
+      payload: flamegraphData1
+    })
+    assert.strictEqual(statusCode, 200)
+
+    const { id } = JSON.parse(body)
+    flamegraphId1 = id
+  }
+
+  {
+    const { statusCode } = await server.inject({
+      method: 'POST',
+      url: `/pods/${podId2}/services/${serviceId2}/flamegraph`,
+      query: { profileType: 'heap' },
+      headers: {
+        'content-type': 'application/octet-stream',
+        'x-k8s': generateK8sHeader(podId2)
+      },
+      payload: flamegraphData2
+    })
+    assert.strictEqual(statusCode, 200)
+  }
+
+  {
+    const { statusCode } = await server.inject({
+      method: 'POST',
+      url: `/flamegraphs/${flamegraphId1}/alerts`,
+      headers: {
+        'content-type': 'application/json',
+        'x-k8s': generateK8sHeader(podId1)
+      },
+      body: {
+        alertIds: [allertId1, allertId2]
+      }
+    })
+    assert.strictEqual(statusCode, 200)
+  }
+
+  const { statusCode, body } = await server.inject({
+    method: 'GET',
+    url: '/flamegraphs',
+    query: { applicationId }
+  })
+  assert.strictEqual(statusCode, 200)
+
+  const flamegraphs = JSON.parse(body)
+  assert.strictEqual(flamegraphs.length, 2)
+
+  const flamegraph1 = flamegraphs.find((f) => f.podId === podId1)
+  assert.ok(flamegraph1)
+  assert.strictEqual(flamegraph1.type, 'cpu')
+  assert.strictEqual(flamegraph1.serviceId, serviceId1)
+  assert.strictEqual(flamegraph1.flamegraph, undefined)
+  assert.strictEqual(flamegraph1.alertsCount, 2)
+
+  const flamegraph2 = flamegraphs.find((f) => f.podId === podId2)
+  assert.ok(flamegraph2)
+  assert.strictEqual(flamegraph2.type, 'heap')
+  assert.strictEqual(flamegraph2.serviceId, serviceId2)
+  assert.strictEqual(flamegraph2.flamegraph, undefined)
+  assert.strictEqual(flamegraph2.alertsCount, 0)
 })

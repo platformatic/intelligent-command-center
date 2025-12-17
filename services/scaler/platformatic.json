@@ -21,6 +21,10 @@
           "path": "/flamegraphs"
         },
         {
+          "method": "GET",
+          "path": "/flamegraphs"
+        },
+        {
           "method": "POST",
           "path": "/signals"
         }

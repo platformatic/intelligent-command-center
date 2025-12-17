@@ -66,6 +66,40 @@ module.exports = async function (app) {
     }
   })
 
+  app.get('/flamegraphs', {
+    schema: {
+      query: {
+        type: 'object',
+        properties: {
+          applicationId: { type: 'string' }
+        }
+      },
+      response: {
+        200: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              applicationId: { type: 'string' },
+              serviceId: { type: 'string' },
+              podId: { type: 'string' },
+              type: { type: 'string' },
+              alertsCount: { type: 'number' },
+              createdAt: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
+    handler: async (req) => {
+      const { applicationId } = req.query
+      app.log.debug({ applicationId }, 'fetching flamegraphs')
+
+      return app.getApplicationFlamegraphs(applicationId)
+    }
+  })
+
   app.post('/pods/:podId/services/:serviceId/flamegraph', {
     schema: {
       params: {
@@ -137,7 +171,8 @@ module.exports = async function (app) {
           id: result.id,
           serviceId,
           podId,
-          profileType,
+          type: profileType,
+          alertsCount: alertId ? 1 : 0,
           createdAt: result.createdAt
         }
       }).catch((err) => {
@@ -205,6 +240,54 @@ module.exports = async function (app) {
     } catch (err) {
       app.log.error({ err }, 'Failed to decode flamegraph')
       return { error: 'Failed to decode flamegraph:' + err.message }
+    }
+  })
+
+  app.post('/flamegraphs/states', {
+    schema: {
+      body: {
+        type: 'object',
+        properties: {
+          applicationId: { type: 'string' },
+          podId: { type: 'string' },
+          expiresIn: { type: 'number', default: 10 * 1000 },
+          states: {
+            type: 'array',
+            items: { type: 'object' }
+          }
+        },
+        required: ['applicationId', 'podId', 'states']
+      }
+    },
+    handler: async (req) => {
+      const k8sContext = req.k8s
+      if (!k8sContext) {
+        throw new Error('Missing k8s context')
+      }
+
+      const { applicationId, podId, expiresIn, states } = req.body
+      app.log.debug({ applicationId, podId, expiresIn }, 'saving profiling states')
+
+      await app.saveProfilingStates(applicationId, podId, expiresIn, states)
+    }
+  })
+
+  app.get('/flamegraphs/states', {
+    schema: {
+      querystring: {
+        type: 'object',
+        properties: {
+          applicationId: { type: 'string' }
+        },
+        required: ['applicationId']
+      }
+    },
+    handler: async (req) => {
+      const { applicationId } = req.query
+      app.log.debug({ applicationId }, 'fetching profiling states')
+
+      const states = await app.getProfilingStates(applicationId)
+      return states
     }
   })
 }
