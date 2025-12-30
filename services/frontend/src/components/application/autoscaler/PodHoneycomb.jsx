@@ -40,6 +40,7 @@ export default function PodHoneyComb ({
               const score = calculateHexagonPerformance(item.pod.dataValues)
               return (
                 <Hexagon
+                  title={item.pod.id}
                   style={{
                     background: backgrounds[score]
                   }}

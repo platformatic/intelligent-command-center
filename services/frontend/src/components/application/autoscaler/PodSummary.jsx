@@ -7,7 +7,7 @@ import {
 import callApi from '~/api/common'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import styles from './PodSummary.module.css'
-import { MAIN_GREEN, MEDIUM } from '@platformatic/ui-components/src/components/constants'
+import { MAIN_GREEN, MEDIUM, SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
 import { generatePath, useRouteLoaderData, useNavigate } from 'react-router-dom'
 import { AUTOSCALER_POD_DETAIL_PATH } from '../../../paths'
 import { ELU_THRESHOLD, HEAP_THRESHOLD, calculateHexagonPerformance } from '../../../utils/podPerformance'
@@ -18,6 +18,11 @@ export default function PodSummary ({ pod }) {
   const { application } = useRouteLoaderData('appRoot')
   const navigate = useNavigate()
   const { config } = useICCStore()
+  function onClipboardClick (evt) {
+    evt.stopPropagation()
+    navigator.clipboard.writeText(pod.id)
+    window.alert(`Pod Id "${pod.id}" copied to clipboard`)
+  }
   async function getSignals () {
     // Get alerts from last 60 seconds
     const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString()
@@ -70,12 +75,12 @@ export default function PodSummary ({ pod }) {
     }
   }
   return (
-    <div
-      className={styles.container} onClick={() => {
-        navigate(generatePath(AUTOSCALER_POD_DETAIL_PATH, { applicationId: application.id, podId: pod.id }))
-      }}
-    >
-      <div className={styles.svgContainer}>
+    <div className={styles.container}>
+      <div
+        className={styles.svgContainer} onClick={() => {
+          navigate(generatePath(AUTOSCALER_POD_DETAIL_PATH, { applicationId: application.id, podId: pod.id }))
+        }}
+      >
         <svg width='100%' height='100%' viewBox='0 0 228 262' fill='none' xmlns='http://www.w3.org/2000/svg' className={`${getSvgStyle()} ${styles.svg}`}>
           <path d='M113.805 2.39062L225.353 66.793V195.598L113.805 260L2.25657 195.598V66.793L113.805 2.39062Z' fill='none' stroke='none' />
         </svg>
@@ -86,6 +91,14 @@ export default function PodSummary ({ pod }) {
       <Metric label='ELU' value={pod.dataValues.eventLoop} signals={signals} unit='%' threshold={ELU_THRESHOLD} />
       <hr />
       <Metric label='Heap' value={pod.dataValues.usedHeap} totalHeap={pod.dataValues.totalHeap} signals={signals} unit='MB' threshold={HEAP_THRESHOLD} thresholdUnit='%' />
+
+      <div className={styles.podIdContainer}>
+        <span className={styles.podId}>{pod.id}</span>
+        <div className={styles.copyToClipBoard} onClick={onClipboardClick}>
+          <Icons.CopyPasteIcon color={WHITE} size={SMALL} />
+        </div>
+
+      </div>
     </div>
   )
 }

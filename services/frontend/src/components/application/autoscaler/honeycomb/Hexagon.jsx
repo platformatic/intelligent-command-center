@@ -2,8 +2,9 @@ import * as React from 'react'
 
 export default function Hexagon ({
   children,
-  className,
-  style = {}
+  className = '',
+  style = {},
+  ...rest
 }) {
   const gap = 4
   const clipPath = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
@@ -23,6 +24,7 @@ export default function Hexagon ({
     <div
       className={className}
       style={elementStyle}
+      {...rest}
     >
       {children}
     </div>

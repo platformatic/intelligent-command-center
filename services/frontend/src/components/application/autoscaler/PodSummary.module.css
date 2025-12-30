@@ -80,3 +80,11 @@ hr {
 .excess {
   @apply text-xs ml-1;
 }
+
+.podIdContainer {
+  @apply flex flex-row gap-x-1 text-xs justify-between mt-2;
+}
+
+.podId {
+  @apply text-white/50;
+}
