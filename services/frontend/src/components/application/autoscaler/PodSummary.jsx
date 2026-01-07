@@ -76,6 +76,13 @@ export default function PodSummary ({ pod }) {
   }
   return (
     <div className={styles.container}>
+      <div className={styles.podIdContainer}>
+        <span className={styles.podId}>{pod.id}</span>
+        <div className={styles.copyToClipBoard} onClick={onClipboardClick}>
+          <Icons.CopyPasteIcon color={WHITE} size={SMALL} />
+        </div>
+      </div>
+
       <div
         className={styles.svgContainer} onClick={() => {
           navigate(generatePath(AUTOSCALER_POD_DETAIL_PATH, { applicationId: application.id, podId: pod.id }))
@@ -88,17 +95,12 @@ export default function PodSummary ({ pod }) {
           {renderSignals()}
         </div>
       </div>
-      <Metric label='ELU' value={pod.dataValues.eventLoop} signals={signals} unit='%' threshold={ELU_THRESHOLD} />
-      <hr />
-      <Metric label='Heap' value={pod.dataValues.usedHeap} totalHeap={pod.dataValues.totalHeap} signals={signals} unit='MB' threshold={HEAP_THRESHOLD} thresholdUnit='%' />
-
-      <div className={styles.podIdContainer}>
-        <span className={styles.podId}>{pod.id}</span>
-        <div className={styles.copyToClipBoard} onClick={onClipboardClick}>
-          <Icons.CopyPasteIcon color={WHITE} size={SMALL} />
-        </div>
-
+      <div className={styles.metricsContainer}>
+        <Metric label='ELU' value={pod.dataValues.eventLoop} signals={signals} unit='%' threshold={ELU_THRESHOLD} />
+        <hr />
+        <Metric label='Heap' value={pod.dataValues.usedHeap} totalHeap={pod.dataValues.totalHeap} signals={signals} unit='MB' threshold={HEAP_THRESHOLD} thresholdUnit='%' />
       </div>
+
     </div>
   )
 }

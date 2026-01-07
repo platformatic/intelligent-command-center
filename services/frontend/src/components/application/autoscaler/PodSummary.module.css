@@ -1,8 +1,8 @@
 .container {
-  @apply w-[240px] p-4 bg-black-russian cursor-pointer;
+  @apply w-[280px] p-4 bg-black-russian flex flex-col gap-y-2 items-center;
 }
 .svgContainer {
-  @apply relative w-[210px];
+  @apply relative w-[210px] cursor-pointer;
 }
 .svg {
   @apply cursor-pointer;
@@ -82,9 +82,17 @@ hr {
 }
 
 .podIdContainer {
-  @apply flex flex-row gap-x-1 text-xs justify-between mt-2;
+  @apply flex flex-row gap-x-1 text-xs justify-between items-center;
 }
 
 .podId {
-  @apply text-white/50;
+  @apply text-white/50 text-sm;
+}
+
+.metricsContainer {
+  @apply flex flex-col w-full;
+}
+
+.copyToClipBoard {
+  @apply hover:cursor-pointer;
 }
