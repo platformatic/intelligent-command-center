@@ -19,7 +19,7 @@ jobs:
         with:
           # https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#use-private-packages
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
       - uses: "nick-fields/retry@v3.0.2"
         with:
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
@@ -114,7 +114,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -166,7 +166,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -212,7 +212,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -257,7 +257,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -303,7 +303,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -356,7 +356,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: Apply Valkey ACL
@@ -407,7 +407,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: Apply Valkey ACL
@@ -443,7 +443,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
       - name: Apply Valkey ACL
         shell: bash
         run: |
@@ -490,7 +490,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: Apply Valkey ACL
@@ -534,7 +534,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
@@ -561,7 +561,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
@@ -585,7 +585,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
       - name: pnpm install
         uses: nick-fields/retry@v3.0.2
@@ -625,7 +625,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: pnpm install
@@ -669,7 +669,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           registry-url: "https://registry.npmjs.org"
-          node-version: 22
+          node-version: 24
       - name: Configure postgres
         run: cat ./pg-init/docker-postgres-init.sql | docker exec -i icc-postgres psql -U postgres
       - name: Apply Valkey ACL
