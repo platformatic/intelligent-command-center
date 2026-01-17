@@ -396,7 +396,7 @@ importers:
         version: 8.19.0
       zustand:
         specifier: ^5.0.2
-        version: 5.0.9(@types/react@19.2.8)(react@19.2.3)
+        version: 5.0.10(@types/react@19.2.8)(react@19.2.3)
 
   services/main:
     dependencies:
@@ -6715,8 +6715,8 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zustand@5.0.9:
-    resolution: {integrity: sha512-ALBtUj0AfjJt3uNRQoL1tL2tMvj6Gp/6e39dnfT6uzpelGru8v1tPOGBzayOWbPJvujM8JojDk3E1LxeFisBNg==}
+  zustand@5.0.10:
+    resolution: {integrity: sha512-U1AiltS1O9hSy3rul+Ub82ut2fqIAefiSuwECWt6jlMVUGejvf+5omLcRBSzqbRagSM3hQZbtzdeRc6QVScXTg==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=18.0.0'
@@ -14331,7 +14331,7 @@ snapshots:
 
   zod@3.25.76: {}
 
-  zustand@5.0.9(@types/react@19.2.8)(react@19.2.3):
+  zustand@5.0.10(@types/react@19.2.8)(react@19.2.3):
     optionalDependencies:
       '@types/react': 19.2.8
       react: 19.2.3
