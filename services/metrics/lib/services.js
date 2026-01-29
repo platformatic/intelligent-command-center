@@ -2,13 +2,37 @@
 
 const { queryPrometheus, queryRangePrometheus } = require('./prom')
 
+function normalizeTelemetryId (telemetryId) {
+  return (!telemetryId || telemetryId === 'unknown') ? 'X' : telemetryId
+}
+
+function getTelemetryId (metric) {
+  return metric.caller || metric.callerTelemetryId || metric.telemetry_id
+}
+
 const createMaxServiceCount = ({ timeWindow, offset = '1ms' }) =>
-  'sum by (applicationId, serviceId, telemetry_id) ' +
-  `(max_over_time(http_request_all_duration_seconds_count[${timeWindow}] offset ${offset}))`
+  'sum by (applicationId, serviceId, caller) ' +
+  '(' +
+  'label_replace(' +
+  'label_replace(' +
+  `max_over_time(http_request_all_duration_seconds_count[${timeWindow}] offset ${offset}), ` +
+  '"caller", "$1", "telemetry_id", "(.+)"' +
+  '), ' +
+  '"caller", "$1", "callerTelemetryId", "(.+)"' +
+  ')' +
+  ')'
 
 const createMaxServiceLatency = ({ timeWindow, offset = '1ms' }) =>
-  'sum by (applicationId, serviceId, telemetry_id) ' +
-  `(max_over_time(http_request_all_duration_seconds_sum[${timeWindow}] offset ${offset}))`
+  'sum by (applicationId, serviceId, caller) ' +
+  '(' +
+  'label_replace(' +
+  'label_replace(' +
+  `max_over_time(http_request_all_duration_seconds_sum[${timeWindow}] offset ${offset}), ` +
+  '"caller", "$1", "telemetry_id", "(.+)"' +
+  '), ' +
+  '"caller", "$1", "callerTelemetryId", "(.+)"' +
+  ')' +
+  ')'
 
 const createAvgCountServiceQuery = ({ timeWindow }) =>
   `avg(sum by (applicationId, serviceId) (increase(http_request_all_duration_seconds_count[${timeWindow}])))`
@@ -56,8 +80,9 @@ const getServicesMetrics = async (applications, options) => {
 
   const servicesLinks = {}
   for (const { metric, value } of maxCounts.data.result) {
-    const { applicationId, serviceId, telemetry_id: caller } = metric
-    if (caller === 'unknown') continue
+    const { applicationId, serviceId } = metric
+    const caller = getTelemetryId(metric)
+    const normalizedCaller = normalizeTelemetryId(caller)
 
     const applicationName = serviceNamesMap[applicationId]
     const serviceName = `${applicationName}-${serviceId}`
@@ -67,7 +92,7 @@ const getServicesMetrics = async (applications, options) => {
       (r) =>
         r.metric.applicationId === applicationId &&
         r.metric.serviceId === serviceId &&
-        r.metric.telemetry_id === caller
+        normalizeTelemetryId(getTelemetryId(r.metric)) === normalizedCaller
     )
     const minCountValue = parseFloat(minCountMetric?.value?.[1] ?? 0)
 
@@ -75,7 +100,7 @@ const getServicesMetrics = async (applications, options) => {
       (r) =>
         r.metric.applicationId === applicationId &&
         r.metric.serviceId === serviceId &&
-        r.metric.telemetry_id === caller
+        normalizeTelemetryId(getTelemetryId(r.metric)) === normalizedCaller
     )
     const maxLatencyValue = parseFloat(maxLatencyMetric?.value?.[1])
 
@@ -83,18 +108,18 @@ const getServicesMetrics = async (applications, options) => {
       (r) =>
         r.metric.applicationId === applicationId &&
         r.metric.serviceId === serviceId &&
-        r.metric.telemetry_id === caller
+        normalizeTelemetryId(getTelemetryId(r.metric)) === normalizedCaller
     )
     const minLatencyValue = parseFloat(minLatencyMetric?.value?.[1] ?? 0)
 
-    servicesLinks[caller] = servicesLinks[caller] || {}
+    servicesLinks[normalizedCaller] = servicesLinks[normalizedCaller] || {}
 
     const count = (maxCountValue - minCountValue) || 0
     const latencyValue = maxLatencyValue - minLatencyValue || 0
 
     if (count === 0 || latencyValue === 0) continue
 
-    servicesLinks[caller][serviceName] = {
+    servicesLinks[normalizedCaller][serviceName] = {
       count,
       latency: (latencyValue / count) * 1000 // in ms
     }
@@ -109,16 +134,40 @@ const getServicesMetrics = async (applications, options) => {
 }
 
 const createThreadMaxCPUQuery = ({ applicationId, serviceId, timeWindow }) =>
-  'sum by (applicationId, serviceId, telemetry_id) ' +
-  `(max_over_time(thread_cpu_percent_usage{applicationId="${applicationId}", serviceId="${serviceId}"}[${timeWindow}]))`
+  'sum by (applicationId, serviceId, caller) ' +
+  '(' +
+  'label_replace(' +
+  'label_replace(' +
+  `max_over_time(thread_cpu_percent_usage{applicationId="${applicationId}", serviceId="${serviceId}"}[${timeWindow}]), ` +
+  '"caller", "$1", "telemetry_id", "(.+)"' +
+  '), ' +
+  '"caller", "$1", "callerTelemetryId", "(.+)"' +
+  ')' +
+  ')'
 
 const createThreadMaxHeapQuery = ({ applicationId, serviceId, timeWindow }) =>
-  'sum by (applicationId, serviceId, telemetry_id) ' +
-  `(max_over_time(nodejs_heap_size_total_bytes{applicationId="${applicationId}", serviceId="${serviceId}"}[${timeWindow}]))`
+  'sum by (applicationId, serviceId, caller) ' +
+  '(' +
+  'label_replace(' +
+  'label_replace(' +
+  `max_over_time(nodejs_heap_size_total_bytes{applicationId="${applicationId}", serviceId="${serviceId}"}[${timeWindow}]), ` +
+  '"caller", "$1", "telemetry_id", "(.+)"' +
+  '), ' +
+  '"caller", "$1", "callerTelemetryId", "(.+)"' +
+  ')' +
+  ')'
 
 const createThreadMaxLoopQuery = ({ applicationId, serviceId, timeWindow }) =>
-  'sum by (applicationId, serviceId, telemetry_id) ' +
-  `(max_over_time(nodejs_eventloop_utilization{applicationId="${applicationId}", serviceId="${serviceId}"}[${timeWindow}]))`
+  'sum by (applicationId, serviceId, caller) ' +
+  '(' +
+  'label_replace(' +
+  'label_replace(' +
+  `max_over_time(nodejs_eventloop_utilization{applicationId="${applicationId}", serviceId="${serviceId}"}[${timeWindow}]), ` +
+  '"caller", "$1", "telemetry_id", "(.+)"' +
+  '), ' +
+  '"caller", "$1", "callerTelemetryId", "(.+)"' +
+  ')' +
+  ')'
 
 async function getServiceThreadMetrics ({ applicationId, serviceId }, options) {
   const timeWindow = getTimeWindow(options)

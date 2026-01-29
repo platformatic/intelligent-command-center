@@ -3,7 +3,7 @@
   "version": "3.4.4",
   "scripts": {
     "start": "platformatic start",
-    "test": "NODE_OPTIONS=--trace-deprecation npm run lint | borp --concurrency 1",
+    "test": "NODE_OPTIONS=--trace-deprecation npm run lint |   DOTENV_CONFIG_QUIET=true borp --concurrency 1",
     "lint": "standard . | snazzy"
   },
   "devDependencies": {

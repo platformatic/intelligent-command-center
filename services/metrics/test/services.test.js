@@ -196,3 +196,332 @@ test('get thread count returns 503 when prometheus is unavailable', async (t) =>
   const body = res.json()
   assert.ok(body.message.includes('Failed to query Prometheus'))
 })
+
+test('get services metrics with telemetry_id set to "unknown" normalizes to "X"', async (t) => {
+  const prometheus = require('fastify')({ keepAliveTimeout: 1 })
+  const formBody = require('@fastify/formbody')
+  prometheus.register(formBody)
+  t.after(() => prometheus.close())
+
+  prometheus.post('/api/v1/query', async (req, reply) => {
+    const { query } = req.body
+
+    let value = 0
+    const telemetryId = 'unknown'
+
+    if (query.includes('http_request_all_duration_seconds_sum')) {
+      if (query.includes('1y')) {
+        value = 0.123
+      } else {
+        value = 0.321
+      }
+    } else if (query.includes('histogram_quantile')) {
+      if (query.includes('0.5')) {
+        value = 0.222
+      } else if (query.includes('0.95')) {
+        value = 0.333
+      }
+    } else if (query.includes('http_request_all_duration_seconds_count')) {
+      if (query.includes('1y')) {
+        value = 555
+      } else {
+        value = 666
+      }
+    }
+
+    return {
+      status: 'success',
+      data: {
+        resultType: 'vector',
+        result: [
+          {
+            metric: {
+              applicationId: 'test-application-id',
+              serviceId: 'test-service-id',
+              telemetry_id: telemetryId
+            },
+            value: [1721122686.143, value]
+          }
+        ]
+      }
+    }
+  })
+
+  await prometheus.listen({ port: 4005 })
+
+  const server = await startMetrics(t)
+  const applications = [
+    {
+      id: 'test-application-id',
+      name: 'test-application'
+    }
+  ]
+
+  const res = await server.inject({
+    method: 'POST',
+    url: '/services',
+    body: { applications }
+  })
+  const metrics = res.json()
+  assert.equal(res.statusCode, 200)
+  const expected = {
+    averageCallsCount: 666,
+    overall50pLatency: 222,
+    overall95pLatency: 333,
+    servicesLinks: {
+      X: {
+        'test-application-test-service-id': {
+          count: 111,
+          latency: 1.783783783783784
+        }
+      }
+    }
+  }
+  assert.deepEqual(metrics, expected)
+})
+
+test('get services metrics with missing telemetry_id normalizes to "X"', async (t) => {
+  const prometheus = require('fastify')({ keepAliveTimeout: 1 })
+  const formBody = require('@fastify/formbody')
+  prometheus.register(formBody)
+  t.after(() => prometheus.close())
+
+  prometheus.post('/api/v1/query', async (req, reply) => {
+    const { query } = req.body
+
+    let value = 0
+
+    if (query.includes('http_request_all_duration_seconds_sum')) {
+      if (query.includes('1y')) {
+        value = 0.123
+      } else {
+        value = 0.321
+      }
+    } else if (query.includes('histogram_quantile')) {
+      if (query.includes('0.5')) {
+        value = 0.222
+      } else if (query.includes('0.95')) {
+        value = 0.333
+      }
+    } else if (query.includes('http_request_all_duration_seconds_count')) {
+      if (query.includes('1y')) {
+        value = 555
+      } else {
+        value = 666
+      }
+    }
+
+    return {
+      status: 'success',
+      data: {
+        resultType: 'vector',
+        result: [
+          {
+            metric: {
+              applicationId: 'test-application-id',
+              serviceId: 'test-service-id'
+            },
+            value: [1721122686.143, value]
+          }
+        ]
+      }
+    }
+  })
+
+  await prometheus.listen({ port: 4005 })
+
+  const server = await startMetrics(t)
+  const applications = [
+    {
+      id: 'test-application-id',
+      name: 'test-application'
+    }
+  ]
+
+  const res = await server.inject({
+    method: 'POST',
+    url: '/services',
+    body: { applications }
+  })
+  const metrics = res.json()
+  assert.equal(res.statusCode, 200)
+  const expected = {
+    averageCallsCount: 666,
+    overall50pLatency: 222,
+    overall95pLatency: 333,
+    servicesLinks: {
+      X: {
+        'test-application-test-service-id': {
+          count: 111,
+          latency: 1.783783783783784
+        }
+      }
+    }
+  }
+  assert.deepEqual(metrics, expected)
+})
+
+test('get services metrics with callerTelemetryId label', async (t) => {
+  const prometheus = require('fastify')({ keepAliveTimeout: 1 })
+  const formBody = require('@fastify/formbody')
+  prometheus.register(formBody)
+  t.after(() => prometheus.close())
+
+  prometheus.post('/api/v1/query', async (req, reply) => {
+    const { query } = req.body
+
+    let value = 0
+
+    if (query.includes('http_request_all_duration_seconds_sum')) {
+      if (query.includes('1y')) {
+        value = 0.123
+      } else {
+        value = 0.321
+      }
+    } else if (query.includes('histogram_quantile')) {
+      if (query.includes('0.5')) {
+        value = 0.222
+      } else if (query.includes('0.95')) {
+        value = 0.333
+      }
+    } else if (query.includes('http_request_all_duration_seconds_count')) {
+      if (query.includes('1y')) {
+        value = 555
+      } else {
+        value = 666
+      }
+    }
+
+    return {
+      status: 'success',
+      data: {
+        resultType: 'vector',
+        result: [
+          {
+            metric: {
+              applicationId: 'test-application-id',
+              serviceId: 'test-service-id',
+              callerTelemetryId: 'Y'
+            },
+            value: [1721122686.143, value]
+          }
+        ]
+      }
+    }
+  })
+
+  await prometheus.listen({ port: 4005 })
+
+  const server = await startMetrics(t)
+  const applications = [
+    {
+      id: 'test-application-id',
+      name: 'test-application'
+    }
+  ]
+
+  const res = await server.inject({
+    method: 'POST',
+    url: '/services',
+    body: { applications }
+  })
+  const metrics = res.json()
+  assert.equal(res.statusCode, 200)
+  const expected = {
+    averageCallsCount: 666,
+    overall50pLatency: 222,
+    overall95pLatency: 333,
+    servicesLinks: {
+      Y: {
+        'test-application-test-service-id': {
+          count: 111,
+          latency: 1.783783783783784
+        }
+      }
+    }
+  }
+  assert.deepEqual(metrics, expected)
+})
+
+test('get services metrics with callerTelemetryId set to "unknown" normalizes to "X"', async (t) => {
+  const prometheus = require('fastify')({ keepAliveTimeout: 1 })
+  const formBody = require('@fastify/formbody')
+  prometheus.register(formBody)
+  t.after(() => prometheus.close())
+
+  prometheus.post('/api/v1/query', async (req, reply) => {
+    const { query } = req.body
+
+    let value = 0
+    const telemetryId = 'unknown'
+
+    if (query.includes('http_request_all_duration_seconds_sum')) {
+      if (query.includes('1y')) {
+        value = 0.123
+      } else {
+        value = 0.321
+      }
+    } else if (query.includes('histogram_quantile')) {
+      if (query.includes('0.5')) {
+        value = 0.222
+      } else if (query.includes('0.95')) {
+        value = 0.333
+      }
+    } else if (query.includes('http_request_all_duration_seconds_count')) {
+      if (query.includes('1y')) {
+        value = 555
+      } else {
+        value = 666
+      }
+    }
+
+    return {
+      status: 'success',
+      data: {
+        resultType: 'vector',
+        result: [
+          {
+            metric: {
+              applicationId: 'test-application-id',
+              serviceId: 'test-service-id',
+              callerTelemetryId: telemetryId
+            },
+            value: [1721122686.143, value]
+          }
+        ]
+      }
+    }
+  })
+
+  await prometheus.listen({ port: 4005 })
+
+  const server = await startMetrics(t)
+  const applications = [
+    {
+      id: 'test-application-id',
+      name: 'test-application'
+    }
+  ]
+
+  const res = await server.inject({
+    method: 'POST',
+    url: '/services',
+    body: { applications }
+  })
+  const metrics = res.json()
+  assert.equal(res.statusCode, 200)
+  const expected = {
+    averageCallsCount: 666,
+    overall50pLatency: 222,
+    overall95pLatency: 333,
+    servicesLinks: {
+      X: {
+        'test-application-test-service-id': {
+          count: 111,
+          latency: 1.783783783783784
+        }
+      }
+    }
+  }
+  assert.deepEqual(metrics, expected)
+})
