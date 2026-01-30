@@ -1,6 +1,6 @@
 {
   "name": "metrics",
-  "version": "3.4.4",
+  "version": "3.5.0",
   "scripts": {
     "start": "platformatic start",
     "test": "NODE_OPTIONS=--trace-deprecation npm run lint |   DOTENV_CONFIG_QUIET=true borp --concurrency 1",
