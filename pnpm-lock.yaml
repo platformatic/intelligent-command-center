@@ -321,10 +321,10 @@ importers:
         version: 0.19.5
       '@types/react':
         specifier: ^19.0.1
-        version: 19.2.10
+        version: 19.2.13
       '@types/react-dom':
         specifier: ^19.0.1
-        version: 19.2.3(@types/react@19.2.10)
+        version: 19.2.3(@types/react@19.2.13)
       '@vitejs/plugin-react':
         specifier: ^5.0.0
         version: 5.1.2(vite@5.4.21(@types/node@25.2.1))
@@ -396,7 +396,7 @@ importers:
         version: 8.19.0
       zustand:
         specifier: ^5.0.2
-        version: 5.0.11(@types/react@19.2.10)(react@19.2.4)
+        version: 5.0.11(@types/react@19.2.13)(react@19.2.4)
 
   services/main:
     dependencies:
@@ -2844,8 +2844,8 @@ packages:
     peerDependencies:
       '@types/react': ^19.2.0
 
-  '@types/react@19.2.10':
-    resolution: {integrity: sha512-WPigyYuGhgZ/cTPRXB2EwUw+XvsRA3GqHlsP4qteqrnnjDrApbS7MxcGr/hke5iUoeB7E/gQtrs9I37zAJ0Vjw==}
+  '@types/react@19.2.13':
+    resolution: {integrity: sha512-KkiJeU6VbYbUOp5ITMIc7kBfqlYkKA5KhEHVrGMmUUMt7NeaZg65ojdPk+FtNrBAOXNVM5QM72jnADjM+XVRAQ==}
 
   '@types/shimmer@1.2.0':
     resolution: {integrity: sha512-UE7oxhQLLd9gub6JKIAhDq06T0F6FnztwMNRvYgjeQSBeMc1ZG/tA47EwfduvkuQS8apbkM/lpLpWsaCeYsXVg==}
@@ -9789,11 +9789,11 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
-  '@types/react-dom@19.2.3(@types/react@19.2.10)':
+  '@types/react-dom@19.2.3(@types/react@19.2.13)':
     dependencies:
-      '@types/react': 19.2.10
+      '@types/react': 19.2.13
 
-  '@types/react@19.2.10':
+  '@types/react@19.2.13':
     dependencies:
       csstype: 3.2.3
 
@@ -14342,7 +14342,7 @@ snapshots:
 
   zod@3.25.76: {}
 
-  zustand@5.0.11(@types/react@19.2.10)(react@19.2.4):
+  zustand@5.0.11(@types/react@19.2.13)(react@19.2.4):
     optionalDependencies:
-      '@types/react': 19.2.10
+      '@types/react': 19.2.13
       react: 19.2.4
