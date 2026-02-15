@@ -417,7 +417,7 @@ importers:
         version: 10.0.0
       '@fastify/oauth2':
         specifier: ^8.1.0
-        version: 8.1.2
+        version: 8.2.0
       '@fastify/websocket':
         specifier: ^11.0.2
         version: 11.2.0
@@ -1490,8 +1490,8 @@ packages:
   '@fastify/merge-json-schemas@0.2.1':
     resolution: {integrity: sha512-OA3KGBCy6KtIvLf8DINC5880o5iBlDX4SxzLQS8HorJAbqluzLRn80UXU0bxZn7UOFhFgpRJDasfwn9nG4FG4A==}
 
-  '@fastify/oauth2@8.1.2':
-    resolution: {integrity: sha512-XZWFRWTZE2fkZ2pjuHNGtpFn1tOFgcJbU0205kHbfd16dn9xRc/6HmG0gHtN/g/BNkEL3EsQ54+pYEdh8dnBgA==}
+  '@fastify/oauth2@8.2.0':
+    resolution: {integrity: sha512-JQls0pZVt7k9j+qLrSf5OGflpHvylgEfSCVSA2oDaILCX3dwC/Z0UeI1J9M3luik7dtEbEFfpq0v9hF1v/46pQ==}
 
   '@fastify/proxy-addr@5.1.0':
     resolution: {integrity: sha512-INS+6gh91cLUjB+PVHfu1UqcB76Sqtpyp7bnL+FYojhjygvOPA9ctiD/JDKsyD9Xgu4hUhCSJBPig/w7duNajw==}
@@ -7868,7 +7868,7 @@ snapshots:
     dependencies:
       dequal: 2.0.3
 
-  '@fastify/oauth2@8.1.2':
+  '@fastify/oauth2@8.2.0':
     dependencies:
       '@fastify/cookie': 11.0.2
       fastify-plugin: 5.1.0
