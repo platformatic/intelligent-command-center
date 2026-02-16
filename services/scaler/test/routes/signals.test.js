@@ -15,6 +15,7 @@ test('POST /signals should process signals with v2 algorithm', async (t) => {
   const podId = 'test-pod-1'
   const namespace = 'platformatic'
   const controllerId = 'test-controller'
+  const runtimeId = randomUUID()
 
   await startMachinist(t, {
     getPodController: () => ({
@@ -37,6 +38,7 @@ test('POST /signals should process signals with v2 algorithm', async (t) => {
     await server.close()
   })
 
+  // Create instance first
   await server.inject({
     method: 'POST',
     url: '/controllers',
@@ -51,7 +53,20 @@ test('POST /signals should process signals with v2 algorithm', async (t) => {
     })
   })
 
-  const serviceId = 'test-service'
+  // Mock getInstanceByPodId
+  server.getInstanceByPodId = async (pid, ns) => {
+    if (pid === podId) {
+      return { applicationId, deploymentId, podId, namespace, status: 'running' }
+    }
+    return null
+  }
+
+  // Initialize and connect
+  await server.signalScalerExecutor.initialize()
+  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+
+  const now = Date.now()
+  const serviceId = 'main'
 
   const response = await server.inject({
     method: 'POST',
@@ -62,62 +77,50 @@ test('POST /signals should process signals with v2 algorithm', async (t) => {
     },
     body: JSON.stringify({
       applicationId,
-      serviceId,
-      elu: 0.7,
-      heapUsed: 111,
-      heapTotal: 222,
-      signals: [
-        { type: 'cpu', value: 0.75, timestamp: Date.now() },
-        { type: 'memory', value: 0.80, timestamp: Date.now(), description: 'High memory usage' }
-      ]
+      runtimeId,
+      signals: {
+        [serviceId]: {
+          elu: {
+            options: { threshold: 0.75 },
+            workers: {
+              'worker-1': {
+                values: [
+                  [now - 2000, 0.7],
+                  [now - 1000, 0.75],
+                  [now, 0.8]
+                ]
+              }
+            }
+          },
+          heap: {
+            options: { threshold: 250, heapTotal: 500 },
+            workers: {
+              'worker-1': {
+                values: [
+                  [now - 2000, 100],
+                  [now - 1000, 110],
+                  [now, 120]
+                ]
+              }
+            }
+          }
+        }
+      },
+      batchStartedAt: now - 2000
     })
   })
 
+  assert.strictEqual(response.statusCode, 200)
+
   const body = JSON.parse(response.body)
-  assert.strictEqual(body.success, true)
-  assert.strictEqual(body.applicationId, applicationId)
-  assert.strictEqual(body.podId, podId)
-  assert.strictEqual(body.signalCount, 2)
-  assert.ok(body.alertId)
-  assert.ok(body.scalingDecision)
-  assert.ok(typeof body.scalingDecision.nfinal === 'number')
-  assert.ok(typeof body.scalingDecision.reason === 'string')
-
-  const alerts = await server.platformatic.entities.alert.find({
-    where: {
-      applicationId: { eq: applicationId },
-      podId: { eq: podId }
-    }
-  })
-
-  assert.ok(alerts.length > 0, 'Should have created alert records')
-  const alert = alerts[0]
-  assert.strictEqual(alert.applicationId, applicationId)
-  assert.strictEqual(alert.podId, podId)
-  assert.strictEqual(alert.serviceId, serviceId)
-  assert.strictEqual(alert.unhealthy, false)
-
-  const signals = await server.platformatic.entities.signal.find({
-    where: {
-      applicationId: { eq: applicationId },
-      podId: { eq: podId }
-    }
-  })
-
-  assert.ok(signals.length > 0, 'Should have created signal records')
-  assert.strictEqual(signals.length, 2)
-  assert.strictEqual(signals[0].applicationId, applicationId)
-  assert.strictEqual(signals[0].podId, podId)
-  assert.strictEqual(signals[0].serviceId, serviceId)
-  assert.strictEqual(signals[0].alertId, alert.id, 'Signal should be linked to alert')
-  assert.ok(signals[0].type, 'Signal should have type')
-  assert.ok(signals[0].timestamp, 'Signal should have timestamp')
+  assert.ok(body.alerts !== undefined)
 })
 
 test('POST /signals should reject when algorithm version is not v2', async (t) => {
   const applicationId = randomUUID()
   const podId = 'test-pod-1'
   const namespace = 'platformatic'
+  const runtimeId = randomUUID()
 
   const server = await buildServer(t, {
     PLT_SCALER_ALGORITHM_VERSION: 'v1'
@@ -127,6 +130,8 @@ test('POST /signals should reject when algorithm version is not v2', async (t) =
     await server.close()
   })
 
+  const now = Date.now()
+
   const response = await server.inject({
     method: 'POST',
     url: '/signals',
@@ -136,13 +141,20 @@ test('POST /signals should reject when algorithm version is not v2', async (t) =
     },
     body: JSON.stringify({
       applicationId,
-      serviceId: 'test-service',
-      elu: 0.7,
-      heapUsed: 111,
-      heapTotal: 222,
-      signals: [
-        { type: 'cpu', value: 0.75, timestamp: Date.now() }
-      ]
+      runtimeId,
+      signals: {
+        main: {
+          elu: {
+            options: { threshold: 0.75 },
+            workers: { 'worker-1': { values: [[now, 0.7]] } }
+          },
+          heap: {
+            options: { threshold: 250 },
+            workers: { 'worker-1': { values: [[now, 100]] } }
+          }
+        }
+      },
+      batchStartedAt: now
     })
   })
 
@@ -156,6 +168,7 @@ test('POST /signals should reject when algorithm version is not v2', async (t) =
 
 test('POST /signals should require k8s context', async (t) => {
   const applicationId = randomUUID()
+  const runtimeId = randomUUID()
 
   const server = await buildServer(t, {
     PLT_SCALER_ALGORITHM_VERSION: 'v2'
@@ -165,6 +178,8 @@ test('POST /signals should require k8s context', async (t) => {
     await server.close()
   })
 
+  const now = Date.now()
+
   const response = await server.inject({
     method: 'POST',
     url: '/signals',
@@ -173,13 +188,20 @@ test('POST /signals should require k8s context', async (t) => {
     },
     body: JSON.stringify({
       applicationId,
-      serviceId: 'test-service',
-      elu: 0.7,
-      heapUsed: 111,
-      heapTotal: 222,
-      signals: [
-        { type: 'cpu', value: 0.75, timestamp: Date.now() }
-      ]
+      runtimeId,
+      signals: {
+        main: {
+          elu: {
+            options: { threshold: 0.75 },
+            workers: { 'worker-1': { values: [[now, 0.7]] } }
+          },
+          heap: {
+            options: { threshold: 250 },
+            workers: { 'worker-1': { values: [[now, 100]] } }
+          }
+        }
+      },
+      batchStartedAt: now
     })
   })
 
@@ -211,6 +233,7 @@ test('POST /signals should validate request body', async (t) => {
     },
     body: JSON.stringify({
       applicationId: randomUUID()
+      // Missing runtimeId and signals
     })
   })
 

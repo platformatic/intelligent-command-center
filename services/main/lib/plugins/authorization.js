@@ -27,7 +27,8 @@ async function getWhitelistedPaths () {
     ['/traffic-inspector/requests', ['POST']],
     ['/traffic-inspector/requests/hash', ['POST']],
     ['/risk-service/v1/traces', ['POST']],
-    ['/cron/watt-jobs', ['PUT']]
+    ['/cron/watt-jobs', ['PUT']],
+    ['/scaler/api/apps/', ['GET']]
   ]
 
   // add OpenaAPI spec route for each internal service

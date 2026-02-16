@@ -156,8 +156,10 @@ async function cleanDb (app) {
 let pool = null
 beforeEach(cleandb)
 afterEach(async () => {
-  await pool.dispose()
-  pool = null
+  if (pool) {
+    await pool.dispose()
+    pool = null
+  }
 })
 
 async function cleandb () {

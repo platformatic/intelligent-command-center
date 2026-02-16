@@ -17,6 +17,9 @@ module.exports = {
   FAILED_TO_UPDATE_CONTROLLER: createError(
     `${ERROR_PREFIX}_FAILED_TO_UPDATE_CONTROLLER`, 'Failed to update controller: %s'
   ),
+  SCALE_REQUEST_SUPERSEDED: createError(
+    `${ERROR_PREFIX}_SCALE_REQUEST_SUPERSEDED`, 'Scale request superseded by a newer request for controller "%s" in namespace "%s"'
+  ),
   FAILED_TO_GET_CONTROLLER: createError(
     `${ERROR_PREFIX}_FAILED_TO_GET_CONTROLLER`, 'Failed to get controller: %s'
   ),

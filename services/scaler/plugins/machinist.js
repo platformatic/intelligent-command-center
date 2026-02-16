@@ -5,16 +5,18 @@ const fp = require('fastify-plugin')
 const errors = require('../lib/errors')
 
 class Machinist {
-  #dispatcher
   #app
+  #dispatcher
+  #abortControllers
 
   constructor (machinistUrl, app) {
     this.url = machinistUrl
     this.#app = app
+    this.#abortControllers = new Map()
 
     this.#dispatcher = getGlobalDispatcher()
       .compose(interceptors.retry({
-        maxRetries: 3,
+        maxRetries: 5,
         maxTimeout: 30000,
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         statusCodes: [502, 503, 504, 429]
@@ -77,18 +79,42 @@ class Machinist {
     kind,
     replicas
   ) {
+    const reqId = `update-${namespace}-${controllerId}`
+
+    const prevSignal = this.#abortControllers.get(reqId)
+    if (prevSignal) {
+      this.#app.log.info('Aborting previous updateController request')
+      prevSignal.abort()
+    }
+
+    const ac = new AbortController()
+    this.#abortControllers.set(reqId, ac)
     this.#app.log.info('Updating controller replicas')
 
     const url = this.url + `/controllers/${namespace}/${controllerId}`
-    const { statusCode, body } = await request(url, {
-      method: 'POST',
-      query: { kind, apiVersion },
-      headers: {
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({ replicaCount: replicas }),
-      dispatcher: this.#dispatcher
-    })
+
+    let response = null
+    try {
+      response = await request(url, {
+        method: 'POST',
+        query: { kind, apiVersion },
+        headers: {
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({ replicaCount: replicas }),
+        dispatcher: this.#dispatcher,
+        signal: ac.signal
+      })
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        throw new errors.SCALE_REQUEST_SUPERSEDED(controllerId, namespace)
+      }
+      throw err
+    } finally {
+      this.#abortControllers.delete(reqId)
+    }
+
+    const { statusCode, body } = response
 
     if (statusCode !== 200) {
       const error = await body.text()

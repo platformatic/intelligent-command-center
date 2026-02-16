@@ -6,6 +6,9 @@ const fp = require('fastify-plugin')
 /** @param {import('fastify').FastifyInstance} fastify */
 module.exports = fp(async function (fastify, opts) {
   const controlPlaneUrl = fastify.config.PLT_CONTROL_PLANE_URL
+  const scalerUrl = fastify.config.PLT_SCALER_URL
+  const scalerAlgorithmVersion = fastify.config.PLT_SCALER_ALGORITHM_VERSION
+  const iccSessionSecret = process.env.PLT_ICC_SESSION_SECRET
 
   fastify.register(require('@fastify/websocket'))
   fastify.register(async (fastify, opts) => {
@@ -44,12 +47,17 @@ module.exports = fp(async function (fastify, opts) {
       handler: () => {},
       wsHandler: async (connection, req) => {
         const applicationId = req.params.id
+        const runtimeId = req.query.runtimeId
 
         const k8sContext = req.k8s
         const podId = k8sContext.pod?.name
+        const namespace = k8sContext.namespace
 
         connection.on('close', async () => {
           await saveApplicationInstanceStatus(podId, k8sContext, 'stopped')
+          if (runtimeId) {
+            await notifyScalerDisconnect(applicationId, podId, namespace, runtimeId)
+          }
         })
 
         connection.on('error', err => {
@@ -64,6 +72,9 @@ module.exports = fp(async function (fastify, opts) {
         fastify.registerClientHandler(connection, podId)
 
         await saveApplicationInstanceStatus(podId, k8sContext, 'running')
+        if (runtimeId) {
+          await notifyScalerConnect(applicationId, podId, namespace, runtimeId)
+        }
       }
     })
   })
@@ -95,6 +106,74 @@ module.exports = fp(async function (fastify, opts) {
       }
     } catch (err) {
       fastify.log.error({ err }, 'Error saving application instance status.')
+    }
+  }
+
+  async function notifyScalerConnect (applicationId, podId, namespace, runtimeId) {
+    if (scalerAlgorithmVersion !== 'v2') return
+
+    const timestamp = Date.now()
+
+    try {
+      const url = scalerUrl + '/connect'
+      const { statusCode, body } = await request(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-plt-icc-session-secret': iccSessionSecret
+        },
+        body: JSON.stringify({
+          applicationId,
+          podId,
+          namespace,
+          runtimeId,
+          timestamp
+        }),
+        dispatcher: retryDispatcher
+      })
+
+      if (statusCode !== 200) {
+        const error = await body.text()
+        fastify.log.error({ err: error, applicationId, podId, runtimeId }, 'Error notifying scaler connect.')
+      } else {
+        await body.dump()
+      }
+    } catch (err) {
+      fastify.log.error({ err, applicationId, podId, runtimeId }, 'Error notifying scaler connect.')
+    }
+  }
+
+  async function notifyScalerDisconnect (applicationId, podId, namespace, runtimeId) {
+    if (scalerAlgorithmVersion !== 'v2') return
+
+    const timestamp = Date.now()
+
+    try {
+      const url = scalerUrl + '/disconnect'
+      const { statusCode, body } = await request(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-plt-icc-session-secret': iccSessionSecret
+        },
+        body: JSON.stringify({
+          applicationId,
+          podId,
+          namespace,
+          runtimeId,
+          timestamp
+        }),
+        dispatcher: retryDispatcher
+      })
+
+      if (statusCode !== 200) {
+        const error = await body.text()
+        fastify.log.error({ err: error, applicationId, podId, runtimeId }, 'Error notifying scaler disconnect.')
+      } else {
+        await body.dump()
+      }
+    } catch (err) {
+      fastify.log.error({ err, applicationId, podId, runtimeId }, 'Error notifying scaler disconnect.')
     }
   }
 

@@ -18,45 +18,44 @@ function createTestController (applicationId, replicas = 2) {
   }
 }
 
+function createMetricsSamples (count, eluValue, heapValue, eluThreshold = 0.75, heapThreshold = 250, workerId = 'worker-0') {
+  const now = Date.now()
+  const base = Math.floor(now / 1000) * 1000
+  const eluTuples = []
+  const heapTuples = []
+  for (let i = count; i >= 1; i--) {
+    const timestamp = base - i * 1000
+    eluTuples.push([timestamp, eluValue])
+    heapTuples.push([timestamp, heapValue])
+  }
+  return {
+    elu: {
+      options: { threshold: eluThreshold },
+      workers: { [workerId]: { values: eluTuples } }
+    },
+    heap: {
+      options: { threshold: heapThreshold, heapTotal: 512 },
+      workers: { [workerId]: { values: heapTuples } }
+    }
+  }
+}
+
 test('signal-scaler-executor should be registered correctly', async (t) => {
-  const app = await buildServer(t)
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
 
   assert.ok(app.signalScalerExecutor, 'signalScalerExecutor should be decorated on app')
   assert.strictEqual(typeof app.signalScalerExecutor.processSignals, 'function')
-  assert.strictEqual(typeof app.signalScalerExecutor.checkScalingForApplication, 'function')
-  assert.strictEqual(typeof app.signalScalerExecutor.checkScalingForAllApplications, 'function')
-  assert.strictEqual(typeof app.signalScalerExecutor.getCurrentPodCount, 'function')
+  assert.strictEqual(typeof app.signalScalerExecutor.checkScalingOnSignals, 'function')
   assert.strictEqual(typeof app.signalScalerExecutor.getScaleConfig, 'function')
   assert.strictEqual(typeof app.signalScalerExecutor.executeScaling, 'function')
-})
-
-test('getCurrentPodCount should return replica count', async (t) => {
-  const app = await buildServer(t)
-
-  const applicationId = randomUUID()
-  const controllerData = createTestController(applicationId, 3)
-
-  await app.platformatic.entities.controller.save({
-    input: controllerData
-  })
-
-  const podCount = await app.signalScalerExecutor.getCurrentPodCount(applicationId)
-  assert.strictEqual(podCount, 3)
-})
-
-test('getCurrentPodCount should throw error when no controller found', async (t) => {
-  const app = await buildServer(t)
-
-  await assert.rejects(
-    async () => {
-      await app.signalScalerExecutor.getCurrentPodCount(randomUUID())
-    },
-    /No controller found for application/
-  )
+  assert.strictEqual(typeof app.signalScalerExecutor.initialize, 'function')
+  assert.strictEqual(typeof app.signalScalerExecutor.onConnect, 'function')
+  assert.strictEqual(typeof app.signalScalerExecutor.onDisconnect, 'function')
+  assert.ok(app.signalScalerExecutor.predictor, 'predictor should be available')
 })
 
 test('getScaleConfig should return config when available', async (t) => {
-  const app = await buildServer(t)
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
 
   const applicationId = randomUUID()
   await app.platformatic.entities.applicationScaleConfig.save({
@@ -73,47 +72,87 @@ test('getScaleConfig should return config when available', async (t) => {
 })
 
 test('getScaleConfig should return undefined when no config found', async (t) => {
-  const app = await buildServer(t)
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
 
   const config = await app.signalScalerExecutor.getScaleConfig(randomUUID())
   assert.strictEqual(config.minPods, undefined)
   assert.strictEqual(config.maxPods, undefined)
 })
 
-test('processSignals should store signal event and make scaling decision', async (t) => {
-  const app = await buildServer(t)
-
-  // Mock as leader for this test
-  app.isScalerLeader = () => true
+test('initialize should set up application state', async (t) => {
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
 
   const applicationId = randomUUID()
-  const serviceId = randomUUID()
-  const podId = 'test-pod-1'
   const controllerData = createTestController(applicationId, 2)
 
   await app.platformatic.entities.controller.save({
     input: controllerData
   })
 
-  const signals = [
-    { type: 'cpu', value: 0.8, timestamp: Date.now(), description: 'CPU signal' },
-    { type: 'memory', value: 0.7, timestamp: Date.now(), description: 'Memory signal' }
-  ]
+  // Initialize should not throw
+  await app.signalScalerExecutor.initialize()
+
+  // Can initialize multiple times without error
+  await app.signalScalerExecutor.initialize()
+})
+
+test('onConnect and onDisconnect should manage instance lifecycle', async (t) => {
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
+
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
+  const timestamp = Date.now()
+
+  // onConnect should not throw
+  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, timestamp)
+
+  // onDisconnect should not throw
+  await app.signalScalerExecutor.onDisconnect(applicationId, runtimeId, timestamp + 1000)
+})
+
+test('processSignals should store metrics and return alerts', async (t) => {
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
+
+  // Mock as leader for this test
+  app.isScalerLeader = () => true
+
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
+  const controllerData = createTestController(applicationId, 2)
+  controllerData.deploymentId = deploymentId
+
+  await app.platformatic.entities.controller.save({
+    input: controllerData
+  })
+
+  await app.signalScalerExecutor.initialize()
+  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+
+  // Create metrics samples with high ELU to trigger alert
+  const serviceId = 'test-service'
+  const samples = createMetricsSamples(5, 0.9, 100) // ELU 0.9 > threshold 0.75
+
+  const signals = {
+    [serviceId]: samples
+  }
 
   const result = await app.signalScalerExecutor.processSignals({
     applicationId,
-    serviceId,
     podId,
+    runtimeId,
+    deploymentId,
     signals,
-    elu: 0.7,
-    heapUsed: 111,
-    heapTotal: 222
+    batchStartedAt: Date.now()
   })
 
-  assert.ok(result.scalingDecision)
-  assert.ok(typeof result.scalingDecision.nfinal === 'number')
-  assert.ok(typeof result.scalingDecision.reason === 'string')
+  assert.ok(Array.isArray(result.alerts), 'Should return alerts array')
+  assert.ok(result.alerts.find(a => a.serviceId === serviceId), 'Should have alert for service with high ELU')
 
+  // Verify alert was created in database
   const alerts = await app.platformatic.entities.alert.find({
     where: {
       applicationId: { eq: applicationId },
@@ -121,215 +160,226 @@ test('processSignals should store signal event and make scaling decision', async
     }
   })
 
-  assert.strictEqual(alerts.length, 1, 'Should create exactly one alert per batch')
+  assert.strictEqual(alerts.length, 1, 'Should create exactly one alert')
   assert.strictEqual(alerts[0].applicationId, applicationId)
   assert.strictEqual(alerts[0].serviceId, serviceId)
   assert.strictEqual(alerts[0].podId, podId)
-
-  const storedSignals = await app.platformatic.entities.signal.find({
-    where: {
-      applicationId: { eq: applicationId },
-      podId: { eq: podId }
-    }
-  })
-
-  assert.strictEqual(storedSignals.length, 2, 'Should store all signals from the batch')
-  assert.strictEqual(storedSignals[0].applicationId, applicationId)
-  assert.strictEqual(storedSignals[0].serviceId, serviceId)
-  assert.strictEqual(storedSignals[0].podId, podId)
-  assert.strictEqual(storedSignals[0].alertId, alerts[0].id, 'Signals should be linked to alert')
-  assert.ok(storedSignals.some(s => s.type === 'cpu'), 'Should contain cpu signal')
-  assert.ok(storedSignals.some(s => s.type === 'memory'), 'Should contain memory signal')
 })
 
-test('processSignals should store signals with matching IDs in DB and Valkey', async (t) => {
-  const app = await buildServer(t)
-
-  const applicationId = randomUUID()
-  const serviceId = randomUUID()
-  const podId = 'test-pod-1'
-  const controllerData = createTestController(applicationId, 2)
-
-  await app.platformatic.entities.controller.save({
-    input: controllerData
-  })
-
-  const signals = [
-    { type: 'cpu', value: 0.8, timestamp: Date.now() },
-    { type: 'memory', value: 0.7, timestamp: Date.now() }
-  ]
-
-  await app.signalScalerExecutor.processSignals({
-    applicationId,
-    serviceId,
-    podId,
-    signals,
-    elu: 0.7,
-    heapUsed: 111,
-    heapTotal: 222
-  })
-
-  const storedSignals = await app.platformatic.entities.signal.find({
-    where: {
-      applicationId: { eq: applicationId },
-      podId: { eq: podId }
-    }
-  })
-
-  assert.strictEqual(storedSignals.length, 2, 'Should store all signals from the batch')
-
-  const valkeySignals = await app.signalScalerExecutor.algorithm.getAppPodsSignals(applicationId)
-  const valkeySignalsForPod = valkeySignals[podId] || []
-
-  assert.strictEqual(valkeySignalsForPod.length, 2, 'Should store signals in Valkey')
-
-  for (const dbSignal of storedSignals) {
-    const valkeySignal = valkeySignalsForPod.find(vs => vs.id === dbSignal.id)
-    assert.ok(valkeySignal, `Signal ${dbSignal.id} should exist in Valkey with matching ID`)
-    assert.strictEqual(valkeySignal.type, dbSignal.type, 'Signal type should match')
-  }
-})
-
-test('check Scaling For Application should handle errors gracefully', async (t) => {
-  const app = await buildServer(t)
-
-  const result = await app.signalScalerExecutor.checkScalingForApplication(randomUUID())
-
-  assert.strictEqual(result.success, false)
-  assert.ok(result.error)
-})
-
-test('checkScalingForAllApplications should return success', async (t) => {
-  const app = await buildServer(t)
-
-  const result = await app.signalScalerExecutor.checkScalingForAllApplications()
-
-  assert.ok(result.success)
-  assert.ok(Array.isArray(result.results))
-})
-
-test('concurrent processSignals should queue algorithm execution', async (t) => {
-  const app = await buildServer(t)
+test('processSignals should not create alerts when metrics are below threshold', async (t) => {
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
 
   // Mock as leader for this test
   app.isScalerLeader = () => true
 
   const applicationId = randomUUID()
-  const serviceId = randomUUID()
+  const deploymentId = randomUUID()
   const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
   const controllerData = createTestController(applicationId, 2)
+  controllerData.deploymentId = deploymentId
 
   await app.platformatic.entities.controller.save({
     input: controllerData
   })
 
-  const signals1 = [
-    { type: 'cpu', value: 0.8, timestamp: Date.now() }
-  ]
+  await app.signalScalerExecutor.initialize()
+  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
-  const signals2 = [
-    { type: 'cpu', value: 0.9, timestamp: Date.now() + 1000 }
-  ]
+  // Create metrics samples with low ELU (below threshold)
+  const serviceId = 'test-service'
+  const samples = createMetricsSamples(5, 0.3, 50) // ELU 0.3 < threshold 0.75
 
+  const signals = {
+    [serviceId]: samples
+  }
+
+  const result = await app.signalScalerExecutor.processSignals({
+    applicationId,
+    podId,
+    runtimeId,
+    deploymentId,
+    signals,
+    batchStartedAt: Date.now()
+  })
+
+  assert.ok(Array.isArray(result.alerts), 'Should return alerts array')
+  assert.deepStrictEqual(result.alerts, [], 'Should have no alerts for low metrics')
+
+  // Verify no alert was created in database
+  const alerts = await app.platformatic.entities.alert.find({
+    where: {
+      applicationId: { eq: applicationId },
+      podId: { eq: podId }
+    }
+  })
+
+  assert.strictEqual(alerts.length, 0, 'Should not create any alerts')
+})
+
+test('checkScalingOnSignals should handle errors gracefully', async (t) => {
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
+
+  // checkScalingOnSignals for unknown app should not throw but handle gracefully
+  const result = await app.signalScalerExecutor.checkScalingOnSignals({ applicationId: randomUUID() })
+
+  assert.ok(result.success, 'Should return success')
+  assert.ok(result.timestamp, 'Should have timestamp')
+})
+
+test('processSignals should handle multiple services', async (t) => {
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
+
+  // Mock as leader for this test
+  app.isScalerLeader = () => true
+
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
+  const controllerData = createTestController(applicationId, 2)
+  controllerData.deploymentId = deploymentId
+
+  await app.platformatic.entities.controller.save({
+    input: controllerData
+  })
+
+  await app.signalScalerExecutor.initialize()
+  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+
+  // Create metrics for multiple services
+  const signals = {
+    'service-1': createMetricsSamples(5, 0.9, 100), // High ELU
+    'service-2': createMetricsSamples(5, 0.3, 50), // Low ELU
+    'service-3': createMetricsSamples(5, 0.85, 80) // High ELU
+  }
+
+  const result = await app.signalScalerExecutor.processSignals({
+    applicationId,
+    podId,
+    runtimeId,
+    deploymentId,
+    signals,
+    batchStartedAt: Date.now()
+  })
+
+  assert.ok(Array.isArray(result.alerts), 'Should return alerts array')
+  assert.ok(result.alerts.find(a => a.serviceId === 'service-1'), 'Should have alert for service-1 (high ELU)')
+  assert.strictEqual(result.alerts.find(a => a.serviceId === 'service-2'), undefined, 'Should not have alert for service-2 (low ELU)')
+  assert.ok(result.alerts.find(a => a.serviceId === 'service-3'), 'Should have alert for service-3 (high ELU)')
+
+  // Verify alerts were created in database
+  const alerts = await app.platformatic.entities.alert.find({
+    where: {
+      applicationId: { eq: applicationId },
+      podId: { eq: podId }
+    }
+  })
+
+  assert.strictEqual(alerts.length, 2, 'Should create alerts for high ELU services only')
+})
+
+test('concurrent processSignals calls should be handled correctly', async (t) => {
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
+
+  // Mock as leader for this test
+  app.isScalerLeader = () => true
+
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
+  const controllerData = createTestController(applicationId, 2)
+  controllerData.deploymentId = deploymentId
+
+  await app.platformatic.entities.controller.save({
+    input: controllerData
+  })
+
+  await app.signalScalerExecutor.initialize()
+  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+
+  // Create two different metric batches
+  const signals1 = {
+    'service-1': createMetricsSamples(5, 0.9, 100)
+  }
+
+  const signals2 = {
+    'service-2': createMetricsSamples(5, 0.85, 90)
+  }
+
+  // Run concurrently
   const results = await Promise.all([
     app.signalScalerExecutor.processSignals({
       applicationId,
-      serviceId,
       podId,
+      runtimeId,
+      deploymentId,
       signals: signals1,
-      elu: 0.7,
-      heapUsed: 111,
-      heapTotal: 222
+      batchStartedAt: Date.now()
     }),
     app.signalScalerExecutor.processSignals({
       applicationId,
-      serviceId,
       podId,
+      runtimeId,
+      deploymentId,
       signals: signals2,
-      elu: 0.8,
-      heapUsed: 121,
-      heapTotal: 222
+      batchStartedAt: Date.now()
     })
   ])
 
-  assert.ok(results[0].scalingDecision || results[1].scalingDecision, 'At least one should have scaling decision')
+  // Both should complete without error
+  assert.ok(results[0].alerts, 'First call should return alerts')
+  assert.ok(results[1].alerts, 'Second call should return alerts')
 
+  // Both services should have triggered alerts
   const alerts = await app.platformatic.entities.alert.find({
     where: {
       applicationId: { eq: applicationId }
     }
   })
 
-  assert.strictEqual(alerts.length, 2, 'Should create two alerts for two batches')
-
-  const signals = await app.platformatic.entities.signal.find({
-    where: {
-      applicationId: { eq: applicationId }
-    }
-  })
-
-  assert.strictEqual(signals.length, 2, 'Should create two signals for two batches')
-  assert.ok(signals.every(s => s.alertId), 'All signals should be linked to alerts')
+  assert.strictEqual(alerts.length, 2, 'Should create alerts from both concurrent calls')
 })
 
-test('runScalingAlgorithm should not run concurrently for same application', async (t) => {
-  const app = await buildServer(t)
+test('non-leader should not trigger scaling but should forward to leader', async (t) => {
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
 
-  const applicationId = randomUUID()
-  const controllerData = createTestController(applicationId, 2)
-
-  await app.platformatic.entities.controller.save({
-    input: controllerData
-  })
-
-  // Acquire the lock manually to simulate another process holding it
-  const lockKey = `reactive:lock:${applicationId}`
-  await app.store.valkey.set(lockKey, 'test-lock', 'EX', 60)
-
-  const result = await app.signalScalerExecutor.runScalingAlgorithm(applicationId)
-
-  assert.strictEqual(result, null, 'Should return null when lock is already held')
-
-  // Clean up the lock
-  await app.store.valkey.del(lockKey)
-})
-
-test('runScalingAlgorithm uses atomic locking correctly', async (t) => {
-  const app = await buildServer(t)
-
-  const applicationId = randomUUID()
-  const podId = 'test-pod-1'
-  const controllerData = createTestController(applicationId, 2)
-
-  await app.platformatic.entities.controller.save({
-    input: controllerData
-  })
-
-  await app.signalScalerExecutor.algorithm.storeSignal(
-    applicationId,
-    podId,
-    { id: randomUUID(), type: 'cpu', value: 0.5, timestamp: Date.now() }
-  )
-
-  let algorithmCallCount = 0
-  const originalCalculateScalingDecision = app.signalScalerExecutor.algorithm.calculateScalingDecision.bind(app.signalScalerExecutor.algorithm)
-
-  app.signalScalerExecutor.algorithm.calculateScalingDecision = async (...args) => {
-    algorithmCallCount++
-    return originalCalculateScalingDecision(...args)
+  // Mock as non-leader
+  app.isScalerLeader = () => false
+  let notifyScalerCalled = false
+  app.notifySignalScaler = async (appId) => {
+    notifyScalerCalled = true
+    assert.ok(appId, 'Should pass applicationId to notifySignalScaler')
   }
 
-  // Run algorithm twice concurrently
-  const [result1, result2] = await Promise.all([
-    app.signalScalerExecutor.runScalingAlgorithm(applicationId),
-    app.signalScalerExecutor.runScalingAlgorithm(applicationId)
-  ])
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
+  const controllerData = createTestController(applicationId, 2)
+  controllerData.deploymentId = deploymentId
 
-  // One should acquire lock and succeed, one should return null and set pending flag
-  const successCount = [result1, result2].filter(r => r !== null).length
-  assert.strictEqual(successCount, 1, 'Only one concurrent call should successfully acquire the lock')
+  await app.platformatic.entities.controller.save({
+    input: controllerData
+  })
 
-  // The lock holder should reprocess when it sees the pending flag set by the second call
-  assert.ok(algorithmCallCount >= 1, 'Algorithm should be called at least once')
-  assert.ok(algorithmCallCount <= 2, 'Algorithm should reprocess at most once when pending flag is set')
+  await app.signalScalerExecutor.initialize()
+  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+
+  const signals = {
+    'service-1': createMetricsSamples(5, 0.9, 100)
+  }
+
+  const result = await app.signalScalerExecutor.processSignals({
+    applicationId,
+    podId,
+    runtimeId,
+    deploymentId,
+    signals,
+    batchStartedAt: Date.now()
+  })
+
+  assert.ok(result.alerts, 'Should still return alerts')
+  assert.ok(notifyScalerCalled, 'Should call notifySignalScaler when not leader')
 })

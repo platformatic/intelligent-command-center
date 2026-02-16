@@ -7,40 +7,59 @@ module.exports = async function (app) {
         type: 'object',
         properties: {
           applicationId: { type: 'string' },
-          serviceId: { type: 'string' },
-          elu: { type: 'number' },
-          heapUsed: { type: 'number' },
-          heapTotal: { type: 'number' },
+          runtimeId: { type: 'string' },
+          batchStartedAt: { type: 'number' },
           signals: {
-            type: 'array',
-            items: {
+            type: 'object',
+            additionalProperties: {
               type: 'object',
-              properties: {
-                type: { type: 'string' },
-                value: { type: ['string', 'number', 'null'] },
-                timestamp: { type: 'number' },
-                description: { type: 'string' }
-              },
-              required: ['type', 'timestamp']
+              additionalProperties: {
+                type: 'object',
+                properties: {
+                  options: {
+                    type: 'object',
+                    additionalProperties: true
+                  },
+                  workers: {
+                    type: 'object',
+                    additionalProperties: {
+                      type: 'object',
+                      properties: {
+                        values: {
+                          type: 'array',
+                          items: {
+                            type: 'array',
+                            items: { type: 'number' },
+                            minItems: 2,
+                            maxItems: 2
+                          }
+                        }
+                      },
+                      required: ['values']
+                    }
+                  }
+                },
+                required: ['options', 'workers']
+              }
             }
           }
         },
-        required: ['applicationId', 'serviceId', 'signals']
+        required: ['applicationId', 'runtimeId', 'signals']
       },
       response: {
         200: {
           type: 'object',
           properties: {
-            success: { type: 'boolean' },
-            applicationId: { type: 'string' },
-            podId: { type: 'string' },
-            alertId: { type: 'string' },
-            signalCount: { type: 'number' },
-            scalingDecision: {
-              type: 'object',
-              properties: {
-                nfinal: { type: 'number' },
-                reason: { type: 'string' }
+            alerts: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  serviceId: { type: 'string' },
+                  workerId: { type: 'string' },
+                  alertId: { type: 'string' }
+                },
+                required: ['serviceId', 'workerId', 'alertId']
               }
             }
           }
@@ -63,48 +82,33 @@ module.exports = async function (app) {
       }
 
       const podId = k8sContext.pod?.name
-      const {
-        applicationId,
-        serviceId,
-        elu,
-        heapUsed,
-        heapTotal,
-        signals
-      } = req.body
+      const namespace = k8sContext.namespace
 
       if (!podId) {
         throw new Error('Missing pod ID from k8s context')
       }
 
-      app.log.debug({
-        applicationId,
-        serviceId,
-        podId,
-        signalCount: signals.length
-      }, 'Received signals')
-
       if (!app.signalScalerExecutor) {
         throw new Error('Signal Scaler executor not initialized')
       }
 
-      const { alert, scalingDecision } = await app.signalScalerExecutor.processSignals({
+      const { applicationId, runtimeId, signals, batchStartedAt } = req.body
+
+      const instance = await app.getInstanceByPodId(podId, namespace)
+      if (!instance) {
+        throw new Error('Instance not found for pod')
+      }
+
+      const { alerts } = await app.signalScalerExecutor.processSignals({
         applicationId,
-        serviceId,
         podId,
+        runtimeId,
+        deploymentId: instance.deploymentId,
         signals,
-        elu,
-        heapUsed,
-        heapTotal
+        batchStartedAt
       })
 
-      return {
-        success: true,
-        applicationId,
-        podId,
-        alertId: alert.id,
-        signalCount: signals.length,
-        scalingDecision
-      }
+      return { alerts }
     }
   })
 }

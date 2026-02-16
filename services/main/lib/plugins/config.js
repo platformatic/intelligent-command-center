@@ -16,6 +16,7 @@ const schema = {
     DEV: { type: 'boolean' },
     DEV_K8S: { type: 'boolean', default: false },
     PLT_MAIN_URL: { type: 'string' },
+    PLT_SCALER_URL: { type: 'string', default: 'http://scaler.plt.local' },
     PLT_ICC_VALKEY_CONNECTION_STRING: { type: 'string' },
     PLT_CONTROL_PLANE_URL: { type: 'string' },
     PLT_DISABLE_K8S_AUTH: { type: 'boolean', default: false },

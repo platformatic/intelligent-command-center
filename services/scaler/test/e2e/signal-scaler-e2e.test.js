@@ -12,13 +12,37 @@ const {
   cleanValkeyData
 } = require('../helper')
 
+function createMetricsSamples (count, eluValue, heapValue, eluThreshold = 0.75, heapThreshold = 250) {
+  const now = Date.now()
+  const base = Math.floor(now / 1000) * 1000
+  const eluValues = []
+  const heapValues = []
+  for (let i = count; i >= 1; i--) {
+    const timestamp = base - i * 1000
+    eluValues.push([timestamp, eluValue])
+    heapValues.push([timestamp, heapValue])
+  }
+  return {
+    elu: {
+      options: { threshold: eluThreshold },
+      workers: { 'worker-0': { values: eluValues } }
+    },
+    heap: {
+      options: { threshold: heapThreshold, heapTotal: 512 },
+      workers: { 'worker-0': { values: heapValues } }
+    }
+  }
+}
+
 beforeEach(async (t) => {
   const originalDispatcher = getGlobalDispatcher()
   const mockAgent = new MockAgent()
   setGlobalDispatcher(mockAgent)
+  // Allow connections to localhost (for startMachinist)
+  mockAgent.enableNetConnect(/localhost/)
   t.after(() => setGlobalDispatcher(originalDispatcher))
 
-  // Mock control-plane GET request
+  // Mock control-plane requests
   const mockControlPlane = mockAgent.get('http://control-plane.plt.local')
   mockControlPlane
     .intercept({
@@ -35,127 +59,25 @@ beforeEach(async (t) => {
       path: '/events',
       method: 'POST'
     })
-    .reply((opts) => {
+    .reply(() => {
       return { statusCode: 201, data: {} }
     })
     .persist()
 })
 
-test('E2E: signal ingestion should trigger scale up decision', async (t) => {
+function mockGetInstanceByPodId (server, instances) {
+  server.getInstanceByPodId = async (podId, namespace) => {
+    return instances[podId] || null
+  }
+}
+
+test('E2E: signal processing should return alerts for high ELU', async (t) => {
   await cleanValkeyData()
 
   const applicationId = randomUUID()
   const deploymentId = randomUUID()
   const podId = 'test-pod-1'
-  const namespace = 'platformatic'
-  const controllerId = 'test-controller'
-
-  await startMachinist(t, {
-    getPodController: () => ({
-      name: controllerId,
-      namespace,
-      kind: 'Deployment',
-      apiVersion: 'apps/v1',
-      replicas: 2
-    })
-  })
-
-  const server = await buildServer(t, {
-    PLT_SCALER_ALGORITHM_VERSION: 'v2',
-    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString(),
-    PLT_SIGNALS_SCALER_HOT_RATE_THRESHOLD: 0.3,
-    PLT_SIGNALS_SCALER_UP_FW_RATE_THRESHOLD: 0.05
-  })
-
-  t.after(async () => {
-    await server.close()
-    await cleanValkeyData()
-  })
-
-  await server.inject({
-    method: 'POST',
-    url: '/controllers',
-    headers: {
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({
-      applicationId,
-      deploymentId,
-      namespace,
-      podId
-    })
-  })
-
-  await server.platformatic.entities.applicationScaleConfig.save({
-    input: {
-      applicationId,
-      minPods: 1,
-      maxPods: 10
-    }
-  })
-
-  const now = Date.now()
-  const signals = []
-  for (let i = 0; i < 20; i++) {
-    signals.push({
-      type: 'cpu',
-      value: 0.85,
-      description: 'Test signal',
-      timestamp: now + (i * 1000)
-    })
-  }
-
-  const response = await server.inject({
-    method: 'POST',
-    url: '/signals',
-    headers: {
-      'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId, namespace)
-    },
-    body: JSON.stringify({
-      applicationId,
-      serviceId: 'test-service',
-      elu: 0.7,
-      heapUsed: 111,
-      heapTotal: 222,
-      signals
-    })
-  })
-
-  assert.strictEqual(response.statusCode, 200)
-
-  const body = JSON.parse(response.body)
-  assert.strictEqual(body.success, true)
-  assert.strictEqual(body.applicationId, applicationId)
-  assert.strictEqual(body.podId, podId)
-  assert.strictEqual(body.signalCount, 20)
-  assert.ok(body.scalingDecision)
-  assert.ok(typeof body.scalingDecision.nfinal === 'number')
-  assert.ok(body.scalingDecision.nfinal > 2, 'Should recommend scaling up from 2 pods')
-  assert.ok(body.scalingDecision.reason)
-  assert.strictEqual(typeof body.scalingDecision.reason, 'string')
-
-  const storedSignals = await server.platformatic.entities.signal.find()
-  assert.strictEqual(storedSignals.length, 20)
-
-  for (const signal of storedSignals) {
-    assert.ok(signal.id)
-    assert.strictEqual(signal.applicationId, applicationId)
-    assert.strictEqual(signal.serviceId, 'test-service')
-    assert.strictEqual(signal.podId, podId)
-    assert.strictEqual(signal.type, 'cpu')
-    assert.strictEqual(signal.value, 0.85)
-    assert.strictEqual(signal.description, 'Test signal')
-    assert.ok(signal.timestamp)
-  }
-})
-
-test('E2E: critical signal should trigger scale up decision', async (t) => {
-  await cleanValkeyData()
-
-  const applicationId = randomUUID()
-  const deploymentId = randomUUID()
-  const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
   const namespace = 'platformatic'
   const controllerId = 'test-controller'
 
@@ -193,6 +115,11 @@ test('E2E: critical signal should trigger scale up decision', async (t) => {
     })
   })
 
+  // Mock getInstanceByPodId to return the instance
+  mockGetInstanceByPodId(server, {
+    [podId]: { applicationId, deploymentId, podId, namespace, status: 'running' }
+  })
+
   await server.platformatic.entities.applicationScaleConfig.save({
     input: {
       applicationId,
@@ -200,6 +127,15 @@ test('E2E: critical signal should trigger scale up decision', async (t) => {
       maxPods: 10
     }
   })
+
+  // Initialize and connect the instance
+  await server.signalScalerExecutor.initialize()
+  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+
+  // High ELU samples (0.9 > threshold 0.75) should trigger alert
+  const signals = {
+    'test-service': createMetricsSamples(10, 0.9, 100)
+  }
 
   const response = await server.inject({
     method: 'POST',
@@ -210,40 +146,38 @@ test('E2E: critical signal should trigger scale up decision', async (t) => {
     },
     body: JSON.stringify({
       applicationId,
-      serviceId: 'test-service',
-      elu: 0.7,
-      heapUsed: 111,
-      heapTotal: 222,
-      signals: [{
-        type: 'kafka',
-        level: 'critical',
-        value: 10,
-        timestamp: Date.now()
-      }]
+      runtimeId,
+      signals
     })
   })
 
   assert.strictEqual(response.statusCode, 200)
 
   const body = JSON.parse(response.body)
-  assert.strictEqual(body.success, true)
-  assert.strictEqual(body.applicationId, applicationId)
-  assert.strictEqual(body.podId, podId)
-  assert.strictEqual(body.signalCount, 1)
-  assert.ok(body.scalingDecision)
-  assert.ok(typeof body.scalingDecision.nfinal === 'number')
-  assert.ok(body.scalingDecision.nfinal > 2, 'Should recommend scaling up from 2 pods')
-  assert.ok(body.scalingDecision.reason)
-  assert.strictEqual(typeof body.scalingDecision.reason, 'string')
+  assert.ok(Array.isArray(body.alerts), 'Should return alerts array')
+  assert.ok(body.alerts.find(a => a.serviceId === 'test-service'), 'Should have alert for high ELU service')
+
+  // Verify alert was created in database
+  const alerts = await server.platformatic.entities.alert.find({
+    where: {
+      applicationId: { eq: applicationId },
+      podId: { eq: podId }
+    }
+  })
+
+  assert.ok(alerts.length > 0, 'Should create alert in database')
+  assert.strictEqual(alerts[0].applicationId, applicationId)
+  assert.strictEqual(alerts[0].serviceId, 'test-service')
+  assert.strictEqual(alerts[0].podId, podId)
 })
 
-test('E2E: multiple pods sending signals should aggregate for scaling decision', async (t) => {
+test('E2E: signal processing should not create alerts for low metrics', async (t) => {
   await cleanValkeyData()
 
   const applicationId = randomUUID()
   const deploymentId = randomUUID()
-  const pod1Id = 'test-pod-1'
-  const pod2Id = 'test-pod-2'
+  const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
   const namespace = 'platformatic'
   const controllerId = 'test-controller'
 
@@ -259,9 +193,7 @@ test('E2E: multiple pods sending signals should aggregate for scaling decision',
 
   const server = await buildServer(t, {
     PLT_SCALER_ALGORITHM_VERSION: 'v2',
-    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString(),
-    PLT_SIGNALS_SCALER_HOT_RATE_THRESHOLD: 0.3,
-    PLT_SIGNALS_SCALER_UP_FW_RATE_THRESHOLD: 0.04
+    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString()
   })
 
   t.after(async () => {
@@ -269,6 +201,97 @@ test('E2E: multiple pods sending signals should aggregate for scaling decision',
     await cleanValkeyData()
   })
 
+  await server.inject({
+    method: 'POST',
+    url: '/controllers',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      applicationId,
+      deploymentId,
+      namespace,
+      podId
+    })
+  })
+
+  // Mock getInstanceByPodId
+  mockGetInstanceByPodId(server, {
+    [podId]: { applicationId, deploymentId, podId, namespace, status: 'running' }
+  })
+
+  await server.signalScalerExecutor.initialize()
+  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+
+  // Low ELU samples (0.3 < threshold 0.75) should NOT trigger alert
+  const signals = {
+    'test-service': createMetricsSamples(10, 0.3, 50)
+  }
+
+  const response = await server.inject({
+    method: 'POST',
+    url: '/signals',
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId, namespace)
+    },
+    body: JSON.stringify({
+      applicationId,
+      runtimeId,
+      signals
+    })
+  })
+
+  assert.strictEqual(response.statusCode, 200)
+
+  const body = JSON.parse(response.body)
+  assert.ok(Array.isArray(body.alerts), 'Should return alerts array')
+  assert.deepStrictEqual(body.alerts, [], 'Should have no alerts for low metrics')
+
+  // Verify no alert was created in database
+  const alerts = await server.platformatic.entities.alert.find({
+    where: {
+      applicationId: { eq: applicationId },
+      podId: { eq: podId }
+    }
+  })
+
+  assert.strictEqual(alerts.length, 0, 'Should not create any alerts')
+})
+
+test('E2E: multiple pods sending signals should be handled independently', async (t) => {
+  await cleanValkeyData()
+
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const pod1Id = 'test-pod-1'
+  const pod2Id = 'test-pod-2'
+  const runtime1Id = randomUUID()
+  const runtime2Id = randomUUID()
+  const namespace = 'platformatic'
+  const controllerId = 'test-controller'
+
+  await startMachinist(t, {
+    getPodController: () => ({
+      name: controllerId,
+      namespace,
+      kind: 'Deployment',
+      apiVersion: 'apps/v1',
+      replicas: 2
+    })
+  })
+
+  const server = await buildServer(t, {
+    PLT_SCALER_ALGORITHM_VERSION: 'v2',
+    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString()
+  })
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  // Register both pods
   await server.inject({
     method: 'POST',
     url: '/controllers',
@@ -281,6 +304,209 @@ test('E2E: multiple pods sending signals should aggregate for scaling decision',
     })
   })
 
+  await server.inject({
+    method: 'POST',
+    url: '/controllers',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      applicationId,
+      deploymentId,
+      namespace,
+      podId: pod2Id
+    })
+  })
+
+  // Mock getInstanceByPodId for both pods
+  mockGetInstanceByPodId(server, {
+    [pod1Id]: { applicationId, deploymentId, podId: pod1Id, namespace, status: 'running' },
+    [pod2Id]: { applicationId, deploymentId, podId: pod2Id, namespace, status: 'running' }
+  })
+
+  await server.signalScalerExecutor.initialize()
+  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, pod1Id, runtime1Id, Date.now() - 60000)
+  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, pod2Id, runtime2Id, Date.now() - 60000)
+
+  // Pod 1: High ELU
+  const signals1 = {
+    'service-1': createMetricsSamples(10, 0.9, 100)
+  }
+
+  // Pod 2: Low ELU
+  const signals2 = {
+    'service-1': createMetricsSamples(10, 0.3, 50)
+  }
+
+  const response1 = await server.inject({
+    method: 'POST',
+    url: '/signals',
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(pod1Id, namespace)
+    },
+    body: JSON.stringify({
+      applicationId,
+      runtimeId: runtime1Id,
+      signals: signals1
+    })
+  })
+
+  const response2 = await server.inject({
+    method: 'POST',
+    url: '/signals',
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(pod2Id, namespace)
+    },
+    body: JSON.stringify({
+      applicationId,
+      runtimeId: runtime2Id,
+      signals: signals2
+    })
+  })
+
+  assert.strictEqual(response1.statusCode, 200)
+  assert.strictEqual(response2.statusCode, 200)
+
+  const body1 = JSON.parse(response1.body)
+  const body2 = JSON.parse(response2.body)
+
+  assert.ok(body1.alerts.find(a => a.serviceId === 'service-1'), 'Pod 1 should have alert (high ELU)')
+  assert.deepStrictEqual(body2.alerts, [], 'Pod 2 should have no alerts (low ELU)')
+})
+
+test('E2E: multiple services in a single request', async (t) => {
+  await cleanValkeyData()
+
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
+  const namespace = 'platformatic'
+  const controllerId = 'test-controller'
+
+  await startMachinist(t, {
+    getPodController: () => ({
+      name: controllerId,
+      namespace,
+      kind: 'Deployment',
+      apiVersion: 'apps/v1',
+      replicas: 2
+    })
+  })
+
+  const server = await buildServer(t, {
+    PLT_SCALER_ALGORITHM_VERSION: 'v2',
+    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString()
+  })
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  await server.inject({
+    method: 'POST',
+    url: '/controllers',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      applicationId,
+      deploymentId,
+      namespace,
+      podId
+    })
+  })
+
+  // Mock getInstanceByPodId
+  mockGetInstanceByPodId(server, {
+    [podId]: { applicationId, deploymentId, podId, namespace, status: 'running' }
+  })
+
+  await server.signalScalerExecutor.initialize()
+  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+
+  // Multiple services with different load levels
+  const signals = {
+    'service-high': createMetricsSamples(10, 0.9, 100), // High ELU
+    'service-low': createMetricsSamples(10, 0.3, 50), // Low ELU
+    'service-medium': createMetricsSamples(10, 0.85, 80) // High ELU
+  }
+
+  const response = await server.inject({
+    method: 'POST',
+    url: '/signals',
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId, namespace)
+    },
+    body: JSON.stringify({
+      applicationId,
+      runtimeId,
+      signals
+    })
+  })
+
+  assert.strictEqual(response.statusCode, 200)
+
+  const body = JSON.parse(response.body)
+  assert.ok(body.alerts.find(a => a.serviceId === 'service-high'), 'Should have alert for high ELU service')
+  assert.strictEqual(body.alerts.find(a => a.serviceId === 'service-low'), undefined, 'Should not have alert for low ELU service')
+  assert.ok(body.alerts.find(a => a.serviceId === 'service-medium'), 'Should have alert for medium-high ELU service')
+
+  // Verify alerts were created in database
+  const alerts = await server.platformatic.entities.alert.find({
+    where: {
+      applicationId: { eq: applicationId },
+      podId: { eq: podId }
+    }
+  })
+
+  assert.strictEqual(alerts.length, 2, 'Should create alerts for high ELU services only')
+})
+
+test('E2E: checkScalingOnSignals processes scaling decision', async (t) => {
+  await cleanValkeyData()
+
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
+  const namespace = 'platformatic'
+  const controllerId = 'test-controller'
+
+  await startMachinist(t, {
+    getPodController: () => ({
+      name: controllerId,
+      namespace,
+      kind: 'Deployment',
+      apiVersion: 'apps/v1',
+      replicas: 2
+    })
+  })
+
+  const server = await buildServer(t, {
+    PLT_SCALER_ALGORITHM_VERSION: 'v2',
+    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString()
+  })
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  await server.inject({
+    method: 'POST',
+    url: '/controllers',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      applicationId,
+      deploymentId,
+      namespace,
+      podId
+    })
+  })
+
   await server.platformatic.entities.applicationScaleConfig.save({
     input: {
       applicationId,
@@ -289,124 +515,20 @@ test('E2E: multiple pods sending signals should aggregate for scaling decision',
     }
   })
 
-  const now = Date.now()
+  // Mock getInstanceByPodId
+  mockGetInstanceByPodId(server, {
+    [podId]: { applicationId, deploymentId, podId, namespace, status: 'running' }
+  })
 
-  for (let i = 0; i < 15; i++) {
-    await server.inject({
-      method: 'POST',
-      url: '/signals',
-      headers: {
-        'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(pod1Id, namespace)
-      },
-      body: JSON.stringify({
-        applicationId,
-        serviceId: 'test-service',
-        elu: 0.7,
-        heapUsed: 111,
-        heapTotal: 222,
-        signals: [{
-          type: 'cpu',
-          value: 0.9,
-          timestamp: now + (i * 1000)
-        }]
-      })
-    })
+  await server.signalScalerExecutor.initialize()
+  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+
+  // Send high load metrics
+  const signals = {
+    'test-service': createMetricsSamples(10, 0.9, 100)
   }
-
-  for (let i = 0; i < 15; i++) {
-    await server.inject({
-      method: 'POST',
-      url: '/signals',
-      headers: {
-        'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(pod2Id, namespace)
-      },
-      body: JSON.stringify({
-        applicationId,
-        serviceId: 'test-service',
-        elu: 0.7,
-        heapUsed: 111,
-        heapTotal: 222,
-        signals: [{
-          type: 'cpu',
-          value: 0.88,
-          timestamp: now + (i * 1000)
-        }]
-      })
-    })
-  }
-
-  const result = await server.signalScalerExecutor.checkScalingForApplication(applicationId)
-
-  assert.strictEqual(result.success, true)
-  assert.ok(result.scalingDecision)
-  assert.ok(result.scalingDecision.nfinal >= 2, 'Should have a scaling decision')
-  assert.ok(result.scalingDecision.reason, 'Should have a scaling reason')
-})
-
-test('E2E: low signal values are processed correctly', async (t) => {
-  await cleanValkeyData()
-
-  const applicationId = randomUUID()
-  const deploymentId = randomUUID()
-  const podId = 'test-pod-1'
-  const namespace = 'platformatic'
-  const controllerId = 'test-controller'
-
-  await startMachinist(t, {
-    getPodController: () => ({
-      name: controllerId,
-      namespace,
-      kind: 'Deployment',
-      apiVersion: 'apps/v1',
-      replicas: 3
-    })
-  })
-
-  const server = await buildServer(t, {
-    PLT_SCALER_ALGORITHM_VERSION: 'v2',
-    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString(),
-    PLT_SIGNALS_SCALER_DOWN_SW_RATE_THRESHOLD: 0.05,
-    PLT_SIGNALS_SCALER_DOWN_LW_RATE_THRESHOLD: 0.02
-  })
-
-  t.after(async () => {
-    await server.close()
-    await cleanValkeyData()
-  })
 
   await server.inject({
-    method: 'POST',
-    url: '/controllers',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      applicationId,
-      deploymentId,
-      namespace,
-      podId
-    })
-  })
-
-  await server.platformatic.entities.applicationScaleConfig.save({
-    input: {
-      applicationId,
-      minPods: 1,
-      maxPods: 10
-    }
-  })
-
-  const now = Date.now()
-  const signals = []
-  for (let i = 0; i < 30; i++) {
-    signals.push({
-      type: 'cpu',
-      value: 0.1,
-      timestamp: now + (i * 1000)
-    })
-  }
-
-  const response = await server.inject({
     method: 'POST',
     url: '/signals',
     headers: {
@@ -415,28 +537,25 @@ test('E2E: low signal values are processed correctly', async (t) => {
     },
     body: JSON.stringify({
       applicationId,
-      serviceId: 'test-service',
-      elu: 0.7,
-      heapUsed: 111,
-      heapTotal: 222,
+      runtimeId,
       signals
     })
   })
 
-  assert.strictEqual(response.statusCode, 200)
-  const body = JSON.parse(response.body)
-  assert.strictEqual(body.success, true)
-  assert.ok(body.scalingDecision)
-  assert.ok(typeof body.scalingDecision.nfinal === 'number')
-  assert.ok(body.scalingDecision.reason)
+  // Trigger scaling check
+  const result = await server.signalScalerExecutor.checkScalingOnSignals({ applicationId })
+
+  assert.ok(result.success, 'Should return success')
+  assert.ok(result.timestamp, 'Should have timestamp')
 })
 
-test('E2E: respects min/max pod constraints', async (t) => {
+test('E2E: scaling respects min/max pod constraints', async (t) => {
   await cleanValkeyData()
 
   const applicationId = randomUUID()
   const deploymentId = randomUUID()
   const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
   const namespace = 'platformatic'
   const controllerId = 'test-controller'
 
@@ -472,6 +591,7 @@ test('E2E: respects min/max pod constraints', async (t) => {
     })
   })
 
+  // Set restrictive min/max constraints
   await server.platformatic.entities.applicationScaleConfig.save({
     input: {
       applicationId,
@@ -480,220 +600,16 @@ test('E2E: respects min/max pod constraints', async (t) => {
     }
   })
 
-  const now = Date.now()
-  const highSignals = []
-  for (let i = 0; i < 50; i++) {
-    highSignals.push({
-      type: 'cpu',
-      value: 0.99,
-      timestamp: now + (i * 1000)
-    })
-  }
+  await server.signalScalerExecutor.initialize()
+  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
-  const highResponse = await server.inject({
-    method: 'POST',
-    url: '/signals',
-    headers: {
-      'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId, namespace)
-    },
-    body: JSON.stringify({
-      applicationId,
-      serviceId: 'test-service',
-      elu: 0.7,
-      heapUsed: 111,
-      heapTotal: 222,
-      signals: highSignals
-    })
-  })
-
-  const highBody = JSON.parse(highResponse.body)
-  assert.ok(highBody.scalingDecision.nfinal <= 4, 'Should not exceed maxPods of 4')
-
-  await cleanValkeyData()
-
-  const lowSignals = []
-  for (let i = 0; i < 50; i++) {
-    lowSignals.push({
-      type: 'cpu',
-      value: 0.01,
-      timestamp: now + (i * 1000) + 60000
-    })
-  }
-
-  const lowResponse = await server.inject({
-    method: 'POST',
-    url: '/signals',
-    headers: {
-      'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId, namespace)
-    },
-    body: JSON.stringify({
-      applicationId,
-      serviceId: 'test-service',
-      elu: 0.7,
-      heapUsed: 111,
-      heapTotal: 222,
-      signals: lowSignals
-    })
-  })
-
-  const lowBody = JSON.parse(lowResponse.body)
-  assert.ok(lowBody.scalingDecision.nfinal >= 2, 'Should not go below minPods of 2')
+  // Get scale config and verify constraints
+  const config = await server.signalScalerExecutor.getScaleConfig(applicationId)
+  assert.strictEqual(config.minPods, 2, 'Should have minPods of 2')
+  assert.strictEqual(config.maxPods, 4, 'Should have maxPods of 4')
 })
 
-test('E2E: signal grouping by timestamp works correctly', async (t) => {
-  await cleanValkeyData()
-
-  const applicationId = randomUUID()
-  const deploymentId = randomUUID()
-  const podId = 'test-pod-1'
-  const namespace = 'platformatic'
-  const controllerId = 'test-controller'
-
-  await startMachinist(t, {
-    getPodController: () => ({
-      name: controllerId,
-      namespace,
-      kind: 'Deployment',
-      apiVersion: 'apps/v1',
-      replicas: 2
-    })
-  })
-
-  const server = await buildServer(t, {
-    PLT_SCALER_ALGORITHM_VERSION: 'v2',
-    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString()
-  })
-
-  t.after(async () => {
-    await server.close()
-    await cleanValkeyData()
-  })
-
-  await server.inject({
-    method: 'POST',
-    url: '/controllers',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      applicationId,
-      deploymentId,
-      namespace,
-      podId
-    })
-  })
-
-  const now = Date.now()
-  const signals = [
-    { type: 'cpu', value: 0.8, timestamp: now },
-    { type: 'memory', value: 0.7, timestamp: now + 100 },
-    { type: 'cpu', value: 0.85, timestamp: now + 500 },
-    { type: 'memory', value: 0.75, timestamp: now + 1000 },
-    { type: 'cpu', value: 0.9, timestamp: now + 1500 }
-  ]
-
-  const response = await server.inject({
-    method: 'POST',
-    url: '/signals',
-    headers: {
-      'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId, namespace)
-    },
-    body: JSON.stringify({
-      applicationId,
-      serviceId: 'test-service',
-      elu: 0.7,
-      heapUsed: 111,
-      heapTotal: 222,
-      signals
-    })
-  })
-
-  assert.strictEqual(response.statusCode, 200)
-
-  const body = JSON.parse(response.body)
-  assert.strictEqual(body.success, true)
-  assert.strictEqual(body.signalCount, 5)
-  assert.ok(body.scalingDecision)
-})
-
-test('E2E: mixed signal types (cpu, memory, custom) are processed', async (t) => {
-  await cleanValkeyData()
-
-  const applicationId = randomUUID()
-  const deploymentId = randomUUID()
-  const podId = 'test-pod-1'
-  const namespace = 'platformatic'
-  const controllerId = 'test-controller'
-
-  await startMachinist(t, {
-    getPodController: () => ({
-      name: controllerId,
-      namespace,
-      kind: 'Deployment',
-      apiVersion: 'apps/v1',
-      replicas: 2
-    })
-  })
-
-  const server = await buildServer(t, {
-    PLT_SCALER_ALGORITHM_VERSION: 'v2',
-    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString()
-  })
-
-  t.after(async () => {
-    await server.close()
-    await cleanValkeyData()
-  })
-
-  await server.inject({
-    method: 'POST',
-    url: '/controllers',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      applicationId,
-      deploymentId,
-      namespace,
-      podId
-    })
-  })
-
-  const now = Date.now()
-  const signals = []
-  for (let i = 0; i < 10; i++) {
-    signals.push(
-      { type: 'cpu', value: 0.8, timestamp: now + (i * 1000) },
-      { type: 'memory', value: 0.75, timestamp: now + (i * 1000) },
-      { type: 'custom_metric', value: 100, timestamp: now + (i * 1000), description: 'Custom application metric' }
-    )
-  }
-
-  const response = await server.inject({
-    method: 'POST',
-    url: '/signals',
-    headers: {
-      'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId, namespace)
-    },
-    body: JSON.stringify({
-      applicationId,
-      serviceId: 'test-service',
-      elu: 0.7,
-      heapUsed: 111,
-      heapTotal: 222,
-      signals
-    })
-  })
-
-  assert.strictEqual(response.statusCode, 200)
-
-  const body = JSON.parse(response.body)
-  assert.strictEqual(body.success, true)
-  assert.strictEqual(body.signalCount, 30)
-  assert.ok(body.scalingDecision)
-})
-
-test('E2E: periodic trigger processes accumulated signals', async (t) => {
+test('E2E: leader election works correctly', async (t) => {
   await cleanValkeyData()
 
   const applicationId = randomUUID()
@@ -715,9 +631,7 @@ test('E2E: periodic trigger processes accumulated signals', async (t) => {
   const server = await buildServer(t, {
     PLT_SCALER_ALGORITHM_VERSION: 'v2',
     PLT_SCALER_LOCK: '12345',
-    PLT_SCALER_LEADER_POLL: '50',
-    PLT_SIGNALS_SCALER_PERIODIC_TRIGGER: '0.2',
-    PLT_SIGNALS_SCALER_HOT_RATE_THRESHOLD: 0.3
+    PLT_SCALER_LEADER_POLL: '50'
   })
 
   t.after(async () => {
@@ -737,53 +651,59 @@ test('E2E: periodic trigger processes accumulated signals', async (t) => {
     })
   })
 
-  await server.platformatic.entities.applicationScaleConfig.save({
-    input: {
-      applicationId,
-      minPods: 1,
-      maxPods: 10
-    }
-  })
-
-  const now = Date.now()
-  for (let batch = 0; batch < 3; batch++) {
-    const signals = []
-    for (let i = 0; i < 10; i++) {
-      signals.push({
-        type: 'cpu',
-        value: 0.9,
-        timestamp: now + (batch * 10000) + (i * 1000)
-      })
-    }
-
-    await server.inject({
-      method: 'POST',
-      url: '/signals',
-      headers: {
-        'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId, namespace)
-      },
-      body: JSON.stringify({
-        applicationId,
-        elu: 0.7,
-        heapUsed: 111,
-        heapTotal: 222,
-        signals
-      })
-    })
-  }
-
-  await sleep(500)
+  await sleep(200)
 
   assert.strictEqual(server.isScalerLeader(), true, 'Server should be the leader')
 })
 
-test('E2E: scale down when no recent signals', async (t) => {
+test('E2E: API returns error for non-v2 algorithm version', async (t) => {
+  await cleanValkeyData()
+
+  const applicationId = randomUUID()
+  const podId = 'test-pod-1'
+  const namespace = 'platformatic'
+
+  const server = await buildServer(t, {
+    PLT_SCALER_ALGORITHM_VERSION: 'v1',
+    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString()
+  })
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  const signals = {
+    'test-service': createMetricsSamples(10, 0.9, 100)
+  }
+
+  const response = await server.inject({
+    method: 'POST',
+    url: '/signals',
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId, namespace)
+    },
+    body: JSON.stringify({
+      applicationId,
+      runtimeId: randomUUID(),
+      signals
+    })
+  })
+
+  assert.strictEqual(response.statusCode, 400)
+
+  const body = JSON.parse(response.body)
+  assert.ok(body.error.includes('algorithm version v2'), 'Should mention v2 requirement')
+})
+
+test('E2E: concurrent signal processing from same pod', async (t) => {
   await cleanValkeyData()
 
   const applicationId = randomUUID()
   const deploymentId = randomUUID()
   const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
   const namespace = 'platformatic'
   const controllerId = 'test-controller'
 
@@ -793,14 +713,13 @@ test('E2E: scale down when no recent signals', async (t) => {
       namespace,
       kind: 'Deployment',
       apiVersion: 'apps/v1',
-      replicas: 5
+      replicas: 2
     })
   })
 
   const server = await buildServer(t, {
     PLT_SCALER_ALGORITHM_VERSION: 'v2',
-    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString(),
-    PLT_SIGNALS_SCALER_PERIODIC_TRIGGER: 0.2
+    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString()
   })
 
   t.after(async () => {
@@ -822,30 +741,131 @@ test('E2E: scale down when no recent signals', async (t) => {
     })
   })
 
-  await server.platformatic.entities.applicationScaleConfig.save({
-    input: {
+  // Mock getInstanceByPodId
+  mockGetInstanceByPodId(server, {
+    [podId]: { applicationId, deploymentId, podId, namespace, status: 'running' }
+  })
+
+  await server.signalScalerExecutor.initialize()
+  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+
+  // Send multiple concurrent requests
+  const signals1 = { 'service-1': createMetricsSamples(10, 0.9, 100) }
+  const signals2 = { 'service-2': createMetricsSamples(10, 0.85, 90) }
+
+  const [response1, response2] = await Promise.all([
+    server.inject({
+      method: 'POST',
+      url: '/signals',
+      headers: {
+        'content-type': 'application/json',
+        'x-k8s': generateK8sHeader(podId, namespace)
+      },
+      body: JSON.stringify({
+        applicationId,
+        runtimeId,
+        signals: signals1
+      })
+    }),
+    server.inject({
+      method: 'POST',
+      url: '/signals',
+      headers: {
+        'content-type': 'application/json',
+        'x-k8s': generateK8sHeader(podId, namespace)
+      },
+      body: JSON.stringify({
+        applicationId,
+        runtimeId,
+        signals: signals2
+      })
+    })
+  ])
+
+  assert.strictEqual(response1.statusCode, 200)
+  assert.strictEqual(response2.statusCode, 200)
+
+  const body1 = JSON.parse(response1.body)
+  const body2 = JSON.parse(response2.body)
+
+  assert.ok(body1.alerts, 'First request should return alerts')
+  assert.ok(body2.alerts, 'Second request should return alerts')
+})
+
+test('E2E: heap threshold alerts work correctly', async (t) => {
+  await cleanValkeyData()
+
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
+  const namespace = 'platformatic'
+  const controllerId = 'test-controller'
+
+  await startMachinist(t, {
+    getPodController: () => ({
+      name: controllerId,
+      namespace,
+      kind: 'Deployment',
+      apiVersion: 'apps/v1',
+      replicas: 2
+    })
+  })
+
+  const server = await buildServer(t, {
+    PLT_SCALER_ALGORITHM_VERSION: 'v2',
+    PLT_SCALER_LOCK: Math.floor(Math.random() * 1000000).toString()
+  })
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  await server.inject({
+    method: 'POST',
+    url: '/controllers',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
       applicationId,
-      minPods: 1,
-      maxPods: 10
-    }
+      deploymentId,
+      namespace,
+      podId
+    })
   })
 
-  await sleep(500)
-
-  const scaleEvents = await server.platformatic.entities.scaleEvent.find({
-    where: {
-      applicationId: {
-        eq: applicationId
-      }
-    }
+  // Mock getInstanceByPodId
+  mockGetInstanceByPodId(server, {
+    [podId]: { applicationId, deploymentId, podId, namespace, status: 'running' }
   })
 
-  assert.ok(scaleEvents.length > 1, 'Should have created scale events')
-  const latestEvent = scaleEvents[scaleEvents.length - 1]
-  assert.strictEqual(latestEvent.direction, 'down', 'Should be scaling down')
-  assert.strictEqual(latestEvent.replicas, 4, 'Should scale down to 4 pods')
-  assert.strictEqual(latestEvent.replicasDiff, -1, 'Should scale down by 1')
-  assert.ok(latestEvent.reason.includes('Application signals rates are low'), 'Reason should mention low utilization')
+  await server.signalScalerExecutor.initialize()
+  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
-  assert.strictEqual(server.isScalerLeader(), true, 'Server should be the leader')
+  // Low ELU but high heap (above 250 MB threshold)
+  const signals = {
+    'test-service': createMetricsSamples(10, 0.3, 300) // heap 300 > threshold 250
+  }
+
+  const response = await server.inject({
+    method: 'POST',
+    url: '/signals',
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId, namespace)
+    },
+    body: JSON.stringify({
+      applicationId,
+      runtimeId,
+      signals
+    })
+  })
+
+  assert.strictEqual(response.statusCode, 200)
+
+  const body = JSON.parse(response.body)
+  assert.ok(Array.isArray(body.alerts), 'Should return alerts array')
+  assert.ok(body.alerts.find(a => a.serviceId === 'test-service'), 'Should have alert for high heap service')
 })

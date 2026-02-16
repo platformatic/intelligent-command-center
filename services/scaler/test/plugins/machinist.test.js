@@ -613,3 +613,112 @@ test('getControllers should handle network errors', async (t) => {
 
   await app.close()
 })
+
+test('updateController should abort previous in-flight request for the same controller', async (t) => {
+  const requestLog = []
+  const server = createServer((req, res) => {
+    if (req.method === 'POST' && req.url.includes('/controllers/')) {
+      let body = ''
+      req.on('data', (chunk) => { body += chunk })
+      req.on('end', () => {
+        const parsed = JSON.parse(body)
+        requestLog.push(parsed.replicaCount)
+        // Delay the response to give time for the second request to abort this one
+        setTimeout(() => {
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ success: true }))
+        }, 500)
+      })
+    } else {
+      res.writeHead(404)
+      res.end()
+    }
+  })
+
+  server.listen(0)
+  await once(server, 'listening')
+  const address = `http://localhost:${server.address().port}`
+
+  t.after(async () => {
+    server.close()
+  })
+
+  const app = Fastify()
+  app.log = createMockLogger()
+
+  await app.register(fp(async function (app) {
+    app.decorate('env', { PLT_MACHINIST_URL: address })
+  }, { name: 'env' }))
+
+  await app.register(machinistPlugin)
+
+  // Fire first request (don't await yet)
+  const firstRequest = app.machinist.updateController(
+    'controller-123', 'test-namespace', 'apps/v1', 'Deployment', 3
+  )
+
+  // Fire second request for the same controller — should abort the first
+  const secondRequest = app.machinist.updateController(
+    'controller-123', 'test-namespace', 'apps/v1', 'Deployment', 5
+  )
+
+  await assert.rejects(firstRequest, errors.SCALE_REQUEST_SUPERSEDED)
+  await secondRequest // should succeed
+
+  await app.close()
+})
+
+test('updateController should not interfere with requests for different controllers', async (t) => {
+  const { server: mockServer, address } = await setupMockMachinistServer()
+  t.after(async () => {
+    mockServer.close()
+  })
+
+  const app = Fastify()
+  app.log = createMockLogger()
+
+  await app.register(fp(async function (app) {
+    app.decorate('env', { PLT_MACHINIST_URL: address })
+  }, { name: 'env' }))
+
+  await app.register(machinistPlugin)
+
+  // Fire two concurrent requests for different controllers
+  const [result1, result2] = await Promise.allSettled([
+    app.machinist.updateController('controller-1', 'ns-1', 'apps/v1', 'Deployment', 3),
+    app.machinist.updateController('controller-2', 'ns-2', 'apps/v1', 'Deployment', 5)
+  ])
+
+  assert.strictEqual(result1.status, 'fulfilled')
+  assert.strictEqual(result2.status, 'fulfilled')
+
+  await app.close()
+})
+
+test('updateController should work after a previous request completes', async (t) => {
+  const { server: mockServer, address } = await setupMockMachinistServer()
+  t.after(async () => {
+    mockServer.close()
+  })
+
+  const app = Fastify()
+  app.log = createMockLogger()
+
+  await app.register(fp(async function (app) {
+    app.decorate('env', { PLT_MACHINIST_URL: address })
+  }, { name: 'env' }))
+
+  await app.register(machinistPlugin)
+
+  // First request completes normally
+  await app.machinist.updateController(
+    'controller-123', 'test-namespace', 'apps/v1', 'Deployment', 3
+  )
+
+  // Second request for the same controller should also work (no stale abort controller)
+  await app.machinist.updateController(
+    'controller-123', 'test-namespace', 'apps/v1', 'Deployment', 5
+  )
+
+  await app.close()
+})

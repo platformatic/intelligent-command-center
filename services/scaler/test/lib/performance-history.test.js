@@ -705,9 +705,12 @@ test('should handle errors in postScalingEvaluation', async (t) => {
     error: (data, msg) => logs.push({ level: 'error', data, msg })
   }
 
+  // Use the same timestamp for mock and evaluation
+  const scalingTimestamp = Date.now()
+
   const mockStore = {
     loadPerfHistory: async () => [{
-      timestamp: Date.now(),
+      timestamp: scalingTimestamp,
       podsAdded: 1,
       totalPods: 6,
       preEluMean: 0.80,
@@ -731,7 +734,7 @@ test('should handle errors in postScalingEvaluation', async (t) => {
 
   await performanceHistory.postScalingEvaluation({
     applicationId: randomUUID(),
-    scalingTimestamp: Date.now(),
+    scalingTimestamp,
     store: mockStore,
     log: mockLog,
     metrics: mockMetrics

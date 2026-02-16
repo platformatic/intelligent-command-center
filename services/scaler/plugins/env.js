@@ -33,19 +33,53 @@ const schema = {
     PLT_SCALER_POD_MAX_DEFAULT_VALUE: { type: 'number', default: 10 },
     PLT_MACHINIST_URL: { type: 'string' },
     PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1', enum: ['v1', 'v2'] },
-    PLT_SIGNALS_SCALER_FW: { type: 'number', default: 15000 },
-    PLT_SIGNALS_SCALER_SW: { type: 'number', default: 60000 },
-    PLT_SIGNALS_SCALER_LW: { type: 'number', default: 300000 },
-    PLT_SIGNALS_SCALER_HOT_RATE_THRESHOLD: { type: 'number', default: 0.5 },
-    PLT_SIGNALS_SCALER_UP_FW_RATE_THRESHOLD: { type: 'number', default: 0.2 },
-    PLT_SIGNALS_SCALER_UP_SW_RATE_THRESHOLD: { type: 'number', default: 0.15 },
-    PLT_SIGNALS_SCALER_DOWN_SW_RATE_THRESHOLD: { type: 'number', default: 0.05 },
-    PLT_SIGNALS_SCALER_DOWN_LW_RATE_THRESHOLD: { type: 'number', default: 0.03 },
-    PLT_SIGNALS_SCALER_PERIODIC_TRIGGER: { type: 'number', default: 60 },
-    PLT_SIGNALS_SCALER_LOCK_TTL: { type: 'number', default: 10 },
-    PLT_SIGNALS_SCALER_MAX_ITERATIONS: { type: 'number', default: 10 },
-    PLT_SIGNALS_SCALER_PENDING_TTL: { type: 'number', default: 60 },
-    PLT_ICC_SESSION_SECRET: { type: 'string' }
+    PLT_ICC_SESSION_SECRET: { type: 'string' },
+
+    // LoadPredictor (v2) - Global config
+    PLT_SIGNALS_SCALER_RECONNECT_TIMEOUT_MS: { type: 'number', default: 5000 },
+    PLT_SIGNALS_SCALER_HORIZONTAL_TREND_THRESHOLD: { type: 'number', default: 0.2 },
+    PLT_SIGNALS_SCALER_PENDING_SCALE_UP_EXPIRY_MS: { type: 'number', default: 60000 },
+    PLT_SIGNALS_SCALER_REDEPLOY_TIMEOUT_MS: { type: 'number', default: 2 * 60 * 1000 },
+
+    // LoadPredictor - Init timeout tuning
+    PLT_SIGNALS_SCALER_INIT_TIMEOUT_WINDOW_SIZE: { type: 'number', default: 5 },
+    PLT_SIGNALS_SCALER_INIT_TIMEOUT_STEP_RATE: { type: 'number', default: 0.1 },
+    PLT_SIGNALS_SCALER_INIT_TIMEOUT_UP_FACTOR: { type: 'number', default: 1.5 },
+    PLT_SIGNALS_SCALER_INIT_TIMEOUT_DOWN_FACTOR: { type: 'number', default: 1.0 },
+
+    // LoadPredictor - Default app config
+    PLT_SIGNALS_SCALER_HORIZON_MULTIPLIER: { type: 'number', default: 1.2 },
+    PLT_SIGNALS_SCALER_PROCESSING_INIT_TIMEOUT_MS: { type: 'number', default: 1000 },
+    PLT_SIGNALS_SCALER_PROCESSING_COOLDOWN_MS: { type: 'number', default: 10000 },
+    PLT_SIGNALS_SCALER_INSTANCES_WINDOW_MS: { type: 'number', default: 180000 },
+    PLT_SIGNALS_SCALER_INIT_TIMEOUT_MS: { type: 'number', default: 20000 },
+
+    // LoadPredictor - Cooldowns
+    PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_UP_MS: { type: 'number', default: 5000 },
+    PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_DOWN_MS: { type: 'number', default: 5000 },
+    PLT_SIGNALS_SCALER_COOLDOWN_SCALE_DOWN_AFTER_SCALE_UP_MS: { type: 'number', default: 30000 },
+    PLT_SIGNALS_SCALER_COOLDOWN_SCALE_DOWN_AFTER_SCALE_DOWN_MS: { type: 'number', default: 20000 },
+
+    // LoadPredictor - ELU config
+    PLT_SIGNALS_SCALER_ELU_WINDOW_MS: { type: 'number', default: 60000 },
+    PLT_SIGNALS_SCALER_ELU_SAMPLE_INTERVAL: { type: 'number', default: 1000 },
+    PLT_SIGNALS_SCALER_ELU_REDISTRIBUTION_MS: { type: 'number', default: 30000 },
+    PLT_SIGNALS_SCALER_ELU_ALPHA_UP: { type: 'number', default: 0.2 },
+    PLT_SIGNALS_SCALER_ELU_ALPHA_DOWN: { type: 'number', default: 0.1 },
+    PLT_SIGNALS_SCALER_ELU_BETA_UP: { type: 'number', default: 0.2 },
+    PLT_SIGNALS_SCALER_ELU_BETA_DOWN: { type: 'number', default: 0.1 },
+
+    // LoadPredictor - Heap config
+    PLT_SIGNALS_SCALER_HEAP_WINDOW_MS: { type: 'number', default: 60000 },
+    PLT_SIGNALS_SCALER_HEAP_SAMPLE_INTERVAL: { type: 'number', default: 1000 },
+    PLT_SIGNALS_SCALER_HEAP_REDISTRIBUTION_MS: { type: 'number', default: 30000 },
+    PLT_SIGNALS_SCALER_HEAP_ALPHA_UP: { type: 'number', default: 0.2 },
+    PLT_SIGNALS_SCALER_HEAP_ALPHA_DOWN: { type: 'number', default: 0.1 },
+    PLT_SIGNALS_SCALER_HEAP_BETA_UP: { type: 'number', default: 0.2 },
+    PLT_SIGNALS_SCALER_HEAP_BETA_DOWN: { type: 'number', default: 0.1 },
+
+    // LoadPredictor - Valkey key prefix
+    PLT_SIGNALS_SCALER_VALKEY_KEY_PREFIX: { type: 'string', default: 'scaler:' }
   }
 }
 

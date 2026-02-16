@@ -1,50 +1,181 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const SignalScalerAlgorithm = require('../lib/signal-scaler-algorithm')
-const { getApplicationName } = require('../lib/executor-utils')
-const { randomUUID } = require('node:crypto')
+const { LoadPredictor } = require('../lib/load-predictor')
 
-class MultiSignalReactiveScaler {
+class SignalScalerExecutor {
   constructor (app) {
     this.app = app
 
-    const options = {
-      FW: Number(app.env.PLT_SIGNALS_SCALER_FW),
-      SW: Number(app.env.PLT_SIGNALS_SCALER_SW),
-      LW: Number(app.env.PLT_SIGNALS_SCALER_LW),
-      HOT_RATE_THRESHOLD: Number(app.env.PLT_SIGNALS_SCALER_HOT_RATE_THRESHOLD),
-      SCALE_UP_FW_RATE_THRESHOLD: Number(app.env.PLT_SIGNALS_SCALER_UP_FW_RATE_THRESHOLD),
-      SCALE_UP_SW_RATE_THRESHOLD: Number(app.env.PLT_SIGNALS_SCALER_UP_SW_RATE_THRESHOLD),
-      SCALE_DOWN_SW_RATE_THRESHOLD: Number(app.env.PLT_SIGNALS_SCALER_DOWN_SW_RATE_THRESHOLD),
-      SCALE_DOWN_LW_RATE_THRESHOLD: Number(app.env.PLT_SIGNALS_SCALER_DOWN_LW_RATE_THRESHOLD),
-      minPodsDefault: Number(app.env.PLT_SCALER_MIN_PODS_DEFAULT),
-      maxPodsDefault: Number(app.env.PLT_SCALER_MAX_PODS_DEFAULT)
+    const globalConfig = {
+      reconnectTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_RECONNECT_TIMEOUT_MS),
+      horizontalTrendThreshold: Number(app.env.PLT_SIGNALS_SCALER_HORIZONTAL_TREND_THRESHOLD),
+      pendingScaleUpExpiryMs: Number(app.env.PLT_SIGNALS_SCALER_PENDING_SCALE_UP_EXPIRY_MS),
+      redeployTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_REDEPLOY_TIMEOUT_MS),
+      initTimeout: {
+        windowSize: Number(app.env.PLT_SIGNALS_SCALER_INIT_TIMEOUT_WINDOW_SIZE),
+        stepRate: Number(app.env.PLT_SIGNALS_SCALER_INIT_TIMEOUT_STEP_RATE),
+        upFactor: Number(app.env.PLT_SIGNALS_SCALER_INIT_TIMEOUT_UP_FACTOR),
+        downFactor: Number(app.env.PLT_SIGNALS_SCALER_INIT_TIMEOUT_DOWN_FACTOR)
+      }
     }
 
-    this.algorithm = new SignalScalerAlgorithm(app, options)
+    const defaultAppConfig = {
+      pods: {
+        min: Number(app.env.PLT_SCALER_MIN_PODS_DEFAULT),
+        max: Number(app.env.PLT_SCALER_MAX_PODS_DEFAULT)
+      },
+      horizonMultiplier: Number(app.env.PLT_SIGNALS_SCALER_HORIZON_MULTIPLIER),
+      processingInitTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_PROCESSING_INIT_TIMEOUT_MS),
+      processingCooldownMs: Number(app.env.PLT_SIGNALS_SCALER_PROCESSING_COOLDOWN_MS),
+      instancesWindowMs: Number(app.env.PLT_SIGNALS_SCALER_INSTANCES_WINDOW_MS),
+      initTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_INIT_TIMEOUT_MS),
+      cooldowns: {
+        scaleUpAfterScaleUpMs: Number(app.env.PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_UP_MS),
+        scaleUpAfterScaleDownMs: Number(app.env.PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_DOWN_MS),
+        scaleDownAfterScaleUpMs: Number(app.env.PLT_SIGNALS_SCALER_COOLDOWN_SCALE_DOWN_AFTER_SCALE_UP_MS),
+        scaleDownAfterScaleDownMs: Number(app.env.PLT_SIGNALS_SCALER_COOLDOWN_SCALE_DOWN_AFTER_SCALE_DOWN_MS)
+      },
+      elu: {
+        windowMs: Number(app.env.PLT_SIGNALS_SCALER_ELU_WINDOW_MS),
+        sampleInterval: Number(app.env.PLT_SIGNALS_SCALER_ELU_SAMPLE_INTERVAL),
+        redistributionMs: Number(app.env.PLT_SIGNALS_SCALER_ELU_REDISTRIBUTION_MS),
+        alphaUp: Number(app.env.PLT_SIGNALS_SCALER_ELU_ALPHA_UP),
+        alphaDown: Number(app.env.PLT_SIGNALS_SCALER_ELU_ALPHA_DOWN),
+        betaUp: Number(app.env.PLT_SIGNALS_SCALER_ELU_BETA_UP),
+        betaDown: Number(app.env.PLT_SIGNALS_SCALER_ELU_BETA_DOWN)
+      },
+      heap: {
+        windowMs: Number(app.env.PLT_SIGNALS_SCALER_HEAP_WINDOW_MS),
+        sampleInterval: Number(app.env.PLT_SIGNALS_SCALER_HEAP_SAMPLE_INTERVAL),
+        redistributionMs: Number(app.env.PLT_SIGNALS_SCALER_HEAP_REDISTRIBUTION_MS),
+        alphaUp: Number(app.env.PLT_SIGNALS_SCALER_HEAP_ALPHA_UP),
+        alphaDown: Number(app.env.PLT_SIGNALS_SCALER_HEAP_ALPHA_DOWN),
+        betaUp: Number(app.env.PLT_SIGNALS_SCALER_HEAP_BETA_UP),
+        betaDown: Number(app.env.PLT_SIGNALS_SCALER_HEAP_BETA_DOWN)
+      }
+    }
 
-    // Configuration for concurrent processing control
-    this.lockTTL = Number(app.env.PLT_SIGNALS_SCALER_LOCK_TTL)
-    this.maxIterations = Number(app.env.PLT_SIGNALS_SCALER_MAX_ITERATIONS)
-    this.pendingTTL = Number(app.env.PLT_SIGNALS_SCALER_PENDING_TTL)
+    const valkeyConfig = this.#parseValkeyConnectionString(
+      app.env.PLT_ICC_VALKEY_CONNECTION_STRING,
+      app.env.PLT_SIGNALS_SCALER_VALKEY_KEY_PREFIX
+    )
+
+    const api = {
+      getCurrentPodsTarget: async (appId) => {
+        const controller = await app.getApplicationController(appId)
+        return controller ? controller.replicas : 1
+      },
+      scale: async (appId, targetReplicas) => {
+        await this.executeScaling(appId, targetReplicas)
+      },
+      getApplicationConfig: async (appId) => {
+        let minPods = defaultAppConfig.pods.min
+        let maxPods = defaultAppConfig.pods.max
+
+        try {
+          const scaleConfig = await app.getScaleConfig(appId)
+          if (scaleConfig) {
+            if (scaleConfig.minPods !== undefined) {
+              minPods = scaleConfig.minPods
+            }
+            if (scaleConfig.maxPods !== undefined) {
+              maxPods = scaleConfig.maxPods
+            }
+          }
+        } catch (err) {
+          app.log.warn({ err, appId }, 'Failed to get scale config, using defaults')
+        }
+
+        return {
+          ...defaultAppConfig,
+          pods: { min: minPods, max: maxPods }
+        }
+      }
+    }
+
+    this.predictor = new LoadPredictor(globalConfig, defaultAppConfig, api, valkeyConfig)
 
     app.log.info({
-      algorithm: 'Multi-Signal Reactive',
-      config: options,
-      lockTTL: this.lockTTL,
-      maxIterations: this.maxIterations,
-      pendingTTL: this.pendingTTL
-    }, 'Multi-Signal Reactive Scaler initialized')
+      algorithm: 'Signal Scaler',
+      globalConfig,
+      defaultAppConfig: {
+        pods: defaultAppConfig.pods,
+        horizonMultiplier: defaultAppConfig.horizonMultiplier,
+        initTimeoutMs: defaultAppConfig.initTimeoutMs
+      }
+    }, '[Signal Scaler] Executor initialized')
   }
 
-  async getCurrentPodCount (applicationId) {
-    const controller = await this.app.getApplicationController(applicationId)
-    if (!controller) {
-      this.app.log.error({ applicationId }, 'No controller found for application')
-      throw new Error('No controller found for application: ' + applicationId)
+  async close () {
+    await this.predictor.close()
+  }
+
+  async initialize () {
+    await this.predictor.initialize()
+  }
+
+  async onConnect (appId, deploymentId, podId, runtimeId, timestamp) {
+    await this.predictor.onConnect(appId, deploymentId, podId, runtimeId, timestamp)
+  }
+
+  async onDisconnect (appId, runtimeId, timestamp) {
+    await this.predictor.onDisconnect(appId, runtimeId, timestamp)
+  }
+
+  async processSignals ({ applicationId, podId, runtimeId, deploymentId, signals, batchStartedAt }) {
+    await this.predictor.saveInstanceMetrics({
+      applicationId,
+      podId,
+      instanceId: runtimeId,
+      imageId: deploymentId,
+      services: signals,
+      batchStartedAt
+    })
+
+    const isLeader = this.app.isScalerLeader ? this.app.isScalerLeader() : false
+    if (isLeader) {
+      await this.predictor.checkScaling(applicationId)
+    } else if (this.app.notifySignalScaler) {
+      await this.app.notifySignalScaler(applicationId)
     }
-    return controller.replicas
+
+    // Save alerts for services where max value exceeds threshold.
+    // This creates alert entities that link to flamegraphs in the dashboard.
+    const alerts = await this.#saveAlertsIfNeeded(applicationId, podId, signals)
+
+    return { alerts }
+  }
+
+  async executeScaling (applicationId, targetReplicas) {
+    this.app.log.info({
+      algorithm: 'Signal Scaler',
+      applicationId,
+      targetReplicas
+    }, '[Signal Scaler] Executing scaling action')
+
+    try {
+      await this.app.updateControllerReplicas(
+        applicationId,
+        targetReplicas,
+        'Signal Scaler predictive scaling'
+      )
+
+      this.app.log.info({
+        algorithm: 'Signal Scaler',
+        applicationId,
+        targetReplicas
+      }, '[Signal Scaler] Successfully executed scaling action')
+    } catch (err) {
+      this.app.log.error({
+        algorithm: 'Signal Scaler',
+        err,
+        applicationId,
+        targetReplicas
+      }, '[Signal Scaler] Failed to execute scaling action')
+
+      throw err
+    }
   }
 
   async getScaleConfig (applicationId) {
@@ -52,7 +183,7 @@ class MultiSignalReactiveScaler {
       const scaleConfig = await this.app.getScaleConfig(applicationId)
       if (scaleConfig) {
         const { minPods, maxPods } = scaleConfig
-        this.app.log.info({ applicationId, minPods, maxPods }, 'Retrieved scale config')
+        this.app.log.debug({ applicationId, minPods, maxPods }, 'Retrieved scale config')
         return { minPods, maxPods }
       }
     } catch (err) {
@@ -62,328 +193,115 @@ class MultiSignalReactiveScaler {
     return { minPods: undefined, maxPods: undefined }
   }
 
-  async processSignals ({ applicationId, serviceId, podId, signals, elu, heapUsed, heapTotal }) {
-    const signalsWithIds = signals.map((signal) => {
-      let value = parseFloat(signal.value)
-      if (isNaN(value)) {
-        value = null
-      }
-      return { id: randomUUID(), value, ...signal }
-    })
+  async checkScalingOnSignals ({ applicationId } = {}) {
+    await this.predictor.checkScaling(applicationId)
+    return { success: true, timestamp: Date.now() }
+  }
 
-    await this.algorithm.storeSignals(applicationId, podId, signalsWithIds)
+  #parseValkeyConnectionString (connectionString, keyPrefix) {
+    const url = new URL(connectionString)
+    return {
+      host: url.hostname,
+      port: parseInt(url.port) || 6379,
+      password: url.password || undefined,
+      tls: url.protocol === 'rediss:',
+      keyPrefix: keyPrefix || ''
+    }
+  }
 
-    this.app.log.debug({
-      algorithm: 'Multi-Signal Reactive',
-      applicationId,
-      podId,
-      signalTypes: signals.map(s => s.type),
-      signalCount: signals.length
-    }, '[Multi-Signal Reactive] Stored signals')
+  async #saveAlertsIfNeeded (applicationId, podId, signals) {
+    const alertInputs = []
+    const workerIdByService = {}
 
-    const alert = await this.app.platformatic.entities.alert.save({
-      input: {
-        applicationId,
-        serviceId,
-        podId,
-        elu,
-        heapUsed,
-        heapTotal,
-        unhealthy: false,
-        createdAt: new Date()
-      }
-    })
+    for (const [serviceId, metrics] of Object.entries(signals)) {
+      const eluWorkers = metrics.elu.workers
+      const heapWorkers = metrics.heap.workers
+      const eluThreshold = metrics.elu.options.threshold
+      const heapThreshold = metrics.heap.options.threshold
+      const heapTotal = metrics.heap.options.heapTotal
 
-    await Promise.all(
-      signalsWithIds.map(signal =>
-        this.app.platformatic.entities.signal.save({
-          input: {
-            id: signal.id,
-            alertId: alert.id,
-            applicationId,
-            serviceId,
-            podId,
-            type: signal.type,
-            value: signal.value,
-            timestamp: signal.timestamp,
-            description: signal.description,
-            createdAt: new Date()
+      let maxElu = 0
+      let maxEluWorkerId = null
+      for (const [workerId, worker] of Object.entries(eluWorkers)) {
+        for (const [, value] of worker.values) {
+          if (value > maxElu) {
+            maxElu = value
+            maxEluWorkerId = workerId
           }
+        }
+      }
+
+      let maxHeap = 0
+      let maxHeapWorkerId = null
+      for (const [workerId, worker] of Object.entries(heapWorkers)) {
+        for (const [, value] of worker.values) {
+          if (value > maxHeap) {
+            maxHeap = value
+            maxHeapWorkerId = workerId
+          }
+        }
+      }
+
+      const eluExceeds = maxElu > eluThreshold
+      const heapExceeds = maxHeap > heapThreshold
+
+      if (eluExceeds || heapExceeds) {
+        // Use workerId from the max value that exceeded (prefer ELU)
+        workerIdByService[serviceId] = eluExceeds ? maxEluWorkerId : maxHeapWorkerId
+        alertInputs.push({
+          applicationId,
+          serviceId,
+          podId,
+          elu: maxElu,
+          heapUsed: maxHeap,
+          heapTotal: heapTotal || 0,
+          unhealthy: false,
+          createdAt: new Date()
         })
-      )
-    )
-
-    // Check if this instance is the leader
-    const isLeader = this.app.isScalerLeader ? this.app.isScalerLeader() : false
-
-    if (!isLeader) {
-      // If not leader, notify the leader to process the signals
-      this.app.log.debug({
-        applicationId,
-        serviceId,
-        podId
-      }, '[Multi-Signal Reactive] Not leader, notifying leader to process signals')
-
-      if (this.app.notifySignalScaler) {
-        await this.app.notifySignalScaler(applicationId, serviceId)
       }
-
-      return { scalingDecision: null }
     }
 
-    // This is the leader, proceed to process signals
-    const scalingDecision = await this.runScalingAlgorithm(applicationId)
-
-    return { alert, scalingDecision }
-  }
-
-  async runScalingAlgorithm (applicationId) {
-    const lockKey = `reactive:lock:${applicationId}`
-    const lockValue = `${Date.now()}-${Math.random()}`
-    const pendingKey = `reactive:pending:${applicationId}`
-
-    // Try to acquire lock atomically using SET NX EX
-    const acquired = await this.app.store.valkey.set(lockKey, lockValue, 'NX', 'EX', this.lockTTL)
-
-    if (!acquired) {
-      // Another process is already running the algorithm, mark that new data arrived
-      await this.app.store.valkey.set(pendingKey, '1', 'EX', this.pendingTTL)
-      this.app.log.debug({ applicationId }, '[Multi-Signal Reactive] Algorithm already running, marked pending')
-      return null
+    if (alertInputs.length === 0) {
+      return []
     }
 
-    let scalingDecision = null
-    let iteration = 0
+    const insertedAlerts = await this.app.platformatic.entities.alert.insert({
+      inputs: alertInputs
+    })
 
-    try {
-      let shouldContinue = true
-
-      while (shouldContinue && iteration < this.maxIterations) {
-        iteration++
-
-        // Clear the pending flag before we start processing
-        await this.app.store.valkey.del(pendingKey)
-
-        const currentPodCount = await this.getCurrentPodCount(applicationId)
-        const { minPods, maxPods } = await this.getScaleConfig(applicationId)
-        const applicationName = await getApplicationName(applicationId, this.app.log)
-
-        scalingDecision = await this.algorithm.calculateScalingDecision(
-          applicationId,
-          currentPodCount,
-          minPods,
-          maxPods,
-          applicationName
-        )
-
-        const scalingAction = scalingDecision.nfinal > currentPodCount
-          ? 'SCALE UP'
-          : scalingDecision.nfinal < currentPodCount ? 'SCALE DOWN' : 'NO CHANGE'
-
-        this.app.log.info({
-          algorithm: 'Multi-Signal Reactive',
-          applicationId,
-          nfinal: scalingDecision.nfinal,
-          currentPodCount,
-          action: scalingAction,
-          reason: scalingDecision.reason,
-          iteration
-        }, `[Multi-Signal Reactive] Scaling decision: ${scalingAction}`)
-
-        if (scalingDecision.nfinal !== currentPodCount) {
-          const signals = scalingDecision?.signals || []
-          await this.executeScaling(applicationId, scalingDecision.nfinal, scalingDecision.reason, signals)
-        }
-
-        // Check if new data arrived while we were processing
-        const pending = await this.app.store.valkey.get(pendingKey)
-        if (pending) {
-          this.app.log.debug({ applicationId, iteration }, '[Multi-Signal Reactive] New data arrived during processing, reprocessing')
-          shouldContinue = true
-        } else {
-          shouldContinue = false
-        }
-      }
-
-      if (iteration >= this.maxIterations) {
-        this.app.log.warn({
-          applicationId,
-          maxIterations: this.maxIterations
-        }, '[Multi-Signal Reactive] Reached maximum iterations, stopping reprocessing loop')
-      }
-    } finally {
-      await this.app.store.valkey.del(pendingKey)
-      await this.app.store.valkey.del(lockKey)
-    }
-
-    return scalingDecision
-  }
-
-  async checkScalingOnSignals ({ applicationId, serviceId } = {}) {
-    this.app.log.info({ applicationId, serviceId }, '[Multi-Signal Reactive] Received notification to check scaling')
-
-    if (!applicationId) {
-      this.app.log.error('[Multi-Signal Reactive] Application ID is required')
-      return { success: false, timestamp: Date.now(), error: 'Application ID is required' }
-    }
-
-    try {
-      const scalingDecision = await this.runScalingAlgorithm(applicationId)
-
-      return {
-        success: true,
-        applicationId,
-        timestamp: Date.now(),
-        nfinal: scalingDecision?.nfinal,
-        scaled: scalingDecision !== null
-      }
-    } catch (err) {
-      this.app.log.error({ err, applicationId }, '[Multi-Signal Reactive] Error processing notification')
-      return { success: false, timestamp: Date.now(), error: err.message }
-    }
-  }
-
-  async executeScaling (applicationId, targetReplicas, reason, signals = []) {
-    this.app.log.info({
-      algorithm: 'Multi-Signal Reactive',
-      applicationId,
-      targetReplicas,
-      reason
-    }, '[Multi-Signal Reactive] Executing scaling action')
-
-    try {
-      const { scaleEvent } = await this.app.updateControllerReplicas(
-        applicationId,
-        targetReplicas,
-        reason
-      )
-
-      await this.app.store.saveLastScalingTime(applicationId, Date.now(), scaleEvent.direction)
-      const signalIds = signals ? signals.map(s => s.id) : []
-
-      if (scaleEvent?.id && signalIds.length > 0) {
-        await Promise.all(
-          signalIds.map(signalId =>
-            this.app.platformatic.entities.signal.save({
-              input: { id: signalId, scaleEventId: scaleEvent.id },
-              fields: ['id']
-            })
-          )
-        )
-      }
-
-      this.app.log.info({
-        algorithm: 'Multi-Signal Reactive',
-        applicationId,
-        targetReplicas,
-        reason,
-        scaleEventId: scaleEvent?.id,
-        linkedSignals: signalIds.length
-      }, '[Multi-Signal Reactive] Successfully executed scaling action')
-
-      return { success: true, scaleEvent }
-    } catch (err) {
-      this.app.log.error({
-        algorithm: 'Multi-Signal Reactive',
-        err,
-        applicationId,
-        targetReplicas,
-        reason
-      }, '[Multi-Signal Reactive] Failed to execute scaling action')
-
-      throw err
-    }
-  }
-
-  async checkScalingForApplication (applicationId) {
-    try {
-      const currentPodCount = await this.getCurrentPodCount(applicationId)
-      const { minPods, maxPods } = await this.getScaleConfig(applicationId)
-      const applicationName = await getApplicationName(applicationId, this.app.log)
-
-      const scalingDecision = await this.algorithm.calculateScalingDecision(
-        applicationId,
-        currentPodCount,
-        minPods,
-        maxPods,
-        applicationName
-      )
-
-      const scalingAction = scalingDecision.nfinal > currentPodCount
-        ? 'SCALE UP'
-        : scalingDecision.nfinal < currentPodCount ? 'SCALE DOWN' : 'NO CHANGE'
-
-      const logMessage = scalingDecision.nfinal !== currentPodCount
-        ? `[Multi-Signal Reactive] Periodic check: ${scalingAction} from ${currentPodCount} to ${scalingDecision.nfinal} pods`
-        : `[Multi-Signal Reactive] Periodic check: ${scalingAction} - ${scalingDecision.reason || 'No scaling needed'}`
-
-      this.app.log.info({
-        algorithm: 'Multi-Signal Reactive',
-        applicationId,
-        nfinal: scalingDecision.nfinal,
-        currentPodCount,
-        action: scalingAction,
-        reason: scalingDecision.reason,
-        source: 'periodic'
-      }, logMessage)
-
-      if (scalingDecision.nfinal !== currentPodCount) {
-        await this.executeScaling(applicationId, scalingDecision.nfinal, scalingDecision.reason)
-      }
-
-      return { success: true, scalingDecision }
-    } catch (err) {
-      this.app.log.error({
-        algorithm: 'Multi-Signal Reactive',
-        err,
-        applicationId
-      }, '[Multi-Signal Reactive] Error during periodic scaling check')
-
-      return { success: false, error: err.message }
-    }
-  }
-
-  async checkScalingForAllApplications () {
-    this.app.log.info({
-      algorithm: 'Multi-Signal Reactive'
-    }, '[Multi-Signal Reactive] Running periodic scaling check for all applications')
-
-    try {
-      const controllers = await this.app.platformatic.entities.controller.find({
-        fields: ['applicationId']
+    const alerts = []
+    for (const alert of insertedAlerts) {
+      alerts.push({
+        serviceId: alert.serviceId,
+        workerId: workerIdByService[alert.serviceId],
+        alertId: alert.id
       })
-
-      const uniqueApplicationIds = [...new Set(controllers.map(c => c.applicationId))]
-
-      this.app.log.info({
-        algorithm: 'Multi-Signal Reactive',
-        applicationCount: uniqueApplicationIds.length
-      }, `[Multi-Signal Reactive] Checking ${uniqueApplicationIds.length} applications`)
-
-      const results = []
-      for (const applicationId of uniqueApplicationIds) {
-        const result = await this.checkScalingForApplication(applicationId)
-        results.push({ applicationId, ...result })
-      }
-
-      return { success: true, results }
-    } catch (err) {
-      this.app.log.error({
-        algorithm: 'Multi-Signal Reactive',
-        err
-      }, '[Multi-Signal Reactive] Error during periodic check for all applications')
-
-      return { success: false, error: err.message }
     }
+
+    return alerts
   }
 }
 
 async function plugin (app) {
-  const scaler = new MultiSignalReactiveScaler(app)
-  app.decorate('signalScalerExecutor', scaler)
+  const algorithmVersion = app.env.PLT_SCALER_ALGORITHM_VERSION
+
+  if (algorithmVersion !== 'v2') {
+    app.log.info({ algorithmVersion }, '[Signal Scaler] Executor skipped - algorithm version is not v2')
+    return
+  }
+
+  const executor = new SignalScalerExecutor(app)
+
+  app.addHook('onClose', async () => {
+    await executor.close()
+  })
+
+  app.decorate('signalScalerExecutor', executor)
+
+  app.log.info({ algorithmVersion }, '[Signal Scaler] Executor registered')
 }
 
 module.exports = fp(plugin, {
   name: 'signal-scaler-executor',
-  dependencies: ['env', 'store', 'controllers']
+  dependencies: ['env', 'store', 'controllers', 'instances', 'scale-config']
 })

@@ -1,9 +1,41 @@
 'use strict'
 
 const assert = require('node:assert/strict')
-const { test } = require('node:test')
+const { test, beforeEach } = require('node:test')
 const { randomUUID } = require('node:crypto')
+const { MockAgent, setGlobalDispatcher, getGlobalDispatcher } = require('undici')
 const { buildServer, startMachinist } = require('../helper')
+
+beforeEach(async (t) => {
+  const originalDispatcher = getGlobalDispatcher()
+  const mockAgent = new MockAgent()
+  setGlobalDispatcher(mockAgent)
+  // Allow connections to localhost (for startMachinist)
+  mockAgent.enableNetConnect(/localhost/)
+  t.after(() => setGlobalDispatcher(originalDispatcher))
+
+  // Mock control-plane GET requests
+  const mockControlPlane = mockAgent.get('http://control-plane.plt.local')
+  mockControlPlane
+    .intercept({
+      path: () => true,
+      method: 'GET'
+    })
+    .reply(200, { name: 'test-app' })
+    .persist()
+
+  // Mock activities POST requests
+  const mockActivities = mockAgent.get('http://activities.plt.local')
+  mockActivities
+    .intercept({
+      path: '/events',
+      method: 'POST'
+    })
+    .reply(() => {
+      return { statusCode: 201, data: {} }
+    })
+    .persist()
+})
 
 test('should save application min and max pods (triggers scale up)', async (t) => {
   const applicationId = randomUUID()

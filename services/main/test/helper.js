@@ -15,6 +15,7 @@ function setUpEnvironment (env = {}) {
     PLT_ICC_VALKEY_CONNECTION_STRING: 'redis://localhost:6343',
     PLT_MAIN_URL: 'http://localhost:1234',
     PLT_CONTROL_PLANE_URL: 'http://localhost:1234',
+    PLT_SCALER_URL: 'http://localhost:1234',
     PLT_DISABLE_K8S_AUTH: true,
     PLT_ICC_SESSION_SECRET: 'test-secret'
   }
@@ -101,6 +102,32 @@ module.exports.startActivities = async function (t, activities) {
 
   const address = await app.listen()
   process.env.PLT_ACTIVITIES_URL = address
+  return address
+}
+
+module.exports.startScaler = async function (t, opts = {}) {
+  const app = Fastify({
+    keepAliveTimeout: 1,
+    logger: { level: 'error' }
+  })
+
+  app.post('/connect', async (request) => {
+    const { applicationId, podId, namespace, runtimeId, timestamp } = request.body
+    return opts.onConnect?.({ applicationId, podId, namespace, runtimeId, timestamp })
+  })
+
+  app.post('/disconnect', async (request) => {
+    const { applicationId, podId, namespace, runtimeId, timestamp } = request.body
+    return opts.onDisconnect?.({ applicationId, podId, namespace, runtimeId, timestamp })
+  })
+
+  t.after(async () => {
+    process.env.PLT_SCALER_URL = ''
+    await app.close()
+  })
+
+  const address = await app.listen()
+  process.env.PLT_SCALER_URL = address
   return address
 }
 
