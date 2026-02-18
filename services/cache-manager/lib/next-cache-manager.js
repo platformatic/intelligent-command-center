@@ -241,7 +241,7 @@ class NextCacheManager extends EventEmitter {
 
   #convertPageToCacheEntry (pageEntry) {
     const { key, entry } = pageEntry
-    const { value, serviceId, lastModified, revalidate } = entry
+    const { value, serviceId, applicationId, lastModified, revalidate } = entry
     const { kind } = value
 
     const encodedRoute = key.split(':').at(-1)
@@ -250,7 +250,7 @@ class NextCacheManager extends EventEmitter {
     return {
       kind,
       id: this.#generateEntryId(key),
-      serviceId,
+      serviceId: serviceId ?? applicationId,
       route,
       headers: value.headers,
       statusCode: 200,
