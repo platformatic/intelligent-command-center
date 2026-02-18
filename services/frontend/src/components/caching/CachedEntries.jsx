@@ -169,11 +169,12 @@ export default function CachedEntries ({
 
   function renderData () {
     if (allCacheEntries.length === 0) {
+      const hasActiveSearch = searchValue.trim() !== ''
       return (
         <div className={styles.noData}>
           <NoDataFound
-            title='Caching not available'
-            subTitle={<span>There is no caching for this watt.</span>}
+            title={hasActiveSearch ? 'No results found' : 'Caching not available'}
+            subTitle={hasActiveSearch ? <span>There are no cache entries for this query</span> : <span>There is no caching for this watt.</span>}
           />
         </div>
       )
