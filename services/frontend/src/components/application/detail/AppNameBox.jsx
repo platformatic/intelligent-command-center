@@ -8,7 +8,7 @@ import { BorderedBox, PlatformaticIcon, Tooltip, VerticalSeparator } from '@plat
 import { getFormattedDate } from '~/utilities/dates'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import useICCStore from '~/useICCStore'
-
+import * as semver from 'semver'
 // Helper function to get the latest compatible version for an app's current version
 function getLatestCompatibleVersion (currentVersion, packageVersions, packageName) {
   if (!currentVersion || !packageVersions?.[packageName]) {
@@ -22,6 +22,7 @@ function getLatestCompatibleVersion (currentVersion, packageVersions, packageNam
   }
 
   const majorVersion = parseInt(versionMatch[1])
+
   return packageVersions[packageName][majorVersion] || null
 }
 
@@ -41,8 +42,7 @@ function AppNameBox ({
     '@platformatic/runtime'
   )
 
-  // Debug logging for version comparison
-  const shouldShowWarning = application.pltVersion !== latestCompatibleVersion && latestCompatibleVersion
+  const shouldShowWarning = semver.compare(application.pltVersion, latestCompatibleVersion) < 0 && latestCompatibleVersion
 
   return (
     <BorderedBox classes={`${styles.borderexBoxContainer} ${gridClassName}`} backgroundColor={BLACK_RUSSIAN} color={TRANSPARENT}>
