@@ -26,6 +26,7 @@ const schema = {
     PLT_FEATURE_CACHE_RECOMMENDATIONS: { type: 'boolean', default: false },
     PLT_FEATURE_RISK_SERVICE_DUMP: { type: 'boolean', default: false },
     PLT_FEATURE_FFC: { type: 'boolean', default: false },
+    PLT_FEATURE_SKEW_PROTECTION: { type: 'boolean', default: false },
     PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1' }
   }
 }

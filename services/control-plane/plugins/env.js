@@ -52,6 +52,7 @@ const schema = {
     PLT_ICC_SESSION_SECRET: { type: 'string' },
     PLT_FEATURE_CACHE: { type: 'boolean', default: false },
     PLT_FEATURE_CACHE_RECOMMENDATIONS: { type: 'boolean', default: false },
+    PLT_FEATURE_SKEW_PROTECTION: { type: 'boolean', default: false },
     PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1', enum: ['v1', 'v2'] }
   }
 }

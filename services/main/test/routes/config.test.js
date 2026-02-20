@@ -38,6 +38,7 @@ test('should return the config', async (t) => {
     'cache-recommendations': true,
     'risk-service-dump': true,
     'fusion-fission-cascade': true,
+    'skew-protection': false,
     'scaler-algorithm-version': 'v1'
   })
 })
