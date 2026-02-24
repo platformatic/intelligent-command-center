@@ -72,6 +72,11 @@ class Machinist {
     return data.controller
   }
 
+  async getControllerWithPods (controllerId, namespace, apiVersion, kind) {
+    const controller = await this.getController(controllerId, namespace, apiVersion, kind)
+    return controller
+  }
+
   async updateController (
     controllerId,
     namespace,

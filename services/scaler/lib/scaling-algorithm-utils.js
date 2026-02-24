@@ -192,12 +192,12 @@ function calculatePreMetrics (processedPods) {
 /**
  * Updates clusters for an application
  */
-async function updateClusters (store, applicationId, newEvent, maxClusters = 5) {
+async function updateClusters (store, applicationId, newEvent, maxClusters = 5, controllerId = null) {
   // Calculate performance score for the new event
   const performanceScore = 0.6 * Math.min(1, Math.max(0, -((newEvent.deltaElu + newEvent.deltaHeap) / 0.2))) +
                           0.4 * Math.max(0, 1 - ((newEvent.sigmaElu + newEvent.sigmaHeap) / 0.2))
 
-  let clusters = await store.loadClusters(applicationId)
+  let clusters = await store.loadClusters(applicationId, controllerId)
 
   if (clusters.length === 0) {
     // Create first cluster
@@ -289,7 +289,7 @@ async function updateClusters (store, applicationId, newEvent, maxClusters = 5) 
     }
   }
 
-  await store.saveClusters(applicationId, clusters)
+  await store.saveClusters(applicationId, clusters, controllerId)
   return clusters
 }
 

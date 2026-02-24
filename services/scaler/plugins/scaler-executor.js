@@ -24,8 +24,8 @@ class ScalerExecutor {
     this.scalingAlgorithm = new ReactiveScalingAlgorithm(app, options)
   }
 
-  async getCurrentPodCount (applicationId) {
-    const controller = await this.app.getApplicationController(applicationId)
+  async getCurrentPodCount (applicationId, controller = null) {
+    controller = controller || await this.app.getApplicationController(applicationId)
     if (!controller) {
       this.app.log.error({ applicationId }, 'No controller found for application')
       throw new Error('No controller found for application: ' + applicationId)
@@ -48,8 +48,9 @@ class ScalerExecutor {
     return { minPods: undefined, maxPods: undefined }
   }
 
-  async #calculateAndApplyScaling (applicationId, podsMetrics, alerts = [], logContext = {}) {
-    const currentPodCount = await this.getCurrentPodCount(applicationId)
+  async #calculateAndApplyScaling (applicationId, podsMetrics, alerts = [], logContext = {}, controller = null) {
+    const controllerId = controller ? controller.k8SControllerId : null
+    const currentPodCount = controller ? controller.replicas : await this.getCurrentPodCount(applicationId)
     const { minPods, maxPods } = await this.getScaleConfig(applicationId)
     const applicationName = await getApplicationName(applicationId, this.app.log)
 
@@ -60,7 +61,8 @@ class ScalerExecutor {
       minPods,
       maxPods,
       alerts,
-      applicationName
+      applicationName,
+      controllerId
     )
 
     // Log scaling decision with clear action and reason
@@ -85,12 +87,13 @@ class ScalerExecutor {
 
     if (result.nfinal !== currentPodCount) {
       const direction = result.nfinal > currentPodCount ? 'up' : 'down'
-      await this.app.store.saveLastScalingTime(applicationId, Date.now(), direction)
+      await this.app.store.saveLastScalingTime(applicationId, Date.now(), direction, controllerId)
 
       const { scaleEvent } = await this.executeScaling(
         applicationId,
         result.nfinal,
-        result.reason
+        result.reason,
+        controller
       )
 
       if (scaleEvent && scaleEvent.direction === 'up' && alerts.length > 0) {
@@ -117,6 +120,38 @@ class ScalerExecutor {
     }
   }
 
+  async #partitionMetricsByController (controller, podsMetrics) {
+    try {
+      const k8sController = await this.app.machinist.getControllerWithPods(
+        controller.k8SControllerId, controller.namespace, controller.apiVersion, controller.kind
+      )
+      if (!k8sController?.pods) {
+        return podsMetrics
+      }
+
+      const podIds = new Set()
+      for (const pod of k8sController.pods) {
+        podIds.add(pod.id)
+        if (pod.name) podIds.add(pod.name)
+      }
+
+      const partitioned = {}
+      for (const podId of Object.keys(podsMetrics)) {
+        if (podIds.has(podId)) {
+          partitioned[podId] = podsMetrics[podId]
+        }
+      }
+
+      return Object.keys(partitioned).length > 0 ? partitioned : podsMetrics
+    } catch (err) {
+      this.app.log.warn(
+        { err, controllerId: controller.k8SControllerId },
+        'Failed to partition metrics by controller, using all metrics'
+      )
+      return podsMetrics
+    }
+  }
+
   async checkScalingOnAlert ({ podId, serviceId } = {}) {
     this.app.log.info({ podId, serviceId }, 'Calculating scaling after alert from pod')
 
@@ -138,17 +173,42 @@ class ScalerExecutor {
         return { success: false, podId, timestamp: Date.now(), error: 'Missing applicationId' }
       }
 
-      const podsMetrics = await this.app?.scalerMetrics?.getApplicationMetrics(applicationId)
+      let podsMetrics = await this.app?.scalerMetrics?.getApplicationMetrics(applicationId)
       if (!podsMetrics || Object.keys(podsMetrics).length === 0) {
         this.app.log.warn({ podId, applicationId }, 'No metrics found for application')
         return { success: false, podId, applicationId, timestamp: Date.now(), error: 'No metrics found' }
+      }
+
+      const controllers = await this.app.getApplicationControllers(applicationId)
+      let targetController = controllers[0] || null
+
+      if (controllers.length > 1) {
+        // Multiple controllers: find which one owns the alerting pod
+        for (const ctrl of controllers) {
+          try {
+            const k8sController = await this.app.machinist.getControllerWithPods(
+              ctrl.k8SControllerId, ctrl.namespace, ctrl.apiVersion, ctrl.kind
+            )
+            if (k8sController?.pods?.some(p => p.id === podId || p.name === podId)) {
+              targetController = ctrl
+              break
+            }
+          } catch (err) {
+            this.app.log.warn({ err, controllerId: ctrl.k8SControllerId }, 'Failed to get controller pods')
+          }
+        }
+
+        // Partition metrics to only pods belonging to this controller
+        const partitioned = await this.#partitionMetricsByController(targetController, podsMetrics)
+        podsMetrics = partitioned
       }
 
       const { result, scaled } = await this.#calculateAndApplyScaling(
         applicationId,
         podsMetrics,
         alerts,
-        { podId, serviceId }
+        { podId, serviceId },
+        targetController
       )
 
       return {
@@ -171,13 +231,14 @@ class ScalerExecutor {
     return Math.max(effectiveMin, Math.min(effectiveMax, targetPods))
   }
 
-  async executeScaling (applicationId, podsNumber, reason = null) {
+  async executeScaling (applicationId, podsNumber, reason = null, controller = null) {
     this.app.log.info({ applicationId, podsNumber, reason }, 'Executing scaling operation')
     try {
       const { scaleEvent } = await this.app.updateControllerReplicas(
         applicationId,
         podsNumber,
-        reason
+        reason,
+        controller
       )
 
       return {
@@ -235,18 +296,45 @@ class ScalerExecutor {
           }
 
           const podsMetrics = allApplicationsMetrics[applicationId]
+          const controllers = await this.app.getApplicationControllers(applicationId)
 
-          const { result, currentPodCount, scaled } = await this.#calculateAndApplyScaling(
-            applicationId,
-            podsMetrics
-          )
+          for (const ctrl of controllers) {
+            try {
+              const partitioned = controllers.length > 1
+                ? await this.#partitionMetricsByController(ctrl, podsMetrics)
+                : podsMetrics
 
-          results.push({
-            applicationId,
-            currentPodCount,
-            newPodCount: result.nfinal,
-            scaled
-          })
+              if (Object.keys(partitioned).length === 0) {
+                continue
+              }
+
+              const { result, currentPodCount, scaled } = await this.#calculateAndApplyScaling(
+                applicationId,
+                partitioned,
+                [],
+                {},
+                ctrl
+              )
+
+              results.push({
+                applicationId,
+                controllerId: ctrl.k8SControllerId,
+                currentPodCount,
+                newPodCount: result.nfinal,
+                scaled
+              })
+            } catch (err) {
+              this.app.log.error(
+                { err, applicationId, controllerId: ctrl.k8SControllerId },
+                'Error processing controller for metric-based scaling'
+              )
+              results.push({
+                applicationId,
+                controllerId: ctrl.k8SControllerId,
+                error: err.message
+              })
+            }
+          }
         } catch (err) {
           this.app.log.error({ err, applicationId }, 'Error processing application for metric-based scaling')
           results.push({

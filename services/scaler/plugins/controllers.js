@@ -16,8 +16,15 @@ module.exports = fp(async function (app) {
     return controllers.length === 1 ? controllers[0] : null
   })
 
-  app.decorate('updateControllerReplicas', async (applicationId, replicas, reason = null) => {
-    const controller = await app.getApplicationController(applicationId)
+  app.decorate('getApplicationControllers', async (applicationId) => {
+    return app.platformatic.entities.controller.find({
+      where: { applicationId: { eq: applicationId } },
+      orderBy: [{ field: 'createdAt', direction: 'desc' }]
+    })
+  })
+
+  app.decorate('updateControllerReplicas', async (applicationId, replicas, reason = null, controller = null) => {
+    controller = controller || await app.getApplicationController(applicationId)
     if (controller === null) {
       throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
     }

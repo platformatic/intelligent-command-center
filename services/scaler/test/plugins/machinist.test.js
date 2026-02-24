@@ -695,6 +695,42 @@ test('updateController should not interfere with requests for different controll
   await app.close()
 })
 
+test('getControllerWithPods should return controller with pods', async (t) => {
+  const { server: mockServer, address } = await setupMockMachinistServer()
+  t.after(async () => {
+    mockServer.close()
+  })
+
+  const app = Fastify()
+  const mockLogger = createMockLogger()
+  app.log = mockLogger
+
+  const env = {
+    PLT_MACHINIST_URL: address
+  }
+
+  await app.register(fp(async function (app) {
+    app.decorate('env', env)
+  }, { name: 'env' }))
+
+  await app.register(machinistPlugin)
+
+  const controller = await app.machinist.getControllerWithPods(
+    'test-deployment',
+    'test-namespace',
+    'apps/v1',
+    'Deployment'
+  )
+
+  assert.ok(controller)
+  assert.strictEqual(controller.name, 'test-deployment')
+  assert.ok(Array.isArray(controller.pods))
+  assert.strictEqual(controller.pods.length, 1)
+  assert.strictEqual(controller.pods[0].id, 'pod-1')
+
+  await app.close()
+})
+
 test('updateController should work after a previous request completes', async (t) => {
   const { server: mockServer, address } = await setupMockMachinistServer()
   t.after(async () => {

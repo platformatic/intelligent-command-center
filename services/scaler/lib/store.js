@@ -19,6 +19,13 @@ class Store {
     this.alertRetention = options.alertRetention || 60 // 1 minutes in seconds
   }
 
+  #scopedKey (prefix, applicationId, controllerId = null) {
+    if (controllerId) {
+      return `${prefix}${applicationId}:${controllerId}`
+    }
+    return `${prefix}${applicationId}`
+  }
+
   async close () {
     if (this.valkey) {
       await this.valkey.quit()
@@ -105,9 +112,9 @@ class Store {
     return this.#getAlertsByPattern(pattern, timeWindow)
   }
 
-  async loadPerfHistory (applicationId) {
+  async loadPerfHistory (applicationId, controllerId = null) {
     try {
-      const key = `${PERF_HISTORY_PREFIX}${applicationId}`
+      const key = this.#scopedKey(PERF_HISTORY_PREFIX, applicationId, controllerId)
       const historyStr = await this.valkey.get(key)
       if (!historyStr) {
         return []
@@ -119,17 +126,17 @@ class Store {
     }
   }
 
-  async savePerfHistory (applicationId, history) {
+  async savePerfHistory (applicationId, history, controllerId = null) {
     try {
-      const key = `${PERF_HISTORY_PREFIX}${applicationId}`
+      const key = this.#scopedKey(PERF_HISTORY_PREFIX, applicationId, controllerId)
       await this.valkey.set(key, JSON.stringify(history))
     } catch (err) {
       this.log.error({ err, applicationId }, 'Failed to save performance history')
     }
   }
 
-  async addPerfHistoryEvent (applicationId, event, maxHistoryEvents = 10) {
-    const history = await this.loadPerfHistory(applicationId)
+  async addPerfHistoryEvent (applicationId, event, maxHistoryEvents = 10, controllerId = null) {
+    const history = await this.loadPerfHistory(applicationId, controllerId)
     history.push(event)
 
     history.sort((a, b) => b.timestamp - a.timestamp)
@@ -138,13 +145,13 @@ class Store {
       history.length = maxHistoryEvents
     }
 
-    await this.savePerfHistory(applicationId, history)
+    await this.savePerfHistory(applicationId, history, controllerId)
     return history
   }
 
-  async loadClusters (applicationId) {
+  async loadClusters (applicationId, controllerId = null) {
     try {
-      const key = `${CLUSTERS_PREFIX}${applicationId}`
+      const key = this.#scopedKey(CLUSTERS_PREFIX, applicationId, controllerId)
       const clustersStr = await this.valkey.get(key)
       if (!clustersStr) {
         return []
@@ -156,18 +163,20 @@ class Store {
     }
   }
 
-  async saveClusters (applicationId, clusters) {
+  async saveClusters (applicationId, clusters, controllerId = null) {
     try {
-      const key = `${CLUSTERS_PREFIX}${applicationId}`
+      const key = this.#scopedKey(CLUSTERS_PREFIX, applicationId, controllerId)
       await this.valkey.set(key, JSON.stringify(clusters))
     } catch (err) {
       this.log.error({ err, applicationId }, 'Failed to save clusters')
     }
   }
 
-  async getLastScalingTime (applicationId, direction) {
+  async getLastScalingTime (applicationId, direction, controllerId = null) {
     try {
-      const key = `${LAST_SCALING_PREFIX}${applicationId}:${direction}`
+      const key = controllerId
+        ? `${LAST_SCALING_PREFIX}${applicationId}:${controllerId}:${direction}`
+        : `${LAST_SCALING_PREFIX}${applicationId}:${direction}`
       const timeStr = await this.valkey.get(key)
       return timeStr ? Number(timeStr) : 0
     } catch (err) {
@@ -176,9 +185,11 @@ class Store {
     }
   }
 
-  async saveLastScalingTime (applicationId, time, direction) {
+  async saveLastScalingTime (applicationId, time, direction, controllerId = null) {
     try {
-      const key = `${LAST_SCALING_PREFIX}${applicationId}:${direction}`
+      const key = controllerId
+        ? `${LAST_SCALING_PREFIX}${applicationId}:${controllerId}:${direction}`
+        : `${LAST_SCALING_PREFIX}${applicationId}:${direction}`
       await this.valkey.set(key, time.toString())
     } catch (err) {
       this.log.error({ err, applicationId }, 'Failed to save last scaling time')

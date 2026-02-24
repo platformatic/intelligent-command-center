@@ -48,16 +48,16 @@ class ReactiveScalingAlgorithm {
    * @param {string} applicationName - Optional name of the application for better logging
    * @returns {Object} Object containing nfinal (target total pod count) and optional reason
    */
-  async calculateScalingDecision (applicationId, podsMetrics, currentPodCount, minPods, maxPods, alerts = [], applicationName = null) {
+  async calculateScalingDecision (applicationId, podsMetrics, currentPodCount, minPods, maxPods, alerts = [], applicationName = null, controllerId = null) {
     const minPodsValue = minPods !== undefined ? minPods : this.minPodsDefault
     const maxPodsValue = maxPods !== undefined ? maxPods : this.maxPodsDefault
     // Load historical data
-    const clusters = await this.store.loadClusters(applicationId)
+    const clusters = await this.store.loadClusters(applicationId, controllerId)
 
     const now = Date.now()
     const direction = alerts.length > 0 ? 'up' : 'down'
 
-    const isInCooldownPeriod = await this.isInCooldownPeriod(applicationId, direction)
+    const isInCooldownPeriod = await this.isInCooldownPeriod(applicationId, direction, controllerId)
     if (isInCooldownPeriod) {
       return { nfinal: currentPodCount, reason: 'In cooldown period' }
     }
@@ -238,6 +238,7 @@ class ReactiveScalingAlgorithm {
 
           await this.#performanceHistory.scalingEvaluation({
             applicationId,
+            controllerId,
             actualPodsChange,
             totalPods: newPodCount,
             preMetrics: {
@@ -326,6 +327,7 @@ class ReactiveScalingAlgorithm {
     // Record the scaling event
     await this.#performanceHistory.scalingEvaluation({
       applicationId,
+      controllerId,
       actualPodsChange,
       totalPods: nfinal,
       preMetrics,
@@ -339,9 +341,9 @@ class ReactiveScalingAlgorithm {
     return { nfinal, reason }
   }
 
-  async isInCooldownPeriod (applicationId, direction) {
-    const lastScalingUpTime = await this.store.getLastScalingTime(applicationId, 'up')
-    const lastScalingDownTime = await this.store.getLastScalingTime(applicationId, 'down')
+  async isInCooldownPeriod (applicationId, direction, controllerId = null) {
+    const lastScalingUpTime = await this.store.getLastScalingTime(applicationId, 'up', controllerId)
+    const lastScalingDownTime = await this.store.getLastScalingTime(applicationId, 'down', controllerId)
 
     const now = Date.now()
     const timeSinceLastScalingUp = now - lastScalingUpTime

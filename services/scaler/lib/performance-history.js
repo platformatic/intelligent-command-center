@@ -159,6 +159,7 @@ class PerformanceHistory {
   async scalingEvaluation (scaling) {
     const {
       applicationId,
+      controllerId = null,
       actualPodsChange,
       totalPods,
       preMetrics,
@@ -203,11 +204,12 @@ class PerformanceHistory {
     }
 
     // Add performance history event
-    await store.addPerfHistoryEvent(applicationId, preScalingMetrics, maxHistoryEvents)
+    await store.addPerfHistoryEvent(applicationId, preScalingMetrics, maxHistoryEvents, controllerId)
 
     // Schedule post-scaling evaluation
     this.schedulePostScalingEvaluation({
       applicationId,
+      controllerId,
       scalingTimestamp: preScalingMetrics.timestamp,
       postScalingWindow,
       log,
@@ -233,6 +235,7 @@ class PerformanceHistory {
   schedulePostScalingEvaluation (params) {
     const {
       applicationId,
+      controllerId = null,
       scalingTimestamp,
       postScalingWindow,
       log,
@@ -254,6 +257,7 @@ class PerformanceHistory {
       try {
         await this.postScalingEvaluation({
           applicationId,
+          controllerId,
           scalingTimestamp,
           store,
           log,
@@ -294,6 +298,7 @@ class PerformanceHistory {
   async postScalingEvaluation (params) {
     const {
       applicationId,
+      controllerId = null,
       scalingTimestamp,
       store,
       log,
@@ -302,7 +307,7 @@ class PerformanceHistory {
       heapThreshold = 0.85
     } = params
 
-    const history = await store.loadPerfHistory(applicationId)
+    const history = await store.loadPerfHistory(applicationId, controllerId)
 
     // Find the event matching this timestamp
     const eventIndex = history.findIndex(e => e.timestamp === scalingTimestamp)
@@ -331,7 +336,7 @@ class PerformanceHistory {
       }
 
       // Process current pod metrics (without considering scaling decisions)
-      const clusters = await store.loadClusters(applicationId)
+      const clusters = await store.loadClusters(applicationId, controllerId)
       const processedPods = {}
 
       for (const [id, metrics] of Object.entries(podsMetrics)) {
@@ -377,10 +382,10 @@ class PerformanceHistory {
                           0.4 * Math.max(0, 1 - ((event.sigmaElu + event.sigmaHeap) / 0.2))
 
       // Save updated history
-      await store.savePerfHistory(applicationId, history)
+      await store.savePerfHistory(applicationId, history, controllerId)
 
       // Update clusters with the complete event
-      await updateClusters(store, applicationId, event)
+      await updateClusters(store, applicationId, event, undefined, controllerId)
 
       // Save performance history event to database
       try {
