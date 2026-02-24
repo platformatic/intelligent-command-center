@@ -159,6 +159,7 @@ async function startControlPlane (t, entities = {}, env = {}) {
 
   const { db, sql } = app.platformatic
 
+  await db.query(sql`DELETE FROM "version_registry"`)
   await db.query(sql`DELETE FROM "generations_deployments"`)
   await db.query(sql`DELETE FROM "generations_applications_configs"`)
   await db.query(sql`DELETE FROM "graphs"`)
@@ -485,6 +486,38 @@ async function startMachinist (t, opts = {}) {
     const podId = req.params.podId
     const labels = req.body.labels
     return opts.setPodLabels?.(podId, labels)
+  })
+
+  machinist.get('/gateway/gateways/:namespace', async (req) => {
+    const namespace = req.params.namespace
+    return opts.listGateways?.(namespace) ?? []
+  })
+
+  machinist.get('/services/:namespace', async (req) => {
+    const namespace = req.params.namespace
+    const labelsParam = req.query.labels
+    const labelsArray = Array.isArray(labelsParam) ? labelsParam : [labelsParam].filter(Boolean)
+    const labels = {}
+    for (const label of labelsArray) {
+      const [key, value] = label.split('=')
+      labels[key] = value
+    }
+    return opts.getServicesByLabels?.(namespace, labels) ?? []
+  })
+
+  machinist.put('/gateway/httproutes/:namespace', async (req) => {
+    const namespace = req.params.namespace
+    return opts.applyHTTPRoute?.(namespace, req.body) ?? req.body
+  })
+
+  machinist.get('/gateway/httproutes/:namespace/:name', async (req) => {
+    const { namespace, name } = req.params
+    return opts.getHTTPRoute?.(namespace, name) ?? {}
+  })
+
+  machinist.delete('/gateway/httproutes/:namespace/:name', async (req) => {
+    const { namespace, name } = req.params
+    return opts.deleteHTTPRoute?.(namespace, name) ?? {}
   })
 
   t?.after(async () => {

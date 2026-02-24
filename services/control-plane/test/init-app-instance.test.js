@@ -15,7 +15,7 @@ const {
   generateK8sHeader
 } = require('./helper')
 
-test.only('should save an instance of a new application', async (t) => {
+test('should save an instance of a new application', async (t) => {
   const applicationName = 'test-app'
   const podId = randomUUID()
   const imageId = randomUUID()
@@ -1274,6 +1274,615 @@ test('should throw ApplicationNameNotFound when controller name is undefined', a
     error: 'Bad Request',
     message: `Application name not found for pod "${podId}"`
   })
+})
+
+test('should create HTTPRoute with default rule only for first version', async (t) => {
+  const applicationName = 'test-app-skew'
+  const podId = randomUUID()
+  const imageId = randomUUID()
+  const appLabel = 'my-versioned-app'
+  const versionLabel = 'v1.2.3'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  const servicesByLabelsRequests = []
+  const appliedHTTPRoutes = []
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      labels: {
+        'app.kubernetes.io/name': appLabel,
+        'plt.dev/version': versionLabel
+      },
+      controller: {
+        name: 'my-versioned-app-v1.2.3'
+      }
+    }),
+    listGateways: () => [{
+      metadata: {
+        name: 'platform-gateway',
+        namespace: 'platformatic'
+      },
+      spec: {
+        gatewayClassName: 'eg',
+        listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }]
+      }
+    }],
+    getServicesByLabels: (namespace, labels) => {
+      servicesByLabelsRequests.push({ namespace, labels })
+      return [{
+        metadata: {
+          name: 'my-versioned-app-v1.2.3',
+          namespace: 'platformatic'
+        },
+        spec: {
+          ports: [{ port: 3042 }]
+        }
+      }]
+    },
+    applyHTTPRoute: (namespace, httpRoute) => {
+      appliedHTTPRoutes.push({ namespace, httpRoute })
+      return httpRoute
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true'
+  })
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: { applicationName }
+  })
+
+  assert.strictEqual(statusCode, 200, body)
+
+  const { applicationName: responseApplicationName } = JSON.parse(body)
+  assert.strictEqual(responseApplicationName, applicationName)
+
+  assert.strictEqual(servicesByLabelsRequests.length, 1)
+  assert.deepStrictEqual(servicesByLabelsRequests[0].labels, {
+    'app.kubernetes.io/name': appLabel,
+    'plt.dev/version': versionLabel
+  })
+
+  // First version: HTTPRoute created with only the default rule
+  assert.strictEqual(appliedHTTPRoutes.length, 1)
+  const { namespace: routeNs, httpRoute } = appliedHTTPRoutes[0]
+  assert.strictEqual(routeNs, 'platformatic')
+  assert.strictEqual(httpRoute.metadata.name, 'my-versioned-app')
+  assert.strictEqual(httpRoute.spec.rules.length, 1)
+
+  // Default rule with path prefix, no draining rules
+  const defaultRule = httpRoute.spec.rules[0]
+  assert.deepStrictEqual(defaultRule.matches, [{
+    path: { type: 'PathPrefix', value: '/my-versioned-app' }
+  }])
+  assert.strictEqual(defaultRule.backendRefs[0].name, 'my-versioned-app-v1.2.3')
+  assert.strictEqual(defaultRule.backendRefs[0].port, 3042)
+  assert.ok(defaultRule.filters[0].responseHeaderModifier.add[0].value.includes('__plt_dpl=v1.2.3'))
+
+  // No hostnames (no plt.dev/hostname label)
+  assert.strictEqual(httpRoute.spec.hostnames, undefined)
+
+  assert.deepStrictEqual(httpRoute.spec.parentRefs, [{
+    kind: 'Gateway',
+    name: 'platform-gateway',
+    namespace: 'platformatic'
+  }])
+
+  // Verify version was saved in the registry
+  const { entities } = controlPlane.platformatic
+  const versions = await entities.versionRegistry.find({
+    where: { appLabel: { eq: appLabel } }
+  })
+  assert.strictEqual(versions.length, 1)
+  assert.strictEqual(versions[0].versionLabel, versionLabel)
+  assert.strictEqual(versions[0].pathPrefix, '/my-versioned-app')
+  assert.strictEqual(versions[0].hostname, null)
+})
+
+test('should create HTTPRoute when second version is detected', async (t) => {
+  const applicationName = 'test-app-skew-v2'
+  const appLabel = 'my-versioned-app-2'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  let currentPodDetails = null
+  const appliedHTTPRoutes = []
+  await startMachinist(t, {
+    getPodDetails: () => currentPodDetails,
+    listGateways: () => [{
+      metadata: { name: 'platform-gateway', namespace: 'platformatic' },
+      spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
+    }],
+    getServicesByLabels: (namespace, labels) => {
+      const version = labels['plt.dev/version']
+      return [{
+        metadata: { name: `${appLabel}-${version}`, namespace: 'platformatic' },
+        spec: { ports: [{ port: 3042 }] }
+      }]
+    },
+    applyHTTPRoute: (namespace, httpRoute) => {
+      appliedHTTPRoutes.push({ namespace, httpRoute })
+      return httpRoute
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true'
+  })
+
+  // First version — HTTPRoute with default rule only
+  const podId1 = randomUUID()
+  const imageId1 = randomUUID()
+  currentPodDetails = {
+    image: imageId1,
+    labels: {
+      'app.kubernetes.io/name': appLabel,
+      'plt.dev/version': 'v1.0.0'
+    },
+    controller: { name: `${appLabel}-v1.0.0` }
+  }
+
+  const res1 = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId1}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId1)
+    },
+    body: { applicationName }
+  })
+  assert.strictEqual(res1.statusCode, 200, res1.body)
+  assert.strictEqual(appliedHTTPRoutes.length, 1)
+  assert.strictEqual(appliedHTTPRoutes[0].httpRoute.spec.rules.length, 1)
+
+  // Second version — HTTPRoute updated with both versions
+  const podId2 = randomUUID()
+  const imageId2 = randomUUID()
+  currentPodDetails = {
+    image: imageId2,
+    labels: {
+      'app.kubernetes.io/name': appLabel,
+      'plt.dev/version': 'v2.0.0'
+    },
+    controller: { name: `${appLabel}-v2.0.0` }
+  }
+
+  const res2 = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId2}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId2)
+    },
+    body: { applicationName }
+  })
+  assert.strictEqual(res2.statusCode, 200, res2.body)
+
+  assert.strictEqual(appliedHTTPRoutes.length, 2)
+  const { httpRoute } = appliedHTTPRoutes[1]
+  assert.strictEqual(httpRoute.metadata.name, appLabel)
+
+  // 2 rules for draining v1 (cookie + header) + 1 default for v2
+  assert.strictEqual(httpRoute.spec.rules.length, 3)
+
+  // Path prefix on all rules — derived from appLabel
+  for (const rule of httpRoute.spec.rules) {
+    assert.deepStrictEqual(rule.matches[0].path, { type: 'PathPrefix', value: `/${appLabel}` })
+  }
+
+  // No hostname label → hostnames absent
+  assert.strictEqual(httpRoute.spec.hostnames, undefined)
+
+  // Default rule routes to production (v2)
+  const defaultRule = httpRoute.spec.rules[2]
+  assert.strictEqual(defaultRule.backendRefs[0].name, `${appLabel}-v2.0.0`)
+
+  // Draining rule routes to v1
+  assert.strictEqual(httpRoute.spec.rules[0].backendRefs[0].name, `${appLabel}-v1.0.0`)
+})
+
+test('should use plt.dev/hostname and plt.dev/path labels when present', async (t) => {
+  const applicationName = 'test-app-skew-labels'
+  const appLabel = 'my-labeled-app'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  let currentPodDetails = null
+  const appliedHTTPRoutes = []
+  await startMachinist(t, {
+    getPodDetails: () => currentPodDetails,
+    listGateways: () => [{
+      metadata: { name: 'platform-gateway', namespace: 'platformatic' },
+      spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
+    }],
+    getServicesByLabels: (namespace, labels) => {
+      const version = labels['plt.dev/version']
+      return [{
+        metadata: { name: `${appLabel}-${version}`, namespace: 'platformatic' },
+        spec: { ports: [{ port: 3042 }] }
+      }]
+    },
+    applyHTTPRoute: (namespace, httpRoute) => {
+      appliedHTTPRoutes.push({ namespace, httpRoute })
+      return httpRoute
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true'
+  })
+
+  const labelsBase = {
+    'app.kubernetes.io/name': appLabel,
+    'plt.dev/hostname': 'myapp.example.com',
+    'plt.dev/path': '/api/leads'
+  }
+
+  // First version
+  const podId1 = randomUUID()
+  currentPodDetails = {
+    image: randomUUID(),
+    labels: { ...labelsBase, 'plt.dev/version': 'v1.0.0' },
+    controller: { name: `${appLabel}-v1.0.0` }
+  }
+
+  const res1 = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId1}/instance`,
+    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId1) },
+    body: { applicationName }
+  })
+  assert.strictEqual(res1.statusCode, 200, res1.body)
+
+  // Verify first version saved with correct pathPrefix and hostname
+  const { entities } = controlPlane.platformatic
+  const versionsAfterFirst = await entities.versionRegistry.find({
+    where: { appLabel: { eq: appLabel } }
+  })
+  assert.strictEqual(versionsAfterFirst.length, 1)
+  assert.strictEqual(versionsAfterFirst[0].pathPrefix, '/api/leads')
+  assert.strictEqual(versionsAfterFirst[0].hostname, 'myapp.example.com')
+
+  // Second version — triggers HTTPRoute
+  const podId2 = randomUUID()
+  currentPodDetails = {
+    image: randomUUID(),
+    labels: { ...labelsBase, 'plt.dev/version': 'v2.0.0' },
+    controller: { name: `${appLabel}-v2.0.0` }
+  }
+
+  const res2 = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId2}/instance`,
+    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId2) },
+    body: { applicationName }
+  })
+  assert.strictEqual(res2.statusCode, 200, res2.body)
+
+  // 2 HTTPRoutes applied: first version (default only) + second version (with draining)
+  assert.strictEqual(appliedHTTPRoutes.length, 2)
+  const { httpRoute } = appliedHTTPRoutes[1]
+
+  // Hostname is set
+  assert.deepStrictEqual(httpRoute.spec.hostnames, ['myapp.example.com'])
+
+  // Custom path prefix on all rules
+  for (const rule of httpRoute.spec.rules) {
+    assert.deepStrictEqual(rule.matches[0].path, { type: 'PathPrefix', value: '/api/leads' })
+  }
+})
+
+test('should use custom path prefix without hostname when only plt.dev/path is set', async (t) => {
+  const applicationName = 'test-app-path-only'
+  const appLabel = 'path-only-app'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  const appliedHTTPRoutes = []
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: randomUUID(),
+      labels: {
+        'app.kubernetes.io/name': appLabel,
+        'plt.dev/version': 'v1.0.0',
+        'plt.dev/path': '/api/leads'
+      },
+      controller: { name: `${appLabel}-v1.0.0` }
+    }),
+    listGateways: () => [{
+      metadata: { name: 'platform-gateway', namespace: 'platformatic' },
+      spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
+    }],
+    getServicesByLabels: (namespace, labels) => [{
+      metadata: { name: `${appLabel}-v1.0.0`, namespace: 'platformatic' },
+      spec: { ports: [{ port: 3042 }] }
+    }],
+    applyHTTPRoute: (namespace, httpRoute) => {
+      appliedHTTPRoutes.push({ namespace, httpRoute })
+      return httpRoute
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true'
+  })
+
+  const podId = randomUUID()
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId) },
+    body: { applicationName }
+  })
+  assert.strictEqual(statusCode, 200, body)
+
+  assert.strictEqual(appliedHTTPRoutes.length, 1)
+  const { httpRoute } = appliedHTTPRoutes[0]
+
+  // Custom path prefix used
+  assert.deepStrictEqual(httpRoute.spec.rules[0].matches[0].path, { type: 'PathPrefix', value: '/api/leads' })
+
+  // No hostname — hostnames field absent
+  assert.strictEqual(httpRoute.spec.hostnames, undefined)
+
+  // Verify DB
+  const { entities } = controlPlane.platformatic
+  const versions = await entities.versionRegistry.find({
+    where: { appLabel: { eq: appLabel } }
+  })
+  assert.strictEqual(versions[0].pathPrefix, '/api/leads')
+  assert.strictEqual(versions[0].hostname, null)
+})
+
+test('should use default path prefix with hostname when only plt.dev/hostname is set', async (t) => {
+  const applicationName = 'test-app-hostname-only'
+  const appLabel = 'hostname-only-app'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  const appliedHTTPRoutes = []
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: randomUUID(),
+      labels: {
+        'app.kubernetes.io/name': appLabel,
+        'plt.dev/version': 'v1.0.0',
+        'plt.dev/hostname': 'myapp.example.com'
+      },
+      controller: { name: `${appLabel}-v1.0.0` }
+    }),
+    listGateways: () => [{
+      metadata: { name: 'platform-gateway', namespace: 'platformatic' },
+      spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
+    }],
+    getServicesByLabels: (namespace, labels) => [{
+      metadata: { name: `${appLabel}-v1.0.0`, namespace: 'platformatic' },
+      spec: { ports: [{ port: 3042 }] }
+    }],
+    applyHTTPRoute: (namespace, httpRoute) => {
+      appliedHTTPRoutes.push({ namespace, httpRoute })
+      return httpRoute
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true'
+  })
+
+  const podId = randomUUID()
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId) },
+    body: { applicationName }
+  })
+  assert.strictEqual(statusCode, 200, body)
+
+  assert.strictEqual(appliedHTTPRoutes.length, 1)
+  const { httpRoute } = appliedHTTPRoutes[0]
+
+  // Default path prefix derived from appLabel
+  assert.deepStrictEqual(httpRoute.spec.rules[0].matches[0].path, { type: 'PathPrefix', value: `/${appLabel}` })
+
+  // Hostname is set
+  assert.deepStrictEqual(httpRoute.spec.hostnames, ['myapp.example.com'])
+
+  // Verify DB
+  const { entities } = controlPlane.platformatic
+  const versions = await entities.versionRegistry.find({
+    where: { appLabel: { eq: appLabel } }
+  })
+  assert.strictEqual(versions[0].pathPrefix, `/${appLabel}`)
+  assert.strictEqual(versions[0].hostname, 'myapp.example.com')
+})
+
+test('should handle duplicate pod registration for the same version', async (t) => {
+  const applicationName = 'test-app-dup-version'
+  const appLabel = 'dup-version-app'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  const appliedHTTPRoutes = []
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: randomUUID(),
+      labels: {
+        'app.kubernetes.io/name': appLabel,
+        'plt.dev/version': 'v1.0.0'
+      },
+      controller: { name: `${appLabel}-v1.0.0` }
+    }),
+    listGateways: () => [{
+      metadata: { name: 'platform-gateway', namespace: 'platformatic' },
+      spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
+    }],
+    getServicesByLabels: (namespace, labels) => [{
+      metadata: { name: `${appLabel}-v1.0.0`, namespace: 'platformatic' },
+      spec: { ports: [{ port: 3042 }] }
+    }],
+    applyHTTPRoute: (namespace, httpRoute) => {
+      appliedHTTPRoutes.push({ namespace, httpRoute })
+      return httpRoute
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true'
+  })
+
+  // First pod of v1.0.0
+  const podId1 = randomUUID()
+  const res1 = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId1}/instance`,
+    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId1) },
+    body: { applicationName }
+  })
+  assert.strictEqual(res1.statusCode, 200, res1.body)
+
+  // Second pod of the same v1.0.0
+  const podId2 = randomUUID()
+  const res2 = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId2}/instance`,
+    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId2) },
+    body: { applicationName }
+  })
+  assert.strictEqual(res2.statusCode, 200, res2.body)
+
+  // Only one version in the registry (UNIQUE constraint)
+  const { entities } = controlPlane.platformatic
+  const versions = await entities.versionRegistry.find({
+    where: { appLabel: { eq: appLabel } }
+  })
+  assert.strictEqual(versions.length, 1)
+  assert.strictEqual(versions[0].versionLabel, 'v1.0.0')
+
+  // HTTPRoute applied twice but both with just the default rule (no draining)
+  assert.strictEqual(appliedHTTPRoutes.length, 2)
+  assert.strictEqual(appliedHTTPRoutes[0].httpRoute.spec.rules.length, 1)
+  assert.strictEqual(appliedHTTPRoutes[1].httpRoute.spec.rules.length, 1)
+})
+
+test('should skip version detection when skew protection is disabled', async (t) => {
+  const applicationName = 'test-app-no-skew'
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  const servicesByLabelsRequests = []
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      labels: {
+        'app.kubernetes.io/name': 'my-app',
+        'plt.dev/version': 'v1.0.0'
+      },
+      controller: {
+        name: 'my-app-v1.0.0'
+      }
+    }),
+    getServicesByLabels: (namespace, labels) => {
+      servicesByLabelsRequests.push({ namespace, labels })
+      return []
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'false'
+  })
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: { applicationName }
+  })
+
+  assert.strictEqual(statusCode, 200, body)
+  assert.strictEqual(servicesByLabelsRequests.length, 0)
+})
+
+test('should handle missing version labels gracefully when skew protection is enabled', async (t) => {
+  const applicationName = 'test-app-no-labels'
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  const servicesByLabelsRequests = []
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId
+      // No labels
+    }),
+    getServicesByLabels: (namespace, labels) => {
+      servicesByLabelsRequests.push({ namespace, labels })
+      return []
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true'
+  })
+
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: { applicationName }
+  })
+
+  assert.strictEqual(statusCode, 200, body)
+  // Should not call getServicesByLabels when labels are missing
+  assert.strictEqual(servicesByLabelsRequests.length, 0)
 })
 
 test('should throw ApplicationNameNotFound when controller name is empty string', async (t) => {

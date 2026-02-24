@@ -82,6 +82,49 @@ module.exports = fp(async function (app) {
       )
       const { image: imageId } = podDetails
 
+      // Skew protection: detect version metadata from K8s labels
+      let versionMeta = null
+      const skewProtectionEnabled = app.env.PLT_FEATURE_SKEW_PROTECTION
+      if (skewProtectionEnabled) {
+        const appLabel = podDetails.labels?.['app.kubernetes.io/name']
+        const versionLabel = podDetails.labels?.['plt.dev/version']
+        const hostnameLabel = podDetails.labels?.['plt.dev/hostname']
+        const pathLabel = podDetails.labels?.['plt.dev/path']
+
+        if (appLabel && versionLabel) {
+          const k8SDeploymentName = podDetails.controller?.name
+          const services = await app.machinist.getServicesByLabels(
+            namespace,
+            { 'app.kubernetes.io/name': appLabel, 'plt.dev/version': versionLabel },
+            ctx
+          ).catch(err => {
+            ctx.logger.error({ err }, 'Failed to get services for version detection')
+            return []
+          })
+          const service = services[0]
+          const serviceName = service?.metadata?.name
+          const servicePort = service?.spec?.ports?.[0]?.port
+
+          if (serviceName && servicePort) {
+            const pathPrefix = pathLabel || `/${appLabel}`
+
+            versionMeta = {
+              appLabel,
+              versionLabel,
+              k8SDeploymentName,
+              serviceName,
+              servicePort,
+              pathPrefix,
+              hostname: hostnameLabel || null
+            }
+
+            ctx.logger.info({
+              appLabel, versionLabel, k8SDeploymentName, serviceName, servicePort, pathPrefix, hostname: hostnameLabel
+            }, 'detected version metadata')
+          }
+        }
+      }
+
       // If applicationName is not provided, get it from K8s pod details
       if (!applicationName) {
         ctx.logger.debug({ podId, namespace }, 'Application name not provided, fetching from Kubernetes')
@@ -152,6 +195,37 @@ module.exports = fp(async function (app) {
       ).catch((err) => {
         ctx.logger.error({ err }, 'Failed to set pod labels')
       })
+
+      // Skew protection: persist version and apply HTTPRoute
+      if (versionMeta && app.registerVersion) {
+        const { appLabel, versionLabel, k8SDeploymentName, serviceName, servicePort, pathPrefix, hostname } = versionMeta
+
+        const { activeVersion, drainingVersions } = await app.registerVersion({
+          applicationId: result.application.id,
+          deploymentId: result.deployment.id,
+          appLabel,
+          versionLabel,
+          k8SDeploymentName,
+          serviceName,
+          servicePort,
+          namespace,
+          pathPrefix,
+          hostname
+        }, ctx)
+
+        if (activeVersion && app.applyHTTPRoute) {
+          await app.applyHTTPRoute({
+            appName: appLabel,
+            namespace,
+            pathPrefix,
+            hostname,
+            productionVersion: activeVersion,
+            drainingVersions
+          }, ctx).catch(err => {
+            ctx.logger.error({ err }, 'Failed to apply HTTPRoute')
+          })
+        }
+      }
 
       application = result.application
       deployment = result.deployment

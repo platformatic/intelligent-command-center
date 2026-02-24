@@ -66,6 +66,114 @@ class Machinist {
     return podDetails
   }
 
+  async listGateways (namespace, ctx) {
+    ctx.logger.info('Listing gateways')
+
+    const url = this.url + `/gateway/gateways/${namespace}`
+    const { statusCode, body } = await request(url, {
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error(
+        { error, namespace },
+        'Failed to list gateways'
+      )
+      throw new errors.FailedToListGateways(error)
+    }
+
+    return body.json()
+  }
+
+  async getServicesByLabels (namespace, labels, ctx) {
+    ctx.logger.info('Getting services by labels')
+
+    const serializedLabels = Object.entries(labels)
+      .map(([key, value]) => `${key}=${value}`)
+
+    const query = querystring.stringify({ labels: serializedLabels })
+    const url = this.url + `/services/${namespace}?${query}`
+    const { statusCode, body } = await request(url, {
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error(
+        { error, namespace, labels },
+        'Failed to get services by labels'
+      )
+      throw new errors.FailedToGetServicesByLabels(error)
+    }
+
+    return body.json()
+  }
+
+  async applyHTTPRoute (namespace, httpRoute, ctx) {
+    ctx.logger.info('Applying HTTPRoute')
+
+    const url = this.url + `/gateway/httproutes/${namespace}`
+    const { statusCode, body } = await request(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(httpRoute),
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error(
+        { error, namespace },
+        'Failed to apply HTTPRoute'
+      )
+      throw new errors.FailedToApplyHTTPRoute(error)
+    }
+
+    return body.json()
+  }
+
+  async getHTTPRoute (namespace, name, ctx) {
+    ctx.logger.info('Getting HTTPRoute')
+
+    const url = this.url + `/gateway/httproutes/${namespace}/${name}`
+    const { statusCode, body } = await request(url, {
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error(
+        { error, namespace, name },
+        'Failed to get HTTPRoute'
+      )
+      throw new errors.FailedToGetHTTPRoute(error)
+    }
+
+    return body.json()
+  }
+
+  async deleteHTTPRoute (namespace, name, ctx) {
+    ctx.logger.info('Deleting HTTPRoute')
+
+    const url = this.url + `/gateway/httproutes/${namespace}/${name}`
+    const { statusCode, body } = await request(url, {
+      method: 'DELETE',
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error(
+        { error, namespace, name },
+        'Failed to delete HTTPRoute'
+      )
+      throw new errors.FailedToDeleteHTTPRoute(error)
+    }
+  }
+
   async setPodLabels (podId, namespace, labels, ctx) {
     ctx.logger.info('Setting pod labels')
 

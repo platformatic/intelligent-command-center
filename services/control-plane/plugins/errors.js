@@ -113,5 +113,35 @@ module.exports = {
     `${ERROR_PREFIX}_APPLICATION_NAME_NOT_FOUND`,
     'Application name not found for pod "%s"',
     400
+  ),
+  FailedToListGateways: createError(
+    `${ERROR_PREFIX}_FAILED_TO_LIST_GATEWAYS`,
+    'Failed to list gateways: %s'
+  ),
+  FailedToGetServicesByLabels: createError(
+    `${ERROR_PREFIX}_FAILED_TO_GET_SERVICES_BY_LABELS`,
+    'Failed to get services by labels: %s'
+  ),
+  FailedToApplyHTTPRoute: createError(
+    `${ERROR_PREFIX}_FAILED_TO_APPLY_HTTPROUTE`,
+    'Failed to apply HTTPRoute: %s'
+  ),
+  FailedToGetHTTPRoute: createError(
+    `${ERROR_PREFIX}_FAILED_TO_GET_HTTPROUTE`,
+    'Failed to get HTTPRoute: %s'
+  ),
+  FailedToDeleteHTTPRoute: createError(
+    `${ERROR_PREFIX}_FAILED_TO_DELETE_HTTPROUTE`,
+    'Failed to delete HTTPRoute: %s'
+  ),
+  VersionNotFound: createError(
+    `${ERROR_PREFIX}_VERSION_NOT_FOUND`,
+    'Version "%s" not found for application "%s"',
+    404
+  ),
+  VersionNotDraining: createError(
+    `${ERROR_PREFIX}_VERSION_NOT_DRAINING`,
+    'Version "%s" is not draining (current status: %s)',
+    400
   )
 }

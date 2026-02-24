@@ -8,6 +8,7 @@ import { GenerationsDeployment } from './GenerationsDeployment'
 import { Graph } from './Graph'
 import { Instance } from './Instance'
 import { ValkeyUser } from './ValkeyUser'
+import { VersionRegistry } from './VersionRegistry'
   
 interface EntityTypes  {
   Application: Application
@@ -20,6 +21,7 @@ interface EntityTypes  {
     Graph: Graph
     Instance: Instance
     ValkeyUser: ValkeyUser
+    VersionRegistry: VersionRegistry
 }
   
-export { EntityTypes, Application, ApplicationState, ApplicationsConfig, Deployment, Generation, GenerationsApplicationsConfig, GenerationsDeployment, Graph, Instance, ValkeyUser }
+export { EntityTypes, Application, ApplicationState, ApplicationsConfig, Deployment, Generation, GenerationsApplicationsConfig, GenerationsDeployment, Graph, Instance, ValkeyUser, VersionRegistry }
