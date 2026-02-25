@@ -143,5 +143,17 @@ module.exports = {
     `${ERROR_PREFIX}_VERSION_NOT_DRAINING`,
     'Version "%s" is not draining (current status: %s)',
     400
+  ),
+  FailedToUpdateController: createError(
+    `${ERROR_PREFIX}_FAILED_TO_UPDATE_CONTROLLER`,
+    'Failed to update controller: %s'
+  ),
+  FailedToDeleteDeployment: createError(
+    `${ERROR_PREFIX}_FAILED_TO_DELETE_DEPLOYMENT`,
+    'Failed to delete Deployment: %s'
+  ),
+  FailedToDeleteService: createError(
+    `${ERROR_PREFIX}_FAILED_TO_DELETE_SERVICE`,
+    'Failed to delete Service: %s'
   )
 }

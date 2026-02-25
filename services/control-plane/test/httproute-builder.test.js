@@ -4,6 +4,16 @@ const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { buildHTTPRoute } = require('../lib/httproute-builder')
 
+const URL_REWRITE_FILTER = {
+  type: 'URLRewrite',
+  urlRewrite: {
+    path: {
+      type: 'ReplacePrefixMatch',
+      replacePrefixMatch: '/'
+    }
+  }
+}
+
 const defaultParams = {
   appName: 'myapp',
   namespace: 'myapp-ns',
@@ -47,9 +57,10 @@ test('should build HTTPRoute with production version only', async () => {
     name: 'myapp-v2.0.0',
     port: 3042
   }])
-  assert.strictEqual(defaultRule.filters.length, 1)
-  assert.strictEqual(defaultRule.filters[0].type, 'ResponseHeaderModifier')
-  assert.deepStrictEqual(defaultRule.filters[0].responseHeaderModifier.add, [{
+  assert.strictEqual(defaultRule.filters.length, 2)
+  assert.deepStrictEqual(defaultRule.filters[0], URL_REWRITE_FILTER)
+  assert.strictEqual(defaultRule.filters[1].type, 'ResponseHeaderModifier')
+  assert.deepStrictEqual(defaultRule.filters[1].responseHeaderModifier.add, [{
     name: 'Set-Cookie',
     value: '__plt_dpl=v2.0.0-prod; HttpOnly; Secure; SameSite=Strict; Max-Age=43200'
   }])
@@ -77,6 +88,7 @@ test('should build HTTPRoute with one draining version', async () => {
     cookieRule.matches[0].headers[0].value,
     '(^|;\\s*)__plt_dpl=v1.0.0-old(;|$)'
   )
+  assert.deepStrictEqual(cookieRule.filters, [URL_REWRITE_FILTER])
   assert.deepStrictEqual(cookieRule.backendRefs, [{
     name: 'myapp-v1.0.0',
     port: 3042
@@ -88,6 +100,7 @@ test('should build HTTPRoute with one draining version', async () => {
   assert.strictEqual(headerRule.matches[0].headers[0].name, 'x-deployment-id')
   assert.strictEqual(headerRule.matches[0].headers[0].type, 'Exact')
   assert.strictEqual(headerRule.matches[0].headers[0].value, 'v1.0.0-old')
+  assert.deepStrictEqual(headerRule.filters, [URL_REWRITE_FILTER])
   assert.deepStrictEqual(headerRule.backendRefs, [{
     name: 'myapp-v1.0.0',
     port: 3042
@@ -202,7 +215,8 @@ test('should set correct Set-Cookie attributes on production rule', async () => 
   const route = buildHTTPRoute(defaultParams)
 
   const defaultRule = route.spec.rules[0]
-  const setCookie = defaultRule.filters[0].responseHeaderModifier.add[0]
+  assert.deepStrictEqual(defaultRule.filters[0], URL_REWRITE_FILTER)
+  const setCookie = defaultRule.filters[1].responseHeaderModifier.add[0]
 
   assert.strictEqual(setCookie.name, 'Set-Cookie')
   assert.ok(setCookie.value.includes('__plt_dpl=v2.0.0-prod'))

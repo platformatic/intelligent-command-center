@@ -10,7 +10,6 @@ function buildApp (enabled = true) {
   const app = fastify({ logger: false })
   const store = []
   let idCounter = 0
-
   app.register(fp(async (app) => {
     app.decorate('env', {
       PLT_FEATURE_SKEW_PROTECTION: enabled ? 'true' : ''

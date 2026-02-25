@@ -73,6 +73,16 @@ const createRequestPerSecondQuery = ({ applicationId, timeWindow }) =>
     kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"} > 0
   )`
 
+// Request per second for a specific app version, filtered by K8s pod labels.
+// Used by the draining lifecycle checker to detect whether a draining version
+// still has traffic. A rate of 0 over the grace period window means no traffic.
+const createVersionRPSQuery = ({ appLabel, versionLabel, timeWindow }) =>
+  `sum(
+    rate(http_request_all_summary_seconds_count[${timeWindow}])
+    * on(pod) group_left()
+    kube_pod_labels{label_app_kubernetes_io_name="${appLabel}", label_plt_dev_version="${versionLabel}"}
+  )`
+
 module.exports = {
   createRSSMemoryQuery,
   createTotalHEAPMemoryQuery,
@@ -88,5 +98,6 @@ module.exports = {
   createAllocatedCPUPodQuery,
   createEventLoopPodQuery,
   createRequestPerSecondQuery,
-  createRequestLatencyQuery
+  createRequestLatencyQuery,
+  createVersionRPSQuery
 }

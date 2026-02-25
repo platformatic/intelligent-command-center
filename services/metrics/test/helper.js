@@ -31,6 +31,41 @@ async function startMetrics (t, controlPlane, env) {
   return server
 }
 
+async function startPrometheusVersionRPS (t, appLabel, versionLabel, rpsValue, urlPrefix = '/') {
+  const prometheus = fastify({ keepAliveTimeout: 1 })
+  prometheus.register(formBody)
+  t.after(() => prometheus.close())
+
+  prometheus.register(async (prometheus) => {
+    prometheus.post('/api/v1/query', async (req) => {
+      const { query } = req.body
+      const sanitized = sanitizePromQuery(query)
+
+      if (sanitized.includes(`label_app_kubernetes_io_name="${appLabel}"`) &&
+          sanitized.includes(`label_plt_dev_version="${versionLabel}"`)) {
+        return {
+          status: 'success',
+          data: {
+            resultType: 'vector',
+            result: [{
+              metric: {},
+              value: [1721122686.143, rpsValue]
+            }]
+          }
+        }
+      }
+
+      return {
+        status: 'success',
+        data: { resultType: 'vector', result: [] }
+      }
+    })
+  }, { prefix: urlPrefix })
+
+  await prometheus.listen({ port: 4005 })
+  return prometheus
+}
+
 async function startPrometheusK8s (t, applicationId, urlPrefix = '/') {
   const coresQuery = 'kube_node_status_allocatable{resource="cpu",unit="core"}'
   const cpuAllQuery = sanitizePromQuery(`
@@ -572,6 +607,7 @@ function sanitizePromQuery (query) {
 module.exports = {
   startMetrics,
   startPrometheusK8s,
+  startPrometheusVersionRPS,
   startPrometheus,
   startPrometheusWithNoValues,
   getControlPlane,

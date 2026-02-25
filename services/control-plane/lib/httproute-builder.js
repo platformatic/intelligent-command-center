@@ -1,7 +1,17 @@
 'use strict'
 
 const COOKIE_NAME = '__plt_dpl'
-const COOKIE_MAX_AGE = 43200
+const DEFAULT_COOKIE_MAX_AGE = 43200
+
+const URL_REWRITE_FILTER = {
+  type: 'URLRewrite',
+  urlRewrite: {
+    path: {
+      type: 'ReplacePrefixMatch',
+      replacePrefixMatch: '/'
+    }
+  }
+}
 
 function buildHTTPRoute ({
   appName,
@@ -10,7 +20,8 @@ function buildHTTPRoute ({
   pathPrefix,
   gateway,
   productionVersion,
-  drainingVersions = []
+  drainingVersions = [],
+  cookieMaxAge = DEFAULT_COOKIE_MAX_AGE
 }) {
   const pathMatch = { path: { type: 'PathPrefix', value: pathPrefix } }
   const rules = []
@@ -26,6 +37,7 @@ function buildHTTPRoute ({
           value: `(^|;\\s*)${COOKIE_NAME}=${version.versionId}(;|$)`
         }]
       }],
+      filters: [URL_REWRITE_FILTER],
       backendRefs: [{
         name: version.serviceName,
         port: version.port
@@ -42,6 +54,7 @@ function buildHTTPRoute ({
           value: version.versionId
         }]
       }],
+      filters: [URL_REWRITE_FILTER],
       backendRefs: [{
         name: version.serviceName,
         port: version.port
@@ -56,15 +69,18 @@ function buildHTTPRoute ({
       name: productionVersion.serviceName,
       port: productionVersion.port
     }],
-    filters: [{
-      type: 'ResponseHeaderModifier',
-      responseHeaderModifier: {
-        add: [{
-          name: 'Set-Cookie',
-          value: `${COOKIE_NAME}=${productionVersion.versionId}; HttpOnly; Secure; SameSite=Strict; Max-Age=${COOKIE_MAX_AGE}`
-        }]
+    filters: [
+      URL_REWRITE_FILTER,
+      {
+        type: 'ResponseHeaderModifier',
+        responseHeaderModifier: {
+          add: [{
+            name: 'Set-Cookie',
+            value: `${COOKIE_NAME}=${productionVersion.versionId}; HttpOnly; Secure; SameSite=Strict; Max-Age=${cookieMaxAge}`
+          }]
+        }
       }
-    }]
+    ]
   })
 
   const spec = {

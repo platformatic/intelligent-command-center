@@ -83,7 +83,7 @@ module.exports = fp(async function (app) {
 
     for (const v of otherActive) {
       await entities.versionRegistry.save({
-        input: { id: v.id, status: 'draining' }
+        input: { id: v.id, status: 'draining', drainedAt: new Date().toISOString() }
       })
       ctx.logger.info({
         appLabel: opts.appLabel,

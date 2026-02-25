@@ -766,3 +766,75 @@ test('getCurrentPodCount should use provided controller', async (t) => {
   const count = await server.scalerExecutor.getCurrentPodCount('test-app', mockController)
   assert.strictEqual(count, 5)
 })
+
+test('checkScalingOnMetrics should skip controllers with scalingDisabled', async (t) => {
+  const server = await buildServer(t)
+
+  const scalingCalls = []
+  server.scalerExecutor.scalingAlgorithm.calculateScalingDecision = async (appId, metrics, currentPodCount) => {
+    scalingCalls.push({ appId, currentPodCount })
+    return { nfinal: currentPodCount, reason: 'No change' }
+  }
+
+  server.getApplicationControllers = async () => [
+    { id: '1', k8SControllerId: 'ctrl-active', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2, scalingDisabled: false },
+    { id: '2', k8SControllerId: 'ctrl-expired', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 0, scalingDisabled: true }
+  ]
+
+  server.getScaleConfig = async () => ({ minPods: 1, maxPods: 10 })
+  server.updateControllerReplicas = async () => ({ success: true })
+
+  server.machinist = {
+    ...server.machinist,
+    getControllerWithPods: async (controllerId) => {
+      if (controllerId === 'ctrl-active') {
+        return { pods: [{ id: 'pod-1', name: 'pod-1' }] }
+      }
+      return { pods: [] }
+    }
+  }
+
+  server.scalerMetrics = {
+    getAllApplicationsMetrics: async () => ({
+      'app-1': { 'pod-1': { heapSize: [], eventLoopUtilization: [] } }
+    })
+  }
+
+  const result = await server.scalerExecutor.checkScalingOnMetrics()
+
+  assert.strictEqual(result.success, true)
+  assert.strictEqual(scalingCalls.length, 1)
+  assert.strictEqual(scalingCalls[0].currentPodCount, 2)
+})
+
+test('checkScalingOnAlert should skip when controller has scalingDisabled', async (t) => {
+  const server = await buildServer(t)
+
+  server.getApplicationControllers = async () => [
+    { id: '1', k8SControllerId: 'ctrl-1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 0, scalingDisabled: true }
+  ]
+
+  server.store.getAlertsByPodId = async () => [{
+    podId: 'pod-1',
+    applicationId: 'app-1',
+    timestamp: Date.now(),
+    elu: 0.95,
+    heapUsed: 7000000000,
+    heapTotal: 8000000000,
+    unhealthy: true
+  }]
+
+  server.scalerMetrics = {
+    getApplicationMetrics: async () => ({
+      'pod-1': { eventLoopUtilization: [], heapSize: [] }
+    })
+  }
+
+  const result = await server.scalerExecutor.checkScalingOnAlert({
+    podId: 'pod-1',
+    serviceId: 'test-service'
+  })
+
+  assert.strictEqual(result.success, true)
+  assert.strictEqual(result.reason, 'Scaling disabled')
+})

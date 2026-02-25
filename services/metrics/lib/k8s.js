@@ -4,7 +4,8 @@
 const { queryPrometheus } = require('./prom')
 const {
   createRequestPerSecondQuery,
-  createRequestLatencyQuery
+  createRequestLatencyQuery,
+  createVersionRPSQuery
 } = require('./queries')
 const { toGB } = require('./utils')
 
@@ -241,8 +242,16 @@ const getAppRPSMetrics = async (applicationId) => {
   return rps
 }
 
+const getVersionRPSMetrics = async (appLabel, versionLabel, timeWindow) => {
+  const query = createVersionRPSQuery({ appLabel, versionLabel, timeWindow })
+  const rpsRes = await queryPrometheus(query)
+  const rps = parseFloat(rpsRes?.data?.result[0]?.value[1]) || 0
+  return rps
+}
+
 module.exports = {
   getAppK8SMetrics,
   getInfraK8SMetrics,
-  getAppRPSMetrics
+  getAppRPSMetrics,
+  getVersionRPSMetrics
 }

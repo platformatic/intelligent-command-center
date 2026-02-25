@@ -13,6 +13,10 @@ CREATE TABLE application_scale_configs (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Note: "controllers" here refers to the top-level K8s resource that owns pods
+-- (typically a Deployment). Machinist walks the ownerReferences chain from Pod
+-- up to the highest parent, so k8s_controller_id stores the Deployment name
+-- (e.g. "my-app-v1"), kind is "Deployment", api_version is "apps/v1".
 CREATE TABLE controllers (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   application_id uuid NOT NULL,

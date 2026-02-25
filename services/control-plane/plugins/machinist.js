@@ -174,6 +174,72 @@ class Machinist {
     }
   }
 
+  async updateController (controllerId, namespace, apiVersion, kind, replicas, ctx) {
+    ctx.logger.info({ controllerId, namespace, replicas }, 'Updating controller replicas')
+
+    const query = querystring.stringify({ kind, apiVersion })
+    const url = this.url + `/controllers/${namespace}/${controllerId}?${query}`
+    const { statusCode, body } = await request(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ replicaCount: replicas }),
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error(
+        { error, controllerId, namespace },
+        'Failed to update controller'
+      )
+      throw new errors.FailedToUpdateController(error)
+    }
+
+    return body.json()
+  }
+
+  async deleteDeployment (namespace, name, ctx) {
+    ctx.logger.info({ namespace, name }, 'Deleting Deployment')
+
+    const url = this.url + `/deployments/${namespace}/${name}`
+    const { statusCode, body } = await request(url, {
+      method: 'DELETE',
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error(
+        { error, namespace, name },
+        'Failed to delete Deployment'
+      )
+      throw new errors.FailedToDeleteDeployment(error)
+    }
+
+    return body.json()
+  }
+
+  async deleteService (namespace, name, ctx) {
+    ctx.logger.info({ namespace, name }, 'Deleting Service')
+
+    const url = this.url + `/services/${namespace}/${name}`
+    const { statusCode, body } = await request(url, {
+      method: 'DELETE',
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error(
+        { error, namespace, name },
+        'Failed to delete Service'
+      )
+      throw new errors.FailedToDeleteService(error)
+    }
+
+    return body.json()
+  }
+
   async setPodLabels (podId, namespace, labels, ctx) {
     ctx.logger.info('Setting pod labels')
 

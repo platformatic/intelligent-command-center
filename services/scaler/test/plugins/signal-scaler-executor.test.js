@@ -342,6 +342,46 @@ test('concurrent processSignals calls should be handled correctly', async (t) =>
   assert.strictEqual(alerts.length, 2, 'Should create alerts from both concurrent calls')
 })
 
+test('processSignals should not scale when controller has scalingDisabled', async (t) => {
+  const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
+
+  app.isScalerLeader = () => true
+
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const podId = 'test-pod-1'
+  const runtimeId = randomUUID()
+  const controllerData = createTestController(applicationId, 2)
+  controllerData.deploymentId = deploymentId
+  controllerData.scalingDisabled = true
+
+  await app.platformatic.entities.controller.save({
+    input: controllerData
+  })
+
+  await app.signalScalerExecutor.initialize()
+  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+
+  const signals = {
+    'service-1': createMetricsSamples(5, 0.9, 100)
+  }
+
+  await app.signalScalerExecutor.processSignals({
+    applicationId,
+    podId,
+    runtimeId,
+    deploymentId,
+    signals,
+    batchStartedAt: Date.now()
+  })
+
+  // Verify no scale events were created — scaling is disabled
+  const scaleEvents = await app.platformatic.entities.scaleEvent.find({
+    where: { applicationId: { eq: applicationId } }
+  })
+  assert.strictEqual(scaleEvents.length, 0)
+})
+
 test('non-leader should not trigger scaling but should forward to leader', async (t) => {
   const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
 

@@ -1369,7 +1369,8 @@ test('should create HTTPRoute with default rule only for first version', async (
   }])
   assert.strictEqual(defaultRule.backendRefs[0].name, 'my-versioned-app-v1.2.3')
   assert.strictEqual(defaultRule.backendRefs[0].port, 3042)
-  assert.ok(defaultRule.filters[0].responseHeaderModifier.add[0].value.includes('__plt_dpl=v1.2.3'))
+  assert.strictEqual(defaultRule.filters[0].type, 'URLRewrite')
+  assert.ok(defaultRule.filters[1].responseHeaderModifier.add[0].value.includes('__plt_dpl=v1.2.3'))
 
   // No hostnames (no plt.dev/hostname label)
   assert.strictEqual(httpRoute.spec.hostnames, undefined)

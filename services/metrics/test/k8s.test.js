@@ -2,7 +2,7 @@
 
 const { test } = require('node:test')
 const assert = require('node:assert')
-const { startMetrics, startPrometheusK8s, getControlPlane } = require('./helper')
+const { startMetrics, startPrometheusK8s, startPrometheusVersionRPS, getControlPlane } = require('./helper')
 
 test('k8s metrics per infrastructure', async (t) => {
   const envOverride = { PLT_METRICS_PROMETHEUS_URL: 'http://localhost:4005/prometheus' }
@@ -79,4 +79,40 @@ test('requests per second per application', async (t) => {
     rps: 50.11
   }
   assert.deepEqual(metrics, expected)
+})
+
+test('request per second for a specific app version', async (t) => {
+  await startPrometheusVersionRPS(t, 'my-app', 'v1', 42.5)
+  const server = await startMetrics(t)
+  const res = await server.inject({
+    method: 'GET',
+    url: '/kubernetes/versions/my-app/v1/rps?window=30m'
+  })
+  assert.equal(res.statusCode, 200)
+  const metrics = res.json()
+  assert.deepEqual(metrics, { rps: 42.5 })
+})
+
+test('request per second for a version with no traffic', async (t) => {
+  await startPrometheusVersionRPS(t, 'my-app', 'v1', 0)
+  const server = await startMetrics(t)
+  const res = await server.inject({
+    method: 'GET',
+    url: '/kubernetes/versions/my-app/v1/rps?window=30m'
+  })
+  assert.equal(res.statusCode, 200)
+  const metrics = res.json()
+  assert.deepEqual(metrics, { rps: 0 })
+})
+
+test('request per second for a version with custom window', async (t) => {
+  await startPrometheusVersionRPS(t, 'my-app', 'v2', 10.5)
+  const server = await startMetrics(t)
+  const res = await server.inject({
+    method: 'GET',
+    url: '/kubernetes/versions/my-app/v2/rps?window=24h'
+  })
+  assert.equal(res.statusCode, 200)
+  const metrics = res.json()
+  assert.deepEqual(metrics, { rps: 10.5 })
 })

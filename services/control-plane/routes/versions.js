@@ -135,23 +135,7 @@ module.exports = async function (app) {
         throw new errors.VersionNotDraining(versionLabel, version.status)
       }
 
-      const result = await app.expireVersion(version.appLabel, versionLabel, ctx)
-
-      if (result.expired && app.applyHTTPRoute) {
-        // Find active version for routing fields
-        const activeVersionRecord = versions.find(v => v.status === 'active')
-        if (activeVersionRecord) {
-          await app.applyHTTPRoute({
-            appName: activeVersionRecord.appLabel,
-            namespace: activeVersionRecord.namespace,
-            pathPrefix: activeVersionRecord.pathPrefix,
-            hostname: activeVersionRecord.hostname || null,
-            productionVersion: result.activeVersion,
-            drainingVersions: result.drainingVersions
-          }, ctx)
-        }
-      }
-
+      const result = await app.expireAndCleanup(version, ctx)
       return result
     }
   })

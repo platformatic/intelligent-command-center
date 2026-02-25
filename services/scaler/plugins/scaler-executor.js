@@ -203,6 +203,11 @@ class ScalerExecutor {
         podsMetrics = partitioned
       }
 
+      if (targetController?.scalingDisabled) {
+        this.app.log.info({ applicationId, podId }, 'Scaling disabled for this controller, skipping')
+        return { success: true, podId, applicationId, timestamp: Date.now(), nfinal: 0, reason: 'Scaling disabled' }
+      }
+
       const { result, scaled } = await this.#calculateAndApplyScaling(
         applicationId,
         podsMetrics,
@@ -300,6 +305,10 @@ class ScalerExecutor {
 
           for (const ctrl of controllers) {
             try {
+              if (ctrl.scalingDisabled) {
+                continue
+              }
+
               const partitioned = controllers.length > 1
                 ? await this.#partitionMetricsByController(ctrl, podsMetrics)
                 : podsMetrics

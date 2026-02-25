@@ -67,6 +67,24 @@ function buildApp (opts = {}) {
         return routeOpts
       })
     }
+
+    app.decorate('expireAndCleanup', async (version, ctx) => {
+      const result = await app.expireVersion(version.appLabel, version.versionLabel, ctx)
+      if (!result.expired) return result
+
+      if (app.applyHTTPRoute && result.activeVersion) {
+        await app.applyHTTPRoute({
+          appName: version.appLabel,
+          namespace: version.namespace,
+          pathPrefix: version.pathPrefix,
+          hostname: version.hostname || null,
+          productionVersion: result.activeVersion,
+          drainingVersions: result.drainingVersions
+        }, ctx)
+      }
+
+      return result
+    })
   }, { name: 'mocks' }))
 
   app.register(versionsRoute)

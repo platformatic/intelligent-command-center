@@ -53,7 +53,12 @@ const schema = {
     PLT_FEATURE_CACHE: { type: 'boolean', default: false },
     PLT_FEATURE_CACHE_RECOMMENDATIONS: { type: 'boolean', default: false },
     PLT_FEATURE_SKEW_PROTECTION: { type: 'boolean', default: false },
-    PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1', enum: ['v1', 'v2'] }
+    PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1', enum: ['v1', 'v2'] },
+    PLT_SKEW_GRACE_PERIOD_MS: { type: 'number', default: 86400000 },
+    PLT_SKEW_CHECK_INTERVAL_MS: { type: 'number', default: 60000 },
+    PLT_SKEW_TRAFFIC_WINDOW_MS: { type: 'number', default: 1800000 },
+    PLT_SKEW_COOKIE_MAX_AGE: { type: 'number', default: 43200 },
+    PLT_SKEW_AUTO_CLEANUP: { type: 'boolean', default: false }
   }
 }
 

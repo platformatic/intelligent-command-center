@@ -13,9 +13,9 @@ CREATE TABLE version_registry (
   path_prefix VARCHAR(255) NOT NULL DEFAULT '/',
   hostname VARCHAR(255),
   status version_status NOT NULL DEFAULT 'active',
+  drained_at TIMESTAMP,
   expired_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
   CONSTRAINT version_registry_unique UNIQUE (app_label, version_label)
 );
 

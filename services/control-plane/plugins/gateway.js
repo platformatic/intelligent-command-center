@@ -58,7 +58,8 @@ module.exports = fp(async function (app) {
       hostname: opts.hostname || null,
       gateway: gw,
       productionVersion: opts.productionVersion,
-      drainingVersions: opts.drainingVersions || []
+      drainingVersions: opts.drainingVersions || [],
+      cookieMaxAge: app.env.PLT_SKEW_COOKIE_MAX_AGE
     })
 
     ctx.logger.info({

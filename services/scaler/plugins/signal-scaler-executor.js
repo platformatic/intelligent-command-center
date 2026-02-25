@@ -123,6 +123,16 @@ class SignalScalerExecutor {
     await this.predictor.onDisconnect(appId, runtimeId, timestamp)
   }
 
+  async #isScalingDisabled (applicationId) {
+    try {
+      const controller = await this.app.getApplicationController(applicationId)
+      return controller?.scalingDisabled === true
+    } catch (err) {
+      this.app.log.warn({ err, applicationId }, 'Failed to check scaling disabled state')
+      return false
+    }
+  }
+
   async processSignals ({ applicationId, podId, runtimeId, deploymentId, signals, batchStartedAt }) {
     await this.predictor.saveInstanceMetrics({
       applicationId,
@@ -132,6 +142,11 @@ class SignalScalerExecutor {
       services: signals,
       batchStartedAt
     })
+
+    if (await this.#isScalingDisabled(applicationId)) {
+      this.app.log.info({ applicationId }, 'Scaling disabled for this controller, skipping')
+      return { alerts: [] }
+    }
 
     const isLeader = this.app.isScalerLeader ? this.app.isScalerLeader() : false
     if (isLeader) {
@@ -194,6 +209,10 @@ class SignalScalerExecutor {
   }
 
   async checkScalingOnSignals ({ applicationId } = {}) {
+    if (await this.#isScalingDisabled(applicationId)) {
+      this.app.log.info({ applicationId }, 'Scaling disabled for this controller, skipping')
+      return { success: true, timestamp: Date.now() }
+    }
     await this.predictor.checkScaling(applicationId)
     return { success: true, timestamp: Date.now() }
   }
