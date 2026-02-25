@@ -551,3 +551,29 @@ test('should store APPLICATION_RESOURCES_UPDATE event', async (t) => {
     assert.equal(payload.description, 'updated "test-application-1" application resources')
   }
 })
+
+test('should store VERSION_REGISTRY_UPDATE event', async (t) => {
+  const server = await startActivities(t)
+  const applicationId = randomUUID()
+
+  const res = await server.inject({
+    method: 'POST',
+    url: '/events',
+    body: {
+      type: 'VERSION_REGISTRY_UPDATE',
+      applicationId,
+      data: {
+        versionLabel: 'v1.2.3',
+        status: 'active'
+      }
+    }
+  })
+  const payload = res.json()
+  assert.equal(res.statusCode, 200)
+  assert.ok(payload.id)
+  assert.equal(payload.event, 'VERSION_REGISTRY_UPDATE')
+  assert.equal(payload.applicationId, applicationId)
+  assert.equal(payload.success, true)
+  assert.deepEqual(payload.data, { versionLabel: 'v1.2.3', status: 'active' })
+  assert.equal(payload.description, 'Version v1.2.3 marked as active')
+})

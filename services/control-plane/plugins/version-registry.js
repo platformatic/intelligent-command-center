@@ -67,6 +67,11 @@ module.exports = fp(async function (app) {
       }
     })
 
+    if (app.sendVersionRegistryActivity && ctx.req?.activities) {
+      await app.sendVersionRegistryActivity(opts.applicationId, opts.versionLabel, 'active', ctx)
+        .catch((err) => ctx.logger.error({ err }, 'Failed to send version registry activity'))
+    }
+
     ctx.logger.info({
       appLabel: opts.appLabel,
       versionLabel: opts.versionLabel
@@ -85,6 +90,10 @@ module.exports = fp(async function (app) {
       await entities.versionRegistry.save({
         input: { id: v.id, status: 'draining', drainedAt: new Date().toISOString() }
       })
+      if (app.sendVersionRegistryActivity && ctx.req?.activities) {
+        await app.sendVersionRegistryActivity(v.applicationId, v.versionLabel, 'draining', ctx)
+          .catch((err) => ctx.logger.error({ err }, 'Failed to send version registry activity'))
+      }
       ctx.logger.info({
         appLabel: opts.appLabel,
         versionLabel: v.versionLabel
@@ -132,6 +141,11 @@ module.exports = fp(async function (app) {
     await entities.versionRegistry.save({
       input: { id: version.id, status: 'expired', expiredAt: new Date().toISOString() }
     })
+
+    if (app.sendVersionRegistryActivity && ctx.req?.activities) {
+      await app.sendVersionRegistryActivity(version.applicationId, versionLabel, 'expired', ctx)
+        .catch((err) => ctx.logger.error({ err }, 'Failed to send version registry activity'))
+    }
 
     ctx.logger.info({ appLabel, versionLabel }, 'expired version')
 

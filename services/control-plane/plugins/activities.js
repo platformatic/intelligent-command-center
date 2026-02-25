@@ -91,6 +91,20 @@ module.exports = fp(async function (app) {
     }, err, ctx)
   })
 
+  app.decorate('sendVersionRegistryActivity', async (
+    applicationId,
+    versionLabel,
+    status,
+    ctx
+  ) => {
+    await sendSuccessActivity({
+      type: 'VERSION_REGISTRY_UPDATE',
+      applicationId,
+      data: { versionLabel, status },
+      targetId: applicationId
+    }, ctx)
+  })
+
   function sendSuccessActivity (activity, ctx) {
     const userId = ctx.req.user?.id
     const username = ctx.req.user?.username

@@ -20,6 +20,7 @@ test('should get activities\' types', async (t) => {
     APPLICATION_RESOURCES_UPDATE: 'Application Resources Update',
     SCALED_UP: 'Application Scaled Up',
     SCALED_DOWN: 'Application Scaled Down',
-    CONFIG_UPDATE: 'Application Configuration Update'
+    CONFIG_UPDATE: 'Application Configuration Update',
+    VERSION_REGISTRY_UPDATE: 'Version Registry Update'
   })
 })

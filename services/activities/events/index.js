@@ -8,6 +8,7 @@ const updateApplicationResources = require('./update-application-resources-event
 const scaleUpEvent = require('./scale-up-event')
 const scaleDownEvent = require('./scale-down-event')
 const configUpdateEvent = require('./config-update-event')
+const versionRegistryEvent = require('./version-registry-event')
 
 module.exports.getPayloadForEventType = function (type, data) {
   let payload = {}
@@ -64,6 +65,13 @@ module.exports.getPayloadForEventType = function (type, data) {
         data.data.source
       )
       break
+    case 'VERSION_REGISTRY_UPDATE':
+      payload = versionRegistryEvent(
+        data.applicationId,
+        data.data.versionLabel,
+        data.data.status
+      )
+      break
 
     default:
       throw new UnknownEventTypeError(type)
@@ -82,6 +90,7 @@ module.exports.getTypes = function () {
     APPLICATION_RESOURCES_UPDATE: 'Application Resources Update',
     SCALED_UP: 'Application Scaled Up',
     SCALED_DOWN: 'Application Scaled Down',
-    CONFIG_UPDATE: 'Application Configuration Update'
+    CONFIG_UPDATE: 'Application Configuration Update',
+    VERSION_REGISTRY_UPDATE: 'Version Registry Update'
   }
 }
