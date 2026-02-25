@@ -18,6 +18,8 @@ function buildApp (enabled = true) {
 
   app.register(fp(async (app) => {
     app.decorate('platformatic', {
+      db: { tx: async (fn) => fn({ query: async () => {} }) },
+      sql: () => {},
       entities: {
         versionRegistry: {
           find: async ({ where }) => {

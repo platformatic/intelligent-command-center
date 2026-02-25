@@ -76,7 +76,7 @@ function buildHTTPRoute ({
         responseHeaderModifier: {
           add: [{
             name: 'Set-Cookie',
-            value: `${COOKIE_NAME}=${productionVersion.versionId}; HttpOnly; Secure; SameSite=Strict; Max-Age=${cookieMaxAge}`
+            value: `${COOKIE_NAME}=${productionVersion.versionId}; Path=${pathPrefix}; HttpOnly; Secure; SameSite=Lax; Max-Age=${cookieMaxAge}`
           }]
         }
       }

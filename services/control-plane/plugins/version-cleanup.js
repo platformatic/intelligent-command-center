@@ -22,7 +22,7 @@ module.exports = fp(async function (app) {
   const enabled = app.env.PLT_FEATURE_SKEW_PROTECTION
   if (!enabled) return
 
-  const scalerUrl = app.iccServicesUrls.scaler
+  const scalerUrl = app.env.PLT_SCALER_URL
   const autoCleanup = app.env.PLT_SKEW_AUTO_CLEANUP
 
   app.decorate('disableScaling', async (namespace, k8sDeploymentName) => {

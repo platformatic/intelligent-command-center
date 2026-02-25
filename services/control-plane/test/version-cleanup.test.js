@@ -23,18 +23,15 @@ function buildApp (opts = {}) {
   app.register(fp(async (app) => {
     app.decorate('env', {
       PLT_FEATURE_SKEW_PROTECTION: 'true',
-      PLT_SKEW_AUTO_CLEANUP: !!opts.autoCleanup
+      PLT_SKEW_AUTO_CLEANUP: !!opts.autoCleanup,
+      PLT_SCALER_URL: 'http://localhost:0'
     })
   }, { name: 'env' }))
 
   app.register(fp(async (app) => {
-    app.decorate('iccServicesUrls', {
-      scaler: 'http://localhost:0'
-    })
-  }, { name: 'icc-services-urls', dependencies: ['env'] }))
-
-  app.register(fp(async (app) => {
     app.decorate('platformatic', {
+      db: { tx: async (fn) => fn({ query: async () => {} }) },
+      sql: () => {},
       entities: {
         versionRegistry: {
           find: async ({ where }) => {

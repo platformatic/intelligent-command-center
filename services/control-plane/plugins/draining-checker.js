@@ -12,7 +12,7 @@ module.exports = fp(async function (app) {
   const gracePeriodMs = app.env.PLT_SKEW_GRACE_PERIOD_MS
   const checkIntervalMs = app.env.PLT_SKEW_CHECK_INTERVAL_MS
   const trafficWindowMs = app.env.PLT_SKEW_TRAFFIC_WINDOW_MS
-  const metricsUrl = app.iccServicesUrls.metrics
+  const metricsUrl = app.env.PLT_METRICS_URL
 
   let controller = null
   let isServerClosed = false
@@ -70,6 +70,13 @@ module.exports = fp(async function (app) {
         }
         continue
       }
+
+      // Don't check RPS until the version has been draining longer than the
+      // traffic window. The Prometheus query covers `trafficWindowMs` — if the
+      // version was drained more recently than that, the metric will include
+      // traffic from before the drain and a zero result is misleading.
+      const drainAge = now - drainedAt
+      if (drainAge < trafficWindowMs) continue
 
       const rps = await getVersionRPS(version.appLabel, version.versionLabel)
       if (rps === null) continue

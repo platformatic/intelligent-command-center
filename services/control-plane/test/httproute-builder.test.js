@@ -62,7 +62,7 @@ test('should build HTTPRoute with production version only', async () => {
   assert.strictEqual(defaultRule.filters[1].type, 'ResponseHeaderModifier')
   assert.deepStrictEqual(defaultRule.filters[1].responseHeaderModifier.add, [{
     name: 'Set-Cookie',
-    value: '__plt_dpl=v2.0.0-prod; HttpOnly; Secure; SameSite=Strict; Max-Age=43200'
+    value: '__plt_dpl=v2.0.0-prod; Path=/myapp; HttpOnly; Secure; SameSite=Lax; Max-Age=43200'
   }])
 })
 
@@ -222,7 +222,8 @@ test('should set correct Set-Cookie attributes on production rule', async () => 
   assert.ok(setCookie.value.includes('__plt_dpl=v2.0.0-prod'))
   assert.ok(setCookie.value.includes('HttpOnly'))
   assert.ok(setCookie.value.includes('Secure'))
-  assert.ok(setCookie.value.includes('SameSite=Strict'))
+  assert.ok(setCookie.value.includes('SameSite=Lax'))
+  assert.ok(setCookie.value.includes('Path=/myapp'))
   assert.ok(setCookie.value.includes('Max-Age=43200'))
 })
 

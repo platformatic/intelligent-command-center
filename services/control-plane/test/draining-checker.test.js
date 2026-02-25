@@ -56,13 +56,16 @@ function buildApp (opts = {}) {
       PLT_SKEW_GRACE_PERIOD_MS: gracePeriodMs,
       PLT_SKEW_CHECK_INTERVAL_MS: checkIntervalMs,
       PLT_SKEW_TRAFFIC_WINDOW_MS: trafficWindowMs,
-      PLT_SKEW_AUTO_CLEANUP: false
+      PLT_SKEW_AUTO_CLEANUP: false,
+      PLT_METRICS_URL: metricsUrl,
+      PLT_SCALER_URL: 'http://localhost:0'
     })
-    app.decorate('iccServicesUrls', { metrics: metricsUrl, scaler: 'http://localhost:0' })
   }, { name: 'env' }))
 
   app.register(fp(async (app) => {
     app.decorate('platformatic', {
+      db: { tx: async (fn) => fn({ query: async () => {} }) },
+      sql: () => {},
       entities: {
         versionRegistry: {
           find: async ({ where }) => {
@@ -173,6 +176,9 @@ test('should expire draining versions with zero RPS from metrics', async (t) => 
   }, mockCtx)
 
   assert.strictEqual(store[0].status, 'draining')
+
+  // Backdate drainedAt past the traffic window so the RPS check kicks in
+  store[0].drainedAt = new Date(Date.now() - 2000000).toISOString()
 
   await setTimeout(150)
 
@@ -299,6 +305,10 @@ test('should handle multiple apps independently', async (t) => {
     k8SDeploymentName: 'other-app-v2',
     serviceName: 'other-app-v2-svc'
   }, mockCtx)
+
+  // Backdate drainedAt past the traffic window so the RPS check kicks in
+  store[0].drainedAt = new Date(Date.now() - 2000000).toISOString()
+  store[2].drainedAt = new Date(Date.now() - 2000000).toISOString()
 
   await setTimeout(150)
 

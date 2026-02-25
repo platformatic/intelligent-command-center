@@ -58,7 +58,9 @@ const schema = {
     PLT_SKEW_CHECK_INTERVAL_MS: { type: 'number', default: 60000 },
     PLT_SKEW_TRAFFIC_WINDOW_MS: { type: 'number', default: 1800000 },
     PLT_SKEW_COOKIE_MAX_AGE: { type: 'number', default: 43200 },
-    PLT_SKEW_AUTO_CLEANUP: { type: 'boolean', default: false }
+    PLT_SKEW_AUTO_CLEANUP: { type: 'boolean', default: false },
+    PLT_METRICS_URL: { type: 'string', default: 'http://metrics.plt.local' },
+    PLT_SCALER_URL: { type: 'string', default: 'http://scaler.plt.local' }
   }
 }
 

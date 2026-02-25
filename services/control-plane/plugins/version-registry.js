@@ -13,6 +13,10 @@ module.exports = fp(async function (app) {
    * - If the version does not exist, inserts it as `active` and marks all other
    *   active versions for the same app as `draining`.
    * - If the version already exists (any status), does nothing.
+   * - Serialized per app label via pg_advisory_xact_lock to prevent a race
+   *   condition where two concurrent registrations (e.g. v1 and v2 pods starting
+   *   at the same time) both insert as active and then each marks the other as
+   *   draining, leaving zero active versions.
    *
    * @param {object} opts
    * @param {string} opts.applicationId
@@ -29,81 +33,93 @@ module.exports = fp(async function (app) {
    * @returns {{ isNew: boolean, activeVersion: object|null, drainingVersions: Array }}
    */
   app.decorate('registerVersion', async (opts, ctx) => {
-    const { entities } = app.platformatic
+    const { entities, db, sql } = app.platformatic
 
-    const existing = await entities.versionRegistry.find({
-      where: {
-        appLabel: { eq: opts.appLabel },
-        versionLabel: { eq: opts.versionLabel }
-      }
-    })
+    return db.tx(async (tx) => {
+      // Acquire a per-app advisory lock so concurrent registrations for the
+      // same app are serialized. Different apps use different lock keys and
+      // do not block each other. The lock is released when the transaction
+      // commits, so there is no deadlock risk (we never hold two locks).
+      await tx.query(sql`SELECT pg_advisory_xact_lock(hashtext(${opts.appLabel}))`)
 
-    if (existing.length > 0) {
-      ctx.logger.debug({
-        appLabel: opts.appLabel,
-        versionLabel: opts.versionLabel,
-        status: existing[0].status
-      }, 'version already registered')
-
-      return {
-        isNew: false,
-        ...(await getVersionState(opts.appLabel))
-      }
-    }
-
-    await entities.versionRegistry.save({
-      input: {
-        applicationId: opts.applicationId,
-        deploymentId: opts.deploymentId,
-        appLabel: opts.appLabel,
-        versionLabel: opts.versionLabel,
-        k8SDeploymentName: opts.k8SDeploymentName,
-        serviceName: opts.serviceName,
-        servicePort: opts.servicePort,
-        namespace: opts.namespace,
-        pathPrefix: opts.pathPrefix,
-        hostname: opts.hostname,
-        status: 'active'
-      }
-    })
-
-    if (app.sendVersionRegistryActivity && ctx.req?.activities) {
-      await app.sendVersionRegistryActivity(opts.applicationId, opts.versionLabel, 'active', ctx)
-        .catch((err) => ctx.logger.error({ err }, 'Failed to send version registry activity'))
-    }
-
-    ctx.logger.info({
-      appLabel: opts.appLabel,
-      versionLabel: opts.versionLabel
-    }, 'registered new version as active')
-
-    // Mark all other active versions for this app as draining
-    const otherActive = await entities.versionRegistry.find({
-      where: {
-        appLabel: { eq: opts.appLabel },
-        versionLabel: { neq: opts.versionLabel },
-        status: { eq: 'active' }
-      }
-    })
-
-    for (const v of otherActive) {
-      await entities.versionRegistry.save({
-        input: { id: v.id, status: 'draining', drainedAt: new Date().toISOString() }
+      const existing = await entities.versionRegistry.find({
+        where: {
+          appLabel: { eq: opts.appLabel },
+          versionLabel: { eq: opts.versionLabel }
+        },
+        tx
       })
+
+      if (existing.length > 0) {
+        ctx.logger.debug({
+          appLabel: opts.appLabel,
+          versionLabel: opts.versionLabel,
+          status: existing[0].status
+        }, 'version already registered')
+
+        return {
+          isNew: false,
+          ...(await getVersionState(opts.appLabel, tx))
+        }
+      }
+
+      await entities.versionRegistry.save({
+        input: {
+          applicationId: opts.applicationId,
+          deploymentId: opts.deploymentId,
+          appLabel: opts.appLabel,
+          versionLabel: opts.versionLabel,
+          k8SDeploymentName: opts.k8SDeploymentName,
+          serviceName: opts.serviceName,
+          servicePort: opts.servicePort,
+          namespace: opts.namespace,
+          pathPrefix: opts.pathPrefix,
+          hostname: opts.hostname,
+          status: 'active'
+        },
+        tx
+      })
+
       if (app.sendVersionRegistryActivity && ctx.req?.activities) {
-        await app.sendVersionRegistryActivity(v.applicationId, v.versionLabel, 'draining', ctx)
+        await app.sendVersionRegistryActivity(opts.applicationId, opts.versionLabel, 'active', ctx)
           .catch((err) => ctx.logger.error({ err }, 'Failed to send version registry activity'))
       }
+
       ctx.logger.info({
         appLabel: opts.appLabel,
-        versionLabel: v.versionLabel
-      }, 'marked version as draining')
-    }
+        versionLabel: opts.versionLabel
+      }, 'registered new version as active')
 
-    return {
-      isNew: true,
-      ...(await getVersionState(opts.appLabel))
-    }
+      // Mark all other active versions for this app as draining
+      const otherActive = await entities.versionRegistry.find({
+        where: {
+          appLabel: { eq: opts.appLabel },
+          versionLabel: { neq: opts.versionLabel },
+          status: { eq: 'active' }
+        },
+        tx
+      })
+
+      for (const v of otherActive) {
+        await entities.versionRegistry.save({
+          input: { id: v.id, status: 'draining', drainedAt: new Date().toISOString() },
+          tx
+        })
+        if (app.sendVersionRegistryActivity && ctx.req?.activities) {
+          await app.sendVersionRegistryActivity(v.applicationId, v.versionLabel, 'draining', ctx)
+            .catch((err) => ctx.logger.error({ err }, 'Failed to send version registry activity'))
+        }
+        ctx.logger.info({
+          appLabel: opts.appLabel,
+          versionLabel: v.versionLabel
+        }, 'marked version as draining')
+      }
+
+      return {
+        isNew: true,
+        ...(await getVersionState(opts.appLabel, tx))
+      }
+    })
   })
 
   /**
@@ -161,14 +177,15 @@ module.exports = fp(async function (app) {
     return entities.versionRegistry.find({ where })
   })
 
-  async function getVersionState (appLabel) {
+  async function getVersionState (appLabel, tx) {
     const { entities } = app.platformatic
 
     const versions = await entities.versionRegistry.find({
       where: {
         appLabel: { eq: appLabel },
         status: { in: ['active', 'draining'] }
-      }
+      },
+      tx
     })
 
     let activeVersion = null
