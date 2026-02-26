@@ -125,10 +125,19 @@ module.exports = fp(async function (app) {
     }
   }
 
-  app.addHook('onReady', async () => {
+  app.onBecomeLeader(async () => {
     if (isServerClosed) return
     controller = new AbortController()
+    app.log.info('leader acquired — starting draining version checker')
     scheduleCheck()
+  })
+
+  app.onLoseLeadership(async () => {
+    if (controller) {
+      controller.abort()
+      controller = null
+      app.log.info('leadership lost — stopped draining version checker')
+    }
   })
 
   app.addHook('onClose', async () => {
@@ -141,5 +150,5 @@ module.exports = fp(async function (app) {
   })
 }, {
   name: 'draining-checker',
-  dependencies: ['env', 'version-registry', 'version-cleanup']
+  dependencies: ['env', 'leader', 'version-registry', 'version-cleanup']
 })

@@ -22,6 +22,28 @@ function buildApp (opts = {}) {
   return app
 }
 
+test('onBecomeLeader and onLoseLeadership are decorated', async (t) => {
+  process.env.PLT_CONTROL_PLANE_LEADER_POLL = '200'
+  t.after(() => { delete process.env.PLT_CONTROL_PLANE_LEADER_POLL })
+
+  const pool = createConnectionPool({
+    connectionString,
+    bigIntMode: 'bigint'
+  })
+
+  const app = buildApp({ platformatic: { db: pool } })
+  await app.ready()
+  t.after(async () => {
+    await app.close()
+    await pool.dispose()
+  })
+
+  assert.strictEqual(app.hasDecorator('onBecomeLeader'), true)
+  assert.strictEqual(app.hasDecorator('onLoseLeadership'), true)
+  assert.strictEqual(typeof app.onBecomeLeader, 'function')
+  assert.strictEqual(typeof app.onLoseLeadership, 'function')
+})
+
 test('isControlPlaneLeader is decorated and returns false initially', async (t) => {
   process.env.PLT_CONTROL_PLANE_LEADER_POLL = '200'
   t.after(() => { delete process.env.PLT_CONTROL_PLANE_LEADER_POLL })

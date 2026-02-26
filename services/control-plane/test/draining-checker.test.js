@@ -50,6 +50,9 @@ function buildApp (opts = {}) {
   const trafficWindowMs = opts.trafficWindowMs || 1800000
   const metricsUrl = opts.metricsUrl || ''
 
+  const leaderCallbacks = []
+  const loseLeaderCallbacks = []
+
   app.register(fp(async (app) => {
     app.decorate('env', {
       PLT_FEATURE_SKEW_PROTECTION: 'true',
@@ -61,6 +64,15 @@ function buildApp (opts = {}) {
       PLT_SCALER_URL: 'http://localhost:0'
     })
   }, { name: 'env' }))
+
+  app.register(fp(async (app) => {
+    app.decorate('onBecomeLeader', function (fn) {
+      leaderCallbacks.push(fn)
+    })
+    app.decorate('onLoseLeadership', function (fn) {
+      loseLeaderCallbacks.push(fn)
+    })
+  }, { name: 'leader', dependencies: ['env'] }))
 
   app.register(fp(async (app) => {
     app.decorate('platformatic', {
@@ -128,7 +140,21 @@ function buildApp (opts = {}) {
     }
   })
 
-  return { app, store, calls }
+  return {
+    app,
+    store,
+    calls,
+    triggerLeader: async () => {
+      for (const fn of leaderCallbacks) {
+        await fn()
+      }
+    },
+    triggerLoseLeadership: async () => {
+      for (const fn of loseLeaderCallbacks) {
+        await fn()
+      }
+    }
+  }
 }
 
 const mockCtx = {
@@ -158,7 +184,7 @@ test('should expire draining versions with zero RPS from metrics', async (t) => 
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
-  const { app, store, calls } = buildApp({
+  const { app, store, calls, triggerLeader } = buildApp({
     maxVersionAgeMs: 999999999,
     checkIntervalMs: 30,
     metricsUrl: url
@@ -180,6 +206,7 @@ test('should expire draining versions with zero RPS from metrics', async (t) => 
   // Backdate drainedAt past the traffic window so the RPS check kicks in
   store[0].drainedAt = new Date(Date.now() - 2000000).toISOString()
 
+  await triggerLeader()
   await setTimeout(150)
 
   assert.strictEqual(store[0].status, 'expired')
@@ -191,7 +218,7 @@ test('should expire versions past grace period regardless of traffic', async (t)
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
-  const { app, store, calls } = buildApp({
+  const { app, store, calls, triggerLeader } = buildApp({
     gracePeriodMs: 50,
     checkIntervalMs: 30,
     metricsUrl: url
@@ -210,6 +237,7 @@ test('should expire versions past grace period regardless of traffic', async (t)
 
   store[0].drainedAt = new Date(Date.now() - 200).toISOString()
 
+  await triggerLeader()
   await setTimeout(150)
 
   assert.strictEqual(store[0].status, 'expired')
@@ -221,7 +249,7 @@ test('should not expire draining versions that still have traffic', async (t) =>
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
-  const { app, store } = buildApp({
+  const { app, store, triggerLeader } = buildApp({
     maxVersionAgeMs: 999999999,
     checkIntervalMs: 30,
     metricsUrl: url
@@ -238,6 +266,7 @@ test('should not expire draining versions that still have traffic', async (t) =>
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
+  await triggerLeader()
   await setTimeout(100)
 
   assert.strictEqual(store[0].status, 'draining')
@@ -248,7 +277,7 @@ test('should never touch active versions', async (t) => {
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
-  const { app, store } = buildApp({
+  const { app, store, triggerLeader } = buildApp({
     gracePeriodMs: 1,
     checkIntervalMs: 30,
     metricsUrl: url
@@ -259,6 +288,7 @@ test('should never touch active versions', async (t) => {
   await app.registerVersion(baseOpts, mockCtx)
   store[0].createdAt = new Date(Date.now() - 10000).toISOString()
 
+  await triggerLeader()
   await setTimeout(100)
 
   assert.strictEqual(store[0].status, 'active')
@@ -272,7 +302,7 @@ test('should handle multiple apps independently', async (t) => {
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
-  const { app, store } = buildApp({
+  const { app, store, triggerLeader } = buildApp({
     maxVersionAgeMs: 999999999,
     checkIntervalMs: 30,
     metricsUrl: url
@@ -310,8 +340,73 @@ test('should handle multiple apps independently', async (t) => {
   store[0].drainedAt = new Date(Date.now() - 2000000).toISOString()
   store[2].drainedAt = new Date(Date.now() - 2000000).toISOString()
 
+  await triggerLeader()
   await setTimeout(150)
 
   assert.strictEqual(store[0].status, 'expired')
   assert.strictEqual(store[2].status, 'draining')
+})
+
+test('should not run checker when not leader', async (t) => {
+  const rpsMap = { 'my-app:v1': 0 }
+  const { server, url } = await startMockMetrics(rpsMap)
+  t.after(() => server.close())
+
+  const { app, store } = buildApp({
+    gracePeriodMs: 1,
+    checkIntervalMs: 30,
+    metricsUrl: url
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  store[0].drainedAt = new Date(Date.now() - 200).toISOString()
+
+  // Do NOT call triggerLeader — the checker should not run
+  await setTimeout(150)
+
+  assert.strictEqual(store[0].status, 'draining')
+})
+
+test('should stop checker when leadership is lost', async (t) => {
+  const rpsMap = { 'my-app:v1': 0 }
+  const { server, url } = await startMockMetrics(rpsMap)
+  t.after(() => server.close())
+
+  const { app, store, triggerLeader, triggerLoseLeadership } = buildApp({
+    gracePeriodMs: 999999999,
+    checkIntervalMs: 30,
+    metricsUrl: url
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  // Start the checker then immediately lose leadership
+  await triggerLeader()
+  await triggerLoseLeadership()
+
+  // Backdate past grace period — would expire if checker were still running
+  store[0].drainedAt = new Date(Date.now() - 1000000000).toISOString()
+
+  await setTimeout(150)
+
+  assert.strictEqual(store[0].status, 'draining')
 })

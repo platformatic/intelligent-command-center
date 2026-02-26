@@ -9,9 +9,14 @@ async function plugin (app) {
   const { db } = app.platformatic
   let isLeader = false
   const leaderCallbacks = []
+  const loseLeaderCallbacks = []
 
   app.decorate('onBecomeLeader', function (fn) {
     leaderCallbacks.push(fn)
+  })
+
+  app.decorate('onLoseLeadership', function (fn) {
+    loseLeaderCallbacks.push(fn)
   })
 
   const leaderElector = createLeaderElector({
@@ -32,6 +37,10 @@ async function plugin (app) {
         if (isLeader) {
           for (const fn of leaderCallbacks) {
             fn().catch(err => app.log.error({ err }, 'error in leader callback'))
+          }
+        } else {
+          for (const fn of loseLeaderCallbacks) {
+            fn().catch(err => app.log.error({ err }, 'error in lose-leadership callback'))
           }
         }
       }
