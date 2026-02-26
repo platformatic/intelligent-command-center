@@ -8,6 +8,11 @@ async function plugin (app) {
   const poll = Number(process.env.PLT_CONTROL_PLANE_LEADER_POLL) || 10000
   const { db } = app.platformatic
   let isLeader = false
+  const leaderCallbacks = []
+
+  app.decorate('onBecomeLeader', function (fn) {
+    leaderCallbacks.push(fn)
+  })
 
   const leaderElector = createLeaderElector({
     db,
@@ -24,6 +29,11 @@ async function plugin (app) {
       if (newIsLeader !== isLeader) {
         isLeader = newIsLeader
         app.log.info({ isLeader }, 'Control-plane leadership status changed')
+        if (isLeader) {
+          for (const fn of leaderCallbacks) {
+            fn().catch(err => app.log.error({ err }, 'error in leader callback'))
+          }
+        }
       }
     }
   })
