@@ -1,7 +1,7 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const createLeaderElector = require('../lib/leader')
+const createLeaderElector = require('../../../lib/leader')
 
 // Notification channel names
 const CHANNEL_REACTIVE_SCALER = 'trigger_scaler'

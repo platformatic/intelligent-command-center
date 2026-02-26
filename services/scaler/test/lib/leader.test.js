@@ -5,7 +5,7 @@ const assert = require('node:assert')
 const { setUpEnvironment, connectionString } = require('../helper')
 const { setTimeout: sleep } = require('node:timers/promises')
 const pg = require('pg')
-const createLeaderElector = require('../../lib/leader')
+const createLeaderElector = require('../../../../lib/leader')
 const createConnectionPool = require('@databases/pg')
 
 setUpEnvironment()
