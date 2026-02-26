@@ -9,7 +9,6 @@ module.exports = fp(async function (app) {
   const enabled = app.env.PLT_FEATURE_SKEW_PROTECTION
   if (!enabled) return
 
-  const gracePeriodMs = app.env.PLT_SKEW_GRACE_PERIOD_MS
   const checkIntervalMs = app.env.PLT_SKEW_CHECK_INTERVAL_MS
   const trafficWindowMs = app.env.PLT_SKEW_TRAFFIC_WINDOW_MS
   const metricsUrl = app.env.PLT_METRICS_URL
@@ -54,7 +53,8 @@ module.exports = fp(async function (app) {
         ? new Date(version.drainedAt).getTime()
         : new Date(version.createdAt).getTime()
 
-      const gracePeriodExceeded = (now - drainedAt) > gracePeriodMs
+      const policy = await app.resolveSkewPolicy(version.applicationId)
+      const gracePeriodExceeded = (now - drainedAt) > policy.gracePeriodMs
 
       if (gracePeriodExceeded) {
         app.log.info({
@@ -150,5 +150,5 @@ module.exports = fp(async function (app) {
   })
 }, {
   name: 'draining-checker',
-  dependencies: ['env', 'leader', 'version-registry', 'version-cleanup']
+  dependencies: ['env', 'leader', 'version-registry', 'version-cleanup', 'skew-policy']
 })

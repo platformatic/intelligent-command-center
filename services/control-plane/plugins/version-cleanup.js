@@ -23,7 +23,6 @@ module.exports = fp(async function (app) {
   if (!enabled) return
 
   const scalerUrl = app.env.PLT_SCALER_URL
-  const autoCleanup = app.env.PLT_SKEW_AUTO_CLEANUP
 
   app.decorate('disableScaling', async (namespace, k8sDeploymentName) => {
     return setScalingDisabled(scalerUrl, namespace, k8sDeploymentName, true)
@@ -53,7 +52,8 @@ module.exports = fp(async function (app) {
         pathPrefix: version.pathPrefix,
         hostname: version.hostname || null,
         productionVersion: result.activeVersion,
-        drainingVersions: result.drainingVersions
+        drainingVersions: result.drainingVersions,
+        applicationId: version.applicationId
       }, ctx).catch(err => {
         ctx.logger.error({ err }, 'failed to update HTTPRoute after expiring version')
       })
@@ -78,7 +78,8 @@ module.exports = fp(async function (app) {
     })
 
     // Optional: delete the K8s Deployment and Service resources
-    if (autoCleanup) {
+    const policy = await app.resolveSkewPolicy(version.applicationId)
+    if (policy.autoCleanup) {
       await app.machinist.deleteDeployment(version.namespace, version.k8SDeploymentName, ctx)
         .catch(err => {
           ctx.logger.error({ err }, 'failed to delete expired Deployment')
@@ -94,5 +95,5 @@ module.exports = fp(async function (app) {
   })
 }, {
   name: 'version-cleanup',
-  dependencies: ['env', 'version-registry', 'gateway', 'machinist']
+  dependencies: ['env', 'version-registry', 'gateway', 'machinist', 'skew-policy']
 })

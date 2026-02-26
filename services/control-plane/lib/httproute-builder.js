@@ -21,7 +21,8 @@ function buildHTTPRoute ({
   gateway,
   productionVersion,
   drainingVersions = [],
-  cookieMaxAge = DEFAULT_COOKIE_MAX_AGE
+  cookieMaxAge = DEFAULT_COOKIE_MAX_AGE,
+  cookieName = COOKIE_NAME
 }) {
   const pathMatch = { path: { type: 'PathPrefix', value: pathPrefix } }
   const rules = []
@@ -34,7 +35,7 @@ function buildHTTPRoute ({
         headers: [{
           name: 'Cookie',
           type: 'RegularExpression',
-          value: `(^|;\\s*)${COOKIE_NAME}=${version.versionId}(;|$)`
+          value: `(^|;\\s*)${cookieName}=${version.versionId}(;|$)`
         }]
       }],
       filters: [URL_REWRITE_FILTER],
@@ -76,7 +77,7 @@ function buildHTTPRoute ({
         responseHeaderModifier: {
           add: [{
             name: 'Set-Cookie',
-            value: `${COOKIE_NAME}=${productionVersion.versionId}; Path=${pathPrefix}; HttpOnly; Secure; SameSite=Lax; Max-Age=${cookieMaxAge}`
+            value: `${cookieName}=${productionVersion.versionId}; Path=${pathPrefix}; HttpOnly; Secure; SameSite=Lax; Max-Age=${cookieMaxAge}`
           }]
         }
       }

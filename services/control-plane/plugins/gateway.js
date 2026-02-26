@@ -51,6 +51,14 @@ module.exports = fp(async function (app) {
     const gw = await discoverGateway(opts.namespace, ctx)
     if (!gw) return null
 
+    let cookieMaxAge = app.env.PLT_SKEW_COOKIE_MAX_AGE
+    let cookieName
+    if (opts.applicationId && app.resolveSkewPolicy) {
+      const policy = await app.resolveSkewPolicy(opts.applicationId)
+      cookieMaxAge = policy.maxAgeS
+      cookieName = policy.cookieName
+    }
+
     const httpRoute = buildHTTPRoute({
       appName: opts.appName,
       namespace: opts.namespace,
@@ -59,7 +67,8 @@ module.exports = fp(async function (app) {
       gateway: gw,
       productionVersion: opts.productionVersion,
       drainingVersions: opts.drainingVersions || [],
-      cookieMaxAge: app.env.PLT_SKEW_COOKIE_MAX_AGE
+      cookieMaxAge,
+      cookieName
     })
 
     ctx.logger.info({
@@ -88,5 +97,5 @@ module.exports = fp(async function (app) {
   })
 }, {
   name: 'gateway',
-  dependencies: ['env', 'machinist']
+  dependencies: ['env', 'machinist', 'skew-policy']
 })

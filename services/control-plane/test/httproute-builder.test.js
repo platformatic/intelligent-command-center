@@ -246,6 +246,48 @@ test('should include hostnames when hostname is provided', async () => {
   assert.deepStrictEqual(route.spec.hostnames, ['myapp.example.com'])
 })
 
+test('should use custom cookieName in cookie regex and Set-Cookie header', async () => {
+  const route = buildHTTPRoute({
+    ...defaultParams,
+    cookieName: 'my_cookie',
+    drainingVersions: [{
+      versionId: 'v1.0.0-old',
+      serviceName: 'myapp-v1.0.0',
+      port: 3042
+    }]
+  })
+
+  // Cookie match rule should use custom cookie name
+  const cookieRule = route.spec.rules[0]
+  assert.strictEqual(
+    cookieRule.matches[0].headers[0].value,
+    '(^|;\\s*)my_cookie=v1.0.0-old(;|$)'
+  )
+
+  // Set-Cookie header should use custom cookie name
+  const defaultRule = route.spec.rules[2]
+  const setCookie = defaultRule.filters[1].responseHeaderModifier.add[0]
+  assert.ok(setCookie.value.startsWith('my_cookie='))
+})
+
+test('should use default cookieName __plt_dpl when not specified', async () => {
+  const route = buildHTTPRoute({
+    ...defaultParams,
+    drainingVersions: [{
+      versionId: 'v1.0.0-old',
+      serviceName: 'myapp-v1.0.0',
+      port: 3042
+    }]
+  })
+
+  const cookieRule = route.spec.rules[0]
+  assert.ok(cookieRule.matches[0].headers[0].value.includes('__plt_dpl='))
+
+  const defaultRule = route.spec.rules[2]
+  const setCookie = defaultRule.filters[1].responseHeaderModifier.add[0]
+  assert.ok(setCookie.value.startsWith('__plt_dpl='))
+})
+
 test('should use custom pathPrefix on all rules', async () => {
   const route = buildHTTPRoute({
     ...defaultParams,

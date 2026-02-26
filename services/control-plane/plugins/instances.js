@@ -220,7 +220,8 @@ module.exports = fp(async function (app) {
             pathPrefix,
             hostname,
             productionVersion: activeVersion,
-            drainingVersions
+            drainingVersions,
+            applicationId: result.application.id
           }, ctx).catch(err => {
             ctx.logger.error({ err }, 'Failed to apply HTTPRoute')
           })

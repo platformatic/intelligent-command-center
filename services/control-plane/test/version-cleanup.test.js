@@ -6,12 +6,15 @@ const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const versionRegistryPlugin = require('../plugins/version-registry')
 const gatewayPlugin = require('../plugins/gateway')
+const skewPolicyPlugin = require('../plugins/skew-policy')
 const versionCleanupPlugin = require('../plugins/version-cleanup')
 
 function buildApp (opts = {}) {
   const app = fastify({ logger: false })
   const store = []
+  const policyStore = opts.policyStore || []
   let idCounter = 0
+  let policyIdCounter = 0
   const calls = {
     applyHTTPRoute: [],
     updateController: [],
@@ -24,6 +27,8 @@ function buildApp (opts = {}) {
     app.decorate('env', {
       PLT_FEATURE_SKEW_PROTECTION: 'true',
       PLT_SKEW_AUTO_CLEANUP: !!opts.autoCleanup,
+      PLT_SKEW_COOKIE_MAX_AGE: 43200,
+      PLT_SKEW_GRACE_PERIOD_MS: 86400000,
       PLT_SCALER_URL: 'http://localhost:0'
     })
   }, { name: 'env' }))
@@ -54,6 +59,28 @@ function buildApp (opts = {}) {
             }
             const row = { id: String(++idCounter), ...input }
             store.push(row)
+            return row
+          }
+        },
+        skewProtectionPolicy: {
+          find: async ({ where }) => {
+            return policyStore.filter(row => {
+              for (const [key, condition] of Object.entries(where)) {
+                if (condition.eq !== undefined && row[key] !== condition.eq) return false
+              }
+              return true
+            })
+          },
+          save: async ({ input }) => {
+            if (input.id) {
+              const idx = policyStore.findIndex(r => r.id === input.id)
+              if (idx !== -1) {
+                policyStore[idx] = { ...policyStore[idx], ...input }
+                return policyStore[idx]
+              }
+            }
+            const row = { id: String(++policyIdCounter), ...input }
+            policyStore.push(row)
             return row
           }
         }
@@ -89,6 +116,7 @@ function buildApp (opts = {}) {
     })
   }, { name: 'machinist', dependencies: ['env'] }))
 
+  app.register(skewPolicyPlugin)
   app.register(versionRegistryPlugin)
   app.register(gatewayPlugin)
   app.register(versionCleanupPlugin)
@@ -352,5 +380,39 @@ test('expireAndCleanup should still succeed when deleteService fails', async (t)
   assert.strictEqual(result.expired, true)
   assert.strictEqual(calls.deleteDeployment.length, 1)
   // deleteService was called but failed — caught internally
+  assert.strictEqual(calls.deleteService.length, 1)
+})
+
+test('expireAndCleanup should use per-app autoCleanup policy', async (t) => {
+  // Global autoCleanup is false, but per-app policy enables it
+  const policyStore = [{
+    id: 'p1',
+    applicationId: 'app-1',
+    gracePeriodMs: null,
+    maxAgeS: null,
+    maxVersions: null,
+    cookieName: null,
+    autoCleanup: true
+  }]
+
+  const { app, store, calls } = buildApp({ autoCleanup: false, policyStore })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  const version = store[0]
+  const result = await app.expireAndCleanup(version, mockCtx)
+
+  assert.strictEqual(result.expired, true)
+  // Per-app policy enabled autoCleanup, so resources should be deleted
+  assert.strictEqual(calls.deleteDeployment.length, 1)
   assert.strictEqual(calls.deleteService.length, 1)
 })

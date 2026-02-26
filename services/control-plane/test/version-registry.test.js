@@ -5,14 +5,21 @@ const { test } = require('node:test')
 const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const versionRegistryPlugin = require('../plugins/version-registry')
+const skewPolicyPlugin = require('../plugins/skew-policy')
 
-function buildApp (enabled = true) {
+function buildApp (opts = {}) {
+  const enabled = opts.enabled !== false
   const app = fastify({ logger: false })
   const store = []
+  const policyStore = opts.policyStore || []
   let idCounter = 0
+  let policyIdCounter = 0
   app.register(fp(async (app) => {
     app.decorate('env', {
-      PLT_FEATURE_SKEW_PROTECTION: enabled ? 'true' : ''
+      PLT_FEATURE_SKEW_PROTECTION: enabled ? 'true' : '',
+      PLT_SKEW_GRACE_PERIOD_MS: 86400000,
+      PLT_SKEW_COOKIE_MAX_AGE: 43200,
+      PLT_SKEW_AUTO_CLEANUP: false
     })
   }, { name: 'env' }))
 
@@ -40,8 +47,30 @@ function buildApp (enabled = true) {
                 return store[idx]
               }
             }
-            const row = { id: String(++idCounter), ...input }
+            const row = { id: String(++idCounter), createdAt: new Date().toISOString(), ...input }
             store.push(row)
+            return row
+          }
+        },
+        skewProtectionPolicy: {
+          find: async ({ where }) => {
+            return policyStore.filter(row => {
+              for (const [key, condition] of Object.entries(where)) {
+                if (condition.eq !== undefined && row[key] !== condition.eq) return false
+              }
+              return true
+            })
+          },
+          save: async ({ input }) => {
+            if (input.id) {
+              const idx = policyStore.findIndex(r => r.id === input.id)
+              if (idx !== -1) {
+                policyStore[idx] = { ...policyStore[idx], ...input }
+                return policyStore[idx]
+              }
+            }
+            const row = { id: String(++policyIdCounter), ...input }
+            policyStore.push(row)
             return row
           }
         }
@@ -49,6 +78,7 @@ function buildApp (enabled = true) {
     })
   }, { name: 'platformatic-db' }))
 
+  app.register(skewPolicyPlugin)
   app.register(versionRegistryPlugin)
 
   return { app, store }
@@ -77,7 +107,7 @@ const baseOpts = {
 }
 
 test('should not register decorator when feature is disabled', async (t) => {
-  const { app } = buildApp(false)
+  const { app } = buildApp({ enabled: false })
   await app.ready()
   t.after(() => app.close())
 
@@ -270,4 +300,113 @@ test('expireVersion should return expired false for unknown version', async (t) 
   const result = await app.expireVersion('my-app', 'v99', mockCtx)
 
   assert.strictEqual(result.expired, false)
+})
+
+test('maxVersions should auto-expire oldest draining versions when exceeded', async (t) => {
+  const policyStore = [{
+    id: 'p1',
+    applicationId: 'app-1',
+    gracePeriodMs: null,
+    maxAgeS: null,
+    maxVersions: 1,
+    cookieName: null,
+    autoCleanup: null
+  }]
+
+  const { app, store } = buildApp({ policyStore })
+  await app.ready()
+  t.after(() => app.close())
+
+  // Register v1, then v2 (v1 becomes draining), then v3 (v2 becomes draining)
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  const result = await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v3',
+    deploymentId: 'dep-3',
+    k8SDeploymentName: 'my-app-v3',
+    serviceName: 'my-app-v3-svc'
+  }, mockCtx)
+
+  // maxVersions=1 means only 1 draining version allowed
+  // v1 (oldest draining) should be auto-expired, v2 should remain draining
+  assert.strictEqual(store[0].status, 'expired')
+  assert.strictEqual(store[1].status, 'draining')
+  assert.strictEqual(store[2].status, 'active')
+  assert.strictEqual(result.isNew, true)
+  assert.strictEqual(result.drainingVersions.length, 1)
+  assert.strictEqual(result.drainingVersions[0].versionId, 'v2')
+})
+
+test('maxVersions null should not expire any draining versions', async (t) => {
+  const { app, store } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v3',
+    deploymentId: 'dep-3',
+    k8SDeploymentName: 'my-app-v3',
+    serviceName: 'my-app-v3-svc'
+  }, mockCtx)
+
+  // No maxVersions limit — both v1 and v2 should remain draining
+  assert.strictEqual(store[0].status, 'draining')
+  assert.strictEqual(store[1].status, 'draining')
+  assert.strictEqual(store[2].status, 'active')
+})
+
+test('maxVersions should not expire when within limit', async (t) => {
+  const policyStore = [{
+    id: 'p1',
+    applicationId: 'app-1',
+    gracePeriodMs: null,
+    maxAgeS: null,
+    maxVersions: 5,
+    cookieName: null,
+    autoCleanup: null
+  }]
+
+  const { app, store } = buildApp({ policyStore })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v3',
+    deploymentId: 'dep-3',
+    k8SDeploymentName: 'my-app-v3',
+    serviceName: 'my-app-v3-svc'
+  }, mockCtx)
+
+  // maxVersions=5, only 2 draining — no expiration
+  assert.strictEqual(store[0].status, 'draining')
+  assert.strictEqual(store[1].status, 'draining')
+  assert.strictEqual(store[2].status, 'active')
 })

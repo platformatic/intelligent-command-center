@@ -8,6 +8,7 @@ const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const versionRegistryPlugin = require('../plugins/version-registry')
 const versionCleanupPlugin = require('../plugins/version-cleanup')
+const skewPolicyPlugin = require('../plugins/skew-policy')
 const drainingCheckerPlugin = require('../plugins/draining-checker')
 
 function createMockMetricsServer (rpsMap) {
@@ -39,7 +40,9 @@ async function startMockMetrics (rpsMap) {
 function buildApp (opts = {}) {
   const app = fastify({ logger: false })
   const store = []
+  const policyStore = opts.policyStore || []
   let idCounter = 0
+  let policyIdCounter = 0
   const calls = {
     applyHTTPRoute: [],
     updateController: []
@@ -59,6 +62,7 @@ function buildApp (opts = {}) {
       PLT_SKEW_GRACE_PERIOD_MS: gracePeriodMs,
       PLT_SKEW_CHECK_INTERVAL_MS: checkIntervalMs,
       PLT_SKEW_TRAFFIC_WINDOW_MS: trafficWindowMs,
+      PLT_SKEW_COOKIE_MAX_AGE: 43200,
       PLT_SKEW_AUTO_CLEANUP: false,
       PLT_METRICS_URL: metricsUrl,
       PLT_SCALER_URL: 'http://localhost:0'
@@ -102,6 +106,28 @@ function buildApp (opts = {}) {
             store.push(row)
             return row
           }
+        },
+        skewProtectionPolicy: {
+          find: async ({ where }) => {
+            return policyStore.filter(row => {
+              for (const [key, condition] of Object.entries(where)) {
+                if (condition.eq !== undefined && row[key] !== condition.eq) return false
+              }
+              return true
+            })
+          },
+          save: async ({ input }) => {
+            if (input.id) {
+              const idx = policyStore.findIndex(r => r.id === input.id)
+              if (idx !== -1) {
+                policyStore[idx] = { ...policyStore[idx], ...input }
+                return policyStore[idx]
+              }
+            }
+            const row = { id: String(++policyIdCounter), ...input }
+            policyStore.push(row)
+            return row
+          }
         }
       }
     })
@@ -130,6 +156,7 @@ function buildApp (opts = {}) {
     })
   }, { name: 'gateway', dependencies: ['env', 'machinist'] }))
 
+  app.register(skewPolicyPlugin)
   app.register(versionRegistryPlugin)
   app.register(versionCleanupPlugin)
   app.register(drainingCheckerPlugin)
@@ -409,4 +436,48 @@ test('should stop checker when leadership is lost', async (t) => {
   await setTimeout(150)
 
   assert.strictEqual(store[0].status, 'draining')
+})
+
+test('should use per-app gracePeriodMs instead of global', async (t) => {
+  const rpsMap = { 'my-app:v1': 100 }
+  const { server, url } = await startMockMetrics(rpsMap)
+  t.after(() => server.close())
+
+  // Global grace period is very long, but per-app policy has short grace period
+  const policyStore = [{
+    id: 'p1',
+    applicationId: 'app-1',
+    gracePeriodMs: 50,
+    maxAgeS: null,
+    maxVersions: null,
+    cookieName: null,
+    autoCleanup: null
+  }]
+
+  const { app, store, triggerLeader } = buildApp({
+    gracePeriodMs: 999999999,
+    checkIntervalMs: 30,
+    metricsUrl: url,
+    policyStore
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  store[0].drainedAt = new Date(Date.now() - 200).toISOString()
+
+  await triggerLeader()
+  await setTimeout(150)
+
+  // Should expire because per-app grace period (50ms) is exceeded, even though
+  // global grace period (999999999) is not
+  assert.strictEqual(store[0].status, 'expired')
 })

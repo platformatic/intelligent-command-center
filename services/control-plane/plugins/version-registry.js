@@ -115,6 +115,36 @@ module.exports = fp(async function (app) {
         }, 'marked version as draining')
       }
 
+      // Enforce maxVersions: auto-expire oldest draining versions if over limit
+      if (app.resolveSkewPolicy) {
+        const policy = await app.resolveSkewPolicy(opts.applicationId)
+        if (policy.maxVersions !== null) {
+          const allDraining = await entities.versionRegistry.find({
+            where: {
+              appLabel: { eq: opts.appLabel },
+              status: { eq: 'draining' }
+            },
+            tx
+          })
+
+          if (allDraining.length > policy.maxVersions) {
+            // Sort by createdAt ascending — oldest first
+            allDraining.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+            const excess = allDraining.length - policy.maxVersions
+            for (let i = 0; i < excess; i++) {
+              await entities.versionRegistry.save({
+                input: { id: allDraining[i].id, status: 'expired', expiredAt: new Date().toISOString() },
+                tx
+              })
+              ctx.logger.info({
+                appLabel: opts.appLabel,
+                versionLabel: allDraining[i].versionLabel
+              }, 'auto-expired draining version — maxVersions exceeded')
+            }
+          }
+        }
+      }
+
       return {
         isNew: true,
         ...(await getVersionState(opts.appLabel, tx))

@@ -21,3 +21,15 @@ CREATE TABLE version_registry (
 
 CREATE INDEX idx_version_registry_app_label ON version_registry(app_label);
 CREATE INDEX idx_version_registry_status ON version_registry(app_label, status);
+
+CREATE TABLE skew_protection_policies (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  application_id uuid NOT NULL REFERENCES applications(id) UNIQUE,
+  grace_period_ms INTEGER,
+  max_age_s INTEGER,
+  max_versions INTEGER,
+  cookie_name VARCHAR(255),
+  auto_cleanup BOOLEAN,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -1,9 +1,9 @@
 import type { PlatformaticApp, PlatformaticDBMixin, PlatformaticDBConfig, Entity, Entities, EntityHooks } from '@platformatic/db'
-import { EntityTypes, Application,ApplicationState,ApplicationsConfig,Deployment,Generation,GenerationsApplicationsConfig,GenerationsDeployment,Graph,Instance,ValkeyUser,VersionRegistry } from './types'
+import { EntityTypes, Application,ApplicationState,ApplicationsConfig,Deployment,Generation,GenerationsApplicationsConfig,GenerationsDeployment,Graph,Instance,SkewProtectionPolicy,ValkeyUser,VersionRegistry } from './types'
 
 declare module 'fastify' {
   interface FastifyInstance {
-    getSchema<T extends 'Application' | 'ApplicationState' | 'ApplicationsConfig' | 'Deployment' | 'Generation' | 'GenerationsApplicationsConfig' | 'GenerationsDeployment' | 'Graph' | 'Instance' | 'ValkeyUser' | 'VersionRegistry'>(schemaId: T): {
+    getSchema<T extends 'Application' | 'ApplicationState' | 'ApplicationsConfig' | 'Deployment' | 'Generation' | 'GenerationsApplicationsConfig' | 'GenerationsDeployment' | 'Graph' | 'Instance' | 'SkewProtectionPolicy' | 'ValkeyUser' | 'VersionRegistry'>(schemaId: T): {
       '$id': string,
       title: string,
       description: string,
@@ -26,6 +26,7 @@ interface AppEntities extends Entities {
     generationsDeployment: Entity<GenerationsDeployment>,
     graph: Entity<Graph>,
     instance: Entity<Instance>,
+    skewProtectionPolicy: Entity<SkewProtectionPolicy>,
     valkeyUser: Entity<ValkeyUser>,
     versionRegistry: Entity<VersionRegistry>,
 }
@@ -40,6 +41,7 @@ interface AppEntityHooks {
     addEntityHooks(entityName: 'generationsDeployment', hooks: EntityHooks<GenerationsDeployment>): any
     addEntityHooks(entityName: 'graph', hooks: EntityHooks<Graph>): any
     addEntityHooks(entityName: 'instance', hooks: EntityHooks<Instance>): any
+    addEntityHooks(entityName: 'skewProtectionPolicy', hooks: EntityHooks<SkewProtectionPolicy>): any
     addEntityHooks(entityName: 'valkeyUser', hooks: EntityHooks<ValkeyUser>): any
     addEntityHooks(entityName: 'versionRegistry', hooks: EntityHooks<VersionRegistry>): any
 }

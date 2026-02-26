@@ -139,4 +139,153 @@ module.exports = async function (app) {
       return result
     }
   })
+
+  if (!app.resolveSkewPolicy) return
+
+  app.get('/applications/:id/skew-protection/policy', {
+    logLevel: 'info',
+    schema: {
+      operationId: 'getSkewProtectionPolicy',
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            overrides: {
+              type: ['object', 'null'],
+              properties: {
+                gracePeriodMs: { type: ['integer', 'null'] },
+                maxAgeS: { type: ['integer', 'null'] },
+                maxVersions: { type: ['integer', 'null'] },
+                cookieName: { type: ['string', 'null'] },
+                autoCleanup: { type: ['boolean', 'null'] }
+              },
+              additionalProperties: false
+            },
+            resolved: {
+              type: 'object',
+              properties: {
+                gracePeriodMs: { type: 'integer' },
+                maxAgeS: { type: 'integer' },
+                maxVersions: { type: ['integer', 'null'] },
+                cookieName: { type: 'string' },
+                autoCleanup: { type: 'boolean' }
+              },
+              additionalProperties: false
+            }
+          },
+          required: ['overrides', 'resolved'],
+          additionalProperties: false
+        }
+      }
+    },
+    handler: async (req) => {
+      const applicationId = req.params.id
+
+      const application = await app.getApplicationById(applicationId)
+      if (application === null) {
+        throw new errors.ApplicationNotFound(applicationId)
+      }
+
+      const overrides = await app.getSkewPolicyOverrides(applicationId)
+      const resolved = await app.resolveSkewPolicy(applicationId)
+
+      return {
+        overrides: overrides
+          ? {
+              gracePeriodMs: overrides.gracePeriodMs ?? null,
+              maxAgeS: overrides.maxAgeS ?? null,
+              maxVersions: overrides.maxVersions ?? null,
+              cookieName: overrides.cookieName ?? null,
+              autoCleanup: overrides.autoCleanup ?? null
+            }
+          : null,
+        resolved
+      }
+    }
+  })
+
+  app.put('/applications/:id/skew-protection/policy', {
+    logLevel: 'info',
+    schema: {
+      operationId: 'putSkewProtectionPolicy',
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      },
+      body: {
+        type: 'object',
+        properties: {
+          gracePeriodMs: { type: ['integer', 'null'] },
+          maxAgeS: { type: ['integer', 'null'] },
+          maxVersions: { type: ['integer', 'null'] },
+          cookieName: { type: ['string', 'null'] },
+          autoCleanup: { type: ['boolean', 'null'] }
+        },
+        additionalProperties: false
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            overrides: {
+              type: ['object', 'null'],
+              properties: {
+                gracePeriodMs: { type: ['integer', 'null'] },
+                maxAgeS: { type: ['integer', 'null'] },
+                maxVersions: { type: ['integer', 'null'] },
+                cookieName: { type: ['string', 'null'] },
+                autoCleanup: { type: ['boolean', 'null'] }
+              },
+              additionalProperties: false
+            },
+            resolved: {
+              type: 'object',
+              properties: {
+                gracePeriodMs: { type: 'integer' },
+                maxAgeS: { type: 'integer' },
+                maxVersions: { type: ['integer', 'null'] },
+                cookieName: { type: 'string' },
+                autoCleanup: { type: 'boolean' }
+              },
+              additionalProperties: false
+            }
+          },
+          required: ['overrides', 'resolved'],
+          additionalProperties: false
+        }
+      }
+    },
+    handler: async (req) => {
+      const applicationId = req.params.id
+
+      const application = await app.getApplicationById(applicationId)
+      if (application === null) {
+        throw new errors.ApplicationNotFound(applicationId)
+      }
+
+      const saved = await app.saveSkewPolicy(applicationId, req.body)
+      const resolved = await app.resolveSkewPolicy(applicationId)
+
+      return {
+        overrides: {
+          gracePeriodMs: saved.gracePeriodMs ?? null,
+          maxAgeS: saved.maxAgeS ?? null,
+          maxVersions: saved.maxVersions ?? null,
+          cookieName: saved.cookieName ?? null,
+          autoCleanup: saved.autoCleanup ?? null
+        },
+        resolved
+      }
+    }
+  })
 }

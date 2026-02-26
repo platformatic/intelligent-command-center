@@ -71,7 +71,8 @@ module.exports = fp(async function (app) {
           pathPrefix: ref.pathPrefix,
           hostname: ref.hostname || null,
           productionVersion,
-          drainingVersions
+          drainingVersions,
+          applicationId: ref.applicationId
         }, { logger: app.log })
 
         reconciled++

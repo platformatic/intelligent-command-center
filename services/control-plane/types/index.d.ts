@@ -7,6 +7,7 @@ import { GenerationsApplicationsConfig } from './GenerationsApplicationsConfig'
 import { GenerationsDeployment } from './GenerationsDeployment'
 import { Graph } from './Graph'
 import { Instance } from './Instance'
+import { SkewProtectionPolicy } from './SkewProtectionPolicy'
 import { ValkeyUser } from './ValkeyUser'
 import { VersionRegistry } from './VersionRegistry'
   
@@ -20,8 +21,9 @@ interface EntityTypes  {
     GenerationsDeployment: GenerationsDeployment
     Graph: Graph
     Instance: Instance
+    SkewProtectionPolicy: SkewProtectionPolicy
     ValkeyUser: ValkeyUser
     VersionRegistry: VersionRegistry
 }
   
-export { EntityTypes, Application, ApplicationState, ApplicationsConfig, Deployment, Generation, GenerationsApplicationsConfig, GenerationsDeployment, Graph, Instance, ValkeyUser, VersionRegistry }
+export { EntityTypes, Application, ApplicationState, ApplicationsConfig, Deployment, Generation, GenerationsApplicationsConfig, GenerationsDeployment, Graph, Instance, SkewProtectionPolicy, ValkeyUser, VersionRegistry }

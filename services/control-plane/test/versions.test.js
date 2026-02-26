@@ -312,3 +312,178 @@ test('POST expire does not call applyHTTPRoute when not decorated', async (t) =>
   const result = JSON.parse(body)
   assert.strictEqual(result.expired, true)
 })
+
+// --- Skew protection policy routes ---
+
+function buildPolicyApp (opts = {}) {
+  const app = fastify({ logger: false })
+  const applications = opts.applications || {}
+  const versionStore = opts.versions || []
+  const policyStore = opts.policyStore || []
+  let policyIdCounter = 0
+
+  app.register(fp(async (app) => {
+    app.decorate('getApplicationById', async (id) => {
+      return applications[id] || null
+    })
+
+    app.decorate('listVersions', async (applicationId, status) => {
+      return versionStore.filter(v => {
+        if (v.applicationId !== applicationId) return false
+        if (status && v.status !== status) return false
+        return true
+      })
+    })
+
+    app.decorate('expireVersion', async () => ({
+      expired: false, activeVersion: null, drainingVersions: []
+    }))
+
+    app.decorate('expireAndCleanup', async () => ({
+      expired: false, activeVersion: null, drainingVersions: []
+    }))
+
+    app.decorate('resolveSkewPolicy', async (applicationId) => {
+      const row = policyStore.find(r => r.applicationId === applicationId)
+      return {
+        gracePeriodMs: row?.gracePeriodMs ?? 86400000,
+        maxAgeS: row?.maxAgeS ?? 43200,
+        maxVersions: row?.maxVersions ?? null,
+        cookieName: row?.cookieName ?? '__plt_dpl',
+        autoCleanup: row?.autoCleanup ?? false
+      }
+    })
+
+    app.decorate('getSkewPolicyOverrides', async (applicationId) => {
+      const row = policyStore.find(r => r.applicationId === applicationId)
+      return row || null
+    })
+
+    app.decorate('saveSkewPolicy', async (applicationId, overrides) => {
+      const existing = policyStore.find(r => r.applicationId === applicationId)
+      if (existing) {
+        Object.assign(existing, overrides)
+        existing.updatedAt = new Date().toISOString()
+        return existing
+      }
+      const row = {
+        id: String(++policyIdCounter),
+        applicationId,
+        gracePeriodMs: overrides.gracePeriodMs ?? null,
+        maxAgeS: overrides.maxAgeS ?? null,
+        maxVersions: overrides.maxVersions ?? null,
+        cookieName: overrides.cookieName ?? null,
+        autoCleanup: overrides.autoCleanup ?? null,
+        updatedAt: new Date().toISOString()
+      }
+      policyStore.push(row)
+      return row
+    })
+  }, { name: 'mocks' }))
+
+  app.register(versionsRoute)
+
+  return { app, policyStore }
+}
+
+test('GET policy returns 404 for unknown app', async (t) => {
+  const { app } = buildPolicyApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  const { statusCode } = await app.inject({
+    url: '/applications/unknown-id/skew-protection/policy'
+  })
+
+  assert.strictEqual(statusCode, 404)
+})
+
+test('GET policy returns defaults when no override exists', async (t) => {
+  const { app } = buildPolicyApp({
+    applications: { [APP_ID]: { id: APP_ID, name: 'my-app' } }
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  const { statusCode, body } = await app.inject({
+    url: `/applications/${APP_ID}/skew-protection/policy`
+  })
+
+  assert.strictEqual(statusCode, 200)
+  const result = JSON.parse(body)
+  assert.strictEqual(result.overrides, null)
+  assert.strictEqual(result.resolved.gracePeriodMs, 86400000)
+  assert.strictEqual(result.resolved.maxAgeS, 43200)
+  assert.strictEqual(result.resolved.maxVersions, null)
+  assert.strictEqual(result.resolved.cookieName, '__plt_dpl')
+  assert.strictEqual(result.resolved.autoCleanup, false)
+})
+
+test('PUT policy creates override and returns resolved', async (t) => {
+  const { app } = buildPolicyApp({
+    applications: { [APP_ID]: { id: APP_ID, name: 'my-app' } }
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  const { statusCode, body } = await app.inject({
+    method: 'PUT',
+    url: `/applications/${APP_ID}/skew-protection/policy`,
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ gracePeriodMs: 5000, maxVersions: 2 })
+  })
+
+  assert.strictEqual(statusCode, 200)
+  const result = JSON.parse(body)
+  assert.strictEqual(result.overrides.gracePeriodMs, 5000)
+  assert.strictEqual(result.overrides.maxVersions, 2)
+  assert.strictEqual(result.overrides.maxAgeS, null)
+  assert.strictEqual(result.resolved.gracePeriodMs, 5000)
+  assert.strictEqual(result.resolved.maxVersions, 2)
+  assert.strictEqual(result.resolved.maxAgeS, 43200)
+})
+
+test('PUT policy updates existing override', async (t) => {
+  const policyStore = [{
+    id: '1',
+    applicationId: APP_ID,
+    gracePeriodMs: 5000,
+    maxAgeS: null,
+    maxVersions: null,
+    cookieName: null,
+    autoCleanup: null
+  }]
+
+  const { app } = buildPolicyApp({
+    applications: { [APP_ID]: { id: APP_ID, name: 'my-app' } },
+    policyStore
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  const { statusCode, body } = await app.inject({
+    method: 'PUT',
+    url: `/applications/${APP_ID}/skew-protection/policy`,
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ cookieName: 'my_cookie' })
+  })
+
+  assert.strictEqual(statusCode, 200)
+  const result = JSON.parse(body)
+  assert.strictEqual(result.overrides.cookieName, 'my_cookie')
+})
+
+test('PUT policy returns 404 for unknown app', async (t) => {
+  const { app } = buildPolicyApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  const { statusCode } = await app.inject({
+    method: 'PUT',
+    url: '/applications/unknown-id/skew-protection/policy',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ gracePeriodMs: 5000 })
+  })
+
+  assert.strictEqual(statusCode, 404)
+})
