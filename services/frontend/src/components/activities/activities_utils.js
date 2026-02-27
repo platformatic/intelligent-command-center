@@ -1,44 +1,64 @@
-import { ERROR_RED, MAIN_GREEN, TERTIARY_BLUE, WHITE, GIANTS_ORANGE, ELECTRIC_PURPLE, FLUORESCENT_CYAN } from '@platformatic/ui-components/src/components/constants'
+import pillStyles from './ActivitiesPills.module.css'
 
 export const getBackgroundPillsProps = (event, typographyStyles) => {
-  let backgroundColor = WHITE
-  let textClassName = typographyStyles.textWhite
+  let backgroundClassName = pillStyles.bgWhite
+  let textClassName = pillStyles.textWhite
   switch (event) {
     case 'USER_LOGIN':
-      backgroundColor = TERTIARY_BLUE
-      textClassName = typographyStyles.textTertiaryBlue
+      backgroundClassName = pillStyles.bgTertiaryBlue
+      textClassName = pillStyles.textTertiaryBlue
       break
     case 'APPLICATION_DEPLOY':
-      backgroundColor = MAIN_GREEN
-      textClassName = typographyStyles.textMainGreen
+      backgroundClassName = pillStyles.bgMainGreen
+      textClassName = pillStyles.textMainGreen
       break
     case 'APPLICATION_UNDEPLOY':
-      backgroundColor = MAIN_GREEN
-      textClassName = typographyStyles.textMainGreen
+      backgroundClassName = pillStyles.bgMainGreen
+      textClassName = pillStyles.textMainGreen
       break
     case 'APPLICATION_START':
-      backgroundColor = MAIN_GREEN
-      textClassName = typographyStyles.textMainGreen
+      backgroundClassName = pillStyles.bgMainGreen
+      textClassName = pillStyles.textMainGreen
       break
     case 'APPLICATION_DELETE':
-      backgroundColor = ERROR_RED
-      textClassName = typographyStyles.textErrorRed
+      backgroundClassName = pillStyles.bgErrorRed
+      textClassName = pillStyles.textErrorRed
       break
     case 'TAXONOMY_EXPORT':
-      backgroundColor = GIANTS_ORANGE
-      textClassName = typographyStyles.textGiantsOrange
+      backgroundClassName = pillStyles.bgGiantsOrange
+      textClassName = pillStyles.textGiantsOrange
       break
     case 'TAXONOMY_IMPORT':
-      backgroundColor = ELECTRIC_PURPLE
-      textClassName = typographyStyles.textElectricPurple
+      backgroundClassName = pillStyles.bgElectricPurple
+      textClassName = pillStyles.textElectricPurple
       break
     case 'APPLICATION_RESOURCES_UPDATE':
-      backgroundColor = FLUORESCENT_CYAN
-      textClassName = typographyStyles.textFluorescentCyan
+      backgroundClassName = pillStyles.bgFluorescentCyan
+      textClassName = pillStyles.textFluorescentCyan
+      break
+    case 'APPLICATION_CREATE':
+      backgroundClassName = pillStyles.bgAmber
+      textClassName = pillStyles.textAmber
+      break
+    case 'SCALED_UP':
+      backgroundClassName = pillStyles.bgTeal
+      textClassName = pillStyles.textTeal
+      break
+    case 'SCALED_DOWN':
+      backgroundClassName = pillStyles.bgRose
+      textClassName = pillStyles.textRose
+      break
+    case 'CONFIG_UPDATE':
+      backgroundClassName = pillStyles.bgLime
+      textClassName = pillStyles.textLime
+      break
+    case 'VERSION_REGISTRY_UPDATE':
+      backgroundClassName = pillStyles.bgIndigo
+      textClassName = pillStyles.textIndigo
       break
   }
   return {
-    backgroundColor,
+    backgroundClassName,
     textClassName: `${typographyStyles.desktopOtherOverlineSmallest} ${textClassName}`
   }
 }

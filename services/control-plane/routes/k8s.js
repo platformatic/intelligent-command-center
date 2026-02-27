@@ -48,7 +48,8 @@ module.exports = fp(async function (app) {
                         }
                       }
                     }
-                  }
+                  },
+                  versionLabel: { type: 'string' }
                 }
               }
             }

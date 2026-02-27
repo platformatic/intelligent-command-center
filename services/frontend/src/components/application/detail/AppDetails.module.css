@@ -5,15 +5,24 @@
   @apply p-4 flex flex-col gap-y-10 h-full overflow-y-auto;
 }
 .content {
-  @apply grid grid-cols-1 lg:grid-cols-6 gap-4;
-  box-sizing: border-box;
+  @apply flex flex-col gap-4;
 }
+
 .appNameBox,
-.activitiesBox,
-.nodeJsMetricsBox {
-  @apply col-span-1 lg:col-span-6
-}
-.deploymentsBox,
 .servicesBox {
-  @apply col-span-1 lg:col-span-3
+  @apply flex-none;
+}
+.deploymentsBox {
+  @apply absolute inset-0;
+}
+
+.twoColumnsContent {
+  @apply flex gap-4 w-full;
+}
+
+.twoColumnsContentLeft {
+  @apply w-full flex flex-col gap-4 [&>*]:min-w-0 [&>*]:w-full;
+}
+.twoColumnsContentRight {
+  @apply w-full relative;
 }

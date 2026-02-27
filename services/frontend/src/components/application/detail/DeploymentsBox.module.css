@@ -1,5 +1,5 @@
 .borderexBoxContainer {
-  @apply grow relative p-4;
+  @apply p-4 h-full flex flex-col overflow-hidden;
 }
 .buttonContainer {
   @apply flex gap-x-2 justify-end items-center;
@@ -14,11 +14,48 @@
   @apply hidden md:block
 }
 .flexWrap {
-  @apply flex-wrap gap-y-2 md:flex-nowrap;
+  @apply flex-wrap gap-y-2 md:flex-nowrap flex-none;
 }
 .mainIteration {
   @apply py-1 px-2 grow-0;
 }
 .addFullHeight {
-  @apply h-auto lg:h-full;
+  @apply h-full min-h-0;
+}
+
+.scrollableContent {
+  @apply flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 w-full;
+}
+
+.deploymentItem {
+  @apply bg-rich-black rounded-sm p-4 w-full;
+}
+
+.runningDeploynment {
+  @apply border border-solid border-main-green/30;
+  border-left: 2px solid #21FA90;
+}
+
+.deploymentItemHeader {
+  @apply flex justify-between items-center mb-4;
+}
+
+.currentlyViewing {
+  @apply opacity-30;
+}
+
+.actionsRow {
+  @apply flex flex-row gap-2 items-center;
+}
+
+.viewDetailsButton {
+  @apply bg-transparent border-none cursor-pointer flex flex-row gap-2 items-center;
+}
+
+.deploymentDetailsRow {
+  @apply flex flex-row justify-between gap-2;
+}
+
+.detailColumn {
+  @apply flex flex-col gap-2;
 }

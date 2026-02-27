@@ -131,22 +131,28 @@ export const getApiApplication = async (id) => {
     state = arrayState[0]?.state ?? {}
   }
 
-  const { body: deployments } = await getDeployments({
-    'orderby.createdAt': DESC,
-    limit: 1
+  let { body: deployments } = await getDeployments({
+    'orderby.createdAt': DESC
   })
 
+  // 3 replicas
+  const replicas = 3
+  const output = Array(replicas).fill(deployments[0]).map((deployment, idx) => {
+    const output = { ...deployment }
+    if (idx === 1) {
+      output.status = 'started'
+    } else if (idx === 2) {
+      output.status = 'stopped'
+    } else {
+      output.status = 'started'
+    }
+    return output
+  })
+  deployments = output
   if (deployments.length > 0) {
     lastStarted = deployments[0].createdAt
     latestDeployment = deployments[0]
   }
-
-  const { body: deploymentsOnMainTaxonomy } = await getDeployments({
-    'where.applicationId.eq': id,
-    'where.status.neq': 'failed',
-    'orderby.createdAt': DESC,
-    limit: 1
-  })
 
   const response = await fetch((`${baseApiUrl}/events?` + new URLSearchParams({
     applicationId: id,
@@ -167,8 +173,8 @@ export const getApiApplication = async (id) => {
     ...application,
     pltVersion,
     state,
+    deployments,
     latestDeployment,
-    deploymentsOnMainTaxonomy: deploymentsOnMainTaxonomy.length,
     lastStarted,
     lastUpdated
   }
@@ -212,7 +218,7 @@ export const getApiMetricsPodPerService = async (applicationId, podId, serviceId
 
 /* KUBERNETES RESOURCES */
 
-export const getKubernetesResources = async (applicationId) => {
+export const getKubernetesResources = async (applicationId, deploymentId = null) => {
   const { pods } = await getApiApplicationK8sState(applicationId)
   const scaleConfig = await getApiApplicationScaleConfig(applicationId)
 
@@ -237,7 +243,7 @@ export const getKubernetesResources = async (applicationId) => {
 }
 
 // Autoscaler
-export const getRequestsPerSecond = async (applicationId) => {
+export const getRequestsPerSecond = async (applicationId, deploymentId = null) => {
   const url = `${baseUrl}/metrics/kubernetes/apps/${applicationId}/rps`
   return fetch(url, {
     method: 'GET',
@@ -294,7 +300,6 @@ export const getApiDeploymentsHistory = async (payload) => {
   }
 
   const { headers, body: deployments } = await getDeployments(queryObject)
-
   return { deployments, totalCount: headers['x-total-count'] }
 }
 
@@ -349,9 +354,11 @@ export const getApiApplicationScaleConfig = async (applicationId) => {
 }
 
 /* PODS */
-export const getApiPods = async (applicationId) => {
+export const getApiPods = async (applicationId, versionLabel = null) => {
   const { pods } = await callApi('control-plane', `/applications/${applicationId}/k8s/state`, 'GET')
-  const output = await Promise.all(pods.map(async (pod) => {
+  const podVersionLabel = (pod) => pod.versionLabel ?? pod.version_label
+  const filteredPods = versionLabel ? pods.filter(pod => podVersionLabel(pod) === versionLabel) : pods
+  const output = await Promise.all(filteredPods.map(async (pod) => {
     const [dataValuesMem, dataValuesCpu] = await Promise.all([
       getApiMetricsPod(applicationId, pod.id, 'mem'),
       getApiMetricsPod(applicationId, pod.id, 'cpu')
@@ -853,4 +860,51 @@ export const downloadSynchZip = async (fileName) => {
     headers: getHeaders(),
     credentials: 'include'
   })
+}
+
+export const getVersionRegistryByApplicationId = async (applicationId, options = {}) => {
+  const searchParams = new URLSearchParams()
+  if (options.status) {
+    searchParams.set('status', options.status)
+  }
+  const query = searchParams.toString()
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/versions${query ? `?${query}` : ''}`
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: getHeaders(),
+    credentials: 'include'
+  })
+
+  if (!response.ok) {
+    return []
+  }
+
+  const { versions } = await response.json()
+  const raw = versions ?? []
+  const list = raw.map((v) => ({
+    ...v,
+    versionLabel: v.versionLabel ?? v.version_label ?? ''
+  }))
+  list.sort((a, b) => {
+    const aAt = a.createdAt ? new Date(a.createdAt).getTime() : 0
+    const bAt = b.createdAt ? new Date(b.createdAt).getTime() : 0
+    return bAt - aAt
+  })
+  return list
+}
+
+export const expireApplicationVersion = async (applicationId, versionLabel) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/versions/${encodeURIComponent(versionLabel)}/expire`
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({}),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.message ?? `Failed to expire version ${versionLabel}`)
+  }
+  return response.json()
 }

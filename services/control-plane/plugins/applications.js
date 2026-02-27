@@ -76,7 +76,8 @@ module.exports = fp(async function (app) {
         id: pod.id,
         status: pod.status,
         startTime: pod.startTime,
-        resources: pod.resources
+        resources: pod.resources,
+        versionLabel: pod.labels?.['plt.dev/version']
       })
     }
 

@@ -1,0 +1,73 @@
+.textWhite {
+  @apply text-white;
+}
+.textTertiaryBlue {
+  @apply text-tertiary-blue;
+}
+.textMainGreen {
+  @apply text-main-green;
+}
+.textErrorRed {
+  @apply text-error-red;
+}
+.textGiantsOrange {
+  @apply text-giants-orange;
+}
+.textElectricPurple {
+  @apply text-electric-purple;
+}
+.textFluorescentCyan {
+  @apply text-fluorescent-cyan;
+}
+.textAmber {
+  color: #F59E0B;
+}
+.textTeal {
+  color: #14B8A6;
+}
+.textRose {
+  color: #F43F5E;
+}
+.textLime {
+  color: #84CC16;
+}
+.textIndigo {
+  color: #6366F1;
+}
+
+.bgWhite {
+  @apply bg-white/30;
+}
+.bgTertiaryBlue {
+  @apply bg-tertiary-blue/30;
+}
+.bgMainGreen {
+  @apply bg-main-green/30;
+}
+.bgErrorRed {
+  @apply bg-error-red/30;
+}
+.bgGiantsOrange {
+  @apply bg-giants-orange/30;
+}
+.bgElectricPurple {
+  @apply bg-electric-purple/30;
+}
+.bgFluorescentCyan {
+  @apply bg-fluorescent-cyan/30;
+}
+.bgAmber {
+  background-color: rgb(245 158 11 / 0.3);
+}
+.bgTeal {
+  background-color: rgb(20 184 166 / 0.3);
+}
+.bgRose {
+  background-color: rgb(244 63 94 / 0.3);
+}
+.bgLime {
+  background-color: rgb(132 204 22 / 0.3);
+}
+.bgIndigo {
+  background-color: rgb(99 102 241 / 0.3);
+}

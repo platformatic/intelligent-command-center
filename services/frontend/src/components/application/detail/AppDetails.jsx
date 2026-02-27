@@ -6,7 +6,7 @@ import ApplicationsBox from './ApplicationsBox'
 import DeploymentsBox from './DeploymentsBox'
 import NodeJSMetrics from './NodeJSMetrics'
 import KubernetesResources from './KubernetesResources'
-import AppDetailActivities from './AppDetailActivities'
+import Activities from '~/components/application/activities/Activities'
 
 export default function AppDetails () {
   const { publicUrl, application } = useRouteLoaderData('appRoot')
@@ -14,32 +14,29 @@ export default function AppDetails () {
   return (
     <div className={styles.container}>
       <div className={styles.containerElement}>
+        <div className={styles.twoColumnsContent}>
+          <div className={styles.twoColumnsContentLeft}>
+            <AppNameBox
+              application={application}
+              gridClassName={styles.appNameBox}
+              applicationPublicUrl={publicUrl}
+            />
+            <ApplicationsBox
+              application={application}
+              gridClassName={styles.servicesBox}
+            />
+          </div>
+          <div className={styles.twoColumnsContentRight}>
+            <DeploymentsBox
+              application={application}
+              gridClassName={styles.deploymentsBox}
+            />
+          </div>
+        </div>
         <div className={styles.content}>
-          <AppNameBox
-            application={application}
-            gridClassName={styles.appNameBox}
-            applicationPublicUrl={publicUrl}
-          />
-          <ApplicationsBox
-            application={application}
-            gridClassName={styles.servicesBox}
-          />
-          <DeploymentsBox
-            application={application}
-            gridClassName={styles.deploymentsBox}
-          />
-          <NodeJSMetrics
-            application={application}
-            gridClassName={styles.nodeJsMetricsBox}
-          />
-          <KubernetesResources
-            application={application}
-            gridClassName={styles.nodeJsMetricsBox}
-          />
-          <AppDetailActivities
-            application={application}
-            gridClassName={styles.activitiesBox}
-          />
+          <NodeJSMetrics application={application} />
+          <KubernetesResources application={application} />
+          <Activities compact applicationId={application.id} />
         </div>
       </div>
     </div>

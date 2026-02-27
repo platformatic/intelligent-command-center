@@ -39,7 +39,7 @@ function WattContainer ({ children }) {
             link: generatePath('/'),
             label: 'All Watts',
             iconName: 'AllAppsIcon',
-            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+            disabled: (application?.deployments?.length ?? 0) === 0
           },
           {
             separator: true
@@ -48,46 +48,46 @@ function WattContainer ({ children }) {
             link: generatePath('', { applicationId: application.id }),
             label: 'Watt Details',
             iconName: 'AppDetailsIcon',
-            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+            disabled: (application?.deployments?.length ?? 0) === 0
           },
           {
             link: generatePath('applications', { applicationId: application.id }),
             label: 'Applications',
             iconName: 'PlatformaticServiceIcon',
-            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+            disabled: (application?.deployments?.length ?? 0) === 0
           },
           {
             link: generatePath('deployment-history', { applicationId: application.id }),
             label: 'Deployment History',
             iconName: 'DeploymentHistoryIcon',
-            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+            disabled: (application?.deployments?.length ?? 0) === 0
           },
           {
             link: generatePath('autoscaler', { applicationId: application.id }),
             label: 'Autoscaler',
             iconName: 'HorizontalPodAutoscalerIcon',
-            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+            disabled: (application?.deployments?.length ?? 0) === 0
           }, {
             link: generatePath('flamegraphs', { applicationId: application.id }),
             label: 'Flamegraphs',
             iconName: 'FlamegraphsIcon',
-            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+            disabled: (application?.deployments?.length ?? 0) === 0
           }, {
             link: generatePath('activities', { applicationId: application.id }),
             label: 'Activities',
             iconName: 'CheckListIcon',
-            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+            disabled: (application?.deployments?.length ?? 0) === 0
           }, {
             link: generatePath('scheduled-jobs', { applicationId: application.id }),
             label: 'Scheduled Jobs',
             iconName: 'ScheduledJobsIcon',
-            disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+            disabled: (application?.deployments?.length ?? 0) === 0
           }]}
         bottomItems={[{
           link: generatePath('settings', { applicationId: application.id }),
           label: 'Settings',
           iconName: 'AppSettingsIcon',
-          disabled: (application?.deploymentsOnMainTaxonomy ?? 0) === 0
+          disabled: (application?.deployments?.length ?? 0) === 0
         }]}
       />
       <Outlet />

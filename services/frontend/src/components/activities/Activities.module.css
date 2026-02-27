@@ -10,11 +10,9 @@
 .filtersContainer {
   @apply grid grid-cols-1 md:flex md:flex-row gap-2 w-full items-center justify-end;
 }
-.selectUsers,
 .selectEvents {
   @apply w-full md:max-w-[200px] md:min-w-[200px];
 }
-
 .selectApplicationName {
   @apply w-full md:max-w-[250px] md:min-w-[250px];
 }

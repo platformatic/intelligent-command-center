@@ -8,7 +8,7 @@ import RecommendationsHistory from './components/recommendations/RecommendationH
 import Settings from './components/settings/Settings'
 import Profile from './components/profile/Profile'
 
-import { getApiActivities, getApiActivitiesUsers, getApiDeploymentsHistory, getApiApplication, getApiActivitiesTypes, getApplicationsRaw, getApiPod, getKubernetesResources } from './api'
+import { getApiDeploymentsHistory, getApiApplication, getApplicationsRaw, getApiPod, getKubernetesResources } from './api'
 import { getPodSignals } from './api/autoscaler'
 import callApi from './api/common'
 
@@ -225,20 +225,6 @@ export function getRouter () {
         {
           path: 'activities',
           id: 'watt/activities',
-          loader: async (loaderObject) => {
-            const { applicationId } = loaderObject.params
-            const [activities, users, types] = await Promise.all([
-              getApiActivities(applicationId),
-              getApiActivitiesUsers(),
-              getApiActivitiesTypes()
-            ])
-            return {
-              applicationId,
-              activities,
-              users,
-              types
-            }
-          },
           element: <Activities />
         },
         {

@@ -13,7 +13,8 @@ import PodHoneycomb from '../application/autoscaler/PodHoneycomb'
 import { useLoaderData } from 'react-router-dom'
 
 export default function Pods ({
-  applicationId
+  applicationId,
+  versionLabel
 }) {
   const [pods, setPods] = useState([])
   const [optionsApplications, setOptionsApplications] = useState([])
@@ -65,6 +66,12 @@ export default function Pods ({
   }, [Object.keys(allData).length, pods.length])
 
   useEffect(() => {
+    if (applicationId) {
+      loadPodsInstances()
+    }
+  }, [applicationId, versionLabel])
+
+  useEffect(() => {
     if (applicationId && timer >= REFRESH_INTERVAL / 1000) {
       async function loadMetrics () {
         await loadPodsInstances()
@@ -85,7 +92,7 @@ export default function Pods ({
 
   async function loadPodsInstances () {
     try {
-      const pods = await getApiPods(applicationId)
+      const pods = await getApiPods(applicationId, versionLabel)
       const performancesPod = pods.map(pod => {
         const { score, reasons = [] } = getPodPerformances(pod.dataValues)
         return {

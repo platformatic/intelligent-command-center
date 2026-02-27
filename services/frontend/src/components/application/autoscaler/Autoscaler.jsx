@@ -10,13 +10,53 @@ import ScalerEvents from './ScalerEvents'
 import SignalsHistory from './SignalsHistory'
 import { useRouteLoaderData, useSearchParams } from 'react-router-dom'
 import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
+import DeploymentsDropdown from '../detail/deployments/DeploymentsDropdown'
+import NotLatestDeploymentBanner from './NotLatestDeploymentBanner'
+import { getVersionRegistryByApplicationId } from '~/api'
 
 export default function Autoscaler () {
   const { application } = useRouteLoaderData('appRoot')
   const [keyTabSelected, setKeyTabSelected] = useState('pods')
-
-  const [searchParams] = useSearchParams()
+  const [versions, setVersions] = useState(
+    /** @type {Array<{ id: string, versionLabel: string, status: string }>} */ ([])
+  )
+  const [selectedVersionLabel, setSelectedVersionLabel] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
   const tab = searchParams.get('tab')
+
+  const selectedVersion = versions.find(v => v.versionLabel === selectedVersionLabel)
+  const isSelectedVersionActive = selectedVersion?.status === 'active'
+
+  useEffect(() => {
+    if (!application?.id) return
+    getVersionRegistryByApplicationId(application.id)
+      .then((list) => {
+        setVersions(list)
+        const versionLabelFromUrl = searchParams.get('versionLabel')
+        const validFromUrl = versionLabelFromUrl && list.some(v => v.versionLabel === versionLabelFromUrl)
+        setSelectedVersionLabel((current) => {
+          const stillValid = current && list.some(v => v.versionLabel === current)
+          if (stillValid) return current
+          if (validFromUrl) return versionLabelFromUrl
+          const activeVersion = list.find(v => v.status === 'active')
+          return activeVersion?.versionLabel ?? list[0]?.versionLabel ?? ''
+        })
+      })
+      .catch((err) => {
+        console.error('getVersionRegistryByApplicationId', err)
+        setVersions([])
+      })
+  }, [application?.id])
+
+  // Sync selection from URL when versionLabel param changes (e.g. hotlink, back/forward)
+  useEffect(() => {
+    const labelFromUrl = searchParams.get('versionLabel')
+    if (!labelFromUrl || versions.length === 0) return
+    if (versions.some(v => v.versionLabel === labelFromUrl)) {
+      setSelectedVersionLabel(labelFromUrl)
+    }
+  }, [searchParams, versions])
+
   function handleTabChange (tab) {
     // TODO: setting the tab is useful to permalink some inner section of the page.
     // But it's not working as expected.
@@ -41,15 +81,42 @@ export default function Autoscaler () {
             <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Autoscaler</p>
             <ExperimentalTag />
           </div>
+
+          <div className={`${commonStyles.tinyFlexRow}`}>
+            <DeploymentsDropdown
+              deployments={versions.filter(v => v.status !== 'expired')}
+              value={selectedVersionLabel}
+              onChange={(label) => {
+                setSelectedVersionLabel(label)
+                setSearchParams((prev) => {
+                  const next = new URLSearchParams(prev)
+                  if (label) next.set('versionLabel', label)
+                  else next.delete('versionLabel')
+                  return next
+                })
+              }}
+              valueByVersionLabel
+              placeholder='Select version'
+            />
+          </div>
         </div>
 
+        {keyTabSelected === 'pods' && !isSelectedVersionActive && selectedVersion && (
+          <NotLatestDeploymentBanner version={selectedVersionLabel || selectedVersion.id} />
+        )}
+
         <TabbedWindow
-          key={keyTabSelected}
+          key={selectedVersionLabel}
           tabs={[
             {
               label: 'Pods',
               key: 'pods',
-              component: () => <Pods applicationId={application?.id} />
+              component: () => (
+                <Pods
+                  applicationId={application?.id}
+                  versionLabel={selectedVersionLabel || undefined}
+                />
+              )
             }, {
               label: 'Scaling History',
               key: 'scaling_history',

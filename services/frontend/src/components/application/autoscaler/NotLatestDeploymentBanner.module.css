@@ -1,0 +1,8 @@
+.banner {
+  @apply w-full py-2 px-3 rounded-lg border border-warning-yellow border-solid bg-warning-yellow/30 my-2;
+  @apply flex flex-row gap-2 items-center;
+}
+
+.text {
+  @apply text-warning-yellow font-medium;
+}

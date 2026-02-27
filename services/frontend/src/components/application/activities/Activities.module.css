@@ -22,3 +22,9 @@
 .maxHeightOptions {
   @apply !max-h-[250px];
 }
+.buttonContainer {
+  @apply flex gap-x-2 justify-end items-center;
+}
+.borderedBoxContainer {
+  @apply p-4 w-full relative;
+}

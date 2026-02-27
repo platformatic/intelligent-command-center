@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import styles from './Activities.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
-import TableActivities from './TableActivities'
-import { getApiActivities, getApiActivitiesTypes, getApiActivitiesUsers } from '~/api'
+import TableActivities from '~/components/application/activities/TableActivities'
+import { getApiActivities, getApiActivitiesTypes } from '~/api'
 import ErrorComponent from '~/components/errors/ErrorComponent'
 import { FILTER_ALL } from '~/ui-constants'
 import { MEDIUM, RICH_BLACK, WHITE } from '@platformatic/ui-components/src/components/constants'
@@ -12,11 +12,11 @@ import Forms from '@platformatic/ui-components/src/components/forms'
 import { useLoaderData } from 'react-router-dom'
 import Paginator from '../ui/Paginator'
 
+const LIMIT = 15
+
 const Activities = React.forwardRef(({ _ }, ref) => {
   const ALL_APPLICATIONS = { label: 'All watts', value: FILTER_ALL }
-  const ALL_USERS = { label: 'All Users', value: FILTER_ALL }
   const ALL_EVENTS = { label: 'All events', value: FILTER_ALL }
-  const LIMIT = 13
 
   const [showErrorComponent, setShowErrorComponent] = useState(false)
   const [error, setError] = useState(null)
@@ -24,94 +24,79 @@ const Activities = React.forwardRef(({ _ }, ref) => {
   const [reloadActivities, setReloadActivities] = useState(true)
   const [activitiesPage, setActivitiesPage] = useState(0)
   const [totalCount, setTotalCount] = useState(0)
-  const [filteredActivities, setFilteredActivities] = useState([])
+  const [activities, setActivities] = useState([])
   const [optionsApplications, setOptionApplications] = useState([])
-  const [filterActivitiesByApplicationId, setFilterActivitiesByApplicationId] = useState(ALL_APPLICATIONS)
-  const [filterActivitiesByUserId, setFilterActivitiesByUserId] = useState(ALL_USERS)
-  const [filterActivitiesByEventId, setFilterActivitiesByEventId] = useState(ALL_EVENTS)
-  const [optionsUsers, setOptionsUsers] = useState([])
+  const [filterByApplication, setFilterByApplication] = useState(ALL_APPLICATIONS)
+  const [filterByEvent, setFilterByEvent] = useState(ALL_EVENTS)
   const [optionsEvents, setOptionsEvents] = useState([])
   const [enableFilters, setEnableFilter] = useState(false)
   const { applications } = useLoaderData()
 
   useEffect(() => {
-    const apps = {
-      label: 'All watts',
-      value: FILTER_ALL
-    }
-    setOptionApplications([apps].concat(applications.map(app => ({
+    setOptionApplications([ALL_APPLICATIONS].concat(applications.map(app => ({
       label: app.name,
       value: app.id
     }))))
   }, [applications])
 
   useEffect(() => {
-    if ((activitiesPage >= 0 || reloadActivities)) {
+    if (activitiesPage >= 0 || reloadActivities) {
       setActivitiesLoaded(false)
-      async function loadActivities () {
-        try {
-          let response = await getApiActivities(
-            filterActivitiesByApplicationId.value === FILTER_ALL ? '' : filterActivitiesByApplicationId.value,
-            {
-              limit: LIMIT,
-              offset: activitiesPage * LIMIT,
-              event: filterActivitiesByEventId.value === FILTER_ALL ? '' : filterActivitiesByEventId.value,
-              userId: filterActivitiesByUserId.value === FILTER_ALL ? '' : filterActivitiesByUserId.value
-            })
-          const { activities, totalCount } = response
-          setTotalCount(totalCount)
-          if (!enableFilters) {
-            setEnableFilter(activities.length > 0)
-          }
-          setFilteredActivities([...activities])
-          setActivitiesLoaded(true)
-          setReloadActivities(false)
-          response = await getApiActivitiesTypes()
-          let data = await response.json()
-
-          setOptionsEvents([ALL_EVENTS].concat(Object.keys(data).map(k => ({
-            label: data[k],
-            value: k
-          }))))
-
-          response = await getApiActivitiesUsers()
-          data = await response.json()
-          setOptionsUsers([ALL_USERS].concat(data.map(user => ({
-            label: user.username,
-            value: user.id
-          }))))
-        } catch (error) {
-          console.error(`Error on getDetailActivities ${error}`)
-          setError(error)
-          setShowErrorComponent(true)
-        }
-      }
       loadActivities()
     }
   }, [activitiesPage, reloadActivities])
 
   useEffect(() => {
-    if (filterActivitiesByUserId.value || filterActivitiesByEventId.value || filterActivitiesByApplicationId.value) {
+    if (filterByEvent.value || filterByApplication.value) {
       setReloadActivities(true)
+      setActivitiesLoaded(false)
     }
-  }, [filterActivitiesByUserId, filterActivitiesByEventId, filterActivitiesByApplicationId])
+  }, [filterByEvent, filterByApplication])
 
-  function handleSelectUser (event) {
-    setFilterActivitiesByUserId({
-      label: event.detail.label,
-      value: event.detail.value
-    })
+  async function loadActivities () {
+    try {
+      const applicationId = filterByApplication.value === FILTER_ALL ? '' : filterByApplication.value
+      const response = await getApiActivities(applicationId, {
+        limit: LIMIT,
+        offset: activitiesPage * LIMIT,
+        event: filterByEvent.value === FILTER_ALL ? '' : filterByEvent.value
+      })
+      const { activities: data, totalCount: count } = response
+      setTotalCount(count)
+      if (!enableFilters) {
+        setEnableFilter(data.length > 0)
+      }
+
+      const enriched = data.map(activity => ({
+        ...activity,
+        applicationName: applications.find(app => app.id === activity.applicationId)?.name
+      }))
+      setActivities(enriched)
+      setActivitiesLoaded(true)
+      setReloadActivities(false)
+
+      const typesResponse = await getApiActivitiesTypes()
+      const types = await typesResponse.json()
+      setOptionsEvents([ALL_EVENTS].concat(Object.keys(types).map(k => ({
+        label: types[k],
+        value: k
+      }))))
+    } catch (err) {
+      console.error(`Error on loadActivities ${err}`)
+      setError(err)
+      setShowErrorComponent(true)
+    }
   }
 
   function handleSelectEvent (event) {
-    setFilterActivitiesByEventId({
+    setFilterByEvent({
       label: event.detail.label,
       value: event.detail.value
     })
   }
 
   function handleSelectApplication (event) {
-    setFilterActivitiesByApplicationId({
+    setFilterByApplication({
       label: event.detail.label,
       value: event.detail.value
     })
@@ -135,29 +120,13 @@ const Activities = React.forwardRef(({ _ }, ref) => {
                 defaultContainerClassName={styles.selectApplicationName}
                 backgroundColor={RICH_BLACK}
                 borderColor={WHITE}
-                defaultOptionsClassName={`${typographyStyles.desktopButtonSmall} ${styles.maxHeighOptions}`}
+                defaultOptionsClassName={`${typographyStyles.desktopButtonSmall} ${styles.maxHeightOptions}`}
                 options={optionsApplications}
                 onSelect={handleSelectApplication}
                 optionsBorderedBottom={false}
                 mainColor={WHITE}
                 borderListColor={WHITE}
-                value={filterActivitiesByApplicationId.label}
-                inputTextClassName={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite} ${styles.heightSelectClass}`}
-                paddingClass={styles.selectPaddingClass}
-                disabled={!enableFilters}
-                handleClickOutside
-              />
-              <Forms.Select
-                defaultContainerClassName={styles.selectUsers}
-                backgroundColor={RICH_BLACK}
-                borderColor={WHITE}
-                defaultOptionsClassName={`${typographyStyles.desktopButtonSmall} ${styles.maxHeighOptions}`}
-                options={optionsUsers}
-                onSelect={handleSelectUser}
-                optionsBorderedBottom={false}
-                mainColor={WHITE}
-                borderListColor={WHITE}
-                value={filterActivitiesByUserId.label}
+                value={filterByApplication.label}
                 inputTextClassName={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite} ${styles.heightSelectClass}`}
                 paddingClass={styles.selectPaddingClass}
                 disabled={!enableFilters}
@@ -173,7 +142,7 @@ const Activities = React.forwardRef(({ _ }, ref) => {
                 optionsBorderedBottom={false}
                 mainColor={WHITE}
                 borderListColor={WHITE}
-                value={filterActivitiesByEventId.label}
+                value={filterByEvent.label}
                 inputTextClassName={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite} ${styles.heightSelectClass}`}
                 paddingClass={styles.selectPaddingClass}
                 disabled={!enableFilters}
@@ -183,8 +152,8 @@ const Activities = React.forwardRef(({ _ }, ref) => {
           </div>
           <TableActivities
             activitiesLoaded={activitiesLoaded}
-            applications={applications}
-            activities={filteredActivities}
+            activities={activities}
+            showWattName
             onErrorOccurred={() => setShowErrorComponent(true)}
           />
         </div>

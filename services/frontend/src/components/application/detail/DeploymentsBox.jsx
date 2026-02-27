@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { WHITE, TRANSPARENT, MEDIUM, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
+import React, { useCallback, useEffect, useState } from 'react'
+import { WHITE, TRANSPARENT, MEDIUM, BLACK_RUSSIAN, ERROR_RED } from '@platformatic/ui-components/src/components/constants'
 import styles from './DeploymentsBox.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
@@ -8,40 +8,39 @@ import NoDataAvailable from '~/components/ui/NoDataAvailable'
 import { BorderedBox, Button, LoadingSpinnerV2 } from '@platformatic/ui-components'
 import { getFormattedTimeAndDate } from '~/utilities/dates'
 import Icons from '@platformatic/ui-components/src/components/icons'
-import { getApiDeploymentsHistory } from '~/api'
+import { getVersionRegistryByApplicationId, expireApplicationVersion } from '~/api'
 import { NavLink } from 'react-router-dom'
+import DeploymentStatusPill from './deployments/DeploymentStatusPill'
 
 function DeploymentsBox ({
   gridClassName = '',
   application
 }) {
-  const [latestDeployment, setLatestDeployment] = useState({})
   const [innerLoading, setInnerLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
   const [disabledDeploymentHistory, setDisabledDeploymentHistory] = useState(true)
+  const [versions, setVersions] = useState(
+    /** @type {Array<{ id?: string, status: string, versionLabel?: string, createdAt?: string | null, namespace?: string }>} */ ([])
+  )
 
-  useEffect(() => {
+  const loadVersions = useCallback(async () => {
     setInnerLoading(true)
     setShowNoResult(false)
-    async function loadLastDeployment () {
-      try {
-        const response = await getApiDeploymentsHistory({
-          filterDeploymentsByApplicationId: application.id,
-          limit: 1,
-          offset: 0
-        })
-        const { deployments } = response
-        setLatestDeployment(deployments.length > 0 ? deployments[0] : [])
-        setDisabledDeploymentHistory(deployments.length === 0)
-      } catch (error) {
-        console.error(`Error on getApiDeploymentsHistory ${error}`)
-        setShowNoResult(true)
-      }
+    try {
+      const versionList = await getVersionRegistryByApplicationId(application.id)
+      setVersions(versionList)
+      setDisabledDeploymentHistory(versionList.length === 0)
+    } catch (error) {
+      console.error(`Error on getVersionRegistryByApplicationId ${error}`)
+      setShowNoResult(true)
+    } finally {
+      setInnerLoading(false)
     }
-    loadLastDeployment()
+  }, [application.id])
 
-    setInnerLoading(false)
-  }, [])
+  useEffect(() => {
+    loadVersions()
+  }, [loadVersions])
 
   function renderContent () {
     if (innerLoading) {
@@ -62,23 +61,14 @@ function DeploymentsBox ({
     }
 
     if (showNoResult) { return <NoDataAvailable iconName='NoDeploymentsIcon' title='There are no deployments yet' /> }
-    return (
-      <div className={`${commonStyles.smallFlexBlock} ${commonStyles.fullWidth} ${commonStyles.justifyCenter} ${commonStyles.flexGrow}`}>
-        <div className={styles.rowContainer}>
-          <div className={commonStyles.tinyFlexRow}>
-            <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70} `}>Image Id:</span>
-            <span className={`${typographyStyles.desktopBodySmallSemibold} ${typographyStyles.textWhite} ${typographyStyles.terminal}`}>{latestDeployment.imageId}</span>
-          </div>
-        </div>
-
-        <div className={styles.rowContainer}>
-          <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
-            <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Deployed on:</span>
-            <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>{getFormattedTimeAndDate(latestDeployment?.createdAt ?? '-')}</span>
-          </div>
-        </div>
-      </div>
-    )
+    return versions.map((version) => (
+      <DeploymentItem
+        key={version.id}
+        version={version}
+        applicationId={application.id}
+        onExpired={() => loadVersions()}
+      />
+    ))
   }
 
   return (
@@ -91,7 +81,7 @@ function DeploymentsBox ({
               size={MEDIUM}
             />
             <div className={styles.applicationName}>
-              <p className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite} ${typographyStyles.ellipsis}`}>Latest Deployment</p>
+              <p className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite} ${typographyStyles.ellipsis}`}>Deployments</p>
             </div>
           </div>
           <div className={styles.buttonContainer}>
@@ -109,10 +99,80 @@ function DeploymentsBox ({
 
           </div>
         </div>
-        {renderContent()}
+        <div className={styles.scrollableContent}>
+          {renderContent()}
+        </div>
       </div>
     </BorderedBox>
   )
 }
 
+function DeploymentItem ({ version, applicationId, onExpired }) {
+  const [expiring, setExpiring] = useState(false)
+  const additionalClass = version.status === 'active' ? styles.runningDeploynment : ''
+  const versionLabel = version.versionLabel ?? version.version_label ?? version.id ?? ''
+  const autoscalerUrl = `/watts/${applicationId}/autoscaler${versionLabel ? `?versionLabel=${encodeURIComponent(versionLabel)}` : ''}`
+
+  async function handleExpire () {
+    const label = version.versionLabel
+    if (!label) return
+    setExpiring(true)
+    try {
+      await expireApplicationVersion(applicationId, label)
+      onExpired?.()
+    } catch (err) {
+      console.error('expireApplicationVersion', err)
+    } finally {
+      setExpiring(false)
+    }
+  }
+
+  function renderRightSide () {
+    if (version.status === 'active') {
+      return <div className={styles.currentlyViewing}>Currently Viewing</div>
+    }
+    if (version.status === 'draining') {
+      return (
+        <div className={styles.actionsRow}>
+          <Button
+            type='button'
+            label='Expire'
+            color={WHITE}
+            backgroundColor={ERROR_RED}
+            paddingClass={commonStyles.smallButtonPadding}
+            textClass={typographyStyles.desktopButtonSmall}
+            disabled={expiring}
+            onClick={handleExpire}
+          />
+          <NavLink to={autoscalerUrl} className={styles.viewDetailsButton}>
+            View Details <Icons.ArrowLongRightIcon color={WHITE} size={MEDIUM} />
+          </NavLink>
+        </div>
+      )
+    }
+  }
+  return (
+    <div className={`${styles.deploymentItem} ${additionalClass}`}>
+      <div className={styles.deploymentItemHeader}>
+        <DeploymentStatusPill status={version.status} />
+        {renderRightSide()}
+      </div>
+
+      <div className={styles.deploymentDetailsRow}>
+        <DeploymentDetail label='Version' value={version.versionLabel ?? '-'} />
+        <DeploymentDetail label='Deployed on' value={getFormattedTimeAndDate(version?.createdAt ?? '-')} />
+        <DeploymentDetail label='Service Name' value={version.serviceName ?? '-'} />
+      </div>
+    </div>
+  )
+}
+
+function DeploymentDetail ({ label, value }) {
+  return (
+    <div className={styles.detailColumn}>
+      <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>{label}:</span>
+      <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>{value}</span>
+    </div>
+  )
+}
 export default DeploymentsBox

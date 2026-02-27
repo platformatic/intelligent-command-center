@@ -5,11 +5,11 @@ import styles from './TableActivities.module.css'
 import { LoadingSpinnerV2 } from '@platformatic/ui-components'
 import Row from './Row'
 import NoDataFound from '~/components/ui/NoDataFound'
-import gridStyles from '~/styles/GridStyles.module.css'
 
 function TableActivities ({
   activitiesLoaded = false,
   activities = [],
+  showWattName = false,
   onErrorOccurred = () => {}
 }) {
   const [innerLoading, setInnerLoading] = useState(true)
@@ -17,18 +17,14 @@ function TableActivities ({
 
   useEffect(() => {
     if (activitiesLoaded) {
-      if (activities.length === 0) {
-        setShowNoResult(true)
-      } else {
-        setShowNoResult(false)
-      }
+      setShowNoResult(activities.length === 0)
       setInnerLoading(false)
     }
   }, [activitiesLoaded, activities.length])
 
-  function renderComponent () {
-    if (innerLoading) {
-      return (
+  if (innerLoading) {
+    return (
+      <div className={styles.container}>
         <LoadingSpinnerV2
           loading={innerLoading}
           applySentences={{
@@ -44,44 +40,48 @@ function TableActivities ({
           containerClassName={styles.loadingSpinner}
           spinnerProps={{ size: 40, thickness: 3 }}
         />
-      )
-    }
+      </div>
+    )
+  }
 
-    if (showNoResult) { return <NoDataFound title='No Activities yet' subTitle={<span>There's no history of activities between your apps.<br />If you don't currently have any watts in the Command Center, you can add one now.</span>} /> }
-
+  if (showNoResult) {
     return (
-      <div className={styles.content}>
-        <div className={styles.tableActivities}>
-          <div className={styles.tableHeaders}>
-            <div className={`${styles.tableHeader} ${gridStyles.colSpanMiddle4}`}>
-              <div className={styles.thWithIcon}>
-                <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Date & Time (GMT)</span>
-              </div>
-            </div>
-            <div className={`${styles.tableHeader} ${gridStyles.colSpanMiddle4}`}>
-              <div className={styles.thWithIcon}>
-                <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Activity</span>
-              </div>
-            </div>
-            <div className={`${styles.tableHeader} ${gridStyles.colSpanMiddle4}`}>
-              <div className={styles.thWithIcon}>
-                <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Actor</span>
-              </div>
-            </div>
-          </div>
-
-          {activities.map(activity => (
-            <Row key={activity.id} {...activity} />
-          ))}
-
-        </div>
+      <div className={styles.container}>
+        <NoDataFound
+          title='No Activities yet'
+          subTitle={<span>There's no history of activities between your apps.<br />If you don't currently have any watts in the Command Center, you can add one now.</span>}
+        />
       </div>
     )
   }
 
   return (
-    <div className={`${styles.container}`}>
-      {renderComponent()}
+    <div className={styles.container}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            {showWattName && (
+              <th className={styles.th}>
+                <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Watt Name</span>
+              </th>
+            )}
+            <th className={styles.th}>
+              <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Date & Time (GMT)</span>
+            </th>
+            <th className={styles.th}>
+              <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Activity</span>
+            </th>
+            <th className={styles.th}>
+              <span className={`${typographyStyles.desktopOtherOverlineSmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Description</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {activities.map(activity => (
+            <Row key={activity.id} {...activity} showWattName={showWattName} />
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
