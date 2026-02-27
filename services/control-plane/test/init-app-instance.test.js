@@ -1347,7 +1347,8 @@ test('should create HTTPRoute with default rule only for first version', async (
   assert.strictEqual(statusCode, 200, body)
 
   const { applicationName: responseApplicationName } = JSON.parse(body)
-  assert.strictEqual(responseApplicationName, applicationName)
+  // Versioned pods use appLabel as the ICC application name
+  assert.strictEqual(responseApplicationName, appLabel)
 
   assert.strictEqual(servicesByLabelsRequests.length, 1)
   assert.deepStrictEqual(servicesByLabelsRequests[0].labels, {
@@ -2201,4 +2202,195 @@ test('should throw error when applicationName in request does not match database
   // Verify that Kubernetes was NOT called for application name resolution
   // since we failed validation before getting to image check
   assert.strictEqual(kubernetesCallCount, 0, 'Should not call Kubernetes when validation fails early')
+})
+
+test('versioned pod should use appLabel as ICC application name', async (t) => {
+  const appLabel = 'leads-demo'
+  const versionLabel = 'v1.0.0'
+  const podId = randomUUID()
+  const imageId = randomUUID()
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      labels: {
+        'app.kubernetes.io/name': appLabel,
+        'plt.dev/version': versionLabel
+      },
+      controller: { name: `${appLabel}-${versionLabel}` }
+    }),
+    listGateways: () => [{
+      metadata: { name: 'platform-gateway', namespace: 'platformatic' },
+      spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
+    }],
+    getServicesByLabels: () => [{
+      metadata: { name: `${appLabel}-${versionLabel}`, namespace: 'platformatic' },
+      spec: { ports: [{ port: 3042 }] }
+    }],
+    getK8sState: () => ({ pods: [], services: [] }),
+    applyHTTPRoute: (namespace, httpRoute) => httpRoute
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true'
+  })
+
+  // Do NOT pass applicationName — let the code derive it
+  const { statusCode, body } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: {}
+  })
+
+  assert.strictEqual(statusCode, 200, body)
+
+  const { applicationName: responseApplicationName } = JSON.parse(body)
+  // Without the fix, this would be 'leads-demo-v1.0.0' (controller name).
+  // With the fix, versioned pods use appLabel as the ICC application name.
+  assert.strictEqual(responseApplicationName, appLabel)
+
+  const { entities } = controlPlane.platformatic
+  const applications = await entities.application.find()
+  assert.strictEqual(applications.length, 1)
+  assert.strictEqual(applications[0].name, appLabel)
+})
+
+test('should auto-create version for pre-existing non-versioned deployment', async (t) => {
+  const appLabel = 'auto-version-app'
+  const oldImageTag = '1772117399617'
+  const oldImage = `registry.example.com/my-app:${oldImageTag}`
+  const newVersion = 'v2.0.0'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  // First deploy: non-versioned pod
+  const oldPodId = randomUUID()
+  const oldImageId = randomUUID()
+
+  let currentPodDetails = null
+  const appliedHTTPRoutes = []
+  let k8sStateResponse = null
+  await startMachinist(t, {
+    getPodDetails: () => currentPodDetails,
+    listGateways: () => [{
+      metadata: { name: 'platform-gateway', namespace: 'platformatic' },
+      spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
+    }],
+    getServicesByLabels: (namespace, labels) => {
+      const version = labels['plt.dev/version']
+      return [{
+        metadata: { name: version ? `${appLabel}-${version}` : appLabel, namespace: 'platformatic' },
+        spec: { ports: [{ port: 3042 }] }
+      }]
+    },
+    getK8sState: () => k8sStateResponse,
+    applyHTTPRoute: (namespace, httpRoute) => {
+      appliedHTTPRoutes.push({ namespace, httpRoute })
+      return httpRoute
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true'
+  })
+
+  // Register the non-versioned pod (no skew labels)
+  currentPodDetails = {
+    image: oldImageId,
+    labels: {
+      'app.kubernetes.io/name': appLabel
+    },
+    controller: { name: appLabel }
+  }
+
+  const res1 = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${oldPodId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(oldPodId)
+    },
+    body: {}
+  })
+  assert.strictEqual(res1.statusCode, 200, res1.body)
+
+  // No versions registered yet
+  const { entities } = controlPlane.platformatic
+  const versionsAfterFirst = await entities.versionRegistry.find({
+    where: { appLabel: { eq: appLabel } }
+  })
+  assert.strictEqual(versionsAfterFirst.length, 0)
+  assert.strictEqual(appliedHTTPRoutes.length, 0)
+
+  // Now deploy a versioned pod. getK8sState will return the old non-versioned pod.
+  k8sStateResponse = {
+    pods: [{
+      id: oldPodId,
+      image: oldImage,
+      labels: { 'app.kubernetes.io/name': appLabel },
+      controller: { name: appLabel }
+    }],
+    services: []
+  }
+
+  const newPodId = randomUUID()
+  const newImageId = randomUUID()
+  currentPodDetails = {
+    image: newImageId,
+    labels: {
+      'app.kubernetes.io/name': appLabel,
+      'plt.dev/version': newVersion
+    },
+    controller: { name: `${appLabel}-${newVersion}` }
+  }
+
+  const res2 = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${newPodId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(newPodId)
+    },
+    body: {}
+  })
+  assert.strictEqual(res2.statusCode, 200, res2.body)
+
+  // Version registry should have 2 entries:
+  // - old non-versioned (image tag) as draining
+  // - new versioned as active
+  const versions = await entities.versionRegistry.find({
+    where: { appLabel: { eq: appLabel } }
+  })
+  assert.strictEqual(versions.length, 2)
+
+  const oldVersion = versions.find(v => v.versionLabel === oldImageTag)
+  assert.ok(oldVersion, 'should have auto-created version for old deployment')
+  assert.strictEqual(oldVersion.status, 'draining')
+  assert.strictEqual(oldVersion.k8SDeploymentName, appLabel)
+  assert.strictEqual(oldVersion.serviceName, appLabel)
+  assert.strictEqual(oldVersion.servicePort, 3042)
+
+  const newVersionEntry = versions.find(v => v.versionLabel === newVersion)
+  assert.ok(newVersionEntry, 'should have registered the new version')
+  assert.strictEqual(newVersionEntry.status, 'active')
+
+  // HTTPRoute should have been applied with draining rules
+  assert.ok(appliedHTTPRoutes.length >= 1)
+  const lastRoute = appliedHTTPRoutes[appliedHTTPRoutes.length - 1]
+  // 2 draining rules (cookie + header) + 1 default = 3 rules
+  assert.strictEqual(lastRoute.httpRoute.spec.rules.length, 3)
 })

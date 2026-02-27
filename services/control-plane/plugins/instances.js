@@ -125,6 +125,13 @@ module.exports = fp(async function (app) {
         }
       }
 
+      // Skew protection: use appLabel as ICC application name so versioned
+      // and non-versioned deploys share the same ICC application record.
+      if (versionMeta) {
+        applicationName = versionMeta.appLabel
+        ctx.logger.debug({ podId, applicationName, method: 'version-meta' }, 'Using appLabel as application name')
+      }
+
       // If applicationName is not provided, get it from K8s pod details
       if (!applicationName) {
         ctx.logger.debug({ podId, namespace }, 'Application name not provided, fetching from Kubernetes')
@@ -199,6 +206,80 @@ module.exports = fp(async function (app) {
       // Skew protection: persist version and apply HTTPRoute
       if (versionMeta && app.registerVersion) {
         const { appLabel, versionLabel, k8SDeploymentName, serviceName, servicePort, pathPrefix, hostname } = versionMeta
+
+        // Auto-create version for pre-existing non-versioned deployment.
+        // When the first versioned pod registers, check if there are older
+        // non-versioned pods for the same app. If so, create a synthetic
+        // version registry entry so the old deployment enters the normal
+        // draining lifecycle.
+        const existingVersions = await app.platformatic.entities.versionRegistry.find({
+          where: { appLabel: { eq: appLabel } }
+        })
+
+        if (existingVersions.length === 0) {
+          try {
+            const k8sState = await app.machinist.getK8sState(namespace, { 'app.kubernetes.io/name': appLabel }, ctx)
+            const nonVersionedPods = (k8sState.pods || []).filter(
+              p => !p.labels?.['plt.dev/version']
+            )
+
+            if (nonVersionedPods.length > 0) {
+              const oldPod = nonVersionedPods[0]
+              const oldImage = oldPod.image || ''
+              const oldVersionLabel = oldImage.includes(':') ? oldImage.split(':').pop() : oldImage
+              const oldK8sDeploymentName = oldPod.controller?.name
+
+              // Find the non-versioned Service by metadata labels
+              // (getK8sState.services uses selector matching which doesn't work here)
+              const nonVersionedServices = await app.machinist.getServicesByLabels(
+                namespace,
+                { 'app.kubernetes.io/name': appLabel },
+                ctx
+              ).catch(err => {
+                ctx.logger.error({ err }, 'Failed to get services for non-versioned detection')
+                return []
+              })
+              const oldService = nonVersionedServices.filter(
+                s => !s.metadata?.labels?.['plt.dev/version']
+              )[0]
+              const oldServiceName = oldService?.metadata?.name
+              const oldServicePort = oldService?.spec?.ports?.[0]?.port
+
+              if (oldK8sDeploymentName && oldServiceName && oldServicePort) {
+                // Find the non-versioned pod's ICC deployment ID
+                let oldDeploymentId = result.deployment.id
+                const oldInstances = await app.platformatic.entities.instance.find({
+                  where: { podId: { eq: oldPod.id } }
+                })
+                if (oldInstances.length > 0) {
+                  oldDeploymentId = oldInstances[0].deploymentId
+                }
+
+                ctx.logger.info({
+                  appLabel,
+                  oldVersionLabel,
+                  oldK8sDeploymentName,
+                  oldServiceName
+                }, 'auto-creating version for pre-existing non-versioned deployment')
+
+                await app.registerVersion({
+                  applicationId: result.application.id,
+                  deploymentId: oldDeploymentId,
+                  appLabel,
+                  versionLabel: oldVersionLabel,
+                  k8SDeploymentName: oldK8sDeploymentName,
+                  serviceName: oldServiceName,
+                  servicePort: oldServicePort,
+                  namespace,
+                  pathPrefix,
+                  hostname
+                }, ctx)
+              }
+            }
+          } catch (err) {
+            ctx.logger.error({ err }, 'Failed to auto-create version for non-versioned deployment')
+          }
+        }
 
         const { activeVersion, drainingVersions } = await app.registerVersion({
           applicationId: result.application.id,
