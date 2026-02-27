@@ -12,6 +12,7 @@ const versionCleanupPlugin = require('../plugins/version-cleanup')
 function buildApp (opts = {}) {
   const app = fastify({ logger: false })
   const store = []
+  const deploymentStore = []
   const policyStore = opts.policyStore || []
   let idCounter = 0
   let policyIdCounter = 0
@@ -59,6 +60,18 @@ function buildApp (opts = {}) {
             }
             const row = { id: String(++idCounter), ...input }
             store.push(row)
+            return row
+          }
+        },
+        deployment: {
+          save: async ({ input }) => {
+            const idx = deploymentStore.findIndex(r => r.id === input.id)
+            if (idx !== -1) {
+              deploymentStore[idx] = { ...deploymentStore[idx], ...input }
+              return deploymentStore[idx]
+            }
+            const row = { ...input }
+            deploymentStore.push(row)
             return row
           }
         },

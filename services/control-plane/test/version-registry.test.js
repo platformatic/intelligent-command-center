@@ -11,6 +11,7 @@ function buildApp (opts = {}) {
   const enabled = opts.enabled !== false
   const app = fastify({ logger: false })
   const store = []
+  const deploymentStore = []
   const policyStore = opts.policyStore || []
   let idCounter = 0
   let policyIdCounter = 0
@@ -52,6 +53,18 @@ function buildApp (opts = {}) {
             return row
           }
         },
+        deployment: {
+          save: async ({ input }) => {
+            const idx = deploymentStore.findIndex(r => r.id === input.id)
+            if (idx !== -1) {
+              deploymentStore[idx] = { ...deploymentStore[idx], ...input }
+              return deploymentStore[idx]
+            }
+            const row = { ...input }
+            deploymentStore.push(row)
+            return row
+          }
+        },
         skewProtectionPolicy: {
           find: async ({ where }) => {
             return policyStore.filter(row => {
@@ -81,7 +94,7 @@ function buildApp (opts = {}) {
   app.register(skewPolicyPlugin)
   app.register(versionRegistryPlugin)
 
-  return { app, store }
+  return { app, store, deploymentStore }
 }
 
 const mockCtx = {
@@ -252,10 +265,13 @@ test('should isolate versions by appLabel', async (t) => {
   assert.strictEqual(result.drainingVersions.length, 0)
 })
 
-test('expireVersion should expire a draining version', async (t) => {
-  const { app, store } = buildApp()
+test('expireVersion should expire a draining version and stop its deployment', async (t) => {
+  const { app, store, deploymentStore } = buildApp()
   await app.ready()
   t.after(() => app.close())
+
+  deploymentStore.push({ id: 'dep-1', status: 'started' })
+  deploymentStore.push({ id: 'dep-2', status: 'started' })
 
   await app.registerVersion(baseOpts, mockCtx)
   await app.registerVersion({
@@ -271,6 +287,8 @@ test('expireVersion should expire a draining version', async (t) => {
   assert.strictEqual(result.expired, true)
   assert.strictEqual(store[0].status, 'expired')
   assert.ok(store[0].expiredAt)
+  assert.strictEqual(deploymentStore[0].status, 'stopped')
+  assert.strictEqual(deploymentStore[1].status, 'started')
   assert.strictEqual(result.drainingVersions.length, 0)
   assert.deepStrictEqual(result.activeVersion, {
     versionId: 'v2',
@@ -302,7 +320,7 @@ test('expireVersion should return expired false for unknown version', async (t) 
   assert.strictEqual(result.expired, false)
 })
 
-test('maxVersions should auto-expire oldest draining versions when exceeded', async (t) => {
+test('maxVersions should auto-expire oldest draining versions and stop their deployments', async (t) => {
   const policyStore = [{
     id: 'p1',
     applicationId: 'app-1',
@@ -313,9 +331,13 @@ test('maxVersions should auto-expire oldest draining versions when exceeded', as
     autoCleanup: null
   }]
 
-  const { app, store } = buildApp({ policyStore })
+  const { app, store, deploymentStore } = buildApp({ policyStore })
   await app.ready()
   t.after(() => app.close())
+
+  deploymentStore.push({ id: 'dep-1', status: 'started' })
+  deploymentStore.push({ id: 'dep-2', status: 'started' })
+  deploymentStore.push({ id: 'dep-3', status: 'started' })
 
   // Register v1, then v2 (v1 becomes draining), then v3 (v2 becomes draining)
   await app.registerVersion(baseOpts, mockCtx)
@@ -340,6 +362,9 @@ test('maxVersions should auto-expire oldest draining versions when exceeded', as
   assert.strictEqual(store[0].status, 'expired')
   assert.strictEqual(store[1].status, 'draining')
   assert.strictEqual(store[2].status, 'active')
+  assert.strictEqual(deploymentStore[0].status, 'stopped')
+  assert.strictEqual(deploymentStore[1].status, 'started')
+  assert.strictEqual(deploymentStore[2].status, 'started')
   assert.strictEqual(result.isNew, true)
   assert.strictEqual(result.drainingVersions.length, 1)
   assert.strictEqual(result.drainingVersions[0].versionId, 'v2')

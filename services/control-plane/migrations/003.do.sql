@@ -1,3 +1,5 @@
+ALTER TYPE deployment_status ADD VALUE 'stopped';
+
 CREATE TYPE version_status AS ENUM ('active', 'draining', 'expired');
 
 CREATE TABLE version_registry (

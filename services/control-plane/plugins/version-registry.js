@@ -136,6 +136,10 @@ module.exports = fp(async function (app) {
                 input: { id: allDraining[i].id, status: 'expired', expiredAt: new Date().toISOString() },
                 tx
               })
+              await entities.deployment.save({
+                input: { id: allDraining[i].deploymentId, status: 'stopped' },
+                tx
+              })
               ctx.logger.info({
                 appLabel: opts.appLabel,
                 versionLabel: allDraining[i].versionLabel
@@ -186,6 +190,10 @@ module.exports = fp(async function (app) {
 
     await entities.versionRegistry.save({
       input: { id: version.id, status: 'expired', expiredAt: new Date().toISOString() }
+    })
+
+    await entities.deployment.save({
+      input: { id: version.deploymentId, status: 'stopped' }
     })
 
     if (app.sendVersionRegistryActivity && ctx.req?.activities) {

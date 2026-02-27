@@ -107,6 +107,11 @@ function buildApp (opts = {}) {
             return row
           }
         },
+        deployment: {
+          save: async ({ input }) => {
+            return input
+          }
+        },
         skewProtectionPolicy: {
           find: async ({ where }) => {
             return policyStore.filter(row => {
