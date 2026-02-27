@@ -181,8 +181,9 @@ export const getApiApplication = async (id) => {
 }
 
 /* METRICS */
-export const getApiMetricsForApplication = async (applicationId, radix) => {
-  return fetch(`${baseUrl}/metrics/apps/${applicationId}/${radix}`, {
+export const getApiMetricsForApplication = async (applicationId, radix, versionLabel = null) => {
+  const versionQuery = versionLabel ? `?versionLabel=${encodeURIComponent(versionLabel)}` : ''
+  return fetch(`${baseUrl}/metrics/apps/${applicationId}/${radix}${versionQuery}`, {
     method: 'GET',
     headers: getHeaders()
   })
@@ -218,11 +219,12 @@ export const getApiMetricsPodPerService = async (applicationId, podId, serviceId
 
 /* KUBERNETES RESOURCES */
 
-export const getKubernetesResources = async (applicationId, deploymentId = null) => {
+export const getKubernetesResources = async (applicationId, versionLabel = null) => {
   const { pods } = await getApiApplicationK8sState(applicationId)
   const scaleConfig = await getApiApplicationScaleConfig(applicationId)
 
-  const url = `${baseUrl}/metrics/kubernetes/apps/${applicationId}`
+  const versionQuery = versionLabel ? `?versionLabel=${encodeURIComponent(versionLabel)}` : ''
+  const url = `${baseUrl}/metrics/kubernetes/apps/${applicationId}${versionQuery}`
   const response = await fetch(url, {
     method: 'GET',
     headers: getHeaders()
@@ -232,11 +234,14 @@ export const getKubernetesResources = async (applicationId, deploymentId = null)
     throw new Error('Unable to get kubernetes metrics')
   }
 
+  const podVersionLabel = (pod) => pod.versionLabel ?? pod.version_label
+  const filteredPods = versionLabel ? pods.filter(pod => podVersionLabel(pod) === versionLabel) : pods
+
   const k8sMetrics = await response.json()
   return {
     ...k8sMetrics,
     pods: {
-      current: pods.length,
+      current: filteredPods.length,
       max: scaleConfig.maxPods
     }
   }

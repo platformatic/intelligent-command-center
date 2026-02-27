@@ -25,26 +25,29 @@ module.exports = async function (app) {
   app.get('/apps/:appId/mem', {
     handler: async (req) => {
       const { appId } = req.params
-      app.log.info({ appId }, 'Getting application memory metrics')
-      return getMemMetrics({ appId, timeWindow: applicationTimeWindow })
+      const { versionLabel } = req.query
+      app.log.info({ appId, versionLabel }, 'Getting application memory metrics')
+      return getMemMetrics({ appId, timeWindow: applicationTimeWindow, versionLabel })
     }
   })
 
   app.get('/apps/:appId/cpu', {
     handler: async (req) => {
       const { appId } = req.params
-      app.log.info({ appId }, 'Getting application cpu metrics')
-      return getCpuEventMetrics({ appId, timeWindow: applicationTimeWindow })
+      const { versionLabel } = req.query
+      app.log.info({ appId, versionLabel }, 'Getting application cpu metrics')
+      return getCpuEventMetrics({ appId, timeWindow: applicationTimeWindow, versionLabel })
     }
   })
 
   app.get('/apps/:appId/latency', {
     handler: async (req) => {
       const { appId } = req.params
-      app.log.info({ appId }, 'Getting application latency metrics')
+      const { versionLabel } = req.query
+      app.log.info({ appId, versionLabel }, 'Getting application latency metrics')
       const { controlPlane } = req
       const entrypoint = await getEntrypoint(controlPlane, appId, app.log)
-      return getLatencyMetrics({ appId, entrypoint, timeWindow: applicationTimeWindow })
+      return getLatencyMetrics({ appId, entrypoint, timeWindow: applicationTimeWindow, versionLabel })
     }
   })
 

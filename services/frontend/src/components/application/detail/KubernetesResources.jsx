@@ -12,20 +12,24 @@ import { REFRESH_INTERVAL } from '~/ui-constants'
 
 function KubernetesResources ({
   gridClassName = '',
-  application
+  application,
+  versionLabel = null
 }) {
   const [values, setValues] = useState({})
   const [startPolling, setStartPolling] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
 
   useEffect(() => {
+    setInitialLoading(true)
+    setValues({})
+    setStartPolling(false)
     async function getK8SResources () {
       await loadKubernetesResources()
       setStartPolling(true)
       setInitialLoading(false)
     }
     getK8SResources()
-  }, [])
+  }, [versionLabel])
 
   useEffect(() => {
     let intervalId
@@ -35,11 +39,11 @@ function KubernetesResources ({
     return () => {
       return clearInterval(intervalId)
     }
-  }, [startPolling])
+  }, [startPolling, versionLabel])
 
   async function loadKubernetesResources () {
     try {
-      const values = await getKubernetesResources(application.id)
+      const values = await getKubernetesResources(application.id, versionLabel)
       setValues(values)
     } catch (error) {
       console.error({ getKubernetesResources: error })

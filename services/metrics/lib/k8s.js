@@ -27,13 +27,17 @@ const totalMemQuery =
   'sum(kube_node_status_allocatable{resource="memory",unit="byte"})'
 // const podsAllQuery = 'count(kube_pod_labels{label_app_kubernetes_io_name="wattpro"})'
 
-const getAppCPUMetrics = async (applicationId) => {
+const versionLabelFilter = (versionLabel) =>
+  versionLabel ? `, label_plt_dev_version="${versionLabel}"` : ''
+
+const getAppCPUMetrics = async (applicationId, versionLabel) => {
+  const vf = versionLabelFilter(versionLabel)
   const cpuAppQuery = `
     sum(rate(container_cpu_usage_seconds_total{pod=~".*", container!="POD"}[1m])) by (pod) 
     * on(pod) group_left() 
     kube_pod_labels{
       label_platformatic_dev_application_id="${applicationId}",
-      label_platformatic_dev_monitor="prometheus"
+      label_platformatic_dev_monitor="prometheus"${vf}
     }
     /
     (
@@ -44,7 +48,7 @@ const getAppCPUMetrics = async (applicationId) => {
     * on(pod) group_left()
     kube_pod_labels{
       label_platformatic_dev_application_id="${applicationId}",
-      label_platformatic_dev_monitor="prometheus"
+      label_platformatic_dev_monitor="prometheus"${vf}
     }
     * 100`
 
@@ -104,19 +108,20 @@ const getAppCPUMetrics = async (applicationId) => {
   }
 }
 
-const getAppMemMetrics = async (applicationId) => {
+const getAppMemMetrics = async (applicationId, versionLabel) => {
+  const vf = versionLabelFilter(versionLabel)
   const sumMemAppQuery = `
     sum(
       container_memory_working_set_bytes{container!=""}
       * on(pod) group_left()
-      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"${vf}}
     )`
 
   const avgMemAppQuery = `
     avg(
       container_memory_working_set_bytes{container!=""}
       * on(pod) group_left()
-      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"}
+      kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"${vf}}
     )`
 
   const memAllButAppQuery = `
@@ -161,8 +166,9 @@ const getAppMemMetrics = async (applicationId) => {
   }
 }
 
-const getAppPodsMetrics = async (applicationId) => {
-  const podsAppQuery = `count(kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"})`
+const getAppPodsMetrics = async (applicationId, versionLabel) => {
+  const vf = versionLabelFilter(versionLabel)
+  const podsAppQuery = `count(kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"${vf}})`
   const podsAllQuery =
     'count(kube_pod_labels{label_platformatic_dev_monitor="prometheus"})'
 
@@ -188,8 +194,12 @@ const getAppRequestMetrics = async (applicationId) => {
   return { latency }
 }
 
-const getAppEventLoopUtilization = async (applicationId) => {
-  const query = `avg(max by(instanceId) (nodejs_eventloop_utilization{applicationId="${applicationId}"}))`
+const getAppEventLoopUtilization = async (applicationId, versionLabel) => {
+  const baseMetric = `nodejs_eventloop_utilization{applicationId="${applicationId}"}`
+  const filtered = versionLabel
+    ? `(${baseMetric} * on(instanceId) group_left() label_replace(kube_pod_labels{label_plt_dev_version="${versionLabel}"}, "instanceId", "$1", "pod", "(.*)"))`
+    : baseMetric
+  const query = `avg(max by(instanceId) (${filtered}))`
   const eluAppRes = await queryPrometheus(query)
   const eluApp = (parseFloat(eluAppRes?.data?.result[0]?.value[1]) || 0) * 100
   return {
@@ -197,12 +207,12 @@ const getAppEventLoopUtilization = async (applicationId) => {
   }
 }
 
-const getAppK8SMetrics = async (applicationId) => {
-  const cpu = await getAppCPUMetrics(applicationId)
-  const memory = await getAppMemMetrics(applicationId)
-  const pods = await getAppPodsMetrics(applicationId)
+const getAppK8SMetrics = async (applicationId, versionLabel) => {
+  const cpu = await getAppCPUMetrics(applicationId, versionLabel)
+  const memory = await getAppMemMetrics(applicationId, versionLabel)
+  const pods = await getAppPodsMetrics(applicationId, versionLabel)
   const requests = await getAppRequestMetrics(applicationId)
-  const elu = await getAppEventLoopUtilization(applicationId)
+  const elu = await getAppEventLoopUtilization(applicationId, versionLabel)
 
   const res = {
     cpu,

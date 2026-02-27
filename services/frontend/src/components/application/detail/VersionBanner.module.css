@@ -1,0 +1,9 @@
+.banner {
+  @apply flex items-center gap-3 rounded-sm px-4 py-3;
+  background-color: rgba(255, 176, 32, 0.12);
+  border: 1px solid rgba(255, 176, 32, 0.4);
+}
+
+.text {
+  color: #ffb020;
+}

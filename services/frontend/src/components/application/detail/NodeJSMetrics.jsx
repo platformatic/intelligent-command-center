@@ -11,8 +11,8 @@ import { getApiMetricsForApplication } from '../../../api'
 
 function NodeJSMetrics ({
   gridClassName = '',
-  application
-
+  application,
+  versionLabel = null
 }) {
   const [initialLoading, setInitialLoading] = useState(true)
   const [allData, setAllData] = useState({})
@@ -26,6 +26,12 @@ function NodeJSMetrics ({
       clearInterval(timerInterval)
     }
   }, [])
+
+  useEffect(() => {
+    setInitialLoading(true)
+    setAllData({})
+    setTimer(REFRESH_INTERVAL_METRICS / 1000)
+  }, [versionLabel])
 
   useEffect(() => {
     if (Object.keys(allData).length > 0) {
@@ -62,9 +68,9 @@ function NodeJSMetrics ({
     try {
       const allData = {}
       const [mem, cpu, latency] = await Promise.all([
-        getApiMetricsForApplication(application.id, 'mem'),
-        getApiMetricsForApplication(application.id, 'cpu'),
-        getApiMetricsForApplication(application.id, 'latency')
+        getApiMetricsForApplication(application.id, 'mem', versionLabel),
+        getApiMetricsForApplication(application.id, 'cpu', versionLabel),
+        getApiMetricsForApplication(application.id, 'latency', versionLabel)
       ])
       if (mem.ok) {
         allData.dataMem = await mem.json()

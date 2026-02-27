@@ -28,12 +28,30 @@
 }
 
 .deploymentItem {
-  @apply bg-rich-black rounded-sm p-4 w-full;
+  @apply bg-rich-black rounded-sm p-4 w-full cursor-pointer transition-colors duration-200 border border-solid border-transparent;
+  border-left-width: 2px;
 }
 
-.runningDeploynment {
-  @apply border border-solid border-main-green/30;
-  border-left: 2px solid #21FA90;
+.deploymentItem:hover {
+  @apply opacity-80;
+}
+
+.expiredItem {
+  @apply cursor-default opacity-50;
+}
+
+.expiredItem:hover {
+  @apply opacity-50;
+}
+
+.selectedActive {
+  border-color: rgba(33, 250, 144, 0.3);
+  border-left-color: #21FA90;
+}
+
+.selectedDraining {
+  border-color: rgba(255, 176, 32, 0.3);
+  border-left-color: #ffb020;
 }
 
 .deploymentItemHeader {

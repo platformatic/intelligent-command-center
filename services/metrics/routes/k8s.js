@@ -7,8 +7,9 @@ module.exports = async function (app) {
   app.get('/kubernetes/apps/:appId', {
     handler: async (req) => {
       const { appId } = req.params
-      app.log.info({ appId }, 'Getting K8s metrics')
-      return getAppK8SMetrics(appId)
+      const { versionLabel } = req.query
+      app.log.info({ appId, versionLabel }, 'Getting K8s metrics')
+      return getAppK8SMetrics(appId, versionLabel)
     }
   })
 

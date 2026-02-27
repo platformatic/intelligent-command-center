@@ -14,7 +14,9 @@ import DeploymentStatusPill from './deployments/DeploymentStatusPill'
 
 function DeploymentsBox ({
   gridClassName = '',
-  application
+  application,
+  selectedVersion,
+  onVersionSelect
 }) {
   const [innerLoading, setInnerLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
@@ -30,6 +32,10 @@ function DeploymentsBox ({
       const versionList = await getVersionRegistryByApplicationId(application.id)
       setVersions(versionList)
       setDisabledDeploymentHistory(versionList.length === 0)
+      if (!selectedVersion && versionList.length > 0) {
+        const active = versionList.find(v => v.status === 'active')
+        onVersionSelect?.(active ?? versionList[0])
+      }
     } catch (error) {
       console.error(`Error on getVersionRegistryByApplicationId ${error}`)
       setShowNoResult(true)
@@ -67,6 +73,8 @@ function DeploymentsBox ({
         version={version}
         applicationId={application.id}
         onExpired={() => loadVersions()}
+        isSelected={selectedVersion?.id === version.id}
+        onSelect={() => onVersionSelect?.(version)}
       />
     ))
   }
@@ -107,9 +115,17 @@ function DeploymentsBox ({
   )
 }
 
-function DeploymentItem ({ version, applicationId, onExpired }) {
+const selectedClassByStatus = {
+  active: styles.selectedActive,
+  draining: styles.selectedDraining
+}
+
+function DeploymentItem ({ version, applicationId, onExpired, isSelected, onSelect }) {
   const [expiring, setExpiring] = useState(false)
-  const additionalClass = version.status === 'active' ? styles.runningDeploynment : ''
+  const isExpired = version.status === 'expired'
+  const statusClass = isSelected
+    ? (selectedClassByStatus[version.status] ?? styles.selectedActive)
+    : ''
   const versionLabel = version.versionLabel ?? version.version_label ?? version.id ?? ''
   const autoscalerUrl = `/watts/${applicationId}/autoscaler${versionLabel ? `?versionLabel=${encodeURIComponent(versionLabel)}` : ''}`
 
@@ -152,7 +168,7 @@ function DeploymentItem ({ version, applicationId, onExpired }) {
     }
   }
   return (
-    <div className={`${styles.deploymentItem} ${additionalClass}`}>
+    <div className={`${styles.deploymentItem} ${statusClass} ${isExpired ? styles.expiredItem : ''}`} onClick={isExpired ? undefined : onSelect} role={isExpired ? undefined : 'button'} tabIndex={isExpired ? -1 : 0} onKeyDown={isExpired ? undefined : (e) => { if (e.key === 'Enter') onSelect?.() }}>
       <div className={styles.deploymentItemHeader}>
         <DeploymentStatusPill status={version.status} />
         {renderRightSide()}

@@ -14,13 +14,13 @@ const { toGB } = require('./utils')
 
 const step = '5s'
 
-const getMemMetrics = async ({ appId, timeWindow }) => {
+const getMemMetrics = async ({ appId, timeWindow, versionLabel }) => {
   const end = new Date().getTime() / 1000
   const start = end - timeWindow * 60
 
-  const rssMemoryQuery = createRSSMemoryQuery({ appId })
-  const totalHEAPMemoryQuery = createTotalHEAPMemoryQuery({ appId })
-  const usedHEAPMemoryQuery = createUsedHEAPMemoryQuery({ appId })
+  const rssMemoryQuery = createRSSMemoryQuery({ appId, versionLabel })
+  const totalHEAPMemoryQuery = createTotalHEAPMemoryQuery({ appId, versionLabel })
+  const usedHEAPMemoryQuery = createUsedHEAPMemoryQuery({ appId, versionLabel })
   const [rssRes, totalHeapRes, usedHeapRes] = await Promise.all([
     queryRangePrometheus(rssMemoryQuery, start, end, step),
     queryRangePrometheus(totalHEAPMemoryQuery, start, end, step),
@@ -48,11 +48,11 @@ const getMemMetrics = async ({ appId, timeWindow }) => {
   return data
 }
 
-const getCpuEventMetrics = async ({ appId, timeWindow }) => {
+const getCpuEventMetrics = async ({ appId, timeWindow, versionLabel }) => {
   const end = new Date().getTime() / 1000
   const start = end - timeWindow * 60
-  const cpuQuery = createCPUQuery({ appId })
-  const eventLoopQuery = createEventLoopQuery({ appId })
+  const cpuQuery = createCPUQuery({ appId, versionLabel })
+  const eventLoopQuery = createEventLoopQuery({ appId, versionLabel })
 
   const [cpuRes, eventLoopRes] = await Promise.all([
     queryRangePrometheus(cpuQuery, start, end, step),
@@ -73,12 +73,12 @@ const getCpuEventMetrics = async ({ appId, timeWindow }) => {
   return data
 }
 
-const getLatencyMetrics = async ({ appId, entrypoint, timeWindow }) => {
+const getLatencyMetrics = async ({ appId, entrypoint, timeWindow, versionLabel }) => {
   const end = new Date().getTime() / 1000
   const start = end - timeWindow * 60
-  const latencyQuery90 = createLatencyQuery({ appId, entrypoint, quantile: '0.9' })
-  const latencyQuery95 = createLatencyQuery({ appId, entrypoint, quantile: '0.95' })
-  const latencyQuery99 = createLatencyQuery({ appId, entrypoint, quantile: '0.99' })
+  const latencyQuery90 = createLatencyQuery({ appId, entrypoint, quantile: '0.9', versionLabel })
+  const latencyQuery95 = createLatencyQuery({ appId, entrypoint, quantile: '0.95', versionLabel })
+  const latencyQuery99 = createLatencyQuery({ appId, entrypoint, quantile: '0.99', versionLabel })
   const [latencyRes90, latencyRes95, latencyRes99] = await Promise.all([
     queryRangePrometheus(latencyQuery90, start, end, step),
     queryRangePrometheus(latencyQuery95, start, end, step),

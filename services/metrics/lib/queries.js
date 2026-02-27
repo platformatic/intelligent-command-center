@@ -2,29 +2,34 @@
 
 const getAppFilter = (appId) => appId ? `applicationId="${appId}"` : ''
 
+const withVersionFilter = (metricExpr, versionLabel) => {
+  if (!versionLabel) return metricExpr
+  return `(${metricExpr} * on(instanceId) group_left() label_replace(kube_pod_labels{label_plt_dev_version="${versionLabel}"}, "instanceId", "$1", "pod", "(.*)"))`
+}
+
 // Averate resident memory usage across all pods
 // TEMPORARY: we should sum up the RSS of all the services by `instanceId` but currently every service return the same global RSS value.
 // So we use the `max` to get the value for the whole pod, and then the average across all pods.
 // Ref https://github.com/platformatic/platformatic/issues/3332
-const createRSSMemoryQuery = ({ appId }) =>
-  `avg(max by (instanceId) (process_resident_memory_bytes{${getAppFilter(appId)}}))`
+const createRSSMemoryQuery = ({ appId, versionLabel }) =>
+  `avg(max by (instanceId) (${withVersionFilter(`process_resident_memory_bytes{${getAppFilter(appId)}}`, versionLabel)}))`
 
-const createTotalHEAPMemoryQuery = ({ appId }) =>
-  `avg(sum by (instanceId) (nodejs_heap_size_total_bytes{${getAppFilter(appId)}}))`
+const createTotalHEAPMemoryQuery = ({ appId, versionLabel }) =>
+  `avg(sum by (instanceId) (${withVersionFilter(`nodejs_heap_size_total_bytes{${getAppFilter(appId)}}`, versionLabel)}))`
 
-const createUsedHEAPMemoryQuery = ({ appId }) =>
-  `avg(sum by (instanceId) (nodejs_heap_size_used_bytes{${getAppFilter(appId)}}))`
+const createUsedHEAPMemoryQuery = ({ appId, versionLabel }) =>
+  `avg(sum by (instanceId) (${withVersionFilter(`nodejs_heap_size_used_bytes{${getAppFilter(appId)}}`, versionLabel)}))`
 
 // The CPU usage is the same for all the services in the same pod, so we can use the `max` to get the value for the whole pod.
-const createCPUQuery = ({ appId }) =>
-  `avg(max by (instanceId) (process_cpu_percent_usage{${getAppFilter(appId)}}))`
+const createCPUQuery = ({ appId, versionLabel }) =>
+  `avg(max by (instanceId) (${withVersionFilter(`process_cpu_percent_usage{${getAppFilter(appId)}}`, versionLabel)}))`
 
-const createEventLoopQuery = ({ appId }) =>
-  `avg(max by(instanceId) (nodejs_eventloop_utilization{${getAppFilter(appId)}}))`
+const createEventLoopQuery = ({ appId, versionLabel }) =>
+  `avg(max by(instanceId) (${withVersionFilter(`nodejs_eventloop_utilization{${getAppFilter(appId)}}`, versionLabel)}))`
 
 // quantile as fraction, so 0.95 for 95th percentile
-const createLatencyQuery = ({ appId, quantile, entrypoint }) =>
-  `avg(avg by(instanceId)(http_request_all_summary_seconds{${getAppFilter(appId)}, serviceId="${entrypoint}", quantile="${quantile}"}))`
+const createLatencyQuery = ({ appId, quantile, entrypoint, versionLabel }) =>
+  `avg(avg by(instanceId)(${withVersionFilter(`http_request_all_summary_seconds{${getAppFilter(appId)}, serviceId="${entrypoint}", quantile="${quantile}"}`, versionLabel)}))`
 
 // We should have one value for the whole process. Given that we get one value per service, uses the `max`.
 const createRSSMemoryPodQuery = ({ podId, timeWindow }) =>
