@@ -11,6 +11,7 @@ import Icons from '@platformatic/ui-components/src/components/icons'
 import { getVersionRegistryByApplicationId, expireApplicationVersion } from '~/api'
 import { NavLink } from 'react-router-dom'
 import DeploymentStatusPill from './deployments/DeploymentStatusPill'
+import { truncateLabel } from '~/utilities/truncate'
 
 function DeploymentsBox ({
   gridClassName = '',
@@ -175,7 +176,7 @@ function DeploymentItem ({ version, applicationId, onExpired, isSelected, onSele
       </div>
 
       <div className={styles.deploymentDetailsRow}>
-        <DeploymentDetail label='Version' value={version.versionLabel ?? '-'} />
+        <DeploymentDetail label='Version' value={truncateLabel(version.versionLabel) ?? '-'} title={version.versionLabel} />
         <DeploymentDetail label='Deployed on' value={getFormattedTimeAndDate(version?.createdAt ?? '-')} />
         <DeploymentDetail label='Service Name' value={version.serviceName ?? '-'} />
       </div>
@@ -183,11 +184,11 @@ function DeploymentItem ({ version, applicationId, onExpired, isSelected, onSele
   )
 }
 
-function DeploymentDetail ({ label, value }) {
+function DeploymentDetail ({ label, value, title = undefined }) {
   return (
     <div className={styles.detailColumn}>
       <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>{label}:</span>
-      <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>{value}</span>
+      <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`} title={title}>{value}</span>
     </div>
   )
 }

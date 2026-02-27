@@ -12,6 +12,7 @@ import { generatePath, useRouteLoaderData, useNavigate } from 'react-router-dom'
 import { AUTOSCALER_POD_DETAIL_PATH } from '../../../paths'
 import { ELU_THRESHOLD, HEAP_THRESHOLD, calculateHexagonPerformance } from '../../../utils/podPerformance'
 import useICCStore from '../../../useICCStore'
+import { truncatePodId } from '../../../utilities/truncate'
 
 export default function PodSummary ({ pod }) {
   const [signals, setSignals] = useState([])
@@ -77,7 +78,7 @@ export default function PodSummary ({ pod }) {
   return (
     <div className={styles.container}>
       <div className={styles.podIdContainer}>
-        <span className={styles.podId}>{pod.id}</span>
+        <span className={styles.podId} title={pod.id}>{truncatePodId(pod.id)}</span>
         <div className={styles.copyToClipBoard} onClick={onClipboardClick}>
           <Icons.CopyPasteIcon color={WHITE} size={SMALL} />
         </div>

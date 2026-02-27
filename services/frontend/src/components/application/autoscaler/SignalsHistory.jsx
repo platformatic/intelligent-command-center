@@ -9,6 +9,7 @@ import { SMALL, WHITE } from '@platformatic/ui-components/src/components/constan
 import { Icons } from '@platformatic/ui-components'
 
 import styles from './SignalsHistory.module.css'
+import { truncatePodId } from '../../../utilities/truncate'
 import Paginator from '../../ui/Paginator'
 
 export default function SignalsHistory ({ wattId, limit }) {
@@ -68,9 +69,9 @@ export default function SignalsHistory ({ wattId, limit }) {
           return
         }
         if (instance?.status === 'running') {
-          return <div className={styles.podId}>{instance.podId}</div>
+          return <div className={styles.podId} title={instance.podId}>{truncatePodId(instance.podId)}</div>
         } else {
-          return <div className={styles.podId}>{instance.podId} <span className={styles.terminated}>(terminated)</span></div>
+          return <div className={styles.podId} title={instance.podId}>{truncatePodId(instance.podId)} <span className={styles.terminated}>(terminated)</span></div>
         }
       }
     }
@@ -137,8 +138,6 @@ export default function SignalsHistory ({ wattId, limit }) {
       } else {
         return null
       }
-
-    // <Link to={`/application/${row.applicationId}/scale-events/${value}`} className={styles.viewScaleEventLink}>View Scale Event</Link>
     }
   })
   return (

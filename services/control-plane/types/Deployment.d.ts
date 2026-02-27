@@ -9,6 +9,6 @@ declare interface Deployment {
     createdAt?: string | null;
     imageId: string;
     namespace: string;
-    status: "failed" | "started" | "starting";
+    status: "failed" | "started" | "starting" | "stopped";
 }
 export { Deployment };

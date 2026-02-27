@@ -16,6 +16,7 @@ import styles from './ScalerEvents.module.css'
 import tooltipStyles from '~/styles/TooltipStyles.module.css'
 import { toPercentage } from '../../../utils'
 import useICCStore from '../../../useICCStore'
+import { truncatePodId } from '../../../utilities/truncate'
 
 function EventsTableContainer ({ applicationId, limit = 10 }) {
   const [selectedEvent, setSelectedEvent] = useState(null)
@@ -220,7 +221,7 @@ function SignalsFromPod ({ podId, signals, scalerAlgorithmVersion }) {
     <div className={styles.podDetails}>
       <div className={styles.podDetailsHeader}>
         <p className={styles.podDetailsTitle}>Pod </p>
-        <p className={styles.podDetailsId}>{podId}</p>
+        <p className={styles.podDetailsId} title={podId}>{truncatePodId(podId)}</p>
       </div>
       <div className={styles.metrics}>
         {renderSignals()}
