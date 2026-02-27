@@ -234,14 +234,24 @@ export function getRouter () {
             const url = new URL(request.url)
             const page = parseInt(url.searchParams.get('page') || '0')
             const LIMIT = 10
-            const response = await getApiDeploymentsHistory({
-              filterDeploymentsByApplicationId: params.applicationId,
-              limit: LIMIT,
-              offset: page * LIMIT
-            })
+            const [response, versionsData] = await Promise.all([
+              getApiDeploymentsHistory({
+                filterDeploymentsByApplicationId: params.applicationId,
+                limit: LIMIT,
+                offset: page * LIMIT
+              }),
+              callApi('control-plane', `/applications/${params.applicationId}/versions`)
+            ])
             const { totalCount, deployments } = response
+            const versionsByDeploymentId = new Map(
+              (versionsData.versions || []).map(v => [v.deploymentId, v.versionLabel])
+            )
+            const enrichedDeployments = deployments.map(d => ({
+              ...d,
+              versionLabel: versionsByDeploymentId.get(d.id) || null
+            }))
 
-            return { totalCount, deployments }
+            return { totalCount, deployments: enrichedDeployments }
           },
           element: <DeploymentHistory />
         },

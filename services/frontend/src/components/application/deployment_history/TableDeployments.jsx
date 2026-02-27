@@ -23,6 +23,10 @@ function TableDeployments ({
     key: 'createdAt'
   })
   columns.push({
+    label: 'Version',
+    key: 'versionLabel'
+  })
+  columns.push({
     label: 'Image Id',
     key: 'imageId'
   })
@@ -36,6 +40,8 @@ function TableDeployments ({
       case 'id':
       case 'imageId':
         return <td key={column.key} className={typographyStyles.terminal}>{deployment[column.key]}</td>
+      case 'versionLabel':
+        return <td key={column.key}>{deployment[column.key] || '-'}</td>
       case 'status':
         return <td key={column.key}><StatusPill status={deployment[column.key]} /></td>
       case 'createdAt':

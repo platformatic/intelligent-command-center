@@ -36,6 +36,7 @@ module.exports = async function (app) {
                 type: 'object',
                 properties: {
                   id: { type: 'string' },
+                  deploymentId: { type: 'string' },
                   appLabel: { type: 'string' },
                   versionLabel: { type: 'string' },
                   k8SDeploymentName: { type: 'string' },
