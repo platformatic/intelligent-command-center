@@ -115,6 +115,12 @@ module.exports = fp(async function (app) {
         }, 'marked version as draining')
       }
 
+      await app.emitUpdate('icc', {
+        topic: 'ui-updates/deployments',
+        type: 'version-status-changed',
+        data: { applicationId: opts.applicationId }
+      }).catch((err) => ctx.logger.error({ err }, 'Failed to send version status update'))
+
       // Enforce maxVersions: auto-expire oldest draining versions if over limit
       if (app.resolveSkewPolicy) {
         const policy = await app.resolveSkewPolicy(opts.applicationId)
@@ -202,6 +208,12 @@ module.exports = fp(async function (app) {
     }
 
     ctx.logger.info({ appLabel, versionLabel }, 'expired version')
+
+    await app.emitUpdate('icc', {
+      topic: 'ui-updates/deployments',
+      type: 'version-status-changed',
+      data: { applicationId: version.applicationId }
+    }).catch((err) => ctx.logger.error({ err }, 'Failed to send version status update'))
 
     return { expired: true, ...(await getVersionState(appLabel)) }
   })

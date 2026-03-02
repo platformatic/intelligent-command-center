@@ -24,11 +24,11 @@
 }
 
 .scrollableContent {
-  @apply flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 w-full;
+  @apply flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 w-full;
 }
 
 .deploymentItem {
-  @apply bg-rich-black rounded-sm p-4 w-full cursor-pointer transition-colors duration-200 border border-solid border-transparent;
+  @apply bg-rich-black rounded-sm px-4 py-2 w-full cursor-pointer transition-colors duration-200 border border-solid border-transparent;
   border-left-width: 2px;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .deploymentItemHeader {
-  @apply flex justify-between items-center mb-4;
+  @apply flex justify-between items-center mb-2;
 }
 
 .currentlyViewing {
@@ -75,5 +75,5 @@
 }
 
 .detailColumn {
-  @apply flex flex-col gap-2;
+  @apply flex flex-col gap-1;
 }

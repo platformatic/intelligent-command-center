@@ -24,6 +24,8 @@ function buildApp (opts = {}) {
     })
   }, { name: 'env' }))
 
+  app.decorate('emitUpdate', async () => {})
+
   app.register(fp(async (app) => {
     app.decorate('platformatic', {
       db: { tx: async (fn) => fn({ query: async () => {} }) },

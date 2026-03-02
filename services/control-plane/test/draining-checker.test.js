@@ -69,6 +69,8 @@ function buildApp (opts = {}) {
     })
   }, { name: 'env' }))
 
+  app.decorate('emitUpdate', async () => {})
+
   app.register(fp(async (app) => {
     app.decorate('onBecomeLeader', function (fn) {
       leaderCallbacks.push(fn)

@@ -12,6 +12,7 @@ import { getVersionRegistryByApplicationId, expireApplicationVersion } from '~/a
 import { NavLink } from 'react-router-dom'
 import DeploymentStatusPill from './deployments/DeploymentStatusPill'
 import { truncateLabel } from '~/utilities/truncate'
+import useSubscribeToUpdates from '~/hooks/useSubscribeToUpdates'
 
 function DeploymentsBox ({
   gridClassName = '',
@@ -25,6 +26,18 @@ function DeploymentsBox ({
   const [versions, setVersions] = useState(
     /** @type {Array<{ id?: string, status: string, versionLabel?: string, createdAt?: string | null, namespace?: string }>} */ ([])
   )
+
+  const { lastMessage } = useSubscribeToUpdates('deployments')
+
+  useEffect(() => {
+    if (lastMessage !== null) {
+      const message = JSON.parse(lastMessage.data)
+      if (message.type === 'version-status-changed' &&
+          message.data?.applicationId === application.id) {
+        loadVersions()
+      }
+    }
+  }, [lastMessage])
 
   const loadVersions = useCallback(async () => {
     setInnerLoading(true)
