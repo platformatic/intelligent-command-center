@@ -38,6 +38,13 @@ module.exports = fp(async function (app) {
         maxPods: config.maxPods
       }
     })
+
+    if (app.signalScalerExecutor) {
+      await app.signalScalerExecutor.updateApplicationConfig(applicationId, {
+        pods: { min: config.minPods, max: config.maxPods }
+      })
+    }
+
     return scaleConfig
   })
 

@@ -21,7 +21,10 @@ function getTargetPodsCount ({
   targetPodsCount,
   horizonMs,
   podsConfig,
-  horizontalTrendThreshold
+  horizontalTrendThreshold,
+  scaleUpK,
+  scaleUpMargin,
+  scaleDownMargin
 }) {
   reconstructMetrics(metricsByTimestamp, podsCountHistory, bootstrapState)
   redistributeSum(metricsByTimestamp, instances, config, bootstrapState)
@@ -42,7 +45,10 @@ function getTargetPodsCount ({
     targetPodsCount,
     horizonMs,
     podsConfig,
-    horizontalTrendThreshold
+    horizontalTrendThreshold,
+    scaleUpK,
+    scaleUpMargin,
+    scaleDownMargin
   })
 
   return { podsCount, level, trend, stateByTimestamp: metricsByTimestamp }
@@ -56,7 +62,10 @@ function calculateTargetPodsCount ({
   targetPodsCount,
   horizonMs,
   podsConfig,
-  horizontalTrendThreshold
+  horizontalTrendThreshold,
+  scaleUpK,
+  scaleUpMargin,
+  scaleDownMargin
 }) {
   const { min, max } = podsConfig
 
@@ -74,7 +83,10 @@ function calculateTargetPodsCount ({
     threshold,
     min,
     max,
-    targetPodsCount
+    targetPodsCount,
+    scaleUpK,
+    scaleUpMargin,
+    scaleDownMargin
   }
 
   if (trendDirection === TrendDirection.UP || isOverloadedAtHorizon) {
@@ -88,10 +100,10 @@ function calculateTargetPodsCount ({
   return targetPodsCount
 }
 
-function findScaleUpTarget ({ currentSum, predictedSum, isOverloaded, threshold, max, targetPodsCount }) {
+function findScaleUpTarget ({ currentSum, predictedSum, isOverloaded, threshold, max, targetPodsCount, scaleUpK, scaleUpMargin }) {
   // Consequence-asymmetric minimax: C = k * u/(1-u), f = k*u / (k*u + 1-u)
-  const k = 2
-  const margin = 0.1
+  const k = scaleUpK
+  const margin = scaleUpMargin
 
   const capacity = targetPodsCount * threshold
   const utilization = currentSum / capacity
@@ -121,19 +133,9 @@ function findScaleUpTarget ({ currentSum, predictedSum, isOverloaded, threshold,
   return newTargetPodsCount
 }
 
-function findScaleDownTarget ({ currentSum, threshold, min, targetPodsCount }) {
-  let targetCount = targetPodsCount
-
-  while (targetCount > min) {
-    const distanceToOverload = threshold - currentSum / (targetCount - 1)
-
-    if (distanceToOverload <= 0.3 * currentSum / targetCount) {
-      break
-    }
-    targetCount--
-  }
-
-  return targetCount
+function findScaleDownTarget ({ currentSum, threshold, min, targetPodsCount, scaleDownMargin }) {
+  const minInstances = Math.floor((1 + scaleDownMargin) * currentSum / threshold) + 1
+  return Math.max(min, Math.min(targetPodsCount, minInstances))
 }
 
 function getTrendDirection (trend, level, horizontalTrendThreshold) {

@@ -96,6 +96,45 @@ module.exports = async function (app) {
     }
   })
 
+  async function getScalingEvents (appId) {
+    const events = await app.platformatic.entities.scaleEvent.find({
+      where: { applicationId: { eq: appId } },
+      orderBy: [{ field: 'createdAt', direction: 'desc' }],
+      limit: 50
+    })
+    return events.map(e => e.id)
+  }
+
+  async function getScalingEvent (eventId) {
+    const events = await app.platformatic.entities.scaleEvent.find({
+      where: { id: { eq: eventId } },
+      limit: 1
+    })
+    if (events.length === 0) return null
+
+    const event = events[0]
+    const metricSnapshots = await app.platformatic.entities.metricSnapshot.find({
+      where: { scaleEventId: { eq: event.id } }
+    })
+
+    // Reconstruct the shape the dashboard expects
+    const snapshots = {}
+    for (const row of metricSnapshots) {
+      if (!snapshots[row.serviceId]) snapshots[row.serviceId] = {}
+      snapshots[row.serviceId][row.metricName] = row.data
+    }
+
+    return {
+      direction: event.direction,
+      timestamp: new Date(event.createdAt).getTime(),
+      from: event.replicas - event.replicasDiff,
+      to: event.replicas,
+      triggerService: event.triggerService,
+      triggerMetric: event.triggerMetric,
+      snapshots
+    }
+  }
+
   // App-level scaling events (used by scaling-events.html list page)
   app.get('/api/apps/:appId/algorithm/scaling-events', {
     schema: {
@@ -114,7 +153,7 @@ module.exports = async function (app) {
       }
     },
     handler: async (req) => {
-      return app.signalScalerExecutor.predictor.getScalingEvents(req.params.appId)
+      return getScalingEvents(req.params.appId)
     }
   })
 
@@ -130,10 +169,7 @@ module.exports = async function (app) {
       }
     },
     handler: async (req, reply) => {
-      const event = await app.signalScalerExecutor.predictor.getScalingEvent(
-        req.params.appId,
-        req.params.eventId
-      )
+      const event = await getScalingEvent(req.params.eventId)
       if (!event) {
         return reply.code(404).send({ error: 'not found' })
       }
@@ -160,7 +196,7 @@ module.exports = async function (app) {
       }
     },
     handler: async (req) => {
-      return app.signalScalerExecutor.predictor.getScalingEvents(req.params.appId)
+      return getScalingEvents(req.params.appId)
     }
   })
 
@@ -177,10 +213,7 @@ module.exports = async function (app) {
       }
     },
     handler: async (req, reply) => {
-      const event = await app.signalScalerExecutor.predictor.getScalingEvent(
-        req.params.appId,
-        req.params.eventId
-      )
+      const event = await getScalingEvent(req.params.eventId)
       if (!event) {
         return reply.code(404).send({ error: 'not found' })
       }

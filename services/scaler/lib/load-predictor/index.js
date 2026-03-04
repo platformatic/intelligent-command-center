@@ -22,14 +22,14 @@ class LoadPredictor {
   #config
   #initTimeoutConfig
   #api
-  #store
   #appStates = new Map()
 
   constructor (config, defaultAppConfig, api, valkeyConfig) {
     this.#config = config
     this.#initTimeoutConfig = config.initTimeout
     this.#api = api
-    this.#store = new AlgorithmStore(valkeyConfig)
+    // Public to allow tests to inspect the Valkey cache directly
+    this.store = new AlgorithmStore(valkeyConfig)
 
     const windowMs = Math.max(
       defaultAppConfig.elu.windowMs,
@@ -56,7 +56,7 @@ class LoadPredictor {
   }
 
   async initialize () {
-    await this.#store.deleteAllConfigs()
+    await this.store.deleteAllConfigs()
   }
 
   async close () {
@@ -64,7 +64,7 @@ class LoadPredictor {
       if (state.timer) clearTimeout(state.timer)
     }
     this.#appStates.clear()
-    await this.#store.close()
+    await this.store.close()
   }
 
   async onConnect (appId, imageId, podId, instanceId, timestamp) {
@@ -73,7 +73,7 @@ class LoadPredictor {
 
   async #registerInstance (appId, imageId, podId, instanceId, timestamp, reconnect = true) {
     const { isNewInstance, isNewPod } = await addInstance(
-      this.#store,
+      this.store,
       appId,
       imageId,
       podId,
@@ -83,16 +83,16 @@ class LoadPredictor {
     )
 
     if (isNewInstance) {
-      await this.#store.setLastInstanceStartTime(appId, timestamp)
+      await this.store.setLastInstanceStartTime(appId, timestamp)
     }
 
     if (isNewPod) {
       const appConfig = await this.#getApplicationConfig(appId)
       const { isRedeploying } = await getClusterState(
-        this.#store, appId, timestamp, appConfig.instancesWindowMs, this.#config.redeployTimeoutMs
+        this.store, appId, timestamp, appConfig.instancesWindowMs, this.#config.redeployTimeoutMs
       )
       if (!isRedeploying) {
-        const pending = await this.#store.removePendingScaleUp(appId)
+        const pending = await this.store.removePendingScaleUp(appId)
         if (pending) {
           const initTime = timestamp - pending.decisionAt
           await this.#updateInitTimeout(appId, initTime)
@@ -105,7 +105,7 @@ class LoadPredictor {
 
   async onDisconnect (appId, instanceId, timestamp) {
     await terminateInstance(
-      this.#store,
+      this.store,
       appId,
       instanceId,
       timestamp,
@@ -161,7 +161,7 @@ class LoadPredictor {
     const { elu, heap } = metrics
 
     await Promise.all([
-      this.#store.addService(appId, imageId, serviceId),
+      this.store.addService(appId, imageId, serviceId),
       this.#saveServiceMetric(appId, serviceId, imageId, instanceId, 'elu', elu, appConfig.elu),
       this.#saveServiceMetric(appId, serviceId, imageId, instanceId, 'heap', heap, appConfig.heap)
     ])
@@ -185,7 +185,7 @@ class LoadPredictor {
         workers,
         metricConfig
       ),
-      this.#store.saveServiceMetricThreshold(appId, serviceId, metricName, threshold)
+      this.store.saveServiceMetricThreshold(appId, serviceId, metricName, threshold)
     ])
   }
 
@@ -194,31 +194,31 @@ class LoadPredictor {
 
     const { sampleInterval, windowMs } = config
 
-    const prevSample = await this.#store.getLastInstanceMetricSample(appId, serviceId, instanceId, metricName)
+    const prevSample = await this.store.getLastInstanceMetricSample(appId, serviceId, instanceId, metricName)
     const { aligned, lastSample } = alignInstanceMetrics(workers, prevSample, sampleInterval)
 
     // Always save lastSample if we have one (matches old behavior where samples.at(-1)
     // was always stored regardless of alignment result)
     if (lastSample) {
-      await this.#store.setLastInstanceMetricSample(appId, serviceId, instanceId, metricName, lastSample, windowMs)
+      await this.store.setLastInstanceMetricSample(appId, serviceId, instanceId, metricName, lastSample, windowMs)
     }
 
     if (aligned.length === 0) return
 
     await Promise.all([
-      this.#store.setAlignedValues(appId, serviceId, instanceId, metricName, aligned, windowMs),
-      this.#store.addBatchStart(appId, serviceId, imageId, metricName, aligned[0].timestamp)
+      this.store.setAlignedValues(appId, serviceId, instanceId, metricName, aligned, windowMs),
+      this.store.addBatchStart(appId, serviceId, imageId, metricName, aligned[0].timestamp)
     ])
   }
 
   async updateApplicationConfig (appId, override) {
     const current = await this.#getApplicationConfig(appId)
     const merged = deepmerge(current, override)
-    await this.#store.setAppConfig(appId, merged)
+    await this.store.setAppConfig(appId, merged)
   }
 
   async updateServiceConfig (appId, serviceId, config) {
-    await this.#store.setServiceConfig(appId, serviceId, config)
+    await this.store.setServiceConfig(appId, serviceId, config)
   }
 
   #scheduleProcessing (appId, delayMs) {
@@ -240,7 +240,7 @@ class LoadPredictor {
 
     const appConfig = await this.#getApplicationConfig(appId)
     const { isRedeploying, imageId, instances, pods } = await getClusterState(
-      this.#store, appId, now, appConfig.instancesWindowMs, this.#config.redeployTimeoutMs
+      this.store, appId, now, appConfig.instancesWindowMs, this.#config.redeployTimeoutMs
     )
 
     if (isRedeploying) return
@@ -264,15 +264,15 @@ class LoadPredictor {
   }
 
   async #getPendingBatches (appId, imageId) {
-    const services = await this.#store.getServices(appId, imageId)
+    const services = await this.store.getServices(appId, imageId)
 
     const metricsByService = {}
     let hasPending = false
 
     const batchChecks = services.map(async (serviceId) => {
       const [eluBatch, heapBatch] = await Promise.all([
-        this.#store.getFirstBatchStart(appId, serviceId, imageId, 'elu'),
-        this.#store.getFirstBatchStart(appId, serviceId, imageId, 'heap')
+        this.store.getFirstBatchStart(appId, serviceId, imageId, 'elu'),
+        this.store.getFirstBatchStart(appId, serviceId, imageId, 'heap')
       ])
       if (eluBatch !== null || heapBatch !== null) {
         hasPending = true
@@ -348,7 +348,7 @@ class LoadPredictor {
   }
 
   async #processPendingServiceBatches (appId, serviceId, imageId, batches, appConfig, appState) {
-    const serviceConfig = await getServiceConfig(this.#store, appId, serviceId, appConfig)
+    const serviceConfig = await getServiceConfig(this.store, appId, serviceId, appConfig)
     const promises = []
 
     if (batches.elu !== null) {
@@ -420,7 +420,7 @@ class LoadPredictor {
 
     // Fetch instances metric values by aligned timestamp
     const instanceIds = Object.keys(instances)
-    const metricsByTimestamp = await this.#store.getAlignedValues(
+    const metricsByTimestamp = await this.store.getAlignedValues(
       appId,
       serviceId,
       metricName,
@@ -433,7 +433,7 @@ class LoadPredictor {
 
     let bootstrapState = null
     if (bootstrapTimestamp !== null) {
-      bootstrapState = await this.#store.getState(
+      bootstrapState = await this.store.getState(
         appId,
         serviceId,
         imageId,
@@ -442,7 +442,7 @@ class LoadPredictor {
       )
     }
 
-    const threshold = await this.#store.getServiceMetricThreshold(appId, serviceId, metricName)
+    const threshold = await this.store.getServiceMetricThreshold(appId, serviceId, metricName)
 
     const scaling = getTargetPodsCount({
       metricsByTimestamp,
@@ -455,7 +455,10 @@ class LoadPredictor {
       targetPodsCount,
       horizonMs,
       podsConfig: appConfig.pods,
-      horizontalTrendThreshold: this.#config.horizontalTrendThreshold
+      horizontalTrendThreshold: this.#config.horizontalTrendThreshold,
+      scaleUpK: this.#config.scaleUpK,
+      scaleUpMargin: this.#config.scaleUpMargin,
+      scaleDownMargin: this.#config.scaleDownMargin
     })
     if (scaling === null) {
       return { metricName, podsCount: targetPodsCount }
@@ -473,10 +476,10 @@ class LoadPredictor {
 
     // Store states, history, prediction and clear processed batches
     await Promise.all([
-      this.#store.saveStates(appId, serviceId, imageId, metricName, stateByTimestamp, startTimestamp, lastTimestamp, windowMs),
-      this.#store.saveHistory(appId, serviceId, imageId, metricName, stateByTimestamp, startTimestamp, windowMs, true),
-      this.#store.saveMetricPrediction(appId, serviceId, imageId, metricName, prediction, windowMs),
-      this.#store.clearProcessedBatches(appId, serviceId, imageId, metricName, lastTimestamp)
+      this.store.saveStates(appId, serviceId, imageId, metricName, stateByTimestamp, startTimestamp, lastTimestamp, windowMs),
+      this.store.saveHistory(appId, serviceId, imageId, metricName, stateByTimestamp, startTimestamp, windowMs, true),
+      this.store.saveMetricPrediction(appId, serviceId, imageId, metricName, prediction, windowMs),
+      this.store.clearProcessedBatches(appId, serviceId, imageId, metricName, lastTimestamp)
     ])
 
     return { metricName, podsCount }
@@ -491,7 +494,7 @@ class LoadPredictor {
     windowStart,
     sampleInterval
   ) {
-    let lastProcessedTimestamp = await this.#store.getLastProcessedTimestamp(appId, serviceId, imageId, metric)
+    let lastProcessedTimestamp = await this.store.getLastProcessedTimestamp(appId, serviceId, imageId, metric)
 
     // Invalidate expired state
     if (
@@ -557,8 +560,8 @@ class LoadPredictor {
     } = appConfig.cooldowns
 
     const [lastScaleUpTime, lastScaleDownTime] = await Promise.all([
-      this.#store.getLastScaleUpTime(appId),
-      this.#store.getLastScaleDownTime(appId)
+      this.store.getLastScaleUpTime(appId),
+      this.store.getLastScaleDownTime(appId)
     ])
 
     if (lastScaleUpTime) {
@@ -575,28 +578,22 @@ class LoadPredictor {
     const scaleAt = now + initTimeoutMs
     const scaleUpCount = newTargetPodsCount - targetPodsCount
 
-    await this.#processScaling(appId, newTargetPodsCount)
-
-    await Promise.all([
-      this.#store.addPendingScaleUp(appId, scaleUpCount, scaleAt, now),
-      this.#store.setLastScaleUpTime(appId, now),
-      this.#store.setTargetPodsCount(appId, newTargetPodsCount)
-    ])
-
-    appState.targetPodsCount = newTargetPodsCount
-
-    await this.#saveScaleEvent(appId, {
-      direction: 'up',
-      timestamp: now,
-      from: targetPodsCount,
-      to: newTargetPodsCount,
+    await this.#processScaling(appId, newTargetPodsCount, {
       triggerService: triggerServiceId,
       triggerMetric: triggerMetricName
     })
+
+    await Promise.all([
+      this.store.addPendingScaleUp(appId, scaleUpCount, scaleAt, now),
+      this.store.setLastScaleUpTime(appId, now),
+      this.store.setTargetPodsCount(appId, newTargetPodsCount)
+    ])
+
+    appState.targetPodsCount = newTargetPodsCount
   }
 
   async #checkScalingDown (appId, appConfig, newTargetPodsCount, appState) {
-    const { now, targetPodsCount } = appState
+    const { now } = appState
     const {
       scaleDownAfterScaleUpMs,
       scaleDownAfterScaleDownMs
@@ -607,9 +604,9 @@ class LoadPredictor {
       lastStartTime,
       hasPendingScaleUps
     ] = await Promise.all([
-      this.#store.getLastScaleDownTime(appId),
-      this.#store.getLastInstanceStartTime(appId),
-      this.#store.hasPendingScaleUps(appId, now, this.#config.pendingScaleUpExpiryMs)
+      this.store.getLastScaleDownTime(appId),
+      this.store.getLastInstanceStartTime(appId),
+      this.store.hasPendingScaleUps(appId, now, this.#config.pendingScaleUpExpiryMs)
     ])
 
     // Don't scale down while there are pending scale-up requests
@@ -628,59 +625,53 @@ class LoadPredictor {
     await this.#processScaling(appId, newTargetPodsCount)
 
     await Promise.all([
-      this.#store.setLastScaleDownTime(appId, now),
-      this.#store.setTargetPodsCount(appId, newTargetPodsCount)
+      this.store.setLastScaleDownTime(appId, now),
+      this.store.setTargetPodsCount(appId, newTargetPodsCount)
     ])
 
     appState.targetPodsCount = newTargetPodsCount
-
-    await this.#saveScaleEvent(appId, {
-      direction: 'down',
-      timestamp: now,
-      from: targetPodsCount,
-      to: newTargetPodsCount
-    })
   }
 
-  async #processScaling (appId, newTargetPodsCount) {
-    await this.#api.scale(appId, newTargetPodsCount)
+  async #processScaling (appId, newTargetPodsCount, options = {}) {
+    const snapshots = await this.getAppMetricsSnapshots(appId)
+    await this.#api.scale(appId, newTargetPodsCount, { ...options, snapshots })
   }
 
   async #getInitTimeout (appId) {
-    const initTimeout = await this.#store.getInitTimeout(appId)
+    const initTimeout = await this.store.getInitTimeout(appId)
     if (initTimeout !== null) {
       return initTimeout
     }
 
     const { initTimeoutMs } = await this.#getApplicationConfig(appId)
-    await this.#store.setInitTimeout(appId, initTimeoutMs)
+    await this.store.setInitTimeout(appId, initTimeoutMs)
 
     return initTimeoutMs
   }
 
   async #getTargetPodsCount (appId) {
-    const targetPodsCount = await this.#store.getTargetPodsCount(appId)
+    const targetPodsCount = await this.store.getTargetPodsCount(appId)
     if (targetPodsCount !== null) {
       return targetPodsCount
     }
 
     const currentTarget = await this.#api.getCurrentPodsTarget(appId)
-    await this.#store.setTargetPodsCount(appId, currentTarget)
+    await this.store.setTargetPodsCount(appId, currentTarget)
 
     return currentTarget
   }
 
   async #updateInitTimeout (appId, measurement) {
     const [window, currentTimeout] = await Promise.all([
-      this.#store.addInitTimeoutMeasurment(appId, measurement, this.#initTimeoutConfig.windowSize),
+      this.store.addInitTimeoutMeasurment(appId, measurement, this.#initTimeoutConfig.windowSize),
       this.#getInitTimeout(appId)
     ])
     const newTimeout = calculateInitTimeout(window, currentTimeout, this.#initTimeoutConfig)
-    await this.#store.setInitTimeout(appId, newTimeout)
+    await this.store.setInitTimeout(appId, newTimeout)
   }
 
   async #getPendingScaleUps (appId, now) {
-    const pendingScaleUps = await this.#store.getPendingScaleUps(
+    const pendingScaleUps = await this.store.getPendingScaleUps(
       appId, now, this.#config.pendingScaleUpExpiryMs
     )
 
@@ -708,12 +699,12 @@ class LoadPredictor {
   async getAppMetricsSnapshots (appId) {
     const appConfig = await this.#getApplicationConfig(appId)
     const { imageId } = await getClusterState(
-      this.#store, appId, Date.now(), appConfig.instancesWindowMs, this.#config.redeployTimeoutMs
+      this.store, appId, Date.now(), appConfig.instancesWindowMs, this.#config.redeployTimeoutMs
     )
 
     if (imageId === null) return null
 
-    const services = await this.#store.getServices(appId, imageId)
+    const services = await this.store.getServices(appId, imageId)
     const entries = await Promise.all(services.map(async (serviceId) => {
       const snapshots = await this.#getServiceMetricsSnapshot(
         appId,
@@ -728,16 +719,16 @@ class LoadPredictor {
   }
 
   async #getApplicationConfig (appId) {
-    const cached = await this.#store.getAppConfig(appId)
+    const cached = await this.store.getAppConfig(appId)
     if (cached) return cached
 
     const config = await this.#api.getApplicationConfig(appId)
-    await this.#store.setAppConfig(appId, config)
+    await this.store.setAppConfig(appId, config)
     return config
   }
 
   async #getServiceMetricsSnapshot (appId, serviceId, imageId, appConfig) {
-    const serviceConfig = await getServiceConfig(this.#store, appId, serviceId, appConfig)
+    const serviceConfig = await getServiceConfig(this.store, appId, serviceId, appConfig)
     const [elu, heap] = await Promise.all([
       this.#getMetricSnapshot(appId, serviceId, imageId, 'elu', serviceConfig),
       this.#getMetricSnapshot(appId, serviceId, imageId, 'heap', serviceConfig)
@@ -747,27 +738,19 @@ class LoadPredictor {
 
   async #getMetricSnapshot (appId, serviceId, imageId, metricName, serviceConfig) {
     const [history, predictionData] = await Promise.all([
-      this.#store.getHistory(appId, serviceId, imageId, metricName),
-      this.#store.getMetricPrediction(appId, serviceId, imageId, metricName)
+      this.store.getHistory(appId, serviceId, imageId, metricName),
+      this.store.getMetricPrediction(appId, serviceId, imageId, metricName)
     ])
     if (predictionData === null) return null
     const { prediction, now, initTimeoutMs, horizonMs, threshold } = predictionData
     return { history, prediction, now, initTimeoutMs, horizonMs, threshold }
   }
 
-  async getScalingEvents (appId) {
-    return this.#store.getScalingEvents(appId)
-  }
-
-  async getScalingEvent (appId, id) {
-    return this.#store.getScalingEvent(appId, id)
-  }
-
   async getAlignedInstanceMetrics (appId, serviceId) {
     const appConfig = await this.#getApplicationConfig(appId)
     const now = Date.now()
     const { imageId, instances } = await getClusterState(
-      this.#store, appId, now, appConfig.instancesWindowMs, this.#config.redeployTimeoutMs
+      this.store, appId, now, appConfig.instancesWindowMs, this.#config.redeployTimeoutMs
     )
 
     if (imageId === null) return { elu: [], heap: [] }
@@ -775,21 +758,16 @@ class LoadPredictor {
     const instanceIds = Object.keys(instances)
     if (instanceIds.length === 0) return { elu: [], heap: [] }
 
-    const serviceConfig = await getServiceConfig(this.#store, appId, serviceId, appConfig)
+    const serviceConfig = await getServiceConfig(this.store, appId, serviceId, appConfig)
     const eluWindowStart = now - serviceConfig.elu.windowMs
     const heapWindowStart = now - serviceConfig.heap.windowMs
 
     const [elu, heap] = await Promise.all([
-      this.#store.getAlignedValues(appId, serviceId, 'elu', eluWindowStart, instanceIds),
-      this.#store.getAlignedValues(appId, serviceId, 'heap', heapWindowStart, instanceIds)
+      this.store.getAlignedValues(appId, serviceId, 'elu', eluWindowStart, instanceIds),
+      this.store.getAlignedValues(appId, serviceId, 'heap', heapWindowStart, instanceIds)
     ])
 
     return { elu, heap }
-  }
-
-  async #saveScaleEvent (appId, metadata) {
-    metadata.snapshots = await this.getAppMetricsSnapshots(appId)
-    await this.#store.saveScalingEvent(appId, metadata.timestamp, metadata)
   }
 }
 

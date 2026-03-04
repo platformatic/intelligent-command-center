@@ -10,6 +10,9 @@ class SignalScalerExecutor {
     const globalConfig = {
       reconnectTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_RECONNECT_TIMEOUT_MS),
       horizontalTrendThreshold: Number(app.env.PLT_SIGNALS_SCALER_HORIZONTAL_TREND_THRESHOLD),
+      scaleUpK: Number(app.env.PLT_SIGNALS_SCALER_SCALE_UP_K),
+      scaleUpMargin: Number(app.env.PLT_SIGNALS_SCALER_SCALE_UP_MARGIN),
+      scaleDownMargin: Number(app.env.PLT_SIGNALS_SCALER_SCALE_DOWN_MARGIN),
       pendingScaleUpExpiryMs: Number(app.env.PLT_SIGNALS_SCALER_PENDING_SCALE_UP_EXPIRY_MS),
       redeployTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_REDEPLOY_TIMEOUT_MS),
       initTimeout: {
@@ -66,8 +69,11 @@ class SignalScalerExecutor {
         const controller = await app.getApplicationController(appId)
         return controller ? controller.replicas : 1
       },
-      scale: async (appId, targetReplicas) => {
-        await this.executeScaling(appId, targetReplicas)
+      scale: async (appId, targetReplicas, options = {}) => {
+        const result = await this.executeScaling(appId, targetReplicas, options)
+        if (result?.scaleEvent && options.snapshots) {
+          await this.#saveMetricSnapshots(result.scaleEvent, options.snapshots)
+        }
       },
       getApplicationConfig: async (appId) => {
         let minPods = defaultAppConfig.pods.min
@@ -162,7 +168,7 @@ class SignalScalerExecutor {
     return { alerts }
   }
 
-  async executeScaling (applicationId, targetReplicas) {
+  async executeScaling (applicationId, targetReplicas, options = {}) {
     this.app.log.info({
       algorithm: 'Signal Scaler',
       applicationId,
@@ -170,10 +176,12 @@ class SignalScalerExecutor {
     }, '[Signal Scaler] Executing scaling action')
 
     try {
-      await this.app.updateControllerReplicas(
+      const result = await this.app.updateControllerReplicas(
         applicationId,
         targetReplicas,
-        'Signal Scaler predictive scaling'
+        'Signal Scaler predictive scaling',
+        null,
+        options
       )
 
       this.app.log.info({
@@ -181,6 +189,8 @@ class SignalScalerExecutor {
         applicationId,
         targetReplicas
       }, '[Signal Scaler] Successfully executed scaling action')
+
+      return result
     } catch (err) {
       this.app.log.error({
         algorithm: 'Signal Scaler',
@@ -208,6 +218,10 @@ class SignalScalerExecutor {
     return { minPods: undefined, maxPods: undefined }
   }
 
+  async updateApplicationConfig (appId, override) {
+    await this.predictor.updateApplicationConfig(appId, override)
+  }
+
   async checkScalingOnSignals ({ applicationId } = {}) {
     if (await this.#isScalingDisabled(applicationId)) {
       this.app.log.info({ applicationId }, 'Scaling disabled for this controller, skipping')
@@ -215,6 +229,25 @@ class SignalScalerExecutor {
     }
     await this.predictor.checkScaling(applicationId)
     return { success: true, timestamp: Date.now() }
+  }
+
+  async #saveMetricSnapshots (scaleEvent, snapshots) {
+    const inputs = []
+    for (const [serviceId, metrics] of Object.entries(snapshots)) {
+      for (const [metricName, data] of Object.entries(metrics)) {
+        if (!data) continue
+        inputs.push({
+          scaleEventId: scaleEvent.id,
+          applicationId: scaleEvent.applicationId,
+          serviceId,
+          metricName,
+          data
+        })
+      }
+    }
+    if (inputs.length > 0) {
+      await this.app.platformatic.entities.metricSnapshot.insert({ inputs })
+    }
   }
 
   #parseValkeyConnectionString (connectionString, keyPrefix) {

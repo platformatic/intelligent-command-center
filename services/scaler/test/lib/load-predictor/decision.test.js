@@ -89,6 +89,8 @@ test('getTrendDirection', async (t) => {
 test('findScaleUpTarget', async (t) => {
   await t.test('should not scale below current target', () => {
     const result = findScaleUpTarget({
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
       currentSum: 0.5,
       predictedSum: 0.6,
       isOverloaded: false,
@@ -101,6 +103,8 @@ test('findScaleUpTarget', async (t) => {
 
   await t.test('should not exceed max', () => {
     const result = findScaleUpTarget({
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
       currentSum: 10,
       predictedSum: 100,
       isOverloaded: true,
@@ -118,6 +122,8 @@ test('findScaleUpTarget', async (t) => {
     // weight dampens => adjustedPredictedSum ~ 0.3 + small value
     // floor(~0.35 / 0.75) = 0, clamped to targetPodsCount=2
     const result = findScaleUpTarget({
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
       currentSum: 0.3,
       predictedSum: 0.4,
       isOverloaded: false,
@@ -137,6 +143,8 @@ test('findScaleUpTarget', async (t) => {
     // floor(1.979/0.75) = 2, targetCapacity=1.5, overload=0.479
     // isOverloaded=true (1.4/2=0.7... wait no, isOverloaded is passed as arg)
     const result = findScaleUpTarget({
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
       currentSum: 1.4,
       predictedSum: 2.0,
       isOverloaded: true,
@@ -156,6 +164,8 @@ test('findScaleUpTarget', async (t) => {
     // adjustedIncrease=0.75, adjustedPredicted=1.125
     // floor(1.125/0.75)=1, overload=0.375, 0.375/0.75=0.5>0.1 => +1=2
     const dampened = findScaleUpTarget({
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
       currentSum: 0.375,
       predictedSum: 1.5,
       isOverloaded: false,
@@ -167,6 +177,8 @@ test('findScaleUpTarget', async (t) => {
     // Without dampening (utilization >= 1): adjustedPredicted would be 1.5
     // floor(1.5/0.75) = 2, no overload => 2
     const undampened = findScaleUpTarget({
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
       currentSum: 0.75,
       predictedSum: 1.5,
       isOverloaded: false,
@@ -186,6 +198,8 @@ test('findScaleUpTarget', async (t) => {
     // adjustedPredicted=1.6
     // floor(1.6/0.75) = 2, overload=0.1, isOverloaded=true => +1 = 3
     const result = findScaleUpTarget({
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
       currentSum: 0.8,
       predictedSum: 1.6,
       isOverloaded: true,
@@ -203,6 +217,8 @@ test('findScaleUpTarget', async (t) => {
     // floor(1.5/0.75) = 2, targetCapacity=1.5, overload=0
     // No overload => no +1
     const result = findScaleUpTarget({
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
       currentSum: 1.5,
       predictedSum: 1.5,
       isOverloaded: true,
@@ -220,6 +236,8 @@ test('findScaleUpTarget', async (t) => {
     // floor(1.6/0.75)=2, targetCapacity=1.5, overload=0.1
     // 0.1/0.75=0.133 > 0.1 => +1
     const result = findScaleUpTarget({
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
       currentSum: 1.6,
       predictedSum: 1.6,
       isOverloaded: false,
@@ -236,6 +254,8 @@ test('findScaleUpTarget', async (t) => {
     // floor(1.52/0.75)=2, targetCapacity=1.5, overload=0.02
     // 0.02/0.75=0.027 <= 0.1 => no +1
     const result = findScaleUpTarget({
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
       currentSum: 1.52,
       predictedSum: 1.52,
       isOverloaded: false,
@@ -254,6 +274,8 @@ test('findScaleUpTarget', async (t) => {
     // adjustedPredicted=2.92
     // floor(2.92/0.75)=3, overload=0.67, 0.67/0.75=0.89>0.1 => 4
     const result = findScaleUpTarget({
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
       currentSum: 0.7,
       predictedSum: 3.0,
       isOverloaded: false,
@@ -269,6 +291,7 @@ test('findScaleUpTarget', async (t) => {
 test('findScaleDownTarget', async (t) => {
   await t.test('should not go below min', () => {
     const result = findScaleDownTarget({
+      scaleDownMargin: 0.3,
       currentSum: 0.1,
       threshold: 0.75,
       min: 2,
@@ -280,6 +303,7 @@ test('findScaleDownTarget', async (t) => {
   await t.test('should return min when load is very low', () => {
     // Very low load relative to capacity - can scale all the way down
     const result = findScaleDownTarget({
+      scaleDownMargin: 0.3,
       currentSum: 0.1,
       threshold: 0.75,
       min: 1,
@@ -290,6 +314,7 @@ test('findScaleDownTarget', async (t) => {
 
   await t.test('should return targetPodsCount when already at min', () => {
     const result = findScaleDownTarget({
+      scaleDownMargin: 0.3,
       currentSum: 0.1,
       threshold: 0.75,
       min: 3,
@@ -299,30 +324,12 @@ test('findScaleDownTarget', async (t) => {
   })
 
   await t.test('should stop scaling down when close to overload', () => {
-    // currentSum=1.2, threshold=0.75, targetPodsCount=4, min=1
-    // At 3 pods: distanceToOverload = 0.75 - 1.2/3 = 0.75 - 0.4 = 0.35
-    //            0.3 * 1.2/4 = 0.09, 0.35 > 0.09 => continue
-    // At 2 pods: distanceToOverload = 0.75 - 1.2/2 = 0.75 - 0.6 = 0.15
-    //            0.3 * 1.2/3 = 0.12, 0.15 > 0.12 => continue
-    // At 1 pod: distanceToOverload = 0.75 - 1.2/1 = -0.45
-    //           0.3 * 1.2/2 = 0.18, -0.45 <= 0.18 => break at 2
+    // currentSum=1.2, threshold=0.75, margin=0.3
+    // minInstances = floor(1.3 * 1.2 / 0.75) + 1 = floor(2.08) + 1 = 3
+    // result = max(1, min(4, 3)) = 3
     const result = findScaleDownTarget({
+      scaleDownMargin: 0.3,
       currentSum: 1.2,
-      threshold: 0.75,
-      min: 1,
-      targetPodsCount: 4
-    })
-    assert.strictEqual(result, 2)
-  })
-
-  await t.test('should scale down by exactly one', () => {
-    // currentSum=1.8, threshold=0.75, targetPodsCount=4, min=1
-    // At 3 pods: distanceToOverload = 0.75 - 1.8/3 = 0.75 - 0.6 = 0.15
-    //            0.3 * 1.8/4 = 0.135, 0.15 > 0.135 => continue
-    // At 2 pods: distanceToOverload = 0.75 - 1.8/2 = 0.75 - 0.9 = -0.15
-    //            0.3 * 1.8/3 = 0.18, -0.15 <= 0.18 => break at 3
-    const result = findScaleDownTarget({
-      currentSum: 1.8,
       threshold: 0.75,
       min: 1,
       targetPodsCount: 4
@@ -330,11 +337,26 @@ test('findScaleDownTarget', async (t) => {
     assert.strictEqual(result, 3)
   })
 
+  await t.test('should scale down by exactly one', () => {
+    // currentSum=1.8, threshold=0.75, margin=0.3
+    // minInstances = floor(1.3 * 1.8 / 0.75) + 1 = floor(3.12) + 1 = 4
+    // result = max(1, min(4, 4)) = 4
+    const result = findScaleDownTarget({
+      scaleDownMargin: 0.3,
+      currentSum: 1.8,
+      threshold: 0.75,
+      min: 1,
+      targetPodsCount: 4
+    })
+    assert.strictEqual(result, 4)
+  })
+
   await t.test('should not scale down when removing a pod would overload', () => {
     // currentSum=1.4, threshold=0.75, targetPodsCount=2, min=1
     // At 1 pod: distanceToOverload = 0.75 - 1.4/1 = -0.65
     //           0.3 * 1.4/2 = 0.21, -0.65 <= 0.21 => break at 2
     const result = findScaleDownTarget({
+      scaleDownMargin: 0.3,
       currentSum: 1.4,
       threshold: 0.75,
       min: 1,
@@ -347,6 +369,7 @@ test('findScaleDownTarget', async (t) => {
     // currentSum=0.2, threshold=0.75, targetPodsCount=6, min=1
     // Very low load, should scale down to 1
     const result = findScaleDownTarget({
+      scaleDownMargin: 0.3,
       currentSum: 0.2,
       threshold: 0.75,
       min: 1,
@@ -357,6 +380,7 @@ test('findScaleDownTarget', async (t) => {
 
   await t.test('should respect min when min > 1', () => {
     const result = findScaleDownTarget({
+      scaleDownMargin: 0.3,
       currentSum: 0.1,
       threshold: 0.75,
       min: 3,
@@ -368,6 +392,7 @@ test('findScaleDownTarget', async (t) => {
   await t.test('should handle heap-like thresholds (large values)', () => {
     // heap threshold = 250MB, currentSum spread across pods
     const result = findScaleDownTarget({
+      scaleDownMargin: 0.3,
       currentSum: 100,
       threshold: 250,
       min: 1,
@@ -396,7 +421,10 @@ test('calculateTargetPodsCount', async (t) => {
       targetPodsCount: 2,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     // Should at least stay at 2 (findScaleUpTarget never goes below targetPodsCount)
     assert.strictEqual(result >= 2, true)
@@ -417,7 +445,10 @@ test('calculateTargetPodsCount', async (t) => {
       targetPodsCount: 2,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(result >= 2, true)
   })
@@ -436,7 +467,10 @@ test('calculateTargetPodsCount', async (t) => {
       targetPodsCount: 4,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(result < 4, true)
   })
@@ -455,7 +489,10 @@ test('calculateTargetPodsCount', async (t) => {
       targetPodsCount: 4,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(result < 4, true)
   })
@@ -474,7 +511,10 @@ test('calculateTargetPodsCount', async (t) => {
       targetPodsCount: 3,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(result, 3)
   })
@@ -490,7 +530,10 @@ test('calculateTargetPodsCount', async (t) => {
       targetPodsCount: 2,
       horizonMs: 24000,
       podsConfig: smallConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(result <= 3, true)
   })
@@ -506,7 +549,10 @@ test('calculateTargetPodsCount', async (t) => {
       targetPodsCount: 5,
       horizonMs: 24000,
       podsConfig: minConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(result >= 2, true)
   })
@@ -526,7 +572,10 @@ test('calculateTargetPodsCount', async (t) => {
       targetPodsCount: 3,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(typeof result, 'number')
   })
@@ -543,7 +592,10 @@ test('calculateTargetPodsCount', async (t) => {
       targetPodsCount: 3,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(result > 3, true)
   })
@@ -561,7 +613,10 @@ test('calculateTargetPodsCount', async (t) => {
       targetPodsCount: 1,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(result >= 1, true)
   })
@@ -577,7 +632,10 @@ test('calculateTargetPodsCount', async (t) => {
       targetPodsCount: 5,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(result >= 5, true)
   })
@@ -625,7 +683,10 @@ test('getTargetPodsCount', async (t) => {
       targetPodsCount: 2,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(result, null)
   })
@@ -649,7 +710,10 @@ test('getTargetPodsCount', async (t) => {
       targetPodsCount: 2,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.notStrictEqual(result, null)
     assert.strictEqual(typeof result.podsCount, 'number')
@@ -677,7 +741,10 @@ test('getTargetPodsCount', async (t) => {
       targetPodsCount: 1,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.notStrictEqual(result, null)
     assert.strictEqual(result.podsCount > 1, true)
@@ -705,7 +772,10 @@ test('getTargetPodsCount', async (t) => {
       targetPodsCount: 3,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.notStrictEqual(result, null)
     assert.strictEqual(result.podsCount < 3, true)
@@ -770,7 +840,10 @@ test('getTargetPodsCount', async (t) => {
       targetPodsCount: 1,
       horizonMs: 24000,
       podsConfig: { min: 1, max: 2 },
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.notStrictEqual(result, null)
     assert.strictEqual(result.podsCount <= 2, true)
@@ -798,7 +871,10 @@ test('getTargetPodsCount', async (t) => {
       targetPodsCount: 3,
       horizonMs: 24000,
       podsConfig: { min: 2, max: 10 },
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.notStrictEqual(result, null)
     assert.strictEqual(result.podsCount >= 2, true)
@@ -825,7 +901,10 @@ test('getTargetPodsCount', async (t) => {
       targetPodsCount: 2,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.notStrictEqual(result, null)
     assert.strictEqual(typeof result.podsCount, 'number')
@@ -848,7 +927,10 @@ test('getTargetPodsCount', async (t) => {
       targetPodsCount: 1,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.strictEqual(result.stateByTimestamp, metricsByTimestamp)
     // Each entry should have reconstruction, redistribution, and holt
@@ -880,7 +962,10 @@ test('getTargetPodsCount', async (t) => {
       targetPodsCount: 2,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.notStrictEqual(result, null)
     assert.strictEqual(typeof result.podsCount, 'number')
@@ -910,7 +995,10 @@ test('getTargetPodsCount', async (t) => {
       targetPodsCount: 1,
       horizonMs: 24000,
       podsConfig: defaultPodsConfig,
-      horizontalTrendThreshold: defaultHorizontalTrendThreshold
+      horizontalTrendThreshold: defaultHorizontalTrendThreshold,
+      scaleUpK: 2,
+      scaleUpMargin: 0.1,
+      scaleDownMargin: 0.3
     })
     assert.notStrictEqual(result, null)
     assert.strictEqual(typeof result.podsCount, 'number')

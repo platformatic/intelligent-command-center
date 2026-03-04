@@ -12,6 +12,9 @@ const valkeyConfig = { host: valkeyUrl.hostname, port: parseInt(valkeyUrl.port),
 const globalConfig = {
   reconnectTimeoutMs: 5000,
   horizontalTrendThreshold: 0.2,
+  scaleUpK: 2,
+  scaleUpMargin: 0.1,
+  scaleDownMargin: 0.3,
   pendingScaleUpExpiryMs: 60000,
   initTimeout: {
     windowSize: 5,
@@ -63,8 +66,8 @@ function createApi (initialTarget = 1, appConfig = null) {
   const targets = new Map()
   return {
     calls,
-    scale (appId, targetPodsCount) {
-      calls.push({ appId, targetPodsCount })
+    scale (appId, targetPodsCount, options) {
+      calls.push({ appId, targetPodsCount, options })
       targets.set(appId, targetPodsCount)
     },
     async getCurrentPodsTarget (appId) {

@@ -23,7 +23,7 @@ module.exports = fp(async function (app) {
     })
   })
 
-  app.decorate('updateControllerReplicas', async (applicationId, replicas, reason = null, controller = null) => {
+  app.decorate('updateControllerReplicas', async (applicationId, replicas, reason = null, controller = null, options = {}) => {
     controller = controller || await app.getApplicationController(applicationId)
     if (controller === null) {
       throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
@@ -55,15 +55,20 @@ module.exports = fp(async function (app) {
     })
 
     // Create scale event record
-    const event = await app.platformatic.entities.scaleEvent.save({
-      input: {
-        applicationId,
-        direction: replicasDiff > 0 ? 'up' : 'down',
-        replicas,
-        replicasDiff,
-        reason
-      }
-    })
+    const input = {
+      applicationId,
+      direction: replicasDiff > 0 ? 'up' : 'down',
+      replicas,
+      replicasDiff,
+      reason
+    }
+    // Set by the v2 load-predictor algorithm on scale-up events
+    if (options.triggerService && options.triggerMetric) {
+      input.triggerService = options.triggerService
+      input.triggerMetric = options.triggerMetric
+    }
+
+    const event = await app.platformatic.entities.scaleEvent.save({ input })
 
     app.log.info({
       scaleEvent: event

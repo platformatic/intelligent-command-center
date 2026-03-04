@@ -377,33 +377,6 @@ class AlgorithmStore {
     return JSON.parse(data)
   }
 
-  // --- Scaling Events ---
-  // WARNING: In production, scaling events should be stored in a database.
-  // This Valkey-based implementation is for development/testing only.
-
-  async saveScalingEvent (appId, timestamp, data) {
-    const id = String(timestamp)
-    const indexKey = `${appId}:scaling-events`
-    const dataKey = `${appId}:scaling-event:${id}`
-
-    await this.#client.pipeline()
-      .set(dataKey, JSON.stringify(data), 'PX', 600000)
-      .zadd(indexKey, id, id)
-      .exec()
-  }
-
-  async getScalingEvents (appId) {
-    const indexKey = `${appId}:scaling-events`
-    return this.#client.zrevrange(indexKey, 0, -1)
-  }
-
-  async getScalingEvent (appId, id) {
-    const dataKey = `${appId}:scaling-event:${id}`
-    const data = await this.#client.get(dataKey)
-    if (data === null) return null
-    return JSON.parse(data)
-  }
-
   // --- Services ---
 
   async addService (appId, imageId, serviceId) {

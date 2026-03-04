@@ -47,6 +47,11 @@ const schema = {
     PLT_SIGNALS_SCALER_INIT_TIMEOUT_UP_FACTOR: { type: 'number', default: 1.5 },
     PLT_SIGNALS_SCALER_INIT_TIMEOUT_DOWN_FACTOR: { type: 'number', default: 1.0 },
 
+    // LoadPredictor - Scaling decision parameters
+    PLT_SIGNALS_SCALER_SCALE_UP_K: { type: 'number', default: 2 },
+    PLT_SIGNALS_SCALER_SCALE_UP_MARGIN: { type: 'number', default: 0.1 },
+    PLT_SIGNALS_SCALER_SCALE_DOWN_MARGIN: { type: 'number', default: 0.3 },
+
     // LoadPredictor - Default app config
     PLT_SIGNALS_SCALER_HORIZON_MULTIPLIER: { type: 'number', default: 1.2 },
     PLT_SIGNALS_SCALER_PROCESSING_INIT_TIMEOUT_MS: { type: 'number', default: 1000 },

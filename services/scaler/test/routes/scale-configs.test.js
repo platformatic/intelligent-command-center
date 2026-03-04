@@ -268,3 +268,61 @@ test('should keep history of configs and get only the last one', async (t) => {
 
   assert.strictEqual(controllerUpdates.length, 9)
 })
+
+test('should update load predictor Valkey cache when saving scale config (v2)', async (t) => {
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const controllerId = 'controller-id'
+  const namespace = 'platformatic'
+  const podId = 'pod-id'
+  const kind = 'Controller'
+  const apiVersion = 'v1'
+
+  const server = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
+  t.after(async () => {
+    await server.close()
+  })
+
+  await startMachinist(t, {
+    getPodController: () => ({
+      name: controllerId,
+      kind,
+      apiVersion,
+      replicas: 1
+    }),
+    setPodController: () => {}
+  })
+
+  {
+    const { statusCode } = await server.inject({
+      method: 'POST',
+      url: '/controllers',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ applicationId, deploymentId, namespace, podId })
+    })
+    assert.strictEqual(statusCode, 200)
+  }
+
+  const predictor = server.signalScalerExecutor.predictor
+
+  // Seed the Valkey cache with initial config
+  await predictor.updateApplicationConfig(applicationId, {
+    pods: { min: 1, max: 10 }
+  })
+
+  // Save new min/max via API
+  {
+    const { statusCode } = await server.inject({
+      method: 'POST',
+      url: `/applications/${applicationId}/scale-configs`,
+      headers: { 'content-type': 'application/json' },
+      payload: JSON.stringify({ minPods: 3, maxPods: 7 })
+    })
+    assert.strictEqual(statusCode, 200)
+  }
+
+  // Verify the Valkey cache was updated
+  const cachedConfig = await predictor.store.getAppConfig(applicationId)
+  assert.strictEqual(cachedConfig.pods.min, 3)
+  assert.strictEqual(cachedConfig.pods.max, 7)
+})
