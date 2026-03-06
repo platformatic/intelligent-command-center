@@ -23,6 +23,30 @@ module.exports = fp(async function (app) {
     })
   })
 
+  app.decorate('getControllerByK8sId', async (applicationId, k8sControllerId) => {
+    const controllers = await app.platformatic.entities.controller.find({
+      where: {
+        applicationId: { eq: applicationId },
+        k8SControllerId: { eq: k8sControllerId }
+      },
+      orderBy: [{ field: 'createdAt', direction: 'desc' }],
+      limit: 1
+    })
+    return controllers.length === 1 ? controllers[0] : null
+  })
+
+  app.decorate('getControllerByDeploymentId', async (applicationId, deploymentId) => {
+    const controllers = await app.platformatic.entities.controller.find({
+      where: {
+        applicationId: { eq: applicationId },
+        deploymentId: { eq: deploymentId }
+      },
+      orderBy: [{ field: 'createdAt', direction: 'desc' }],
+      limit: 1
+    })
+    return controllers.length === 1 ? controllers[0] : null
+  })
+
   app.decorate('updateControllerReplicas', async (applicationId, replicas, reason = null, controller = null, options = {}) => {
     controller = controller || await app.getApplicationController(applicationId)
     if (controller === null) {

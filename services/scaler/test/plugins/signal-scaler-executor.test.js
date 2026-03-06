@@ -105,11 +105,20 @@ test('onConnect and onDisconnect should manage instance lifecycle', async (t) =>
   const runtimeId = randomUUID()
   const timestamp = Date.now()
 
+  const controllerData = createTestController(applicationId, 2)
+  controllerData.deploymentId = deploymentId
+
+  await app.platformatic.entities.controller.save({
+    input: controllerData
+  })
+
+  const controllerId = controllerData.k8SControllerId
+
   // onConnect should not throw
-  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, timestamp)
+  await app.signalScalerExecutor.onConnect(applicationId, controllerId, deploymentId, podId, runtimeId, timestamp)
 
   // onDisconnect should not throw
-  await app.signalScalerExecutor.onDisconnect(applicationId, runtimeId, timestamp + 1000)
+  await app.signalScalerExecutor.onDisconnect(applicationId, controllerId, runtimeId, timestamp + 1000)
 })
 
 test('processSignals should store metrics and return alerts', async (t) => {
@@ -130,7 +139,7 @@ test('processSignals should store metrics and return alerts', async (t) => {
   })
 
   await app.signalScalerExecutor.initialize()
-  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await app.signalScalerExecutor.onConnect(applicationId, controllerData.k8SControllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   // Create metrics samples with high ELU to trigger alert
   const serviceId = 'test-service'
@@ -142,6 +151,7 @@ test('processSignals should store metrics and return alerts', async (t) => {
 
   const result = await app.signalScalerExecutor.processSignals({
     applicationId,
+    controllerId: controllerData.k8SControllerId,
     podId,
     runtimeId,
     deploymentId,
@@ -184,7 +194,7 @@ test('processSignals should not create alerts when metrics are below threshold',
   })
 
   await app.signalScalerExecutor.initialize()
-  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await app.signalScalerExecutor.onConnect(applicationId, controllerData.k8SControllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   // Create metrics samples with low ELU (below threshold)
   const serviceId = 'test-service'
@@ -196,6 +206,7 @@ test('processSignals should not create alerts when metrics are below threshold',
 
   const result = await app.signalScalerExecutor.processSignals({
     applicationId,
+    controllerId: controllerData.k8SControllerId,
     podId,
     runtimeId,
     deploymentId,
@@ -221,7 +232,7 @@ test('checkScalingOnSignals should handle errors gracefully', async (t) => {
   const app = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
 
   // checkScalingOnSignals for unknown app should not throw but handle gracefully
-  const result = await app.signalScalerExecutor.checkScalingOnSignals({ applicationId: randomUUID() })
+  const result = await app.signalScalerExecutor.checkScalingOnSignals({ applicationId: randomUUID(), controllerId: 'test-controller' })
 
   assert.ok(result.success, 'Should return success')
   assert.ok(result.timestamp, 'Should have timestamp')
@@ -245,7 +256,7 @@ test('processSignals should handle multiple services', async (t) => {
   })
 
   await app.signalScalerExecutor.initialize()
-  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await app.signalScalerExecutor.onConnect(applicationId, controllerData.k8SControllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   // Create metrics for multiple services
   const signals = {
@@ -256,6 +267,7 @@ test('processSignals should handle multiple services', async (t) => {
 
   const result = await app.signalScalerExecutor.processSignals({
     applicationId,
+    controllerId: controllerData.k8SControllerId,
     podId,
     runtimeId,
     deploymentId,
@@ -297,7 +309,7 @@ test('concurrent processSignals calls should be handled correctly', async (t) =>
   })
 
   await app.signalScalerExecutor.initialize()
-  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await app.signalScalerExecutor.onConnect(applicationId, controllerData.k8SControllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   // Create two different metric batches
   const signals1 = {
@@ -312,6 +324,7 @@ test('concurrent processSignals calls should be handled correctly', async (t) =>
   const results = await Promise.all([
     app.signalScalerExecutor.processSignals({
       applicationId,
+      controllerId: controllerData.k8SControllerId,
       podId,
       runtimeId,
       deploymentId,
@@ -320,6 +333,7 @@ test('concurrent processSignals calls should be handled correctly', async (t) =>
     }),
     app.signalScalerExecutor.processSignals({
       applicationId,
+      controllerId: controllerData.k8SControllerId,
       podId,
       runtimeId,
       deploymentId,
@@ -360,7 +374,7 @@ test('processSignals should not scale when controller has scalingDisabled', asyn
   })
 
   await app.signalScalerExecutor.initialize()
-  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await app.signalScalerExecutor.onConnect(applicationId, controllerData.k8SControllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   const signals = {
     'service-1': createMetricsSamples(5, 0.9, 100)
@@ -368,6 +382,7 @@ test('processSignals should not scale when controller has scalingDisabled', asyn
 
   await app.signalScalerExecutor.processSignals({
     applicationId,
+    controllerId: controllerData.k8SControllerId,
     podId,
     runtimeId,
     deploymentId,
@@ -388,7 +403,7 @@ test('non-leader should not trigger scaling but should forward to leader', async
   // Mock as non-leader
   app.isScalerLeader = () => false
   let notifyScalerCalled = false
-  app.notifySignalScaler = async (appId) => {
+  app.notifySignalScaler = async (appId, ctrlId) => {
     notifyScalerCalled = true
     assert.ok(appId, 'Should pass applicationId to notifySignalScaler')
   }
@@ -405,7 +420,7 @@ test('non-leader should not trigger scaling but should forward to leader', async
   })
 
   await app.signalScalerExecutor.initialize()
-  await app.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await app.signalScalerExecutor.onConnect(applicationId, controllerData.k8SControllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   const signals = {
     'service-1': createMetricsSamples(5, 0.9, 100)
@@ -413,6 +428,7 @@ test('non-leader should not trigger scaling but should forward to leader', async
 
   const result = await app.signalScalerExecutor.processSignals({
     applicationId,
+    controllerId: controllerData.k8SControllerId,
     podId,
     runtimeId,
     deploymentId,

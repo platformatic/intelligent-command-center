@@ -4,6 +4,8 @@ const fp = require('fastify-plugin')
 const { LoadPredictor } = require('../lib/load-predictor')
 
 class SignalScalerExecutor {
+  #appStates = new Map()
+
   constructor (app) {
     this.app = app
 
@@ -65,16 +67,6 @@ class SignalScalerExecutor {
     )
 
     const api = {
-      getCurrentPodsTarget: async (appId) => {
-        const controller = await app.getApplicationController(appId)
-        return controller ? controller.replicas : 1
-      },
-      scale: async (appId, targetReplicas, options = {}) => {
-        const result = await this.executeScaling(appId, targetReplicas, options)
-        if (result?.scaleEvent && options.snapshots) {
-          await this.#saveMetricSnapshots(result.scaleEvent, options.snapshots)
-        }
-      },
       getApplicationConfig: async (appId) => {
         let minPods = defaultAppConfig.pods.min
         let maxPods = defaultAppConfig.pods.max
@@ -114,6 +106,10 @@ class SignalScalerExecutor {
   }
 
   async close () {
+    for (const state of this.#appStates.values()) {
+      if (state.timer) clearTimeout(state.timer)
+    }
+    this.#appStates.clear()
     await this.predictor.close()
   }
 
@@ -121,27 +117,18 @@ class SignalScalerExecutor {
     await this.predictor.initialize()
   }
 
-  async onConnect (appId, deploymentId, podId, runtimeId, timestamp) {
-    await this.predictor.onConnect(appId, deploymentId, podId, runtimeId, timestamp)
+  async onConnect (appId, controllerId, deploymentId, podId, runtimeId, timestamp) {
+    await this.predictor.onConnect(appId, controllerId, deploymentId, podId, runtimeId, timestamp)
   }
 
-  async onDisconnect (appId, runtimeId, timestamp) {
-    await this.predictor.onDisconnect(appId, runtimeId, timestamp)
+  async onDisconnect (appId, controllerId, runtimeId, timestamp) {
+    await this.predictor.onDisconnect(appId, controllerId, runtimeId, timestamp)
   }
 
-  async #isScalingDisabled (applicationId) {
-    try {
-      const controller = await this.app.getApplicationController(applicationId)
-      return controller?.scalingDisabled === true
-    } catch (err) {
-      this.app.log.warn({ err, applicationId }, 'Failed to check scaling disabled state')
-      return false
-    }
-  }
-
-  async processSignals ({ applicationId, podId, runtimeId, deploymentId, signals, batchStartedAt }) {
+  async processSignals ({ applicationId, controllerId, podId, runtimeId, deploymentId, signals, batchStartedAt }) {
     await this.predictor.saveInstanceMetrics({
       applicationId,
+      controllerId,
       podId,
       instanceId: runtimeId,
       imageId: deploymentId,
@@ -149,26 +136,24 @@ class SignalScalerExecutor {
       batchStartedAt
     })
 
-    if (await this.#isScalingDisabled(applicationId)) {
-      this.app.log.info({ applicationId }, 'Scaling disabled for this controller, skipping')
-      return { alerts: [] }
-    }
-
     const isLeader = this.app.isScalerLeader ? this.app.isScalerLeader() : false
     if (isLeader) {
-      await this.predictor.checkScaling(applicationId)
+      const state = this.#getAppState(applicationId, controllerId)
+      if (!state.processing && !state.timer) {
+        const appConfig = await this.predictor.getApplicationConfig(applicationId)
+        this.#scheduleProcessing(applicationId, controllerId, appConfig.processingInitTimeoutMs)
+      }
     } else if (this.app.notifySignalScaler) {
-      await this.app.notifySignalScaler(applicationId)
+      await this.app.notifySignalScaler(applicationId, controllerId)
     }
 
     // Save alerts for services where max value exceeds threshold.
     // This creates alert entities that link to flamegraphs in the dashboard.
     const alerts = await this.#saveAlertsIfNeeded(applicationId, podId, signals)
-
     return { alerts }
   }
 
-  async executeScaling (applicationId, targetReplicas, options = {}) {
+  async executeScaling (applicationId, targetReplicas, controller, options = {}) {
     this.app.log.info({
       algorithm: 'Signal Scaler',
       applicationId,
@@ -180,7 +165,7 @@ class SignalScalerExecutor {
         applicationId,
         targetReplicas,
         'Signal Scaler predictive scaling',
-        null,
+        controller,
         options
       )
 
@@ -222,12 +207,12 @@ class SignalScalerExecutor {
     await this.predictor.updateApplicationConfig(appId, override)
   }
 
-  async checkScalingOnSignals ({ applicationId } = {}) {
-    if (await this.#isScalingDisabled(applicationId)) {
-      this.app.log.info({ applicationId }, 'Scaling disabled for this controller, skipping')
-      return { success: true, timestamp: Date.now() }
+  async checkScalingOnSignals ({ applicationId, controllerId } = {}) {
+    const state = this.#getAppState(applicationId, controllerId)
+    if (!state.processing && !state.timer) {
+      const appConfig = await this.predictor.getApplicationConfig(applicationId)
+      this.#scheduleProcessing(applicationId, controllerId, appConfig.processingInitTimeoutMs)
     }
-    await this.predictor.checkScaling(applicationId)
     return { success: true, timestamp: Date.now() }
   }
 
@@ -247,6 +232,57 @@ class SignalScalerExecutor {
     }
     if (inputs.length > 0) {
       await this.app.platformatic.entities.metricSnapshot.insert({ inputs })
+    }
+  }
+
+  #getAppState (appId, controllerId) {
+    const key = `${appId}:${controllerId}`
+    let state = this.#appStates.get(key)
+    if (!state) {
+      state = { processing: false, timer: null }
+      this.#appStates.set(key, state)
+    }
+    return state
+  }
+
+  #scheduleProcessing (appId, controllerId, delayMs) {
+    const state = this.#getAppState(appId, controllerId)
+    if (state.timer) return
+
+    state.timer = setTimeout(() => {
+      state.timer = null
+      state.processing = true
+
+      this.#runScheduledCheck(appId, controllerId)
+        .catch(err => this.app.log.error({ err, appId, controllerId }, '[Signal Scaler] Error in scheduled scaling check'))
+        .finally(() => { state.processing = false })
+    }, delayMs).unref()
+  }
+
+  async #runScheduledCheck (appId, controllerId) {
+    const controller = await this.app.getControllerByK8sId(appId, controllerId)
+    if (!controller) {
+      this.app.log.warn({ appId, controllerId }, 'Controller not found, skipping')
+      return
+    }
+
+    if (controller.scalingDisabled) {
+      this.app.log.info({ appId, controllerId }, 'Scaling disabled for this controller, skipping')
+      return
+    }
+
+    const targetPodsCount = controller.replicas ?? 1
+    const scale = async (targetReplicas, options = {}) => {
+      const result = await this.executeScaling(appId, targetReplicas, controller, options)
+      if (result?.scaleEvent && options.snapshots) {
+        await this.#saveMetricSnapshots(result.scaleEvent, options.snapshots)
+      }
+    }
+
+    const processed = await this.predictor.checkForPendingBatches(appId, controllerId, targetPodsCount, scale)
+    if (processed) {
+      const appConfig = await this.predictor.getApplicationConfig(appId)
+      this.#scheduleProcessing(appId, controllerId, appConfig.processingCooldownMs)
     }
   }
 

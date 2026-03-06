@@ -1,5 +1,7 @@
 'use strict'
 
+const { APPLICATION_CONTROLLER_NOT_FOUND } = require('../lib/errors')
+
 module.exports = async function (app) {
   app.post('/signals', {
     schema: {
@@ -99,8 +101,22 @@ module.exports = async function (app) {
         throw new Error('Instance not found for pod')
       }
 
+      const controller = await app.getControllerByDeploymentId(
+        applicationId,
+        instance.deploymentId
+      )
+      if (!controller) {
+        throw new APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
+      }
+      const controllerId = controller.k8SControllerId
+
+      if (controller.scalingDisabled) {
+        return { alerts: [] }
+      }
+
       const { alerts } = await app.signalScalerExecutor.processSignals({
         applicationId,
+        controllerId,
         podId,
         runtimeId,
         deploymentId: instance.deploymentId,

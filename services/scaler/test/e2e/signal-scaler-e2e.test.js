@@ -130,7 +130,7 @@ test('E2E: signal processing should return alerts for high ELU', async (t) => {
 
   // Initialize and connect the instance
   await server.signalScalerExecutor.initialize()
-  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await server.signalScalerExecutor.onConnect(applicationId, controllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   // High ELU samples (0.9 > threshold 0.75) should trigger alert
   const signals = {
@@ -221,7 +221,7 @@ test('E2E: signal processing should not create alerts for low metrics', async (t
   })
 
   await server.signalScalerExecutor.initialize()
-  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await server.signalScalerExecutor.onConnect(applicationId, controllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   // Low ELU samples (0.3 < threshold 0.75) should NOT trigger alert
   const signals = {
@@ -323,8 +323,8 @@ test('E2E: multiple pods sending signals should be handled independently', async
   })
 
   await server.signalScalerExecutor.initialize()
-  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, pod1Id, runtime1Id, Date.now() - 60000)
-  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, pod2Id, runtime2Id, Date.now() - 60000)
+  await server.signalScalerExecutor.onConnect(applicationId, controllerId, deploymentId, pod1Id, runtime1Id, Date.now() - 60000)
+  await server.signalScalerExecutor.onConnect(applicationId, controllerId, deploymentId, pod2Id, runtime2Id, Date.now() - 60000)
 
   // Pod 1: High ELU
   const signals1 = {
@@ -424,7 +424,7 @@ test('E2E: multiple services in a single request', async (t) => {
   })
 
   await server.signalScalerExecutor.initialize()
-  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await server.signalScalerExecutor.onConnect(applicationId, controllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   // Multiple services with different load levels
   const signals = {
@@ -521,7 +521,7 @@ test('E2E: checkScalingOnSignals processes scaling decision', async (t) => {
   })
 
   await server.signalScalerExecutor.initialize()
-  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await server.signalScalerExecutor.onConnect(applicationId, controllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   // Send high load metrics
   const signals = {
@@ -543,7 +543,7 @@ test('E2E: checkScalingOnSignals processes scaling decision', async (t) => {
   })
 
   // Trigger scaling check
-  const result = await server.signalScalerExecutor.checkScalingOnSignals({ applicationId })
+  const result = await server.signalScalerExecutor.checkScalingOnSignals({ applicationId, controllerId })
 
   assert.ok(result.success, 'Should return success')
   assert.ok(result.timestamp, 'Should have timestamp')
@@ -601,7 +601,7 @@ test('E2E: scaling respects min/max pod constraints', async (t) => {
   })
 
   await server.signalScalerExecutor.initialize()
-  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await server.signalScalerExecutor.onConnect(applicationId, controllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   // Get scale config and verify constraints
   const config = await server.signalScalerExecutor.getScaleConfig(applicationId)
@@ -747,7 +747,7 @@ test('E2E: concurrent signal processing from same pod', async (t) => {
   })
 
   await server.signalScalerExecutor.initialize()
-  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await server.signalScalerExecutor.onConnect(applicationId, controllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   // Send multiple concurrent requests
   const signals1 = { 'service-1': createMetricsSamples(10, 0.9, 100) }
@@ -842,7 +842,7 @@ test('E2E: heap threshold alerts work correctly', async (t) => {
   })
 
   await server.signalScalerExecutor.initialize()
-  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await server.signalScalerExecutor.onConnect(applicationId, controllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   // Low ELU but high heap (above 250 MB threshold)
   const signals = {

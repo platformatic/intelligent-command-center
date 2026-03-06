@@ -15,24 +15,30 @@ class AlgorithmStore {
     })
   }
 
+  #scopeId (appId, controllerId) {
+    return `${appId}:${controllerId}`
+  }
+
   // --- Aligned values ---
 
-  async setAlignedValues (appId, serviceId, instanceId, metric, aligned, windowMs) {
+  async setAlignedValues (appId, controllerId, serviceId, instanceId, metric, aligned, windowMs) {
     if (aligned.length === 0) return
 
-    const valuesKey = `${appId}:${serviceId}:${instanceId}:${metric}:aligned`
+    const scope = this.#scopeId(appId, controllerId)
+    const valuesKey = `${scope}:${serviceId}:${instanceId}:${metric}:aligned`
 
     const firstAlignedTs = aligned[0].timestamp
     await this.#slidingWindowSet(valuesKey, firstAlignedTs, windowMs, aligned)
     await this.#client.pexpire(valuesKey, windowMs)
   }
 
-  async getAlignedValues (appId, serviceId, metric, startTimestamp, instanceIds) {
+  async getAlignedValues (appId, controllerId, serviceId, metric, startTimestamp, instanceIds) {
     if (instanceIds.length === 0) return []
 
+    const scope = this.#scopeId(appId, controllerId)
     const results = await Promise.all(
       instanceIds.map(instanceId =>
-        this.#slidingWindowGet(`${appId}:${serviceId}:${instanceId}:${metric}:aligned`, startTimestamp)
+        this.#slidingWindowGet(`${scope}:${serviceId}:${instanceId}:${metric}:aligned`, startTimestamp)
       )
     )
 
@@ -60,13 +66,15 @@ class AlgorithmStore {
 
   // --- Instance metric samples ---
 
-  async setLastInstanceMetricSample (appId, serviceId, instanceId, metric, sample, windowMs) {
-    const key = `${appId}:${serviceId}:${instanceId}:${metric}:last-sample`
+  async setLastInstanceMetricSample (appId, controllerId, serviceId, instanceId, metric, sample, windowMs) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${instanceId}:${metric}:last-sample`
     await this.#client.set(key, `${sample.timestamp}:${sample.value}`, 'PX', windowMs)
   }
 
-  async getLastInstanceMetricSample (appId, serviceId, instanceId, metric) {
-    const key = `${appId}:${serviceId}:${instanceId}:${metric}:last-sample`
+  async getLastInstanceMetricSample (appId, controllerId, serviceId, instanceId, metric) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${instanceId}:${metric}:last-sample`
     const value = await this.#client.get(key)
     if (value === null) return null
 
@@ -79,26 +87,30 @@ class AlgorithmStore {
 
   // --- Processing timestamps ---
 
-  async addBatchStart (appId, serviceId, imageId, metric, timestamp) {
-    const key = `${appId}:${serviceId}:${imageId}:${metric}:pending-batches-start-timestamp`
+  async addBatchStart (appId, controllerId, serviceId, imageId, metric, timestamp) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${imageId}:${metric}:pending-batches-start-timestamp`
     await this.#client.zadd(key, timestamp, String(timestamp))
   }
 
-  async getFirstBatchStart (appId, serviceId, imageId, metric) {
-    const key = `${appId}:${serviceId}:${imageId}:${metric}:pending-batches-start-timestamp`
+  async getFirstBatchStart (appId, controllerId, serviceId, imageId, metric) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${imageId}:${metric}:pending-batches-start-timestamp`
     const members = await this.#client.zrange(key, 0, 0)
 
     if (members.length === 0) return null
     return Number(members[0])
   }
 
-  async clearProcessedBatches (appId, serviceId, imageId, metric, upToTimestamp) {
-    const key = `${appId}:${serviceId}:${imageId}:${metric}:pending-batches-start-timestamp`
+  async clearProcessedBatches (appId, controllerId, serviceId, imageId, metric, upToTimestamp) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${imageId}:${metric}:pending-batches-start-timestamp`
     await this.#client.zremrangebyscore(key, '-inf', upToTimestamp)
   }
 
-  async getLastProcessedTimestamp (appId, serviceId, imageId, metric) {
-    const key = `${appId}:${serviceId}:${imageId}:${metric}:last-processed-timestamp`
+  async getLastProcessedTimestamp (appId, controllerId, serviceId, imageId, metric) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${imageId}:${metric}:last-processed-timestamp`
     const value = await this.#client.get(key)
     if (value === null) return null
     return Number(value)
@@ -106,8 +118,9 @@ class AlgorithmStore {
 
   // --- States (reconstruction + redistribution + holt) ---
 
-  async getState (appId, serviceId, imageId, metric, timestamp) {
-    const key = `${appId}:${serviceId}:${imageId}:${metric}:states`
+  async getState (appId, controllerId, serviceId, imageId, metric, timestamp) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${imageId}:${metric}:states`
     const data = await this.#slidingWindowGet(key, timestamp, timestamp)
 
     if (data.length === 0) return null
@@ -125,9 +138,10 @@ class AlgorithmStore {
 
   // --- States (pipeline results for bootstrap continuity) ---
 
-  async saveStates (appId, serviceId, imageId, metric, stateByTimestamp, startTimestamp, lastProcessedTimestamp, windowMs) {
-    const statesKey = `${appId}:${serviceId}:${imageId}:${metric}:states`
-    const lastProcessedKey = `${appId}:${serviceId}:${imageId}:${metric}:last-processed-timestamp`
+  async saveStates (appId, controllerId, serviceId, imageId, metric, stateByTimestamp, startTimestamp, lastProcessedTimestamp, windowMs) {
+    const scope = this.#scopeId(appId, controllerId)
+    const statesKey = `${scope}:${serviceId}:${imageId}:${metric}:states`
+    const lastProcessedKey = `${scope}:${serviceId}:${imageId}:${metric}:last-processed-timestamp`
 
     const entries = []
     for (let i = 0; i < stateByTimestamp.length; i++) {
@@ -153,8 +167,9 @@ class AlgorithmStore {
 
   // --- Snapshot history ---
 
-  async saveHistory (appId, serviceId, imageId, metric, stateByTimestamp, startTimestamp, windowMs, debug = false) {
-    const historyKey = `${appId}:${serviceId}:${imageId}:${metric}:history`
+  async saveHistory (appId, controllerId, serviceId, imageId, metric, stateByTimestamp, startTimestamp, windowMs, debug = false) {
+    const scope = this.#scopeId(appId, controllerId)
+    const historyKey = `${scope}:${serviceId}:${imageId}:${metric}:history`
 
     const entries = []
     for (let i = 0; i < stateByTimestamp.length; i++) {
@@ -181,8 +196,9 @@ class AlgorithmStore {
 
   // --- History retrieval ---
 
-  async getHistory (appId, serviceId, imageId, metric) {
-    const key = `${appId}:${serviceId}:${imageId}:${metric}:history`
+  async getHistory (appId, controllerId, serviceId, imageId, metric) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${imageId}:${metric}:history`
     const data = await this.#slidingWindowGet(key, 0)
 
     const result = new Array(data.length)
@@ -205,7 +221,7 @@ class AlgorithmStore {
   }
 
   // --- Instances state ---
-  // Hash: instanceId → podId:imageId:startTime:endTime:lastSeen
+  // Hash: instanceId -> podId:imageId:startTime:endTime:lastSeen
 
   #serializeInstance (podId, imageId, startTime, endTime, lastSeen) {
     return `${podId}:${imageId}:${startTime}:${endTime}:${lastSeen}`
@@ -222,21 +238,24 @@ class AlgorithmStore {
     }
   }
 
-  async getInstance (appId, instanceId) {
-    const key = `${appId}:instances`
+  async getInstance (appId, controllerId, instanceId) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:instances`
     const value = await this.#client.hget(key, instanceId)
     if (!value) return null
     return this.#parseInstance(value)
   }
 
-  async setInstance (appId, imageId, podId, instanceId, startTime, endTime, lastSeen) {
-    const key = `${appId}:instances`
+  async setInstance (appId, controllerId, imageId, podId, instanceId, startTime, endTime, lastSeen) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:instances`
     const value = this.#serializeInstance(podId, imageId, startTime, endTime, lastSeen)
     await this.#client.hset(key, instanceId, value)
   }
 
-  async getAllInstances (appId) {
-    const key = `${appId}:instances`
+  async getAllInstances (appId, controllerId) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:instances`
     const data = await this.#client.hgetall(key)
     if (!data) return {}
 
@@ -247,31 +266,37 @@ class AlgorithmStore {
     return instances
   }
 
-  async deleteInstances (appId, instanceIds) {
+  async deleteInstances (appId, controllerId, instanceIds) {
     if (instanceIds.length === 0) return
-    const key = `${appId}:instances`
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:instances`
     await this.#client.hdel(key, ...instanceIds)
   }
 
-  async setTargetPodsCount (appId, target) {
-    await this.#client.set(`${appId}:current-pods-target`, String(target))
+  async setTargetPodsCount (appId, controllerId, target) {
+    const scope = this.#scopeId(appId, controllerId)
+    await this.#client.set(`${scope}:current-pods-target`, String(target))
   }
 
-  async getTargetPodsCount (appId) {
-    const value = await this.#client.get(`${appId}:current-pods-target`)
+  async getTargetPodsCount (appId, controllerId) {
+    const scope = this.#scopeId(appId, controllerId)
+    const value = await this.#client.get(`${scope}:current-pods-target`)
     return value ? Number(value) : null
   }
 
-  async setLastScaleUpTime (appId, timestamp) {
-    await this.#client.set(`${appId}:last-scale-up-time`, String(timestamp))
+  async setLastScaleUpTime (appId, controllerId, timestamp) {
+    const scope = this.#scopeId(appId, controllerId)
+    await this.#client.set(`${scope}:last-scale-up-time`, String(timestamp))
   }
 
-  async setLastScaleDownTime (appId, timestamp) {
-    await this.#client.set(`${appId}:last-scale-down-time`, String(timestamp))
+  async setLastScaleDownTime (appId, controllerId, timestamp) {
+    const scope = this.#scopeId(appId, controllerId)
+    await this.#client.set(`${scope}:last-scale-down-time`, String(timestamp))
   }
 
-  async addPendingScaleUp (appId, scaleUpCount, scaleAt, decisionAt) {
-    const key = `${appId}:pending-scale-ups`
+  async addPendingScaleUp (appId, controllerId, scaleUpCount, scaleAt, decisionAt) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:pending-scale-ups`
     const args = new Array(scaleUpCount * 2)
     for (let i = 0; i < scaleUpCount; i++) {
       args[i * 2] = scaleAt
@@ -280,8 +305,9 @@ class AlgorithmStore {
     await this.#client.zadd(key, ...args)
   }
 
-  async removePendingScaleUp (appId) {
-    const key = `${appId}:pending-scale-ups`
+  async removePendingScaleUp (appId, controllerId) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:pending-scale-ups`
     const result = await this.#client.zpopmin(key)
     if (result.length === 0) return null
     const member = result[0]
@@ -293,8 +319,9 @@ class AlgorithmStore {
     }
   }
 
-  async hasPendingScaleUps (appId, now, windowMs) {
-    const key = `${appId}:pending-scale-ups`
+  async hasPendingScaleUps (appId, controllerId, now, windowMs) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:pending-scale-ups`
     const cutoff = now - windowMs
 
     const results = await this.#client.pipeline()
@@ -305,8 +332,9 @@ class AlgorithmStore {
     return results[1][1] > 0
   }
 
-  async getPendingScaleUps (appId, now, windowMs) {
-    const key = `${appId}:pending-scale-ups`
+  async getPendingScaleUps (appId, controllerId, now, windowMs) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:pending-scale-ups`
     const cutoff = now - windowMs
 
     const results = await this.#client.pipeline()
@@ -325,36 +353,43 @@ class AlgorithmStore {
     return result
   }
 
-  async getLastScaleUpTime (appId) {
-    const value = await this.#client.get(`${appId}:last-scale-up-time`)
+  async getLastScaleUpTime (appId, controllerId) {
+    const scope = this.#scopeId(appId, controllerId)
+    const value = await this.#client.get(`${scope}:last-scale-up-time`)
     return value ? Number(value) : 0
   }
 
-  async getLastScaleDownTime (appId) {
-    const value = await this.#client.get(`${appId}:last-scale-down-time`)
+  async getLastScaleDownTime (appId, controllerId) {
+    const scope = this.#scopeId(appId, controllerId)
+    const value = await this.#client.get(`${scope}:last-scale-down-time`)
     return value ? Number(value) : 0
   }
 
-  async setLastInstanceStartTime (appId, timestamp) {
-    await this.#client.set(`${appId}:last-instance-start-time`, String(timestamp))
+  async setLastInstanceStartTime (appId, controllerId, timestamp) {
+    const scope = this.#scopeId(appId, controllerId)
+    await this.#client.set(`${scope}:last-instance-start-time`, String(timestamp))
   }
 
-  async getLastInstanceStartTime (appId) {
-    const value = await this.#client.get(`${appId}:last-instance-start-time`)
+  async getLastInstanceStartTime (appId, controllerId) {
+    const scope = this.#scopeId(appId, controllerId)
+    const value = await this.#client.get(`${scope}:last-instance-start-time`)
     return value ? Number(value) : 0
   }
 
-  async getInitTimeout (appId) {
-    const value = await this.#client.get(`${appId}:init-timeout`)
+  async getInitTimeout (appId, controllerId) {
+    const scope = this.#scopeId(appId, controllerId)
+    const value = await this.#client.get(`${scope}:init-timeout`)
     return value ? Number(value) : null
   }
 
-  async setInitTimeout (appId, ms) {
-    await this.#client.set(`${appId}:init-timeout`, String(ms))
+  async setInitTimeout (appId, controllerId, ms) {
+    const scope = this.#scopeId(appId, controllerId)
+    await this.#client.set(`${scope}:init-timeout`, String(ms))
   }
 
-  async addInitTimeoutMeasurment (appId, measurement, windowSize) {
-    const key = `${appId}:init-timeout-window`
+  async addInitTimeoutMeasurment (appId, controllerId, measurement, windowSize) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:init-timeout-window`
     const results = await this.#client.pipeline()
       .lpush(key, String(measurement))
       .ltrim(key, 0, windowSize - 1)
@@ -365,13 +400,15 @@ class AlgorithmStore {
 
   // --- Metric Snapshots ---
 
-  async saveMetricPrediction (appId, serviceId, imageId, metric, data, windowMs) {
-    const key = `${appId}:${serviceId}:${imageId}:${metric}:metric-prediction`
+  async saveMetricPrediction (appId, controllerId, serviceId, imageId, metric, data, windowMs) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${imageId}:${metric}:metric-prediction`
     await this.#client.psetex(key, windowMs, JSON.stringify(data))
   }
 
-  async getMetricPrediction (appId, serviceId, imageId, metric) {
-    const key = `${appId}:${serviceId}:${imageId}:${metric}:metric-prediction`
+  async getMetricPrediction (appId, controllerId, serviceId, imageId, metric) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${imageId}:${metric}:metric-prediction`
     const data = await this.#client.get(key)
     if (data === null) return null
     return JSON.parse(data)
@@ -379,20 +416,22 @@ class AlgorithmStore {
 
   // --- Services ---
 
-  async addService (appId, imageId, serviceId) {
-    const key = `${appId}:${imageId}:services`
+  async addService (appId, controllerId, imageId, serviceId) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${imageId}:services`
     await this.#client.pipeline()
       .sadd(key, serviceId)
       .pexpire(key, 1800000)
       .exec()
   }
 
-  async getServices (appId, imageId) {
-    const key = `${appId}:${imageId}:services`
+  async getServices (appId, controllerId, imageId) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${imageId}:services`
     return this.#client.smembers(key)
   }
 
-  // --- App/Service Config ---
+  // --- App/Service Config (shared across controllers) ---
 
   #appConfigsKey = 'app-configs'
   #svcConfigsKey = 'svc-configs'
@@ -423,13 +462,15 @@ class AlgorithmStore {
     await this.#client.del(this.#appConfigsKey, this.#svcConfigsKey)
   }
 
-  async saveServiceMetricThreshold (appId, serviceId, metricName, threshold) {
-    const key = `${appId}:${serviceId}:${metricName}:threshold`
+  async saveServiceMetricThreshold (appId, controllerId, serviceId, metricName, threshold) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${metricName}:threshold`
     await this.#client.set(key, String(threshold))
   }
 
-  async getServiceMetricThreshold (appId, serviceId, metricName) {
-    const key = `${appId}:${serviceId}:${metricName}:threshold`
+  async getServiceMetricThreshold (appId, controllerId, serviceId, metricName) {
+    const scope = this.#scopeId(appId, controllerId)
+    const key = `${scope}:${serviceId}:${metricName}:threshold`
     const data = await this.#client.get(key)
     if (data === null) return null
     return Number(data)

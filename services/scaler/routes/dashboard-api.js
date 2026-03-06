@@ -1,6 +1,7 @@
 'use strict'
 
 const { request } = require('undici')
+const errors = require('../lib/errors')
 
 module.exports = async function (app) {
   // TODO: this is needed for the algorithm debug purposes
@@ -70,10 +71,12 @@ module.exports = async function (app) {
       }
     },
     handler: async (req) => {
-      const snapshots = await app.signalScalerExecutor.predictor.getAppMetricsSnapshots(
-        req.params.appId
+      const controller = await app.getApplicationController(req.params.appId)
+      if (!controller) throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(req.params.appId)
+      return app.signalScalerExecutor.predictor.getServices(
+        req.params.appId,
+        controller.k8SControllerId
       )
-      return snapshots ? Object.keys(snapshots) : []
     }
   })
 
@@ -89,8 +92,11 @@ module.exports = async function (app) {
       }
     },
     handler: async (req) => {
+      const controller = await app.getApplicationController(req.params.appId)
+      if (!controller) throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(req.params.appId)
       const snapshots = await app.signalScalerExecutor.predictor.getAppMetricsSnapshots(
-        req.params.appId
+        req.params.appId,
+        controller.k8SControllerId
       )
       return snapshots?.[req.params.serviceId] || null
     }
@@ -233,8 +239,11 @@ module.exports = async function (app) {
       }
     },
     handler: async (req) => {
+      const controller = await app.getApplicationController(req.params.appId)
+      if (!controller) throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(req.params.appId)
       return app.signalScalerExecutor.predictor.getAlignedInstanceMetrics(
         req.params.appId,
+        controller.k8SControllerId,
         req.params.serviceId
       )
     }

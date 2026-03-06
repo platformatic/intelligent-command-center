@@ -1,5 +1,7 @@
 'use strict'
 
+const { APPLICATION_CONTROLLER_NOT_FOUND } = require('../lib/errors')
+
 function validateInternalAuth (req, app) {
   const iccSessionSecret = app.env.PLT_ICC_SESSION_SECRET
   if (!iccSessionSecret) {
@@ -61,8 +63,18 @@ module.exports = async function (app) {
         throw new Error('Instance not found for pod')
       }
 
+      const controller = await app.getControllerByDeploymentId(
+        applicationId,
+        instance.deploymentId
+      )
+      if (!controller) {
+        throw new APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
+      }
+      const controllerId = controller.k8SControllerId
+
       await app.signalScalerExecutor.onConnect(
         applicationId,
+        controllerId,
         instance.deploymentId,
         podId,
         runtimeId,
@@ -119,7 +131,15 @@ module.exports = async function (app) {
         throw new Error('Instance not found for pod')
       }
 
-      await app.signalScalerExecutor.onDisconnect(applicationId, runtimeId, ts)
+      const controller = await app.getControllerByDeploymentId(
+        applicationId,
+        instance.deploymentId
+      )
+      if (!controller) {
+        throw new APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
+      }
+      const controllerId = controller.k8SControllerId
+      await app.signalScalerExecutor.onDisconnect(applicationId, controllerId, runtimeId, ts)
 
       return { success: true }
     }

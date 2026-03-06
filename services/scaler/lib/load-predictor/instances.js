@@ -3,17 +3,18 @@
 async function addInstance (
   store,
   appId,
+  controllerId,
   imageId,
   podId,
   instanceId,
   timestamp,
   reconnect = true
 ) {
-  const instances = await store.getAllInstances(appId)
+  const instances = await store.getAllInstances(appId, controllerId)
   const instance = instances[instanceId]
 
   if (instance && instance.endTime === 0) {
-    await store.setInstance(appId, imageId, podId, instanceId, instance.startTime, 0, timestamp)
+    await store.setInstance(appId, controllerId, imageId, podId, instanceId, instance.startTime, 0, timestamp)
     return { isNewInstance: false, isNewPod: false }
   }
 
@@ -23,7 +24,7 @@ async function addInstance (
   }
 
   const startTime = instance ? instance.startTime : timestamp
-  await store.setInstance(appId, imageId, podId, instanceId, startTime, 0, timestamp)
+  await store.setInstance(appId, controllerId, imageId, podId, instanceId, startTime, 0, timestamp)
 
   if (instance) {
     return { isNewInstance: false, isNewPod: false }
@@ -40,13 +41,14 @@ async function addInstance (
   return { isNewInstance: true, isNewPod }
 }
 
-async function terminateInstance (store, appId, instanceId, timestamp, deadTimeout) {
-  const instance = await store.getInstance(appId, instanceId)
+async function terminateInstance (store, appId, controllerId, instanceId, timestamp, deadTimeout) {
+  const instance = await store.getInstance(appId, controllerId, instanceId)
   if (!instance || instance.endTime > 0) return
 
   const endTime = timestamp + deadTimeout
   await store.setInstance(
     appId,
+    controllerId,
     instance.imageId,
     instance.podId,
     instanceId,
@@ -56,8 +58,8 @@ async function terminateInstance (store, appId, instanceId, timestamp, deadTimeo
   )
 }
 
-async function getClusterState (store, appId, now, instancesWindowMs, redeployTimeoutMs) {
-  const allInstances = await store.getAllInstances(appId)
+async function getClusterState (store, appId, controllerId, now, instancesWindowMs, redeployTimeoutMs) {
+  const allInstances = await store.getAllInstances(appId, controllerId)
   const cutoff = now - instancesWindowMs
   const expired = []
   const images = {} // { imageId: { startTime, instances, pods } }
@@ -106,7 +108,7 @@ async function getClusterState (store, appId, now, instancesWindowMs, redeployTi
     }
   }
 
-  await store.deleteInstances(appId, expired)
+  await store.deleteInstances(appId, controllerId, expired)
 
   const imageIds = Object.keys(images)
 

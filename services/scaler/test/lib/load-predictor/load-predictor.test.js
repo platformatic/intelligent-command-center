@@ -9,6 +9,8 @@ const { valkeyConnectionString, cleanValkeyData } = require('../../helper')
 const valkeyUrl = new URL(valkeyConnectionString)
 const valkeyConfig = { host: valkeyUrl.hostname, port: parseInt(valkeyUrl.port), keyPrefix: 'scaler:' }
 
+const CONTROLLER_ID = 'ctrl-1'
+
 const globalConfig = {
   reconnectTimeoutMs: 5000,
   horizontalTrendThreshold: 0.2,
@@ -63,15 +65,13 @@ function makeDefaultAppConfig () {
 
 function createApi (initialTarget = 1, appConfig = null) {
   const calls = []
-  const targets = new Map()
+  let currentTarget = initialTarget
   return {
     calls,
-    scale (appId, targetPodsCount, options) {
-      calls.push({ appId, targetPodsCount, options })
-      targets.set(appId, targetPodsCount)
-    },
-    async getCurrentPodsTarget (appId) {
-      return targets.get(appId) ?? initialTarget
+    currentTarget () { return currentTarget },
+    scale (targetPodsCount, options) {
+      calls.push({ targetPodsCount, options })
+      currentTarget = targetPodsCount
     },
     async getApplicationConfig (appId) {
       return appConfig ?? makeDefaultAppConfig()
@@ -145,26 +145,23 @@ test('LoadPredictor', async (t) => {
       // Config should be cleared
       assert.strictEqual(await verifyStore.getAppConfig('app-1'), null)
 
-      // targetPodsCount and initTimeout are lazily initialized, not set by initialize
-      assert.strictEqual(await verifyStore.getTargetPodsCount('app-1'), null)
-      assert.strictEqual(await verifyStore.getInitTimeout('app-1'), null)
+      // initTimeout is lazily initialized, not set by initialize
+      assert.strictEqual(await verifyStore.getInitTimeout('app-1', CONTROLLER_ID), null)
     } finally {
       await predictor.close()
     }
   })
 
-  await t.test('initialize preserves targetPodsCount and initTimeout', async () => {
+  await t.test('initialize preserves initTimeout', async () => {
     const api = createApi()
     const predictor = new LoadPredictor(globalConfig, makeDefaultAppConfig(), api, valkeyConfig)
     try {
-      await verifyStore.setTargetPodsCount('app-1', 5)
-      await verifyStore.setInitTimeout('app-1', 15000)
+      await verifyStore.setInitTimeout('app-1', CONTROLLER_ID, 15000)
 
       await predictor.initialize()
 
-      // Both are preserved - they are not cleared by initialize
-      assert.strictEqual(await verifyStore.getTargetPodsCount('app-1'), 5)
-      assert.strictEqual(await verifyStore.getInitTimeout('app-1'), 15000)
+      // initTimeout is preserved - it is not cleared by initialize
+      assert.strictEqual(await verifyStore.getInitTimeout('app-1', CONTROLLER_ID), 15000)
     } finally {
       await predictor.close()
     }
@@ -177,11 +174,11 @@ test('LoadPredictor', async (t) => {
       await predictor.initialize()
       await predictor.initialize()
 
-      await predictor.onConnect('app-1', 'img-v1', 'pod-a1', 'inst-a1', 1000)
-      await predictor.onConnect('app-2', 'img-v1', 'pod-b1', 'inst-b1', 2000)
+      await predictor.onConnect('app-1', CONTROLLER_ID, 'img-v1', 'pod-a1', 'inst-a1', 1000)
+      await predictor.onConnect('app-2', CONTROLLER_ID, 'img-v1', 'pod-b1', 'inst-b1', 2000)
 
-      const inst1 = await verifyStore.getInstance('app-1', 'inst-a1')
-      const inst2 = await verifyStore.getInstance('app-2', 'inst-b1')
+      const inst1 = await verifyStore.getInstance('app-1', CONTROLLER_ID, 'inst-a1')
+      const inst2 = await verifyStore.getInstance('app-2', CONTROLLER_ID, 'inst-b1')
 
       assert.ok(inst1)
       assert.strictEqual(inst1.podId, 'pod-a1')
@@ -192,8 +189,8 @@ test('LoadPredictor', async (t) => {
       assert.strictEqual(inst2.startTime, 2000)
 
       // Cross-app isolation
-      assert.strictEqual(await verifyStore.getInstance('app-1', 'inst-b1'), null)
-      assert.strictEqual(await verifyStore.getInstance('app-2', 'inst-a1'), null)
+      assert.strictEqual(await verifyStore.getInstance('app-1', CONTROLLER_ID, 'inst-b1'), null)
+      assert.strictEqual(await verifyStore.getInstance('app-2', CONTROLLER_ID, 'inst-a1'), null)
     } finally {
       await predictor.close()
     }
@@ -203,13 +200,13 @@ test('LoadPredictor', async (t) => {
     const api = createApi()
     const predictor = new LoadPredictor(globalConfig, makeDefaultAppConfig(), api, valkeyConfig)
     try {
-      await predictor.onConnect('app-1', 'img-v1', 'pod-a1', 'inst-a1', 1000)
-      await predictor.onConnect('app-2', 'img-v1', 'pod-b1', 'inst-b1', 2000)
+      await predictor.onConnect('app-1', CONTROLLER_ID, 'img-v1', 'pod-a1', 'inst-a1', 1000)
+      await predictor.onConnect('app-2', CONTROLLER_ID, 'img-v1', 'pod-b1', 'inst-b1', 2000)
 
-      await predictor.onDisconnect('app-1', 'inst-a1', 5000)
+      await predictor.onDisconnect('app-1', CONTROLLER_ID, 'inst-a1', 5000)
 
-      const inst1 = await verifyStore.getInstance('app-1', 'inst-a1')
-      const inst2 = await verifyStore.getInstance('app-2', 'inst-b1')
+      const inst1 = await verifyStore.getInstance('app-1', CONTROLLER_ID, 'inst-a1')
+      const inst2 = await verifyStore.getInstance('app-2', CONTROLLER_ID, 'inst-b1')
 
       assert.strictEqual(inst1.endTime, 5000 + globalConfig.reconnectTimeoutMs)
       assert.strictEqual(inst2.endTime, 0)
@@ -223,11 +220,12 @@ test('LoadPredictor', async (t) => {
     const predictor = new LoadPredictor(globalConfig, makeDefaultAppConfig(), api, valkeyConfig)
     try {
       await predictor.initialize()
-      await predictor.onConnect('app-1', 'img-v1', 'pod-1', 'inst-1', Date.now() - 60000)
+      await predictor.onConnect('app-1', CONTROLLER_ID, 'img-v1', 'pod-1', 'inst-1', Date.now() - 60000)
 
       const samples = makeSamples(3, 0.5, 100)
       await predictor.saveInstanceMetrics({
         applicationId: 'app-1',
+        controllerId: CONTROLLER_ID,
         podId: 'pod-1',
         instanceId: 'inst-1',
         imageId: 'img-v1',
@@ -238,13 +236,13 @@ test('LoadPredictor', async (t) => {
         batchStartedAt: Date.now()
       })
 
-      const services = await verifyStore.getServices('app-1', 'img-v1')
+      const services = await verifyStore.getServices('app-1', CONTROLLER_ID, 'img-v1')
       assert.ok(services.includes('svc-a'))
       assert.ok(services.includes('svc-b'))
       assert.strictEqual(services.length, 2)
 
       // app-2 should have no services
-      const services2 = await verifyStore.getServices('app-2', 'img-v1')
+      const services2 = await verifyStore.getServices('app-2', CONTROLLER_ID, 'img-v1')
       assert.strictEqual(services2.length, 0)
     } finally {
       await predictor.close()
@@ -298,7 +296,7 @@ test('LoadPredictor', async (t) => {
       await predictor.initialize()
 
       const now = Date.now()
-      await predictor.onConnect('app-1', 'img-v1', 'pod-1', 'inst-1', now - 60000)
+      await predictor.onConnect('app-1', CONTROLLER_ID, 'img-v1', 'pod-1', 'inst-1', now - 60000)
 
       // svc-high: ELU 0.9 (above threshold 0.75) should trigger scale-up
       // svc-low: ELU 0.2 (below threshold) should not trigger scale-up
@@ -307,6 +305,7 @@ test('LoadPredictor', async (t) => {
 
       await predictor.saveInstanceMetrics({
         applicationId: 'app-1',
+        controllerId: CONTROLLER_ID,
         podId: 'pod-1',
         instanceId: 'inst-1',
         imageId: 'img-v1',
@@ -316,10 +315,9 @@ test('LoadPredictor', async (t) => {
         },
         batchStartedAt: Date.now()
       })
-      await predictor.checkScaling('app-1')
+      await predictor.checkForPendingBatches('app-1', CONTROLLER_ID, api.currentTarget(), api.scale)
 
       const calls = await waitForCalls(api, 1)
-      assert.strictEqual(calls[0].appId, 'app-1')
       assert.ok(
         calls[0].targetPodsCount > 1,
         `Expected target > 1 but got ${calls[0].targetPodsCount}`
@@ -337,8 +335,8 @@ test('LoadPredictor', async (t) => {
       await predictor.initialize()
 
       const now = Date.now()
-      await predictor.onConnect('app-1', 'img-v1', 'pod-a1', 'inst-a1', now - 60000)
-      await predictor.onConnect('app-2', 'img-v1', 'pod-b1', 'inst-b1', now - 60000)
+      await predictor.onConnect('app-1', CONTROLLER_ID, 'img-v1', 'pod-a1', 'inst-a1', now - 60000)
+      await predictor.onConnect('app-2', CONTROLLER_ID, 'img-v1', 'pod-b1', 'inst-b1', now - 60000)
 
       // app-1: high ELU -> should scale up
       const highLoadSamples = makeSamples(5, 0.9, 100)
@@ -347,34 +345,32 @@ test('LoadPredictor', async (t) => {
 
       await predictor.saveInstanceMetrics({
         applicationId: 'app-1',
+        controllerId: CONTROLLER_ID,
         podId: 'pod-a1',
         instanceId: 'inst-a1',
         imageId: 'img-v1',
         services: { 'svc-1': highLoadSamples },
         batchStartedAt: Date.now()
       })
-      await predictor.checkScaling('app-1')
+      // Each app has its own targetPodsCount (like controller.replicas in production)
+      await predictor.checkForPendingBatches('app-1', CONTROLLER_ID, 1, api.scale)
 
       await predictor.saveInstanceMetrics({
         applicationId: 'app-2',
+        controllerId: CONTROLLER_ID,
         podId: 'pod-b1',
         instanceId: 'inst-b1',
         imageId: 'img-v1',
         services: { 'svc-1': lowLoadSamples },
         batchStartedAt: Date.now()
       })
-      await predictor.checkScaling('app-2')
+      await predictor.checkForPendingBatches('app-2', CONTROLLER_ID, 1, api.scale)
 
       // Wait for app-1 scale call
       const calls = await waitForCalls(api, 1)
-      assert.strictEqual(calls[0].appId, 'app-1')
       assert.ok(calls[0].targetPodsCount > 1)
 
-      // Wait for app-2 pipeline to finish
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      // app-2 target should remain at 1 (no scale call)
-      assert.strictEqual(await verifyStore.getTargetPodsCount('app-2'), 1)
+      // app-2 should not have triggered a scale call
       assert.strictEqual(api.calls.length, 1, 'Only app-1 should have triggered a scale call')
     } finally {
       await predictor.close()
@@ -389,8 +385,8 @@ test('LoadPredictor', async (t) => {
       await predictor.initialize()
 
       const now = Date.now()
-      await predictor.onConnect('app-1', 'img-v1', 'pod-a1', 'inst-a1', now - 60000)
-      await predictor.onConnect('app-2', 'img-v1', 'pod-b1', 'inst-b1', now - 60000)
+      await predictor.onConnect('app-1', CONTROLLER_ID, 'img-v1', 'pod-a1', 'inst-a1', now - 60000)
+      await predictor.onConnect('app-2', CONTROLLER_ID, 'img-v1', 'pod-b1', 'inst-b1', now - 60000)
 
       // Both apps have high ELU -> both should scale up independently
       const highLoadSamples1 = makeSamples(5, 0.9, 100)
@@ -398,33 +394,31 @@ test('LoadPredictor', async (t) => {
 
       await predictor.saveInstanceMetrics({
         applicationId: 'app-1',
+        controllerId: CONTROLLER_ID,
         podId: 'pod-a1',
         instanceId: 'inst-a1',
         imageId: 'img-v1',
         services: { 'svc-1': highLoadSamples1 },
         batchStartedAt: Date.now()
       })
-      await predictor.checkScaling('app-1')
+      // Each app has its own targetPodsCount (like controller.replicas in production)
+      await predictor.checkForPendingBatches('app-1', CONTROLLER_ID, 1, api.scale)
 
       await predictor.saveInstanceMetrics({
         applicationId: 'app-2',
+        controllerId: CONTROLLER_ID,
         podId: 'pod-b1',
         instanceId: 'inst-b1',
         imageId: 'img-v1',
         services: { 'svc-1': highLoadSamples2 },
         batchStartedAt: Date.now()
       })
-      await predictor.checkScaling('app-2')
+      await predictor.checkForPendingBatches('app-2', CONTROLLER_ID, 1, api.scale)
 
       // Both apps should trigger scale calls
       const calls = await waitForCalls(api, 2)
-      const app1Call = calls.find(c => c.appId === 'app-1')
-      const app2Call = calls.find(c => c.appId === 'app-2')
-
-      assert.ok(app1Call, 'app-1 should have triggered a scale call')
-      assert.ok(app2Call, 'app-2 should have triggered a scale call')
-      assert.ok(app1Call.targetPodsCount > 1)
-      assert.ok(app2Call.targetPodsCount > 1)
+      assert.ok(calls[0].targetPodsCount > 1, 'app-1 should have scaled up')
+      assert.ok(calls[1].targetPodsCount > 1, 'app-2 should have scaled up')
     } finally {
       await predictor.close()
     }

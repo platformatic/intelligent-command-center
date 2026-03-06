@@ -10,6 +10,8 @@ const {
   getPodsCountAt
 } = require('../../../lib/load-predictor/instances')
 
+const CONTROLLER_ID = 'ctrl-1'
+
 function createMockStore (initialData = {}) {
   const data = {}
   for (const [appId, instances] of Object.entries(initialData)) {
@@ -27,25 +29,25 @@ function createMockStore (initialData = {}) {
   return {
     calls,
     data,
-    async getInstance (appId, instanceId) {
-      calls.getInstance.push({ appId, instanceId })
+    async getInstance (appId, controllerId, instanceId) {
+      calls.getInstance.push({ appId, controllerId, instanceId })
       const appData = data[appId] || {}
       return appData[instanceId] || null
     },
-    async setInstance (appId, imageId, podId, instanceId, startTime, endTime) {
-      calls.setInstance.push({ appId, imageId, podId, instanceId, startTime, endTime })
+    async setInstance (appId, controllerId, imageId, podId, instanceId, startTime, endTime) {
+      calls.setInstance.push({ appId, controllerId, imageId, podId, instanceId, startTime, endTime })
       if (!data[appId]) data[appId] = {}
       data[appId][instanceId] = { podId, startTime, endTime, imageId }
     },
     async setLastInstanceStartTime (appId, timestamp) {
       calls.setLastInstanceStartTime.push({ appId, timestamp })
     },
-    async getAllInstances (appId) {
-      calls.getAllInstances.push({ appId })
+    async getAllInstances (appId, controllerId) {
+      calls.getAllInstances.push({ appId, controllerId })
       return { ...(data[appId] || {}) }
     },
-    async deleteInstances (appId, ids) {
-      calls.deleteInstances.push({ appId, ids })
+    async deleteInstances (appId, controllerId, ids) {
+      calls.deleteInstances.push({ appId, controllerId, ids })
       if (data[appId]) {
         for (const id of ids) {
           delete data[appId][id]
@@ -59,13 +61,15 @@ test('addInstance', async (t) => {
   await t.test('should create new instance when not exists', async () => {
     const store = createMockStore()
 
-    const result = await addInstance(store, 'add-new', 'img-v1', 'p0', 'i0', 1000)
+    const result = await addInstance(store, 'add-new', CONTROLLER_ID, 'img-v1', 'p0', 'i0', 1000)
 
     assert.strictEqual(store.calls.getAllInstances.length, 1)
     assert.strictEqual(store.calls.getAllInstances[0].appId, 'add-new')
+    assert.strictEqual(store.calls.getAllInstances[0].controllerId, CONTROLLER_ID)
     assert.strictEqual(store.calls.setInstance.length, 1)
     assert.deepStrictEqual(store.calls.setInstance[0], {
       appId: 'add-new',
+      controllerId: CONTROLLER_ID,
       imageId: 'img-v1',
       podId: 'p0',
       instanceId: 'i0',
@@ -89,7 +93,7 @@ test('addInstance', async (t) => {
     })
 
     // reconnect=false prevents reopening (used by saveInstanceMetrics for late batches)
-    const result = await addInstance(store, 'late-batch-app', 'img-v1', 'p0', 'i0', 6000, false)
+    const result = await addInstance(store, 'late-batch-app', CONTROLLER_ID, 'img-v1', 'p0', 'i0', 6000, false)
 
     assert.strictEqual(store.calls.getAllInstances.length, 1)
     assert.strictEqual(store.calls.setInstance.length, 0) // no setInstance call
@@ -104,12 +108,13 @@ test('addInstance', async (t) => {
     })
 
     // Default reconnect=true allows reopening (used by onConnect)
-    const result = await addInstance(store, 'reconnect-app', 'img-v1', 'p1', 'i0', 6000)
+    const result = await addInstance(store, 'reconnect-app', CONTROLLER_ID, 'img-v1', 'p1', 'i0', 6000)
 
     assert.strictEqual(store.calls.getAllInstances.length, 1)
     assert.strictEqual(store.calls.setInstance.length, 1)
     assert.deepStrictEqual(store.calls.setInstance[0], {
       appId: 'reconnect-app',
+      controllerId: CONTROLLER_ID,
       imageId: 'img-v1',
       podId: 'p1',
       instanceId: 'i0',
@@ -123,7 +128,7 @@ test('addInstance', async (t) => {
     const store = createMockStore()
 
     // reconnect=false still allows creating new instances
-    const result = await addInstance(store, 'new-app', 'img-v1', 'p0', 'i0', 1000, false)
+    const result = await addInstance(store, 'new-app', CONTROLLER_ID, 'img-v1', 'p0', 'i0', 1000, false)
 
     assert.strictEqual(store.calls.setInstance.length, 1)
     assert.deepStrictEqual(result, { isNewInstance: true, isNewPod: true })
@@ -132,9 +137,9 @@ test('addInstance', async (t) => {
   await t.test('should handle multiple instances', async () => {
     const store = createMockStore()
 
-    await addInstance(store, 'multi-inst-app', 'img-v1', 'p0', 'i0', 1000)
-    await addInstance(store, 'multi-inst-app', 'img-v1', 'p1', 'i1', 2000)
-    await addInstance(store, 'multi-inst-app', 'img-v1', 'p2', 'i2', 3000)
+    await addInstance(store, 'multi-inst-app', CONTROLLER_ID, 'img-v1', 'p0', 'i0', 1000)
+    await addInstance(store, 'multi-inst-app', CONTROLLER_ID, 'img-v1', 'p1', 'i1', 2000)
+    await addInstance(store, 'multi-inst-app', CONTROLLER_ID, 'img-v1', 'p2', 'i2', 3000)
 
     assert.strictEqual(Object.keys(store.data['multi-inst-app']).length, 3)
     assert.deepStrictEqual(store.data['multi-inst-app'].i0, { podId: 'p0', startTime: 1000, endTime: 0, imageId: 'img-v1' })
@@ -145,8 +150,8 @@ test('addInstance', async (t) => {
   await t.test('should isolate instances across apps', async () => {
     const store = createMockStore()
 
-    await addInstance(store, 'app-alpha', 'img-v1', 'p0', 'i0', 1000)
-    await addInstance(store, 'app-beta', 'img-v1', 'p0', 'i0', 2000)
+    await addInstance(store, 'app-alpha', CONTROLLER_ID, 'img-v1', 'p0', 'i0', 1000)
+    await addInstance(store, 'app-beta', CONTROLLER_ID, 'img-v1', 'p0', 'i0', 2000)
 
     // Same instanceId and podId in different apps should be independent
     assert.deepStrictEqual(store.data['app-alpha'].i0, { podId: 'p0', startTime: 1000, endTime: 0, imageId: 'img-v1' })
@@ -161,11 +166,11 @@ test('addInstance', async (t) => {
     })
 
     // Adding same podId in app-x should not be a new pod
-    const result1 = await addInstance(store, 'app-x', 'img-v1', 'p0', 'i1', 2000)
+    const result1 = await addInstance(store, 'app-x', CONTROLLER_ID, 'img-v1', 'p0', 'i1', 2000)
     assert.strictEqual(result1.isNewPod, false)
 
     // Adding same podId in app-y should be a new pod (independent)
-    const result2 = await addInstance(store, 'app-y', 'img-v1', 'p0', 'i2', 3000)
+    const result2 = await addInstance(store, 'app-y', CONTROLLER_ID, 'img-v1', 'p0', 'i2', 3000)
     assert.strictEqual(result2.isNewPod, true)
   })
 })
@@ -178,11 +183,12 @@ test('terminateInstance', async (t) => {
       }
     })
 
-    await terminateInstance(store, 'term-app', 'i0', 5000, 10000)
+    await terminateInstance(store, 'term-app', CONTROLLER_ID, 'i0', 5000, 10000)
 
     assert.strictEqual(store.calls.setInstance.length, 1)
     assert.deepStrictEqual(store.calls.setInstance[0], {
       appId: 'term-app',
+      controllerId: CONTROLLER_ID,
       imageId: 'img-v1',
       podId: 'p0',
       instanceId: 'i0',
@@ -194,10 +200,11 @@ test('terminateInstance', async (t) => {
   await t.test('should not update if instance not found', async () => {
     const store = createMockStore()
 
-    await terminateInstance(store, 'term-missing', 'i0', 5000, 10000)
+    await terminateInstance(store, 'term-missing', CONTROLLER_ID, 'i0', 5000, 10000)
 
     assert.strictEqual(store.calls.getInstance.length, 1)
     assert.strictEqual(store.calls.getInstance[0].appId, 'term-missing')
+    assert.strictEqual(store.calls.getInstance[0].controllerId, CONTROLLER_ID)
     assert.strictEqual(store.calls.setInstance.length, 0)
   })
 
@@ -208,7 +215,7 @@ test('terminateInstance', async (t) => {
       }
     })
 
-    await terminateInstance(store, 'term-closed', 'i0', 6000, 10000)
+    await terminateInstance(store, 'term-closed', CONTROLLER_ID, 'i0', 6000, 10000)
 
     assert.strictEqual(store.calls.getInstance.length, 1)
     assert.strictEqual(store.calls.setInstance.length, 0)
@@ -221,7 +228,7 @@ test('terminateInstance', async (t) => {
       }
     })
 
-    await terminateInstance(store, 'term-timeout', 'i0', 5000, 30000)
+    await terminateInstance(store, 'term-timeout', CONTROLLER_ID, 'i0', 5000, 30000)
 
     assert.strictEqual(store.calls.setInstance[0].endTime, 35000)
   })
@@ -236,7 +243,7 @@ test('terminateInstance', async (t) => {
       }
     })
 
-    await terminateInstance(store, 'app-a', 'i0', 5000, 10000)
+    await terminateInstance(store, 'app-a', CONTROLLER_ID, 'i0', 5000, 10000)
 
     // app-a instance should be terminated
     assert.deepStrictEqual(store.data['app-a'].i0, {
@@ -493,7 +500,7 @@ test('getClusterState', async (t) => {
   await t.test('should return empty when no instances', async () => {
     const store = createMockStore()
 
-    const result = await getClusterState(store, 'empty-app', 10000, 5000, 30000)
+    const result = await getClusterState(store, 'empty-app', CONTROLLER_ID, 10000, 5000, 30000)
 
     assert.deepStrictEqual(result.instances, {})
     assert.deepStrictEqual(result.pods, {})
@@ -509,7 +516,7 @@ test('getClusterState', async (t) => {
       }
     })
 
-    const result = await getClusterState(store, 'img-app', 10000, 20000, 30000)
+    const result = await getClusterState(store, 'img-app', CONTROLLER_ID, 10000, 20000, 30000)
 
     assert.strictEqual(Object.keys(result.instances).length, 2)
     assert.strictEqual(Object.keys(result.pods).length, 2)
@@ -528,7 +535,7 @@ test('getClusterState', async (t) => {
 
     // img-v2 started at 3000, now is 5000, redeployTimeoutMs is 30000
     // So (5000 - 3000) = 2000 < 30000 → isRedeploying = true → use oldest
-    const result = await getClusterState(store, 'img-app', now, 20000, 30000)
+    const result = await getClusterState(store, 'img-app', CONTROLLER_ID, now, 20000, 30000)
 
     assert.strictEqual(result.imageId, 'img-v1')
     assert.strictEqual(result.isRedeploying, true)
@@ -547,7 +554,7 @@ test('getClusterState', async (t) => {
 
     // img-v2 started at 3000, now is 50000, redeployTimeoutMs is 30000
     // So (50000 - 3000) = 47000 > 30000 → isRedeploying = false → use newest
-    const result = await getClusterState(store, 'img-app', now, 60000, 30000)
+    const result = await getClusterState(store, 'img-app', CONTROLLER_ID, now, 60000, 30000)
 
     assert.strictEqual(result.imageId, 'img-v2')
     assert.strictEqual(result.isRedeploying, false)
@@ -566,7 +573,7 @@ test('getClusterState', async (t) => {
       }
     })
 
-    const result = await getClusterState(store, 'expire-img-app', now, windowMs, 30000)
+    const result = await getClusterState(store, 'expire-img-app', CONTROLLER_ID, now, windowMs, 30000)
 
     assert.strictEqual(Object.keys(result.instances).length, 1)
     assert.ok(result.instances.i1)
@@ -581,7 +588,7 @@ test('getClusterState', async (t) => {
       }
     })
 
-    const result = await getClusterState(store, 'agg-img-app', 10000, 20000, 30000)
+    const result = await getClusterState(store, 'agg-img-app', CONTROLLER_ID, 10000, 20000, 30000)
 
     // Pod should be aggregated: min startTime, endTime = 0 (because one is alive)
     assert.deepStrictEqual(result.pods.p0, {
@@ -602,7 +609,7 @@ test('getClusterState', async (t) => {
     // img-v1 has MIN startTime 2000, img-v2 has startTime 8000
     // now=10000, redeployTimeout=5000 → (10000-8000)=2000 < 5000 → redeploying
     // Should use oldest (img-v1)
-    const result = await getClusterState(store, 'min-start-app', 10000, 20000, 5000)
+    const result = await getClusterState(store, 'min-start-app', CONTROLLER_ID, 10000, 20000, 5000)
 
     assert.strictEqual(result.imageId, 'img-v1')
     assert.strictEqual(result.isRedeploying, true)
@@ -619,7 +626,7 @@ test('getClusterState', async (t) => {
       }
     })
 
-    const result = await getClusterState(store, 'stale-app', now, windowMs, 30000)
+    const result = await getClusterState(store, 'stale-app', CONTROLLER_ID, now, windowMs, 30000)
 
     assert.strictEqual(Object.keys(result.instances).length, 1)
     assert.ok(result.instances.i1)
@@ -638,7 +645,7 @@ test('getClusterState', async (t) => {
 
     // All images are old (now - newest startTime > redeployTimeout)
     // Should select newest (img-v3)
-    const result = await getClusterState(store, 'multi-img-app', now, 200000, 30000)
+    const result = await getClusterState(store, 'multi-img-app', CONTROLLER_ID, now, 200000, 30000)
 
     assert.strictEqual(result.imageId, 'img-v3')
     assert.strictEqual(result.isRedeploying, false)
@@ -659,7 +666,7 @@ test('getClusterState', async (t) => {
 
     // img-v1 is oldest but all its instances are expired
     // Should select img-v2 as the only running image
-    const result = await getClusterState(store, 'expired-img-app', now, windowMs, 30000)
+    const result = await getClusterState(store, 'expired-img-app', CONTROLLER_ID, now, windowMs, 30000)
 
     assert.strictEqual(result.imageId, 'img-v2')
     assert.strictEqual(result.isRedeploying, false)
@@ -674,7 +681,7 @@ test('getClusterState', async (t) => {
       }
     })
 
-    const result = await getClusterState(store, 'term-pod-app', 10000, 20000, 30000)
+    const result = await getClusterState(store, 'term-pod-app', CONTROLLER_ID, 10000, 20000, 30000)
 
     // Both instances terminated, pod should have max endTime
     assert.deepStrictEqual(result.pods.p0, {
@@ -692,7 +699,7 @@ test('getClusterState', async (t) => {
       }
     })
 
-    const result = await getClusterState(store, 'multi-pod-app', 10000, 20000, 30000)
+    const result = await getClusterState(store, 'multi-pod-app', CONTROLLER_ID, 10000, 20000, 30000)
 
     assert.strictEqual(Object.keys(result.pods).length, 3)
     assert.ok(result.pods.p0)

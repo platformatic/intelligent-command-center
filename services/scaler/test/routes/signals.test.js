@@ -63,7 +63,7 @@ test('POST /signals should process signals with v2 algorithm', async (t) => {
 
   // Initialize and connect
   await server.signalScalerExecutor.initialize()
-  await server.signalScalerExecutor.onConnect(applicationId, deploymentId, podId, runtimeId, Date.now() - 60000)
+  await server.signalScalerExecutor.onConnect(applicationId, controllerId, deploymentId, podId, runtimeId, Date.now() - 60000)
 
   const now = Date.now()
   const serviceId = 'main'

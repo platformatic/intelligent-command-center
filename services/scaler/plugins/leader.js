@@ -104,8 +104,8 @@ async function plugin (app) {
     await leaderElector.notify({ podId, serviceId }, CHANNEL_REACTIVE_SCALER)
   })
 
-  app.decorate('notifySignalScaler', async function (applicationId, serviceId) {
-    await leaderElector.notify({ applicationId, serviceId }, CHANNEL_SIGNAL_SCALER)
+  app.decorate('notifySignalScaler', async function (applicationId, controllerId) {
+    await leaderElector.notify({ applicationId, controllerId }, CHANNEL_SIGNAL_SCALER)
   })
 
   app.decorate('isScalerLeader', function () {
