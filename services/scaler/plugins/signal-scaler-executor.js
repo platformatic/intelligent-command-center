@@ -34,7 +34,7 @@ class SignalScalerExecutor {
       processingInitTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_PROCESSING_INIT_TIMEOUT_MS),
       processingCooldownMs: Number(app.env.PLT_SIGNALS_SCALER_PROCESSING_COOLDOWN_MS),
       instancesWindowMs: Number(app.env.PLT_SIGNALS_SCALER_INSTANCES_WINDOW_MS),
-      initTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_INIT_TIMEOUT_MS),
+      minInitTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_MIN_INIT_TIMEOUT_MS),
       cooldowns: {
         scaleUpAfterScaleUpMs: Number(app.env.PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_UP_MS),
         scaleUpAfterScaleDownMs: Number(app.env.PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_DOWN_MS),
@@ -100,7 +100,7 @@ class SignalScalerExecutor {
       defaultAppConfig: {
         pods: defaultAppConfig.pods,
         horizonMultiplier: defaultAppConfig.horizonMultiplier,
-        initTimeoutMs: defaultAppConfig.initTimeoutMs
+        minInitTimeoutMs: defaultAppConfig.minInitTimeoutMs
       }
     }, '[Signal Scaler] Executor initialized')
   }

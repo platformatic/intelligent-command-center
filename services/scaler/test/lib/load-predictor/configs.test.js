@@ -46,7 +46,7 @@ const defaultAppConfig = {
   processingInitTimeoutMs: 100,
   processingCooldownMs: 10000,
   instancesWindowMs: 180000,
-  initTimeoutMs: 20000,
+  minInitTimeoutMs: 10000,
   cooldowns: {
     scaleUpAfterScaleUpMs: 3000,
     scaleUpAfterScaleDownMs: 3000,

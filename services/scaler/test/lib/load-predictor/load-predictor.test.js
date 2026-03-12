@@ -33,7 +33,7 @@ function makeDefaultAppConfig () {
     processingInitTimeoutMs: 10,
     processingCooldownMs: 100,
     instancesWindowMs: 180000,
-    initTimeoutMs: 20000,
+    minInitTimeoutMs: 10000,
     cooldowns: {
       scaleUpAfterScaleUpMs: 3000,
       scaleUpAfterScaleDownMs: 3000,

@@ -673,18 +673,22 @@ class LoadPredictor {
       return initTimeout
     }
 
-    const { initTimeoutMs } = await this.getApplicationConfig(appId)
-    await this.store.setInitTimeout(appId, controllerId, initTimeoutMs)
+    const { minInitTimeoutMs } = await this.getApplicationConfig(appId)
+    await this.store.setInitTimeout(appId, controllerId, minInitTimeoutMs)
 
-    return initTimeoutMs
+    return minInitTimeoutMs
   }
 
   async #updateInitTimeout (appId, controllerId, measurement) {
-    const [window, currentTimeout] = await Promise.all([
+    const [window, currentTimeout, appConfig] = await Promise.all([
       this.store.addInitTimeoutMeasurment(appId, controllerId, measurement, this.#initTimeoutConfig.windowSize),
-      this.#getInitTimeout(appId, controllerId)
+      this.#getInitTimeout(appId, controllerId),
+      this.getApplicationConfig(appId)
     ])
-    const newTimeout = calculateInitTimeout(window, currentTimeout, this.#initTimeoutConfig)
+    const newTimeout = Math.max(
+      calculateInitTimeout(window, currentTimeout, this.#initTimeoutConfig),
+      appConfig.minInitTimeoutMs
+    )
     await this.store.setInitTimeout(appId, controllerId, newTimeout)
   }
 

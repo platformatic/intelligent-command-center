@@ -57,7 +57,7 @@ const schema = {
     PLT_SIGNALS_SCALER_PROCESSING_INIT_TIMEOUT_MS: { type: 'number', default: 1000 },
     PLT_SIGNALS_SCALER_PROCESSING_COOLDOWN_MS: { type: 'number', default: 10000 },
     PLT_SIGNALS_SCALER_INSTANCES_WINDOW_MS: { type: 'number', default: 180000 },
-    PLT_SIGNALS_SCALER_INIT_TIMEOUT_MS: { type: 'number', default: 20000 },
+    PLT_SIGNALS_SCALER_MIN_INIT_TIMEOUT_MS: { type: 'number', default: 10000 },
 
     // LoadPredictor - Cooldowns
     PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_UP_MS: { type: 'number', default: 5000 },
