@@ -18,7 +18,10 @@ function buildApp (opts = {}) {
   app.register(fp(async (app) => {
     app.decorate('env', {
       PLT_FEATURE_SKEW_PROTECTION: enabled ? 'true' : '',
-      PLT_SKEW_GRACE_PERIOD_MS: 86400000,
+      PLT_SKEW_HTTP_GRACE_PERIOD_MS: 1800000,
+      PLT_SKEW_HTTP_MAX_ALIVE_MS: 86400000,
+      PLT_SKEW_WORKFLOW_GRACE_PERIOD_MS: 3600000,
+      PLT_SKEW_WORKFLOW_MAX_ALIVE_MS: 259200000,
       PLT_SKEW_COOKIE_MAX_AGE: 43200,
       PLT_SKEW_AUTO_CLEANUP: false
     })
@@ -326,7 +329,10 @@ test('maxVersions should auto-expire oldest draining versions and stop their dep
   const policyStore = [{
     id: 'p1',
     applicationId: 'app-1',
-    gracePeriodMs: null,
+    httpGracePeriodMs: null,
+    httpMaxAliveMs: null,
+    workflowGracePeriodMs: null,
+    workflowMaxAliveMs: null,
     maxAgeS: null,
     maxVersions: 1,
     cookieName: null,
@@ -404,7 +410,10 @@ test('maxVersions should not expire when within limit', async (t) => {
   const policyStore = [{
     id: 'p1',
     applicationId: 'app-1',
-    gracePeriodMs: null,
+    httpGracePeriodMs: null,
+    httpMaxAliveMs: null,
+    workflowGracePeriodMs: null,
+    workflowMaxAliveMs: null,
     maxAgeS: null,
     maxVersions: 5,
     cookieName: null,
@@ -436,4 +445,66 @@ test('maxVersions should not expire when within limit', async (t) => {
   assert.strictEqual(store[0].status, 'draining')
   assert.strictEqual(store[1].status, 'draining')
   assert.strictEqual(store[2].status, 'active')
+})
+
+test('should store expirePolicy on version row', async (t) => {
+  const { app, store } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion({
+    ...baseOpts,
+    expirePolicy: 'workflow'
+  }, mockCtx)
+
+  assert.strictEqual(store[0].expirePolicy, 'workflow')
+})
+
+test('should default expirePolicy to http-traffic when not provided', async (t) => {
+  const { app, store } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+
+  assert.strictEqual(store[0].expirePolicy, 'http-traffic')
+})
+
+test('should re-activate an expired version when redeployed', async (t) => {
+  const { app, store } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  // Register v1, then v2 (v1 becomes draining)
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  // Expire v1
+  await app.expireVersion('my-app', 'v1', mockCtx)
+  assert.strictEqual(store[0].status, 'expired')
+
+  // Re-deploy v1 — should re-activate it and mark v2 as draining
+  const result = await app.registerVersion({
+    ...baseOpts,
+    deploymentId: 'dep-3',
+    k8SDeploymentName: 'my-app-v1-new',
+    serviceName: 'my-app-v1-new-svc'
+  }, mockCtx)
+
+  assert.strictEqual(store[0].status, 'active')
+  assert.strictEqual(store[0].k8SDeploymentName, 'my-app-v1-new')
+  assert.strictEqual(store[0].serviceName, 'my-app-v1-new-svc')
+  assert.strictEqual(store[0].deploymentId, 'dep-3')
+  assert.strictEqual(store[0].drainedAt, null)
+  assert.strictEqual(store[1].status, 'draining')
+  assert.strictEqual(result.isNew, false)
+  assert.strictEqual(result.activeVersion.versionId, 'v1')
+  assert.strictEqual(result.drainingVersions.length, 1)
+  assert.strictEqual(result.drainingVersions[0].versionId, 'v2')
 })

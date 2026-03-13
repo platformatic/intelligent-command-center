@@ -1,0 +1,20 @@
+.container {
+  @apply w-full;
+}
+
+.container table {
+  @apply w-full border-collapse;
+}
+
+.container th,
+.container td {
+  @apply p-4 text-left;
+}
+
+.runRow {
+  @apply text-[14px] hover:bg-white/5 cursor-pointer;
+}
+
+.runId {
+  @apply font-[monospace] text-white/70;
+}

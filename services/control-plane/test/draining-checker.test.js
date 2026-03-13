@@ -48,7 +48,10 @@ function buildApp (opts = {}) {
     updateController: []
   }
 
-  const gracePeriodMs = opts.gracePeriodMs || 999999999
+  const httpGracePeriodMs = opts.httpGracePeriodMs || 0
+  const httpMaxAliveMs = opts.httpMaxAliveMs || 999999999
+  const workflowGracePeriodMs = opts.workflowGracePeriodMs || 0
+  const workflowMaxAliveMs = opts.workflowMaxAliveMs || 999999999
   const checkIntervalMs = opts.checkIntervalMs || 50
   const trafficWindowMs = opts.trafficWindowMs || 1800000
   const metricsUrl = opts.metricsUrl || ''
@@ -59,7 +62,10 @@ function buildApp (opts = {}) {
   app.register(fp(async (app) => {
     app.decorate('env', {
       PLT_FEATURE_SKEW_PROTECTION: 'true',
-      PLT_SKEW_GRACE_PERIOD_MS: gracePeriodMs,
+      PLT_SKEW_HTTP_GRACE_PERIOD_MS: httpGracePeriodMs,
+      PLT_SKEW_HTTP_MAX_ALIVE_MS: httpMaxAliveMs,
+      PLT_SKEW_WORKFLOW_GRACE_PERIOD_MS: workflowGracePeriodMs,
+      PLT_SKEW_WORKFLOW_MAX_ALIVE_MS: workflowMaxAliveMs,
       PLT_SKEW_CHECK_INTERVAL_MS: checkIntervalMs,
       PLT_SKEW_TRAFFIC_WINDOW_MS: trafficWindowMs,
       PLT_SKEW_COOKIE_MAX_AGE: 43200,
@@ -247,13 +253,44 @@ test('should expire draining versions with zero RPS from metrics', async (t) => 
   assert.ok(calls.updateController.length > 0)
 })
 
-test('should expire versions past grace period regardless of traffic', async (t) => {
+test('should NOT expire version within grace period even if RPS=0', async (t) => {
+  const rpsMap = { 'my-app:v1': 0 }
+  const { server, url } = await startMockMetrics(rpsMap)
+  t.after(() => server.close())
+
+  const { app, store, triggerLeader } = buildApp({
+    httpGracePeriodMs: 999999999,
+    checkIntervalMs: 30,
+    metricsUrl: url
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  store[0].drainedAt = new Date(Date.now() - 200).toISOString()
+
+  await triggerLeader()
+  await setTimeout(150)
+
+  assert.strictEqual(store[0].status, 'draining')
+})
+
+test('should force expire version past max alive regardless of traffic', async (t) => {
   const rpsMap = { 'my-app:v1': 100 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
   const { app, store, calls, triggerLeader } = buildApp({
-    gracePeriodMs: 50,
+    httpGracePeriodMs: 0,
+    httpMaxAliveMs: 50,
     checkIntervalMs: 30,
     metricsUrl: url
   })
@@ -278,13 +315,78 @@ test('should expire versions past grace period regardless of traffic', async (t)
   assert.ok(calls.updateController.length > 0)
 })
 
+test('should expire version past grace period when RPS=0', async (t) => {
+  const rpsMap = { 'my-app:v1': 0 }
+  const { server, url } = await startMockMetrics(rpsMap)
+  t.after(() => server.close())
+
+  const { app, store, calls, triggerLeader } = buildApp({
+    httpGracePeriodMs: 50,
+    httpMaxAliveMs: 999999999,
+    checkIntervalMs: 30,
+    trafficWindowMs: 100,
+    metricsUrl: url
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  // Past grace period (50ms) and past traffic window (100ms)
+  store[0].drainedAt = new Date(Date.now() - 2000000).toISOString()
+
+  await triggerLeader()
+  await setTimeout(150)
+
+  assert.strictEqual(store[0].status, 'expired')
+  assert.ok(calls.updateController.length > 0)
+})
+
+test('should NOT expire version past grace period when RPS > 0', async (t) => {
+  const rpsMap = { 'my-app:v1': 42.5 }
+  const { server, url } = await startMockMetrics(rpsMap)
+  t.after(() => server.close())
+
+  const { app, store, triggerLeader } = buildApp({
+    httpGracePeriodMs: 50,
+    httpMaxAliveMs: 999999999,
+    checkIntervalMs: 30,
+    trafficWindowMs: 100,
+    metricsUrl: url
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  store[0].drainedAt = new Date(Date.now() - 2000000).toISOString()
+
+  await triggerLeader()
+  await setTimeout(150)
+
+  assert.strictEqual(store[0].status, 'draining')
+})
+
 test('should not expire draining versions that still have traffic', async (t) => {
   const rpsMap = { 'my-app:v1': 42.5 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
   const { app, store, triggerLeader } = buildApp({
-    maxVersionAgeMs: 999999999,
     checkIntervalMs: 30,
     metricsUrl: url
   })
@@ -300,6 +402,9 @@ test('should not expire draining versions that still have traffic', async (t) =>
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
+  // Backdate past traffic window so policy check runs
+  store[0].drainedAt = new Date(Date.now() - 2000000).toISOString()
+
   await triggerLeader()
   await setTimeout(100)
 
@@ -312,7 +417,7 @@ test('should never touch active versions', async (t) => {
   t.after(() => server.close())
 
   const { app, store, triggerLeader } = buildApp({
-    gracePeriodMs: 1,
+    httpMaxAliveMs: 1,
     checkIntervalMs: 30,
     metricsUrl: url
   })
@@ -387,7 +492,7 @@ test('should not run checker when not leader', async (t) => {
   t.after(() => server.close())
 
   const { app, store } = buildApp({
-    gracePeriodMs: 1,
+    httpMaxAliveMs: 1,
     checkIntervalMs: 30,
     metricsUrl: url
   })
@@ -417,7 +522,7 @@ test('should stop checker when leadership is lost', async (t) => {
   t.after(() => server.close())
 
   const { app, store, triggerLeader, triggerLoseLeadership } = buildApp({
-    gracePeriodMs: 999999999,
+    httpMaxAliveMs: 999999999,
     checkIntervalMs: 30,
     metricsUrl: url
   })
@@ -445,16 +550,19 @@ test('should stop checker when leadership is lost', async (t) => {
   assert.strictEqual(store[0].status, 'draining')
 })
 
-test('should use per-app gracePeriodMs instead of global', async (t) => {
+test('should use per-app max alive instead of global', async (t) => {
   const rpsMap = { 'my-app:v1': 100 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
-  // Global grace period is very long, but per-app policy has short grace period
+  // Global max alive is very long, but per-app policy has short max alive
   const policyStore = [{
     id: 'p1',
     applicationId: 'app-1',
-    gracePeriodMs: 50,
+    httpGracePeriodMs: 0,
+    httpMaxAliveMs: 50,
+    workflowGracePeriodMs: null,
+    workflowMaxAliveMs: null,
     maxAgeS: null,
     maxVersions: null,
     cookieName: null,
@@ -462,7 +570,7 @@ test('should use per-app gracePeriodMs instead of global', async (t) => {
   }]
 
   const { app, store, triggerLeader } = buildApp({
-    gracePeriodMs: 999999999,
+    httpMaxAliveMs: 999999999,
     checkIntervalMs: 30,
     metricsUrl: url,
     policyStore
@@ -484,7 +592,43 @@ test('should use per-app gracePeriodMs instead of global', async (t) => {
   await triggerLeader()
   await setTimeout(150)
 
-  // Should expire because per-app grace period (50ms) is exceeded, even though
-  // global grace period (999999999) is not
+  // Should expire because per-app max alive (50ms) is exceeded, even though
+  // global max alive (999999999) is not
   assert.strictEqual(store[0].status, 'expired')
+})
+
+test('workflow versions use separate grace period and max alive', async (t) => {
+  const rpsMap = { 'my-app:v1': 0 }
+  const { server, url } = await startMockMetrics(rpsMap)
+  t.after(() => server.close())
+
+  const { app, store, triggerLeader } = buildApp({
+    httpGracePeriodMs: 0,
+    httpMaxAliveMs: 999999999,
+    workflowGracePeriodMs: 999999999,
+    workflowMaxAliveMs: 999999999,
+    checkIntervalMs: 30,
+    metricsUrl: url
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  // Mark v1 as workflow policy and backdate past traffic window
+  store[0].expirePolicy = 'workflow'
+  store[0].drainedAt = new Date(Date.now() - 2000000).toISOString()
+
+  await triggerLeader()
+  await setTimeout(150)
+
+  // Workflow grace period is very long — should NOT expire
+  assert.strictEqual(store[0].status, 'draining')
 })

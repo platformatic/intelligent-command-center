@@ -234,7 +234,10 @@ test('applyHTTPRoute should resolve per-app policy for cookieName and maxAgeS', 
     applicationId: 'app-1',
     cookieName: 'custom_cookie',
     maxAgeS: 999,
-    gracePeriodMs: null,
+    httpGracePeriodMs: null,
+    httpMaxAliveMs: null,
+    workflowGracePeriodMs: null,
+    workflowMaxAliveMs: null,
     maxVersions: null,
     autoCleanup: null
   }]
@@ -243,7 +246,10 @@ test('applyHTTPRoute should resolve per-app policy for cookieName and maxAgeS', 
     {
       PLT_FEATURE_SKEW_PROTECTION: 'true',
       PLT_SKEW_COOKIE_MAX_AGE: 43200,
-      PLT_SKEW_GRACE_PERIOD_MS: 86400000,
+      PLT_SKEW_HTTP_GRACE_PERIOD_MS: 1800000,
+      PLT_SKEW_HTTP_MAX_ALIVE_MS: 86400000,
+      PLT_SKEW_WORKFLOW_GRACE_PERIOD_MS: 3600000,
+      PLT_SKEW_WORKFLOW_MAX_ALIVE_MS: 259200000,
       PLT_SKEW_AUTO_CLEANUP: false
     },
     {
@@ -293,7 +299,10 @@ test('applyHTTPRoute should use global defaults when no applicationId', async (t
     {
       PLT_FEATURE_SKEW_PROTECTION: 'true',
       PLT_SKEW_COOKIE_MAX_AGE: 43200,
-      PLT_SKEW_GRACE_PERIOD_MS: 86400000,
+      PLT_SKEW_HTTP_GRACE_PERIOD_MS: 1800000,
+      PLT_SKEW_HTTP_MAX_ALIVE_MS: 86400000,
+      PLT_SKEW_WORKFLOW_GRACE_PERIOD_MS: 3600000,
+      PLT_SKEW_WORKFLOW_MAX_ALIVE_MS: 259200000,
       PLT_SKEW_AUTO_CLEANUP: false
     },
     {

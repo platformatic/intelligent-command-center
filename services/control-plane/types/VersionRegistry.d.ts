@@ -9,6 +9,7 @@ declare interface VersionRegistry {
     createdAt?: string | null;
     deploymentId: string;
     drainedAt?: string | null;
+    expirePolicy: string;
     expiredAt?: string | null;
     hostname?: string | null;
     k8SDeploymentName: string;

@@ -2,6 +2,7 @@
 
 const fp = require('fastify-plugin')
 const { request } = require('undici')
+const { forceExpire: forceExpireWorkflow } = require('../lib/expire-policies/workflow')
 
 async function setScalingDisabled (scalerUrl, namespace, k8sDeploymentName, disabled) {
   const url = `${scalerUrl}/controllers/${encodeURIComponent(namespace)}/${encodeURIComponent(k8sDeploymentName)}/scaling-disabled`
@@ -23,6 +24,7 @@ module.exports = fp(async function (app) {
   if (!enabled) return
 
   const scalerUrl = app.env.PLT_SCALER_URL
+  const workflowUrl = app.env.PLT_WORKFLOW_URL
 
   app.decorate('disableScaling', async (namespace, k8sDeploymentName) => {
     return setScalingDisabled(scalerUrl, namespace, k8sDeploymentName, true)
@@ -41,6 +43,11 @@ module.exports = fp(async function (app) {
    * @returns {{ expired: boolean, activeVersion: object|null, drainingVersions: Array }}
    */
   app.decorate('expireAndCleanup', async (version, ctx) => {
+    // For workflow-policy apps, notify the app to force-cancel active runs
+    if (version.expirePolicy === 'workflow') {
+      await forceExpireWorkflow(version, { log: ctx.logger, workflowUrl })
+    }
+
     const result = await app.expireVersion(version.appLabel, version.versionLabel, ctx)
     if (!result.expired) return result
 

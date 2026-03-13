@@ -1,0 +1,181 @@
+.container {
+  @apply flex flex-col gap-y-4 w-full;
+}
+
+.header {
+  @apply flex items-center;
+}
+
+.runHeader {
+  @apply flex flex-col gap-y-3 pb-4 border-b border-white/10 p-4 rounded-lg;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.runHeaderTitleRow {
+  @apply flex items-center justify-between;
+}
+
+.runMetaGrid {
+  @apply grid gap-x-6 gap-y-1;
+  grid-template-columns: repeat(7, auto);
+}
+
+.runMetaItem {
+  @apply flex flex-col gap-y-0.5;
+}
+
+.runMetaLabel {
+  @apply text-xs;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.runMetaValue {
+  @apply text-sm text-white;
+}
+
+.runMetaValueMono {
+  @apply text-xs text-white font-[monospace];
+}
+
+.tabs {
+  @apply flex gap-x-1 border-b border-white/10;
+}
+
+.tab {
+  @apply px-4 py-2 text-sm text-white/70 bg-transparent border-b-2 border-transparent cursor-pointer;
+}
+
+.tab:hover {
+  @apply text-white;
+}
+
+.activeTab {
+  @apply text-white border-white;
+}
+
+.content {
+  @apply h-[calc(100vh-350px)] overflow-y-auto;
+}
+
+.stepsList {
+  @apply flex flex-col gap-y-2;
+}
+
+.stepCard {
+  @apply p-4 rounded bg-white/5 flex flex-col gap-y-2;
+}
+
+.stepHeader {
+  @apply flex items-center justify-between;
+}
+
+.stepName {
+  @apply font-[monospace] text-sm text-white;
+}
+
+.stepMeta {
+  @apply flex gap-x-4 text-xs text-white/50;
+}
+
+.stepError {
+  @apply mt-1 p-2 rounded bg-error-red/15 text-error-red text-xs font-[monospace];
+}
+
+/* Events table */
+.eventsTableWrap {
+  @apply flex flex-col gap-y-2;
+}
+
+.eventsSearch {
+  @apply w-full px-3 py-2 text-sm rounded;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  outline: none;
+  font-family: monospace;
+}
+
+.eventsSearch::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.eventsSearch:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.eventsTable {
+  @apply w-full text-sm;
+  border-collapse: collapse;
+}
+
+.eventsTh {
+  @apply text-left text-xs font-semibold py-2 px-3;
+  color: rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.eventsThSmall {
+  @apply py-2 px-1;
+  width: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.eventsTr {
+  @apply cursor-pointer;
+}
+
+.eventsTr:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.eventsTd {
+  @apply py-2 px-3 text-sm;
+  color: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.eventsTdExpand {
+  @apply py-2 px-1 text-center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.eventsTdMono {
+  @apply font-[monospace] text-xs;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.eventsExpandIcon {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+}
+
+.eventDataCell {
+  @apply py-3 px-6 text-xs font-[monospace];
+  background-color: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.eventDataRow {
+  @apply py-0.5;
+}
+
+.eventDataKey {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.eventDataString {
+  color: #22c55e;
+}
+
+.eventDataPrimitive {
+  color: #3b82f6;
+}
+
+.eventDataNull {
+  color: rgba(255, 255, 255, 0.3);
+  font-style: italic;
+}
+
+.emptyText {
+  @apply text-sm text-white/50 py-8 text-center;
+}

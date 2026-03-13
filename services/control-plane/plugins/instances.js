@@ -2,8 +2,73 @@
 
 'use strict'
 
+const { request } = require('undici')
 const fp = require('fastify-plugin')
 const errors = require('./errors')
+const { getK8sToken, k8sAuthHeaders } = require('../lib/k8s-auth')
+
+async function registerWorkflowApp (appName, namespace, { workflowUrl, log, podId, deploymentVersion, serviceName, servicePort }) {
+  if (!workflowUrl || !getK8sToken()) return
+
+  const headers = {
+    'content-type': 'application/json',
+    ...k8sAuthHeaders()
+  }
+
+  // Create the application (idempotent: 201 if new, 200 if exists)
+  const createRes = await request(`${workflowUrl}/api/v1/apps`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ appId: appName })
+  })
+  await createRes.body.dump()
+
+  if (createRes.statusCode !== 201 && createRes.statusCode !== 200) {
+    log.warn({ appName, statusCode: createRes.statusCode }, 'failed to register workflow app')
+    return
+  }
+
+  // Create K8s binding (idempotent: upsert via ON CONFLICT)
+  const bindRes = await request(`${workflowUrl}/api/v1/apps/${encodeURIComponent(appName)}/k8s-binding`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ namespace, serviceAccount: 'default' })
+  })
+  await bindRes.body.dump()
+
+  if (bindRes.statusCode !== 201) {
+    log.warn({ appName, namespace, statusCode: bindRes.statusCode }, 'failed to create workflow k8s binding')
+    return
+  }
+
+  // Register queue handler so the workflow service can dispatch messages to this pod.
+  // The base URL uses the K8s FQDN so cross-namespace dispatch works.
+  if (podId && deploymentVersion && serviceName && servicePort) {
+    const baseUrl = `http://${serviceName}.${namespace}.svc.cluster.local:${servicePort}`
+    const handlerRes = await request(`${workflowUrl}/api/v1/apps/${encodeURIComponent(appName)}/handlers`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        podId,
+        deploymentVersion,
+        endpoints: {
+          workflow: `${baseUrl}/.well-known/workflow/v1/flow`,
+          step: `${baseUrl}/.well-known/workflow/v1/step`,
+          webhook: `${baseUrl}/.well-known/workflow/v1/webhook`
+        }
+      })
+    })
+    await handlerRes.body.dump()
+
+    if (handlerRes.statusCode !== 201) {
+      log.warn({ appName, podId, statusCode: handlerRes.statusCode }, 'failed to register workflow queue handler')
+    } else {
+      log.info({ appName, podId, deploymentVersion, baseUrl }, 'registered workflow queue handler')
+    }
+  }
+
+  log.info({ appName, namespace }, 'registered workflow app with workflow service')
+}
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
@@ -90,37 +155,52 @@ module.exports = fp(async function (app) {
         const versionLabel = podDetails.labels?.['plt.dev/version']
         const hostnameLabel = podDetails.labels?.['plt.dev/hostname']
         const pathLabel = podDetails.labels?.['plt.dev/path']
+        const workflowLabel = podDetails.labels?.['plt.dev/workflow']
+        const expirePolicyLabel = workflowLabel === 'true'
+          ? 'workflow'
+          : podDetails.labels?.['plt.dev/expire-policy']
 
-        if (appLabel && versionLabel) {
-          const k8SDeploymentName = podDetails.controller?.name
-          const services = await app.machinist.getServicesByLabels(
-            namespace,
-            { 'app.kubernetes.io/name': appLabel, 'plt.dev/version': versionLabel },
-            ctx
-          ).catch(err => {
-            ctx.logger.error({ err }, 'Failed to get services for version detection')
-            return []
-          })
-          const service = services[0]
-          const serviceName = service?.metadata?.name
-          const servicePort = service?.spec?.ports?.[0]?.port
+        if (appLabel) {
+          // For non-versioned deploys, derive version from the image tag
+          const effectiveVersionLabel = versionLabel || (imageId?.includes(':') ? imageId.split(':').pop() : null)
 
-          if (serviceName && servicePort) {
-            const pathPrefix = pathLabel || `/${appLabel}`
+          if (effectiveVersionLabel) {
+            const k8SDeploymentName = podDetails.controller?.name
+            // When looking up the K8s Service, only filter by version label
+            // if the pod actually has one (non-versioned pods have a Service
+            // without the plt.dev/version label).
+            const svcLabels = { 'app.kubernetes.io/name': appLabel }
+            if (versionLabel) svcLabels['plt.dev/version'] = versionLabel
+            const services = await app.machinist.getServicesByLabels(
+              namespace,
+              svcLabels,
+              ctx
+            ).catch(err => {
+              ctx.logger.error({ err }, 'Failed to get services for version detection')
+              return []
+            })
+            const service = services[0]
+            const serviceName = service?.metadata?.name
+            const servicePort = service?.spec?.ports?.[0]?.port
 
-            versionMeta = {
-              appLabel,
-              versionLabel,
-              k8SDeploymentName,
-              serviceName,
-              servicePort,
-              pathPrefix,
-              hostname: hostnameLabel || null
+            if (serviceName && servicePort) {
+              const pathPrefix = pathLabel || `/${appLabel}`
+
+              versionMeta = {
+                appLabel,
+                versionLabel: effectiveVersionLabel,
+                k8SDeploymentName,
+                serviceName,
+                servicePort,
+                pathPrefix,
+                hostname: hostnameLabel || null,
+                expirePolicy: expirePolicyLabel || 'http-traffic'
+              }
+
+              ctx.logger.info({
+                appLabel, versionLabel: effectiveVersionLabel, k8SDeploymentName, serviceName, servicePort, pathPrefix, hostname: hostnameLabel, autoVersioned: !versionLabel
+              }, 'detected version metadata')
             }
-
-            ctx.logger.info({
-              appLabel, versionLabel, k8SDeploymentName, serviceName, servicePort, pathPrefix, hostname: hostnameLabel
-            }, 'detected version metadata')
           }
         }
       }
@@ -170,6 +250,48 @@ module.exports = fp(async function (app) {
           ctx.logger.error({ err }, 'Failed to send notification to ui')
         })
       }
+
+      // Register workflow apps with the workflow service (idempotent, safe to call on every pod).
+      const isWorkflowApp = podDetails.labels?.['plt.dev/workflow'] === 'true'
+      if (isWorkflowApp) {
+        // For versioned deploys use version metadata; for non-versioned look up service directly
+        let svcName = versionMeta?.serviceName
+        let svcPort = versionMeta?.servicePort
+        // Use version label when available; for non-versioned pods derive from
+        // the image tag (matching the auto-version logic in initApplicationInstance)
+        // so that workflow runs are tagged with the same version ICC will use.
+        const imageTag = (imageId || '').includes(':') ? imageId.split(':').pop() : null
+        const depVersion = versionMeta?.versionLabel || podDetails.labels?.['plt.dev/version'] || imageTag || 'local'
+
+        if (!svcName || !svcPort) {
+          const appLabel = podDetails.labels?.['app.kubernetes.io/name']
+          if (appLabel) {
+            const services = await app.machinist.getServicesByLabels(
+              namespace,
+              { 'app.kubernetes.io/name': appLabel },
+              ctx
+            ).catch(err => {
+              ctx.logger.error({ err }, 'Failed to get services for workflow handler')
+              return []
+            })
+            const service = services[0]
+            svcName = service?.metadata?.name
+            svcPort = service?.spec?.ports?.[0]?.port
+          }
+        }
+
+        await registerWorkflowApp(applicationName, namespace, {
+          workflowUrl: app.env.PLT_WORKFLOW_URL,
+          log: ctx.logger,
+          podId,
+          deploymentVersion: depVersion,
+          serviceName: svcName,
+          servicePort: svcPort
+        }).catch((err) => {
+          ctx.logger.error({ err, applicationName }, 'Failed to register workflow app')
+        })
+      }
+
       if (result.isNewDeployment) {
         await ctx.req.scaler.savePodController({
           applicationId: result.application.id,
@@ -205,7 +327,7 @@ module.exports = fp(async function (app) {
 
       // Skew protection: persist version and apply HTTPRoute
       if (versionMeta && app.registerVersion) {
-        const { appLabel, versionLabel, k8SDeploymentName, serviceName, servicePort, pathPrefix, hostname } = versionMeta
+        const { appLabel, versionLabel, k8SDeploymentName, serviceName, servicePort, pathPrefix, hostname, expirePolicy } = versionMeta
 
         // Auto-create version for pre-existing non-versioned deployment.
         // When the first versioned pod registers, check if there are older
@@ -216,17 +338,26 @@ module.exports = fp(async function (app) {
           where: { appLabel: { eq: appLabel } }
         })
 
-        if (existingVersions.length === 0) {
-          try {
-            const k8sState = await app.machinist.getK8sState(namespace, { 'app.kubernetes.io/name': appLabel }, ctx)
-            const nonVersionedPods = (k8sState.pods || []).filter(
-              p => !p.labels?.['plt.dev/version']
-            )
+        // Auto-create version for pre-existing non-versioned deployment.
+        // When a versioned pod registers, check if there are older
+        // non-versioned pods for the same app that don't have a version
+        // registry entry yet. If so, create a synthetic entry so the old
+        // deployment enters the normal draining lifecycle.
+        try {
+          const k8sState = await app.machinist.getK8sState(namespace, { 'app.kubernetes.io/name': appLabel }, ctx)
+          const nonVersionedPods = (k8sState.pods || []).filter(
+            p => !p.labels?.['plt.dev/version']
+          )
 
-            if (nonVersionedPods.length > 0) {
-              const oldPod = nonVersionedPods[0]
-              const oldImage = oldPod.image || ''
-              const oldVersionLabel = oldImage.includes(':') ? oldImage.split(':').pop() : oldImage
+          if (nonVersionedPods.length > 0) {
+            const oldPod = nonVersionedPods[0]
+            const oldImage = oldPod.image || ''
+            const oldVersionLabel = oldImage.includes(':') ? oldImage.split(':').pop() : oldImage
+
+            // Check if this non-versioned deployment already has a version entry
+            const alreadyRegistered = existingVersions.some(v => v.versionLabel === oldVersionLabel)
+
+            if (!alreadyRegistered) {
               const oldK8sDeploymentName = oldPod.controller?.name
 
               // Find the non-versioned Service by metadata labels
@@ -272,13 +403,14 @@ module.exports = fp(async function (app) {
                   servicePort: oldServicePort,
                   namespace,
                   pathPrefix,
-                  hostname
+                  hostname,
+                  expirePolicy
                 }, ctx)
               }
             }
-          } catch (err) {
-            ctx.logger.error({ err }, 'Failed to auto-create version for non-versioned deployment')
           }
+        } catch (err) {
+          ctx.logger.error({ err }, 'Failed to auto-create version for non-versioned deployment')
         }
 
         const { activeVersion, drainingVersions } = await app.registerVersion({
@@ -291,7 +423,8 @@ module.exports = fp(async function (app) {
           servicePort,
           namespace,
           pathPrefix,
-          hostname
+          hostname,
+          expirePolicy
         }, ctx)
 
         if (activeVersion && app.applyHTTPRoute) {

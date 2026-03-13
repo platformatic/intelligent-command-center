@@ -13,7 +13,10 @@ function buildApp (opts = {}) {
 
   const env = {
     PLT_FEATURE_SKEW_PROTECTION: opts.enabled !== false ? 'true' : '',
-    PLT_SKEW_GRACE_PERIOD_MS: opts.gracePeriodMs || 86400000,
+    PLT_SKEW_HTTP_GRACE_PERIOD_MS: opts.httpGracePeriodMs || 1800000,
+    PLT_SKEW_HTTP_MAX_ALIVE_MS: opts.httpMaxAliveMs || 86400000,
+    PLT_SKEW_WORKFLOW_GRACE_PERIOD_MS: opts.workflowGracePeriodMs || 3600000,
+    PLT_SKEW_WORKFLOW_MAX_ALIVE_MS: opts.workflowMaxAliveMs || 259200000,
     PLT_SKEW_COOKIE_MAX_AGE: opts.cookieMaxAge || 43200,
     PLT_SKEW_AUTO_CLEANUP: !!opts.autoCleanup
   }
@@ -79,12 +82,22 @@ test('should register decorators when feature is enabled', async (t) => {
 })
 
 test('clusterSkewDefaults should expose env values', async (t) => {
-  const { app } = buildApp({ gracePeriodMs: 5000, cookieMaxAge: 100, autoCleanup: true })
+  const { app } = buildApp({
+    httpGracePeriodMs: 5000,
+    httpMaxAliveMs: 10000,
+    workflowGracePeriodMs: 15000,
+    workflowMaxAliveMs: 20000,
+    cookieMaxAge: 100,
+    autoCleanup: true
+  })
   await app.ready()
   t.after(() => app.close())
 
   assert.deepStrictEqual(app.clusterSkewDefaults, {
-    gracePeriodMs: 5000,
+    httpGracePeriodMs: 5000,
+    httpMaxAliveMs: 10000,
+    workflowGracePeriodMs: 15000,
+    workflowMaxAliveMs: 20000,
     maxAgeS: 100,
     maxVersions: null,
     cookieName: '__plt_dpl',
@@ -93,19 +106,20 @@ test('clusterSkewDefaults should expose env values', async (t) => {
 })
 
 test('resolveSkewPolicy should return cluster defaults when no per-app row', async (t) => {
-  const { app } = buildApp({ gracePeriodMs: 86400000, cookieMaxAge: 43200 })
+  const { app } = buildApp()
   await app.ready()
   t.after(() => app.close())
 
   const policy = await app.resolveSkewPolicy('app-1')
 
-  assert.deepStrictEqual(policy, {
-    gracePeriodMs: 86400000,
-    maxAgeS: 43200,
-    maxVersions: null,
-    cookieName: '__plt_dpl',
-    autoCleanup: false
-  })
+  assert.strictEqual(policy.httpGracePeriodMs, 1800000)
+  assert.strictEqual(policy.httpMaxAliveMs, 86400000)
+  assert.strictEqual(policy.workflowGracePeriodMs, 3600000)
+  assert.strictEqual(policy.workflowMaxAliveMs, 259200000)
+  assert.strictEqual(policy.maxAgeS, 43200)
+  assert.strictEqual(policy.maxVersions, null)
+  assert.strictEqual(policy.cookieName, '__plt_dpl')
+  assert.strictEqual(policy.autoCleanup, false)
 })
 
 test('resolveSkewPolicy should return overrides when set', async (t) => {
@@ -114,7 +128,10 @@ test('resolveSkewPolicy should return overrides when set', async (t) => {
   t.after(() => app.close())
 
   await app.saveSkewPolicy('app-1', {
-    gracePeriodMs: 5000,
+    httpGracePeriodMs: 5000,
+    httpMaxAliveMs: 10000,
+    workflowGracePeriodMs: 15000,
+    workflowMaxAliveMs: 20000,
     maxAgeS: 200,
     maxVersions: 3,
     cookieName: 'my_cookie',
@@ -123,7 +140,10 @@ test('resolveSkewPolicy should return overrides when set', async (t) => {
 
   const policy = await app.resolveSkewPolicy('app-1')
 
-  assert.strictEqual(policy.gracePeriodMs, 5000)
+  assert.strictEqual(policy.httpGracePeriodMs, 5000)
+  assert.strictEqual(policy.httpMaxAliveMs, 10000)
+  assert.strictEqual(policy.workflowGracePeriodMs, 15000)
+  assert.strictEqual(policy.workflowMaxAliveMs, 20000)
   assert.strictEqual(policy.maxAgeS, 200)
   assert.strictEqual(policy.maxVersions, 3)
   assert.strictEqual(policy.cookieName, 'my_cookie')
@@ -131,15 +151,18 @@ test('resolveSkewPolicy should return overrides when set', async (t) => {
 })
 
 test('resolveSkewPolicy should merge partial overrides with defaults', async (t) => {
-  const { app } = buildApp({ gracePeriodMs: 86400000, cookieMaxAge: 43200 })
+  const { app } = buildApp()
   await app.ready()
   t.after(() => app.close())
 
-  await app.saveSkewPolicy('app-1', { gracePeriodMs: 1000 })
+  await app.saveSkewPolicy('app-1', { httpGracePeriodMs: 1000 })
 
   const policy = await app.resolveSkewPolicy('app-1')
 
-  assert.strictEqual(policy.gracePeriodMs, 1000)
+  assert.strictEqual(policy.httpGracePeriodMs, 1000)
+  assert.strictEqual(policy.httpMaxAliveMs, 86400000)
+  assert.strictEqual(policy.workflowGracePeriodMs, 3600000)
+  assert.strictEqual(policy.workflowMaxAliveMs, 259200000)
   assert.strictEqual(policy.maxAgeS, 43200)
   assert.strictEqual(policy.maxVersions, null)
   assert.strictEqual(policy.cookieName, '__plt_dpl')
@@ -160,10 +183,10 @@ test('getSkewPolicyOverrides should return raw row when exists', async (t) => {
   await app.ready()
   t.after(() => app.close())
 
-  await app.saveSkewPolicy('app-1', { gracePeriodMs: 5000 })
+  await app.saveSkewPolicy('app-1', { httpGracePeriodMs: 5000 })
 
   const overrides = await app.getSkewPolicyOverrides('app-1')
-  assert.strictEqual(overrides.gracePeriodMs, 5000)
+  assert.strictEqual(overrides.httpGracePeriodMs, 5000)
   assert.strictEqual(overrides.applicationId, 'app-1')
 })
 

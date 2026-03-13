@@ -346,7 +346,10 @@ function buildPolicyApp (opts = {}) {
     app.decorate('resolveSkewPolicy', async (applicationId) => {
       const row = policyStore.find(r => r.applicationId === applicationId)
       return {
-        gracePeriodMs: row?.gracePeriodMs ?? 86400000,
+        httpGracePeriodMs: row?.httpGracePeriodMs ?? 1800000,
+        httpMaxAliveMs: row?.httpMaxAliveMs ?? 86400000,
+        workflowGracePeriodMs: row?.workflowGracePeriodMs ?? 3600000,
+        workflowMaxAliveMs: row?.workflowMaxAliveMs ?? 259200000,
         maxAgeS: row?.maxAgeS ?? 43200,
         maxVersions: row?.maxVersions ?? null,
         cookieName: row?.cookieName ?? '__plt_dpl',
@@ -369,7 +372,10 @@ function buildPolicyApp (opts = {}) {
       const row = {
         id: String(++policyIdCounter),
         applicationId,
-        gracePeriodMs: overrides.gracePeriodMs ?? null,
+        httpGracePeriodMs: overrides.httpGracePeriodMs ?? null,
+        httpMaxAliveMs: overrides.httpMaxAliveMs ?? null,
+        workflowGracePeriodMs: overrides.workflowGracePeriodMs ?? null,
+        workflowMaxAliveMs: overrides.workflowMaxAliveMs ?? null,
         maxAgeS: overrides.maxAgeS ?? null,
         maxVersions: overrides.maxVersions ?? null,
         cookieName: overrides.cookieName ?? null,
@@ -412,7 +418,10 @@ test('GET policy returns defaults when no override exists', async (t) => {
   assert.strictEqual(statusCode, 200)
   const result = JSON.parse(body)
   assert.strictEqual(result.overrides, null)
-  assert.strictEqual(result.resolved.gracePeriodMs, 86400000)
+  assert.strictEqual(result.resolved.httpGracePeriodMs, 1800000)
+  assert.strictEqual(result.resolved.httpMaxAliveMs, 86400000)
+  assert.strictEqual(result.resolved.workflowGracePeriodMs, 3600000)
+  assert.strictEqual(result.resolved.workflowMaxAliveMs, 259200000)
   assert.strictEqual(result.resolved.maxAgeS, 43200)
   assert.strictEqual(result.resolved.maxVersions, null)
   assert.strictEqual(result.resolved.cookieName, '__plt_dpl')
@@ -430,15 +439,15 @@ test('PUT policy creates override and returns resolved', async (t) => {
     method: 'PUT',
     url: `/applications/${APP_ID}/skew-protection/policy`,
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ gracePeriodMs: 5000, maxVersions: 2 })
+    body: JSON.stringify({ httpGracePeriodMs: 5000, maxVersions: 2 })
   })
 
   assert.strictEqual(statusCode, 200)
   const result = JSON.parse(body)
-  assert.strictEqual(result.overrides.gracePeriodMs, 5000)
+  assert.strictEqual(result.overrides.httpGracePeriodMs, 5000)
   assert.strictEqual(result.overrides.maxVersions, 2)
   assert.strictEqual(result.overrides.maxAgeS, null)
-  assert.strictEqual(result.resolved.gracePeriodMs, 5000)
+  assert.strictEqual(result.resolved.httpGracePeriodMs, 5000)
   assert.strictEqual(result.resolved.maxVersions, 2)
   assert.strictEqual(result.resolved.maxAgeS, 43200)
 })
@@ -447,7 +456,10 @@ test('PUT policy updates existing override', async (t) => {
   const policyStore = [{
     id: '1',
     applicationId: APP_ID,
-    gracePeriodMs: 5000,
+    httpGracePeriodMs: 5000,
+    httpMaxAliveMs: null,
+    workflowGracePeriodMs: null,
+    workflowMaxAliveMs: null,
     maxAgeS: null,
     maxVersions: null,
     cookieName: null,
@@ -482,7 +494,7 @@ test('PUT policy returns 404 for unknown app', async (t) => {
     method: 'PUT',
     url: '/applications/unknown-id/skew-protection/policy',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ gracePeriodMs: 5000 })
+    body: JSON.stringify({ httpGracePeriodMs: 5000 })
   })
 
   assert.strictEqual(statusCode, 404)

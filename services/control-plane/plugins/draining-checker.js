@@ -4,6 +4,11 @@ const { setTimeout } = require('node:timers/promises')
 const { request } = require('undici')
 const fp = require('fastify-plugin')
 
+const policies = {
+  'http-traffic': require('../lib/expire-policies/http-traffic'),
+  workflow: require('../lib/expire-policies/workflow')
+}
+
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
   const enabled = app.env.PLT_FEATURE_SKEW_PROTECTION
@@ -12,6 +17,7 @@ module.exports = fp(async function (app) {
   const checkIntervalMs = app.env.PLT_SKEW_CHECK_INTERVAL_MS
   const trafficWindowMs = app.env.PLT_SKEW_TRAFFIC_WINDOW_MS
   const metricsUrl = app.env.PLT_METRICS_URL
+  const workflowUrl = app.env.PLT_WORKFLOW_URL
 
   let controller = null
   let isServerClosed = false
@@ -45,6 +51,8 @@ module.exports = fp(async function (app) {
 
     if (drainingVersions.length === 0) return
 
+    app.log.info({ count: drainingVersions.length }, 'checking draining versions')
+
     const now = Date.now()
     const ctx = { logger: app.log }
 
@@ -53,14 +61,43 @@ module.exports = fp(async function (app) {
         ? new Date(version.drainedAt).getTime()
         : new Date(version.createdAt).getTime()
 
-      const policy = await app.resolveSkewPolicy(version.applicationId)
-      const gracePeriodExceeded = (now - drainedAt) > policy.gracePeriodMs
+      const skewPolicy = await app.resolveSkewPolicy(version.applicationId)
+      const drainAge = now - drainedAt
+      const policyName = version.expirePolicy || 'http-traffic'
+      const isWorkflow = policyName === 'workflow'
+      const gracePeriodMs = isWorkflow ? skewPolicy.workflowGracePeriodMs : skewPolicy.httpGracePeriodMs
+      const maxAliveMs = isWorkflow ? skewPolicy.workflowMaxAliveMs : skewPolicy.httpMaxAliveMs
 
-      if (gracePeriodExceeded) {
+      app.log.info({
+        appLabel: version.appLabel,
+        versionLabel: version.versionLabel,
+        expirePolicy: policyName,
+        drainAgeSec: Math.round(drainAge / 1000),
+        gracePeriodSec: Math.round(gracePeriodMs / 1000),
+        maxAliveSec: Math.round(maxAliveMs / 1000)
+      }, 'evaluating draining version')
+
+      // 1. Within grace period — keep alive unconditionally
+      if (drainAge < gracePeriodMs) {
+        app.log.info({
+          appLabel: version.appLabel,
+          versionLabel: version.versionLabel,
+          remainingSec: Math.round((gracePeriodMs - drainAge) / 1000)
+        }, 'within grace period — skipping')
+        continue
+      }
+
+      // 2. Past max alive — force expire regardless
+      if (drainAge > maxAliveMs) {
         app.log.info({
           appLabel: version.appLabel,
           versionLabel: version.versionLabel
-        }, 'expiring draining version — grace period exceeded')
+        }, 'expiring draining version — max alive exceeded')
+
+        const policy = policies[policyName]
+        if (policy.forceExpire) {
+          await policy.forceExpire(version, { log: app.log, workflowUrl })
+        }
 
         try {
           await app.expireAndCleanup(version, ctx)
@@ -71,21 +108,29 @@ module.exports = fp(async function (app) {
         continue
       }
 
+      // 3. Between grace period and max alive — run policy checks
       // Don't check RPS until the version has been draining longer than the
       // traffic window. The Prometheus query covers `trafficWindowMs` — if the
       // version was drained more recently than that, the metric will include
       // traffic from before the drain and a zero result is misleading.
-      const drainAge = now - drainedAt
-      if (drainAge < trafficWindowMs) continue
+      if (drainAge < trafficWindowMs) {
+        app.log.info({
+          appLabel: version.appLabel,
+          versionLabel: version.versionLabel,
+          drainAgeSec: Math.round(drainAge / 1000),
+          trafficWindowSec: Math.round(trafficWindowMs / 1000)
+        }, 'drain age less than traffic window — skipping policy check')
+        continue
+      }
 
-      const rps = await getVersionRPS(version.appLabel, version.versionLabel)
-      if (rps === null) continue
+      const policy = policies[policyName]
+      const expire = await policy.shouldExpire(version, { getVersionRPS, log: app.log, workflowUrl })
 
-      if (rps === 0) {
+      if (expire) {
         app.log.info({
           appLabel: version.appLabel,
           versionLabel: version.versionLabel
-        }, 'expiring draining version — no traffic in window')
+        }, 'expiring draining version — policy check passed')
 
         try {
           await app.expireAndCleanup(version, ctx)

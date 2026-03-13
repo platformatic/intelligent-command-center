@@ -1,0 +1,121 @@
+.container {
+  @apply w-full h-[500px] rounded-lg border border-white/10 overflow-hidden relative;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.stepNode {
+  @apply rounded-lg p-3 border border-solid w-[280px] text-white;
+}
+
+.nodeContent {
+  @apply flex flex-col gap-y-1;
+}
+
+.nodeHeader {
+  @apply flex items-center justify-between gap-x-2;
+}
+
+.nodeLabel {
+  @apply font-[monospace] text-xs font-semibold truncate;
+}
+
+.nodeDuration {
+  @apply text-[10px] text-white/40;
+}
+
+.nodeAttempt {
+  @apply text-[10px] text-white/30;
+}
+
+.startEndNode {
+  @apply rounded-full px-4 py-2 text-white text-xs font-semibold text-center;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.startEndLabel {
+  @apply text-xs text-white/70;
+}
+
+.handle {
+  @apply !w-1.5 !h-1.5;
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.loopLabel {
+  @apply px-1.5 py-0.5 text-[9px] font-bold rounded whitespace-nowrap;
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  background-color: rgba(88, 28, 135, 0.5);
+  color: #e9d5ff;
+}
+
+.emptyText {
+  @apply text-sm text-white/50 py-8 text-center;
+}
+
+/* React Flow dark mode overrides */
+.controls button {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+}
+
+.controls button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.controls button path {
+  fill: currentColor !important;
+}
+
+/* Legend panel */
+.legend {
+  @apply absolute top-3 left-3 flex flex-col gap-y-1.5 p-3 rounded-lg;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 5;
+}
+
+.legendTitle {
+  @apply text-xs font-semibold text-white/70 pb-1;
+}
+
+.legendItem {
+  @apply flex items-center gap-x-2;
+}
+
+.legendSwatch {
+  @apply w-4 h-3 rounded-sm border;
+}
+
+.legendLabel {
+  @apply text-xs text-white/80;
+}
+
+.legendLabelDimmed {
+  @apply text-xs text-white/40;
+}
+
+/* Execution panel */
+.execPanel {
+  @apply absolute top-3 right-3 flex flex-col gap-y-1.5 p-3 rounded-lg;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 5;
+}
+
+.execTitle {
+  @apply text-sm font-semibold text-white pb-1;
+}
+
+.execRow {
+  @apply flex items-center gap-x-2;
+}
+
+.execLabel {
+  @apply text-xs text-white/50;
+}
+
+.execValue {
+  @apply text-xs text-white font-[monospace];
+}

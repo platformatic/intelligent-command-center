@@ -1,8 +1,12 @@
 'use strict'
 
+// Set a fake K8s token so registerWorkflowApp doesn't bail out in tests
+process.env.PLT_K8S_TOKEN = 'test-k8s-token'
+
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
+const fastify = require('fastify')
 const {
   startControlPlane,
   startActivities,
@@ -2393,4 +2397,362 @@ test('should auto-create version for pre-existing non-versioned deployment', asy
   const lastRoute = appliedHTTPRoutes[appliedHTTPRoutes.length - 1]
   // 2 draining rules (cookie + header) + 1 default = 3 rules
   assert.strictEqual(lastRoute.httpRoute.spec.rules.length, 3)
+})
+
+test('should auto-create version for non-versioned deployment even when other versions exist', async (t) => {
+  const appLabel = 'auto-version-existing'
+  const oldImageTag = '1772117399999'
+  const oldImage = `registry.example.com/my-app:${oldImageTag}`
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  const oldPodId = randomUUID()
+  const oldImageId = randomUUID()
+
+  let currentPodDetails = null
+  const appliedHTTPRoutes = []
+  let k8sStateResponse = null
+  await startMachinist(t, {
+    getPodDetails: () => currentPodDetails,
+    listGateways: () => [{
+      metadata: { name: 'platform-gateway', namespace: 'platformatic' },
+      spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
+    }],
+    getServicesByLabels: (namespace, labels) => {
+      const version = labels['plt.dev/version']
+      return [{
+        metadata: { name: version ? `${appLabel}-${version}` : appLabel, namespace: 'platformatic' },
+        spec: { ports: [{ port: 3042 }] }
+      }]
+    },
+    getK8sState: () => k8sStateResponse,
+    applyHTTPRoute: (namespace, httpRoute) => {
+      appliedHTTPRoutes.push({ namespace, httpRoute })
+      return httpRoute
+    }
+  })
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true'
+  })
+
+  const { entities } = controlPlane.platformatic
+
+  // Register the non-versioned pod first (no skew labels) — this creates the application
+  currentPodDetails = {
+    image: oldImageId,
+    labels: { 'app.kubernetes.io/name': appLabel },
+    controller: { name: appLabel }
+  }
+
+  const res1 = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${oldPodId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(oldPodId)
+    },
+    body: {}
+  })
+  assert.strictEqual(res1.statusCode, 200, res1.body)
+
+  // Get the applicationId and deploymentId created by the pod registration
+  const apps = await entities.application.find({
+    where: { name: { eq: appLabel } }
+  })
+  const applicationId = apps[0].id
+  const deployments = await entities.deployment.find({
+    where: { applicationId: { eq: applicationId } }
+  })
+  const deploymentId = deployments[0].id
+
+  // Pre-populate a stale expired version (simulates a previous deploy cycle)
+  await entities.versionRegistry.save({
+    input: {
+      applicationId,
+      deploymentId,
+      appLabel,
+      versionLabel: 'old-stale',
+      k8SDeploymentName: `${appLabel}-old`,
+      serviceName: `${appLabel}-old`,
+      servicePort: 3042,
+      namespace: 'platformatic',
+      pathPrefix: `/${appLabel}`,
+      hostname: null,
+      expirePolicy: 'workflow',
+      status: 'expired'
+    }
+  })
+
+  // Now deploy a versioned pod while the stale expired version exists
+  k8sStateResponse = {
+    pods: [{
+      id: oldPodId,
+      image: oldImage,
+      labels: { 'app.kubernetes.io/name': appLabel },
+      controller: { name: appLabel }
+    }],
+    services: []
+  }
+
+  const newPodId = randomUUID()
+  currentPodDetails = {
+    image: randomUUID(),
+    labels: {
+      'app.kubernetes.io/name': appLabel,
+      'plt.dev/version': 'v2'
+    },
+    controller: { name: `${appLabel}-v2` }
+  }
+
+  const res2 = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${newPodId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(newPodId)
+    },
+    body: {}
+  })
+  assert.strictEqual(res2.statusCode, 200, res2.body)
+
+  // Should have auto-created a version for the non-versioned pod
+  // even though a stale expired version already existed
+  const versions = await entities.versionRegistry.find({
+    where: { appLabel: { eq: appLabel } }
+  })
+
+  const autoCreated = versions.find(v => v.versionLabel === oldImageTag)
+  assert.ok(autoCreated, 'should auto-create version even when other versions exist')
+  assert.strictEqual(autoCreated.status, 'draining')
+
+  const v2 = versions.find(v => v.versionLabel === 'v2')
+  assert.ok(v2)
+  assert.strictEqual(v2.status, 'active')
+})
+
+// --- Workflow registration tests ---
+
+async function startMockWorkflowService (t, opts = {}) {
+  const workflowService = fastify({ keepAliveTimeout: 1 })
+  const calls = { apps: [], bindings: [], handlers: [] }
+
+  workflowService.post('/api/v1/apps', async (req, reply) => {
+    calls.apps.push(req.body)
+    reply.code(opts.appStatusCode || 201)
+    return { appId: req.body.appId }
+  })
+
+  workflowService.post('/api/v1/apps/:appId/k8s-binding', async (req, reply) => {
+    calls.bindings.push({ appId: req.params.appId, ...req.body })
+    reply.code(opts.bindingStatusCode || 201)
+    return {}
+  })
+
+  workflowService.post('/api/v1/apps/:appId/handlers', async (req, reply) => {
+    calls.handlers.push({ appId: req.params.appId, ...req.body })
+    reply.code(opts.handlerStatusCode || 201)
+    return {}
+  })
+
+  t?.after(async () => { await workflowService.close() })
+  await workflowService.listen({ port: 3060 })
+  return { workflowService, calls }
+}
+
+test('plt.dev/workflow label triggers workflow app and handler registration', async (t) => {
+  const podId = randomUUID()
+  const imageId = randomUUID()
+  const appLabel = 'workflow-app'
+  const versionLabel = 'v1'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      labels: {
+        'app.kubernetes.io/name': appLabel,
+        'plt.dev/version': versionLabel,
+        'plt.dev/workflow': 'true'
+      },
+      controller: { name: `${appLabel}-${versionLabel}` }
+    }),
+    getServicesByLabels: () => [{
+      metadata: { name: `${appLabel}-${versionLabel}`, namespace: 'platformatic' },
+      spec: { ports: [{ port: 3042 }] }
+    }],
+    listGateways: () => [],
+    applyHTTPRoute: (namespace, httpRoute) => httpRoute
+  })
+
+  const { calls } = await startMockWorkflowService(t)
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true',
+    PLT_WORKFLOW_URL: 'http://localhost:3060'
+  })
+
+  const { statusCode } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: {}
+  })
+
+  assert.strictEqual(statusCode, 200)
+
+  // Workflow app created
+  assert.strictEqual(calls.apps.length, 1)
+  assert.strictEqual(calls.apps[0].appId, appLabel)
+
+  // K8s binding created
+  assert.strictEqual(calls.bindings.length, 1)
+  assert.strictEqual(calls.bindings[0].appId, appLabel)
+  assert.strictEqual(calls.bindings[0].namespace, 'platformatic')
+
+  // Handler registered with correct FQDN URLs
+  assert.strictEqual(calls.handlers.length, 1)
+  assert.strictEqual(calls.handlers[0].appId, appLabel)
+  assert.strictEqual(calls.handlers[0].podId, podId)
+  assert.strictEqual(calls.handlers[0].deploymentVersion, versionLabel)
+  assert.ok(calls.handlers[0].endpoints.workflow.includes(`${appLabel}-${versionLabel}.platformatic.svc.cluster.local:3042`))
+  assert.ok(calls.handlers[0].endpoints.step.includes('.well-known/workflow/v1/step'))
+  assert.ok(calls.handlers[0].endpoints.webhook.includes('.well-known/workflow/v1/webhook'))
+
+  // Expire policy derived from workflow label in version registry
+  const { entities } = controlPlane.platformatic
+  const versions = await entities.versionRegistry.find({
+    where: { appLabel: { eq: appLabel } }
+  })
+  assert.strictEqual(versions.length, 1)
+  assert.strictEqual(versions[0].expirePolicy, 'workflow')
+})
+
+test('no workflow label does not trigger workflow registration', async (t) => {
+  const podId = randomUUID()
+  const imageId = randomUUID()
+  const appLabel = 'regular-app'
+  const versionLabel = 'v1'
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      labels: {
+        'app.kubernetes.io/name': appLabel,
+        'plt.dev/version': versionLabel
+      },
+      controller: { name: `${appLabel}-${versionLabel}` }
+    }),
+    getServicesByLabels: () => [{
+      metadata: { name: `${appLabel}-${versionLabel}`, namespace: 'platformatic' },
+      spec: { ports: [{ port: 3042 }] }
+    }],
+    listGateways: () => [],
+    applyHTTPRoute: (namespace, httpRoute) => httpRoute
+  })
+
+  const { calls } = await startMockWorkflowService(t)
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_FEATURE_SKEW_PROTECTION: 'true',
+    PLT_WORKFLOW_URL: 'http://localhost:3060'
+  })
+
+  const { statusCode } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: {}
+  })
+
+  assert.strictEqual(statusCode, 200)
+
+  // No workflow calls made
+  assert.strictEqual(calls.apps.length, 0)
+  assert.strictEqual(calls.bindings.length, 0)
+  assert.strictEqual(calls.handlers.length, 0)
+
+  // Version registry uses default expire policy
+  const { entities } = controlPlane.platformatic
+  const versions = await entities.versionRegistry.find({
+    where: { appLabel: { eq: appLabel } }
+  })
+  assert.strictEqual(versions.length, 1)
+  assert.strictEqual(versions[0].expirePolicy, 'http-traffic')
+})
+
+test('plt.dev/workflow label without version still registers app and binding', async (t) => {
+  const applicationName = 'workflow-no-version'
+  const podId = randomUUID()
+  const imageTag = `${Date.now()}`
+  const imageId = `plt.localreg/plt-local/${applicationName}:${imageTag}`
+
+  await startActivities(t)
+  await startCompliance(t)
+  await startMetrics(t)
+  await startScaler(t)
+  await startMainService(t)
+
+  await startMachinist(t, {
+    getPodDetails: () => ({
+      image: imageId,
+      labels: {
+        'app.kubernetes.io/name': applicationName,
+        'plt.dev/workflow': 'true'
+      },
+      controller: { name: applicationName }
+    }),
+    getServicesByLabels: () => [{
+      metadata: { name: applicationName, namespace: 'platformatic' },
+      spec: { ports: [{ port: 3042 }] }
+    }]
+  })
+
+  const { calls } = await startMockWorkflowService(t)
+
+  const controlPlane = await startControlPlane(t, {}, {
+    PLT_WORKFLOW_URL: 'http://localhost:3060'
+  })
+
+  const { statusCode } = await controlPlane.inject({
+    method: 'POST',
+    url: `/pods/${podId}/instance`,
+    headers: {
+      'content-type': 'application/json',
+      'x-k8s': generateK8sHeader(podId)
+    },
+    body: { applicationName }
+  })
+
+  assert.strictEqual(statusCode, 200)
+
+  // App and binding created
+  assert.strictEqual(calls.apps.length, 1)
+  assert.strictEqual(calls.bindings.length, 1)
+
+  // Handler registered with image tag as deployment version (no plt.dev/version label)
+  assert.strictEqual(calls.handlers.length, 1)
+  assert.strictEqual(calls.handlers[0].deploymentVersion, imageTag)
+  assert.ok(calls.handlers[0].endpoints.workflow.includes(`${applicationName}.platformatic.svc.cluster.local:3042`))
 })

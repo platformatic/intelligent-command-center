@@ -1,0 +1,43 @@
+.container {
+  @apply p-4 w-full text-white flex flex-col gap-y-4;
+}
+
+.runs {
+  @apply h-[calc(100vh-250px)] overflow-y-auto;
+}
+
+.searchAndFilter {
+  @apply flex flex-row justify-between items-center gap-x-2;
+}
+
+.search {
+  @apply grow;
+}
+
+.filter {
+  @apply hover:cursor-pointer;
+}
+
+.searchBarPaddingClass {
+  @apply px-2 py-1 md:px-3 text-white;
+}
+
+.selectEvents {
+  @apply w-full md:max-w-[200px] md:min-w-[200px];
+}
+
+.selectPaddingClass {
+  @apply py-[3px] px-2 md:px-3;
+}
+
+.heightSelectClass {
+  @apply h-[1.375rem];
+}
+
+.maxHeightOptions {
+  @apply !max-h-[250px];
+}
+
+.loadingText {
+  @apply text-sm text-white/50 py-8 text-center;
+}

@@ -1,0 +1,224 @@
+/* Waterfall trace viewer — adapted from Vercel workflow trace view */
+
+.container {
+  @apply flex flex-col gap-y-2;
+}
+
+/* Search */
+.searchBox {
+  @apply w-full;
+}
+
+.searchInput {
+  @apply w-full px-3 py-2 text-sm rounded;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  outline: none;
+  font-family: monospace;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.searchInput:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Mini-map overview */
+.overview {
+  @apply relative w-full h-2 rounded;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.overviewBar {
+  @apply absolute top-0 h-full rounded;
+}
+
+/* Time axis */
+.timeAxis {
+  @apply relative w-full h-5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tick {
+  @apply absolute bottom-0;
+  width: 1px;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.tickLabel {
+  @apply absolute text-xs whitespace-nowrap;
+  bottom: 8px;
+  left: 0;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 10px;
+}
+
+/* Waterfall rows */
+.waterfall {
+  @apply flex flex-col;
+}
+
+.spanRow {
+  @apply flex items-center gap-x-3 py-1.5 px-2 cursor-pointer rounded;
+}
+
+.spanRow:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.spanRowSelected {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+.spanRowDimmed {
+  opacity: 0.3;
+}
+
+.spanLabel {
+  @apply flex flex-col flex-shrink-0;
+  width: 180px;
+  min-width: 180px;
+}
+
+.spanName {
+  @apply text-sm font-semibold font-[monospace] truncate;
+}
+
+.spanMeta {
+  @apply text-xs;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* Track area with bars */
+.spanTrack {
+  @apply relative flex-1;
+  height: 24px;
+}
+
+.spanBar {
+  @apply absolute top-0 h-full rounded;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  min-width: 4px;
+  opacity: 0.85;
+}
+
+.spanBarDuration {
+  @apply text-xs font-[monospace];
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 10px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+
+/* Sub-span bars (sleeps, waits) */
+.subSpanBar {
+  @apply absolute rounded;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+.subSpanLabel {
+  @apply text-xs font-[monospace];
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+/* Event dots on span bars */
+.eventDot {
+  @apply absolute rounded-full;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  z-index: 2;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+/* Detail panel */
+.detailPanel {
+  @apply mt-3 p-3 rounded flex flex-col gap-y-2;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detailHeader {
+  @apply flex items-center gap-x-2;
+}
+
+.detailName {
+  @apply text-sm font-semibold font-[monospace];
+}
+
+.detailGrid {
+  @apply grid gap-x-3 gap-y-1 text-xs;
+  grid-template-columns: auto 1fr;
+}
+
+.detailLabel {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.detailValue {
+  @apply text-white;
+}
+
+.detailValueMono {
+  @apply text-white font-[monospace];
+}
+
+.detailError {
+  @apply p-2 rounded text-xs font-[monospace];
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.detailEvents {
+  @apply flex flex-col gap-y-1;
+}
+
+.detailEventList {
+  @apply flex flex-col gap-y-0.5 pl-2;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detailEvent {
+  @apply flex items-center justify-between py-0.5;
+}
+
+.detailEventType {
+  @apply text-xs font-[monospace];
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.detailEventTime {
+  @apply text-xs;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.expandButton {
+  @apply text-xs bg-transparent border-none cursor-pointer;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.expandButton:hover {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.emptyText {
+  @apply text-sm py-8 text-center;
+  color: rgba(255, 255, 255, 0.5);
+}

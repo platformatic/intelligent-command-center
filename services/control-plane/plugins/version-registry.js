@@ -29,6 +29,7 @@ module.exports = fp(async function (app) {
    * @param {string} opts.namespace - K8s namespace
    * @param {string} opts.pathPrefix - path prefix for routing
    * @param {string|null} opts.hostname - optional hostname for routing
+   * @param {string} [opts.expirePolicy] - expire policy ('http-traffic' or 'workflow')
    * @param {object} ctx - Fastify request context with logger
    * @returns {{ isNew: boolean, activeVersion: object|null, drainingVersions: Array }}
    */
@@ -51,10 +52,59 @@ module.exports = fp(async function (app) {
       })
 
       if (existing.length > 0) {
+        const prev = existing[0]
+
+        // Re-activate an expired version that is being redeployed
+        if (prev.status === 'expired') {
+          await entities.versionRegistry.save({
+            input: {
+              id: prev.id,
+              status: 'active',
+              drainedAt: null,
+              deploymentId: opts.deploymentId,
+              k8SDeploymentName: opts.k8SDeploymentName,
+              serviceName: opts.serviceName,
+              servicePort: opts.servicePort
+            },
+            tx
+          })
+
+          ctx.logger.info({
+            appLabel: opts.appLabel,
+            versionLabel: opts.versionLabel
+          }, 're-activated expired version')
+
+          // Mark other active versions as draining (same as new registration)
+          const otherActive = await entities.versionRegistry.find({
+            where: {
+              appLabel: { eq: opts.appLabel },
+              versionLabel: { neq: opts.versionLabel },
+              status: { eq: 'active' }
+            },
+            tx
+          })
+
+          for (const v of otherActive) {
+            await entities.versionRegistry.save({
+              input: { id: v.id, status: 'draining', drainedAt: new Date().toISOString() },
+              tx
+            })
+            ctx.logger.info({
+              appLabel: opts.appLabel,
+              versionLabel: v.versionLabel
+            }, 'marked version as draining')
+          }
+
+          return {
+            isNew: false,
+            ...(await getVersionState(opts.appLabel, tx))
+          }
+        }
+
         ctx.logger.debug({
           appLabel: opts.appLabel,
           versionLabel: opts.versionLabel,
-          status: existing[0].status
+          status: prev.status
         }, 'version already registered')
 
         return {
@@ -75,6 +125,7 @@ module.exports = fp(async function (app) {
           namespace: opts.namespace,
           pathPrefix: opts.pathPrefix,
           hostname: opts.hostname,
+          expirePolicy: opts.expirePolicy || 'http-traffic',
           status: 'active'
         },
         tx

@@ -161,7 +161,10 @@ module.exports = async function (app) {
             overrides: {
               type: ['object', 'null'],
               properties: {
-                gracePeriodMs: { type: ['integer', 'null'] },
+                httpGracePeriodMs: { type: ['integer', 'null'] },
+                httpMaxAliveMs: { type: ['integer', 'null'] },
+                workflowGracePeriodMs: { type: ['integer', 'null'] },
+                workflowMaxAliveMs: { type: ['integer', 'null'] },
                 maxAgeS: { type: ['integer', 'null'] },
                 maxVersions: { type: ['integer', 'null'] },
                 cookieName: { type: ['string', 'null'] },
@@ -172,7 +175,10 @@ module.exports = async function (app) {
             resolved: {
               type: 'object',
               properties: {
-                gracePeriodMs: { type: 'integer' },
+                httpGracePeriodMs: { type: 'integer' },
+                httpMaxAliveMs: { type: 'integer' },
+                workflowGracePeriodMs: { type: 'integer' },
+                workflowMaxAliveMs: { type: 'integer' },
                 maxAgeS: { type: 'integer' },
                 maxVersions: { type: ['integer', 'null'] },
                 cookieName: { type: 'string' },
@@ -200,7 +206,10 @@ module.exports = async function (app) {
       return {
         overrides: overrides
           ? {
-              gracePeriodMs: overrides.gracePeriodMs ?? null,
+              httpGracePeriodMs: overrides.httpGracePeriodMs ?? null,
+              httpMaxAliveMs: overrides.httpMaxAliveMs ?? null,
+              workflowGracePeriodMs: overrides.workflowGracePeriodMs ?? null,
+              workflowMaxAliveMs: overrides.workflowMaxAliveMs ?? null,
               maxAgeS: overrides.maxAgeS ?? null,
               maxVersions: overrides.maxVersions ?? null,
               cookieName: overrides.cookieName ?? null,
@@ -226,7 +235,10 @@ module.exports = async function (app) {
       body: {
         type: 'object',
         properties: {
-          gracePeriodMs: { type: ['integer', 'null'] },
+          httpGracePeriodMs: { type: ['integer', 'null'] },
+          httpMaxAliveMs: { type: ['integer', 'null'] },
+          workflowGracePeriodMs: { type: ['integer', 'null'] },
+          workflowMaxAliveMs: { type: ['integer', 'null'] },
           maxAgeS: { type: ['integer', 'null'] },
           maxVersions: { type: ['integer', 'null'] },
           cookieName: { type: ['string', 'null'] },
@@ -241,7 +253,10 @@ module.exports = async function (app) {
             overrides: {
               type: ['object', 'null'],
               properties: {
-                gracePeriodMs: { type: ['integer', 'null'] },
+                httpGracePeriodMs: { type: ['integer', 'null'] },
+                httpMaxAliveMs: { type: ['integer', 'null'] },
+                workflowGracePeriodMs: { type: ['integer', 'null'] },
+                workflowMaxAliveMs: { type: ['integer', 'null'] },
                 maxAgeS: { type: ['integer', 'null'] },
                 maxVersions: { type: ['integer', 'null'] },
                 cookieName: { type: ['string', 'null'] },
@@ -252,7 +267,10 @@ module.exports = async function (app) {
             resolved: {
               type: 'object',
               properties: {
-                gracePeriodMs: { type: 'integer' },
+                httpGracePeriodMs: { type: 'integer' },
+                httpMaxAliveMs: { type: 'integer' },
+                workflowGracePeriodMs: { type: 'integer' },
+                workflowMaxAliveMs: { type: 'integer' },
                 maxAgeS: { type: 'integer' },
                 maxVersions: { type: ['integer', 'null'] },
                 cookieName: { type: 'string' },
@@ -279,7 +297,10 @@ module.exports = async function (app) {
 
       return {
         overrides: {
-          gracePeriodMs: saved.gracePeriodMs ?? null,
+          httpGracePeriodMs: saved.httpGracePeriodMs ?? null,
+          httpMaxAliveMs: saved.httpMaxAliveMs ?? null,
+          workflowGracePeriodMs: saved.workflowGracePeriodMs ?? null,
+          workflowMaxAliveMs: saved.workflowMaxAliveMs ?? null,
           maxAgeS: saved.maxAgeS ?? null,
           maxVersions: saved.maxVersions ?? null,
           cookieName: saved.cookieName ?? null,

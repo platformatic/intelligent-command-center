@@ -42,6 +42,7 @@ const schema = {
     PLT_EXTERNAL_ACTIVITIES_URL: { type: 'string' },
     PLT_EXTERNAL_METRICS_URL: { type: 'string' },
     PLT_EXTERNAL_SCALER_URL: { type: 'string' },
+    PLT_WORKFLOW_URL: { type: 'string' },
     PLT_APPLICATIONS_CACHE_PROVIDER: { type: 'string', default: 'valkey-oss' },
     PLT_APPLICATIONS_ELASTICACHE_REGION: { type: 'string' },
     PLT_APPLICATIONS_ELASTICACHE_ACCESS_KEY: { type: 'string' },
@@ -54,7 +55,10 @@ const schema = {
     PLT_FEATURE_CACHE_RECOMMENDATIONS: { type: 'boolean', default: false },
     PLT_FEATURE_SKEW_PROTECTION: { type: 'boolean', default: false },
     PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1', enum: ['v1', 'v2'] },
-    PLT_SKEW_GRACE_PERIOD_MS: { type: 'number', default: 86400000 },
+    PLT_SKEW_HTTP_GRACE_PERIOD_MS: { type: 'number', default: 1800000 },
+    PLT_SKEW_HTTP_MAX_ALIVE_MS: { type: 'number', default: 86400000 },
+    PLT_SKEW_WORKFLOW_GRACE_PERIOD_MS: { type: 'number', default: 3600000 },
+    PLT_SKEW_WORKFLOW_MAX_ALIVE_MS: { type: 'number', default: 259200000 },
     PLT_SKEW_CHECK_INTERVAL_MS: { type: 'number', default: 60000 },
     PLT_SKEW_TRAFFIC_WINDOW_MS: { type: 'number', default: 1800000 },
     PLT_SKEW_COOKIE_MAX_AGE: { type: 'number', default: 43200 },
@@ -72,7 +76,7 @@ const fastifyEnvOpts = {
 
 async function envPlugin (app) {
   await app.register(fastifyEnv, fastifyEnvOpts)
-  app.decorate('iccServicesUrls', {
+  const iccServicesUrls = {
     cron: app.env.PLT_EXTERNAL_CRON_URL,
     trafficInspector: app.env.PLT_EXTERNAL_TRAFFIC_INSPECTOR_URL,
     userManager: app.env.PLT_EXTERNAL_USER_MANAGER_URL,
@@ -83,7 +87,8 @@ async function envPlugin (app) {
     activities: app.env.PLT_EXTERNAL_ACTIVITIES_URL,
     metrics: app.env.PLT_EXTERNAL_METRICS_URL,
     scaler: app.env.PLT_EXTERNAL_SCALER_URL
-  })
+  }
+  app.decorate('iccServicesUrls', iccServicesUrls)
 }
 
 module.exports = fp(envPlugin, { name: 'env' })

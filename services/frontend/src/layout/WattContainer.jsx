@@ -6,10 +6,12 @@ import styles from './HomeContainer.module.css'
 import SideBar from '~/components/ui/SideBar'
 import { Outlet, useLoaderData, useNavigation, generatePath } from 'react-router-dom'
 import { LoadingSpinnerV2 } from '@platformatic/ui-components'
+import useICCStore from '~/useICCStore'
 
 function WattContainer ({ children }) {
   const { application } = useLoaderData()
   const navigation = useNavigation()
+  const { config } = useICCStore()
 
   if (navigation.state === 'loading') {
     return (
@@ -82,7 +84,15 @@ function WattContainer ({ children }) {
             label: 'Scheduled Jobs',
             iconName: 'ScheduledJobsIcon',
             disabled: (application?.deployments?.length ?? 0) === 0
-          }]}
+          },
+          ...(config.workflow
+            ? [{
+                link: generatePath('workflows', { applicationId: application.id }),
+                label: 'Workflows',
+                iconName: 'PreviewPRIcon',
+                disabled: (application?.deployments?.length ?? 0) === 0
+              }]
+            : [])]}
         bottomItems={[{
           link: generatePath('settings', { applicationId: application.id }),
           label: 'Settings',

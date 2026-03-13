@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
+const { createServer } = require('node:http')
 const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const versionRegistryPlugin = require('../plugins/version-registry')
@@ -29,8 +30,12 @@ function buildApp (opts = {}) {
       PLT_FEATURE_SKEW_PROTECTION: 'true',
       PLT_SKEW_AUTO_CLEANUP: !!opts.autoCleanup,
       PLT_SKEW_COOKIE_MAX_AGE: 43200,
-      PLT_SKEW_GRACE_PERIOD_MS: 86400000,
-      PLT_SCALER_URL: 'http://localhost:0'
+      PLT_SKEW_HTTP_GRACE_PERIOD_MS: 1800000,
+      PLT_SKEW_HTTP_MAX_ALIVE_MS: 86400000,
+      PLT_SKEW_WORKFLOW_GRACE_PERIOD_MS: 3600000,
+      PLT_SKEW_WORKFLOW_MAX_ALIVE_MS: 259200000,
+      PLT_SCALER_URL: 'http://localhost:0',
+      PLT_WORKFLOW_URL: opts.workflowUrl
     })
   }, { name: 'env' }))
 
@@ -403,7 +408,10 @@ test('expireAndCleanup should use per-app autoCleanup policy', async (t) => {
   const policyStore = [{
     id: 'p1',
     applicationId: 'app-1',
-    gracePeriodMs: null,
+    httpGracePeriodMs: null,
+    httpMaxAliveMs: null,
+    workflowGracePeriodMs: null,
+    workflowMaxAliveMs: null,
     maxAgeS: null,
     maxVersions: null,
     cookieName: null,
@@ -430,4 +438,115 @@ test('expireAndCleanup should use per-app autoCleanup policy', async (t) => {
   // Per-app policy enabled autoCleanup, so resources should be deleted
   assert.strictEqual(calls.deleteDeployment.length, 1)
   assert.strictEqual(calls.deleteService.length, 1)
+})
+
+test('expireAndCleanup should call force-expire for workflow policy before cleanup', async (t) => {
+  const workflowCalls = { expireCalls: 0 }
+  const wfServer = createServer((req, res) => {
+    if (req.method === 'POST' && req.url.includes('/expire')) {
+      workflowCalls.expireCalls++
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({ ok: true }))
+    } else {
+      res.writeHead(404)
+      res.end()
+    }
+  })
+  await new Promise(resolve => wfServer.listen(0, resolve))
+  const wfPort = wfServer.address().port
+  t.after(() => wfServer.close())
+
+  const { app, store, calls } = buildApp({ workflowUrl: `http://127.0.0.1:${wfPort}` })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion({
+    ...baseOpts,
+    expirePolicy: 'workflow'
+  }, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  const version = store[0]
+
+  const result = await app.expireAndCleanup(version, mockCtx)
+
+  assert.strictEqual(result.expired, true)
+  assert.strictEqual(workflowCalls.expireCalls, 1)
+  assert.ok(calls.updateController.length > 0)
+})
+
+test('expireAndCleanup should not call force-expire for http-traffic policy', async (t) => {
+  const workflowCalls = { expireCalls: 0 }
+  const wfServer = createServer((req, res) => {
+    if (req.method === 'POST' && req.url.includes('/expire')) {
+      workflowCalls.expireCalls++
+    }
+    res.writeHead(200)
+    res.end()
+  })
+  await new Promise(resolve => wfServer.listen(0, resolve))
+  t.after(() => wfServer.close())
+
+  const { app, store, calls } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  const version = store[0]
+  const result = await app.expireAndCleanup(version, mockCtx)
+
+  assert.strictEqual(result.expired, true)
+  assert.strictEqual(workflowCalls.expireCalls, 0)
+  assert.ok(calls.updateController.length > 0)
+})
+
+test('expireAndCleanup should still proceed when force-expire fails for workflow policy', async (t) => {
+  const wfServer = createServer((req, res) => {
+    res.writeHead(500)
+    res.end('error')
+  })
+  await new Promise(resolve => wfServer.listen(0, resolve))
+  const wfPort = wfServer.address().port
+  t.after(() => wfServer.close())
+
+  const { app, store, calls } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion({
+    ...baseOpts,
+    expirePolicy: 'workflow'
+  }, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    k8SDeploymentName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  const version = store[0]
+  version.serviceName = '127.0.0.1'
+  version.namespace = ''
+  version.servicePort = wfPort
+
+  const result = await app.expireAndCleanup(version, mockCtx)
+
+  // Should still expire even if force-expire call fails
+  assert.strictEqual(result.expired, true)
+  assert.ok(calls.updateController.length > 0)
 })

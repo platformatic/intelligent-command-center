@@ -1,0 +1,23 @@
+.container {
+  @apply flex flex-row items-center gap-x-3;
+}
+
+.actions {
+  @apply flex flex-row flex-wrap gap-2;
+}
+
+.expiredNotice {
+  @apply text-xs px-2 py-1 rounded;
+  background-color: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  color: #eab308;
+  white-space: nowrap;
+}
+
+.successMessage {
+  @apply text-xs text-main-green py-1;
+}
+
+.errorMessage {
+  @apply text-xs text-error-red py-1;
+}

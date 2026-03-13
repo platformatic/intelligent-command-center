@@ -27,6 +27,7 @@ import Services from './components/application/services/Services'
 import ErrorPage from './pages/ErrorPage'
 
 // Import App Details Pages
+import WattWorkflows from './components/workflows/WattWorkflows'
 import ScheduledJobs from './components/scheduled-jobs/ScheduledJobs'
 import ScheduledJobDetail from './components/scheduled-jobs/ScheduledJobDetail'
 import Autoscaler from './components/application/autoscaler/Autoscaler'
@@ -278,6 +279,11 @@ export function getRouter () {
           },
           path: 'applications/:serviceId',
           element: <ServiceDetails />
+        },
+        {
+          id: 'watt/workflows',
+          path: 'workflows',
+          element: <WattWorkflows />
         },
         {
           id: 'watt/scheduled-jobs',

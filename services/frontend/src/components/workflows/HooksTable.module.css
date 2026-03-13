@@ -1,0 +1,39 @@
+.container {
+  @apply w-full;
+}
+
+.container table {
+  @apply w-full border-collapse text-left;
+}
+
+.container th {
+  @apply text-xs text-white/50 font-normal py-2 px-3 border-b border-white/10;
+}
+
+.container td {
+  @apply text-sm text-white/70 py-2 px-3 border-b border-white/5;
+}
+
+.hookRow {
+  @apply hover:bg-white/5 cursor-pointer;
+}
+
+.monoText {
+  @apply font-[monospace] text-xs text-white/70;
+}
+
+.tokenMask {
+  @apply font-[monospace] text-xs text-white/30;
+}
+
+.invocationCount {
+  @apply font-semibold text-white;
+}
+
+.emptyText {
+  @apply text-sm text-white/50 py-8 text-center;
+}
+
+.errorText {
+  @apply text-sm text-error-red py-8 text-center;
+}

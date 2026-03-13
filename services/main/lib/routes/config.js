@@ -18,6 +18,7 @@ module.exports = async function (app) {
     })
 
     output['scaler-algorithm-version'] = app.config.PLT_SCALER_ALGORITHM_VERSION
+    output.workflow = !!app.config.PLT_WORKFLOW_URL
 
     return res.send(output)
   })

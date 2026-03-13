@@ -10,7 +10,10 @@ module.exports = fp(async function (app) {
   if (!enabled) return
 
   const clusterDefaults = {
-    gracePeriodMs: app.env.PLT_SKEW_GRACE_PERIOD_MS,
+    httpGracePeriodMs: app.env.PLT_SKEW_HTTP_GRACE_PERIOD_MS,
+    httpMaxAliveMs: app.env.PLT_SKEW_HTTP_MAX_ALIVE_MS,
+    workflowGracePeriodMs: app.env.PLT_SKEW_WORKFLOW_GRACE_PERIOD_MS,
+    workflowMaxAliveMs: app.env.PLT_SKEW_WORKFLOW_MAX_ALIVE_MS,
     maxAgeS: app.env.PLT_SKEW_COOKIE_MAX_AGE,
     maxVersions: null,
     cookieName: DEFAULT_COOKIE_NAME,
@@ -35,7 +38,10 @@ module.exports = fp(async function (app) {
 
     const input = {
       applicationId,
-      gracePeriodMs: overrides.gracePeriodMs ?? null,
+      httpGracePeriodMs: overrides.httpGracePeriodMs ?? null,
+      httpMaxAliveMs: overrides.httpMaxAliveMs ?? null,
+      workflowGracePeriodMs: overrides.workflowGracePeriodMs ?? null,
+      workflowMaxAliveMs: overrides.workflowMaxAliveMs ?? null,
       maxAgeS: overrides.maxAgeS ?? null,
       maxVersions: overrides.maxVersions ?? null,
       cookieName: overrides.cookieName ?? null,
@@ -54,7 +60,10 @@ module.exports = fp(async function (app) {
     const overrides = await app.getSkewPolicyOverrides(applicationId)
 
     return {
-      gracePeriodMs: overrides?.gracePeriodMs ?? clusterDefaults.gracePeriodMs,
+      httpGracePeriodMs: overrides?.httpGracePeriodMs ?? clusterDefaults.httpGracePeriodMs,
+      httpMaxAliveMs: overrides?.httpMaxAliveMs ?? clusterDefaults.httpMaxAliveMs,
+      workflowGracePeriodMs: overrides?.workflowGracePeriodMs ?? clusterDefaults.workflowGracePeriodMs,
+      workflowMaxAliveMs: overrides?.workflowMaxAliveMs ?? clusterDefaults.workflowMaxAliveMs,
       maxAgeS: overrides?.maxAgeS ?? clusterDefaults.maxAgeS,
       maxVersions: overrides?.maxVersions ?? clusterDefaults.maxVersions,
       cookieName: overrides?.cookieName ?? clusterDefaults.cookieName,
