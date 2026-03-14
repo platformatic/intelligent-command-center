@@ -151,7 +151,7 @@ export default function Workflows ({ appId: appIdProp, applicationId }) {
       <div className={styles.title}>
         <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter}`}>
           <div className={commonStyles.tinyFlexRow}>
-            <Icons.PreviewPRIcon color={WHITE} size={MEDIUM} />
+            <Icons.WorkflowIcon color={WHITE} size={MEDIUM} />
             <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Workflows</p>
           </div>
         </div>

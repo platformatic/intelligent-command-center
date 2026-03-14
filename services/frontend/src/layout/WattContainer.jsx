@@ -89,7 +89,7 @@ function WattContainer ({ children }) {
             ? [{
                 link: generatePath('workflows', { applicationId: application.id }),
                 label: 'Workflows',
-                iconName: 'PreviewPRIcon',
+                iconName: 'WorkflowIcon',
                 disabled: (application?.deployments?.length ?? 0) === 0
               }]
             : [])]}
