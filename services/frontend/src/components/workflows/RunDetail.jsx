@@ -10,7 +10,7 @@ import WorkflowStatusPill from './WorkflowStatusPill'
 import RunActions from './RunActions'
 import HooksTable from './HooksTable'
 import EventTimeline from './EventTimeline'
-import { formatDuration, formatStepName, formatWorkflowName } from './utils'
+import { formatDuration, formatStepName, formatWorkflowName, decodeEventData } from './utils'
 import callApi from '~/api/common'
 import { useInterval } from '~/hooks/useInterval'
 
@@ -158,7 +158,7 @@ function EventsTable ({ events }) {
                 {isExpanded && event.eventData && (
                   <tr>
                     <td colSpan='5' className={styles.eventDataCell}>
-                      <EventDataTree data={event.eventData} />
+                      <EventDataTree data={decodeEventData(event.eventData)} />
                     </td>
                   </tr>
                 )}

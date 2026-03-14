@@ -2,6 +2,8 @@
 // Copyright 2025 Vercel Inc. Licensed under Apache License 2.0.
 // Modified for Platformatic ICC integration.
 
+import { parse as devalueParse } from 'devalue'
+
 export function formatRelativeTime (dateStr) {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
@@ -53,4 +55,48 @@ export function formatWorkflowName (raw) {
   const parts = raw.split('//')
   const last = parts[parts.length - 1]
   return last || raw
+}
+
+// The Vercel workflow SDK serializes data as: 4-byte "devl" header + devalue-encoded payload.
+// When stored as BYTEA and returned via the API, these appear as base64 strings.
+// This function decodes them for human-readable display in the ICC dashboard.
+const DEVL_HEADER = 'devl'
+
+function tryDecodeBase64Devalue (str) {
+  if (typeof str !== 'string' || str.length < 8) return str
+  try {
+    // atob decodes base64 to a binary string
+    const binary = atob(str)
+    // Check for "devl" header
+    if (binary.startsWith(DEVL_HEADER)) {
+      const payload = binary.slice(4)
+      return devalueParse(payload)
+    }
+    // Try plain JSON
+    const first = binary.charCodeAt(0)
+    if (first === 0x7b || first === 0x5b || first === 0x22) {
+      return JSON.parse(binary)
+    }
+  } catch {
+    // Not valid base64, devalue, or JSON — return original
+  }
+  return str
+}
+
+// Fields that contain base64-encoded SDK data in event payloads
+const BINARY_FIELDS = new Set(['result', 'output', 'input', 'payload', 'metadata'])
+
+// Recursively decode base64/devalue fields in event data for display
+export function decodeEventData (data) {
+  if (data === null || data === undefined) return data
+  if (typeof data === 'string') return tryDecodeBase64Devalue(data)
+  if (Array.isArray(data)) return data.map(decodeEventData)
+  if (typeof data === 'object') {
+    const decoded = {}
+    for (const [key, value] of Object.entries(data)) {
+      decoded[key] = BINARY_FIELDS.has(key) ? tryDecodeBase64Devalue(value) : value
+    }
+    return decoded
+  }
+  return data
 }
