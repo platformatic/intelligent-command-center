@@ -229,7 +229,7 @@ function SpanDetail ({ span }) {
         <span className={styles.detailValueMono}>{span.step.stepId}</span>
       </div>
       {span.step.error && (
-        <div className={styles.detailError}>{span.step.error}</div>
+        <div className={styles.detailError}>{typeof span.step.error === 'object' ? span.step.error.message : span.step.error}</div>
       )}
       {span.events.length > 0 && (
         <div className={styles.detailEvents}>

@@ -1664,7 +1664,7 @@ test('should use custom path prefix without hostname when only plt.dev/path is s
   assert.strictEqual(versions[0].hostname, null)
 })
 
-test('should use default path prefix with hostname when only plt.dev/hostname is set', async (t) => {
+test('should default pathPrefix to / when only plt.dev/hostname is set', async (t) => {
   const applicationName = 'test-app-hostname-only'
   const appLabel = 'hostname-only-app'
 
@@ -1715,8 +1715,8 @@ test('should use default path prefix with hostname when only plt.dev/hostname is
   assert.strictEqual(appliedHTTPRoutes.length, 1)
   const { httpRoute } = appliedHTTPRoutes[0]
 
-  // Default path prefix derived from appLabel
-  assert.deepStrictEqual(httpRoute.spec.rules[0].matches[0].path, { type: 'PathPrefix', value: `/${appLabel}` })
+  // When hostname is set without explicit path, default to /
+  assert.deepStrictEqual(httpRoute.spec.rules[0].matches[0].path, { type: 'PathPrefix', value: '/' })
 
   // Hostname is set
   assert.deepStrictEqual(httpRoute.spec.hostnames, ['myapp.example.com'])
@@ -1726,7 +1726,7 @@ test('should use default path prefix with hostname when only plt.dev/hostname is
   const versions = await entities.versionRegistry.find({
     where: { appLabel: { eq: appLabel } }
   })
-  assert.strictEqual(versions[0].pathPrefix, `/${appLabel}`)
+  assert.strictEqual(versions[0].pathPrefix, '/')
   assert.strictEqual(versions[0].hostname, 'myapp.example.com')
 })
 

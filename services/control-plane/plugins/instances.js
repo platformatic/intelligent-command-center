@@ -184,7 +184,7 @@ module.exports = fp(async function (app) {
             const servicePort = service?.spec?.ports?.[0]?.port
 
             if (serviceName && servicePort) {
-              const pathPrefix = pathLabel || `/${appLabel}`
+              const pathPrefix = pathLabel || (hostnameLabel ? '/' : `/${appLabel}`)
 
               versionMeta = {
                 appLabel,

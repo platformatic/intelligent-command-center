@@ -47,7 +47,11 @@ function formatEventType (type) {
 function formatEventTime (dateStr) {
   if (!dateStr) return '-'
   const d = new Date(dateStr)
-  return d.toLocaleTimeString(undefined, { hour12: false, fractionalSecondDigits: 3 })
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  const ss = String(d.getSeconds()).padStart(2, '0')
+  const ms = String(d.getMilliseconds()).padStart(3, '0')
+  return `${hh}:${mm}:${ss}.${ms}`
 }
 
 function EventDataTree ({ data, depth = 0 }) {
@@ -367,7 +371,7 @@ export default function RunDetail ({ run, appId, applicationId, onBack, onNaviga
                     <span>{formatDuration(step.startedAt, step.completedAt)}</span>
                   </div>
                   {step.error && (
-                    <div className={styles.stepError}>{step.error}</div>
+                    <div className={styles.stepError}>{typeof step.error === 'object' ? step.error.message : step.error}</div>
                   )}
                 </div>
               ))}
