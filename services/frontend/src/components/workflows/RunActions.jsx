@@ -32,6 +32,7 @@ export default function RunActions ({ appId, runId, runStatus, events, onSuccess
   const [wakingUp, setWakingUp] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [message, setMessage] = useState(null)
+  const [showReplayConfirm, setShowReplayConfirm] = useState(false)
 
   const { hasPendingSleeps } = useMemo(() => analyzeEvents(events), [events])
   const isRunActive = runStatus === 'pending' || runStatus === 'running'
@@ -104,7 +105,7 @@ export default function RunActions ({ appId, runId, runStatus, events, onSuccess
           hoverEffect={ACTIVE_AND_INACTIVE_STATUS}
           paddingClass={commonStyles.smallButtonPadding}
           textClass={`${typographyStyles.desktopButtonSmall} ${typographyStyles.textWhite}`}
-          onClick={handleReplay}
+          onClick={() => setShowReplayConfirm(true)}
           disabled={rerunning || isRunActive || versionExpired}
           bordered
         />
@@ -136,6 +137,27 @@ export default function RunActions ({ appId, runId, runStatus, events, onSuccess
       {message && (
         <div className={message.isError ? styles.errorMessage : styles.successMessage}>
           {message.text}
+        </div>
+      )}
+      {showReplayConfirm && (
+        <div className={styles.dialogOverlay} onClick={() => setShowReplayConfirm(false)}>
+          <div className={styles.dialog} onClick={e => e.stopPropagation()}>
+            <h3 className={styles.dialogTitle}>Replay Run?</h3>
+            <p className={styles.dialogText}>
+              This can potentially re-run code that is meant to only execute once. Are you sure you want to replay the workflow run?
+            </p>
+            <div className={styles.dialogActions}>
+              <button className={styles.dialogCancel} onClick={() => setShowReplayConfirm(false)}>
+                Cancel
+              </button>
+              <button
+                className={styles.dialogConfirm}
+                onClick={() => { setShowReplayConfirm(false); handleReplay() }}
+              >
+                Replay Run
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

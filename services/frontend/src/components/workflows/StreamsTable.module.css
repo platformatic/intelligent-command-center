@@ -1,0 +1,91 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.emptyText {
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
+  padding: 24px;
+}
+
+.streamCard {
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.streamHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: #1a1a1a;
+}
+
+.streamHeader:hover {
+  background: #222;
+}
+
+.expandIcon {
+  color: #6b7280;
+  font-size: 12px;
+  width: 12px;
+}
+
+.streamName {
+  color: #e5e7eb;
+  font-size: 13px;
+  font-family: monospace;
+  flex: 1;
+}
+
+.chunkCount {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.streamContent {
+  background: #111;
+  border-top: 1px solid #2a2a2a;
+}
+
+.chunkRow {
+  display: flex;
+  gap: 12px;
+  padding: 6px 14px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.chunkRow:last-child {
+  border-bottom: none;
+}
+
+.chunkIndex {
+  color: #4b5563;
+  font-size: 11px;
+  font-family: monospace;
+  min-width: 24px;
+  padding-top: 2px;
+  text-align: right;
+}
+
+.chunkData {
+  color: #d1d5db;
+  font-size: 12px;
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.loadingText {
+  color: #6b7280;
+  font-size: 13px;
+  padding: 12px 14px;
+}

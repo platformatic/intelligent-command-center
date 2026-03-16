@@ -2,15 +2,16 @@
 // Copyright 2025 Vercel Inc. Licensed under Apache License 2.0.
 // Modified for Platformatic ICC integration.
 
-import React, { useEffect, useState, useCallback, lazy, Suspense } from 'react'
+import React, { useEffect, useState, useCallback, useRef, lazy, Suspense } from 'react'
 import { SMALL, WHITE, TRANSPARENT, ACTIVE_AND_INACTIVE_STATUS } from '@platformatic/ui-components/src/components/constants'
 import { Button } from '@platformatic/ui-components'
 
 import WorkflowStatusPill from './WorkflowStatusPill'
 import RunActions from './RunActions'
 import HooksTable from './HooksTable'
+import StreamsTable from './StreamsTable'
 import EventTimeline from './EventTimeline'
-import { formatDuration, formatStepName, formatWorkflowName, decodeEventData } from './utils'
+import { formatDuration, formatWorkflowName, decodeEventData } from './utils'
 import callApi from '~/api/common'
 import { useInterval } from '~/hooks/useInterval'
 
@@ -185,18 +186,48 @@ function formatTimestamp (dateStr) {
   return `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at ${time}`
 }
 
+// Cache templates per workflow+version to avoid re-fetching
+const templateCache = new Map()
+
+function mergeStepsWithTemplate (steps, template) {
+  if (!template || !template.steps) return steps
+  const seen = new Set(steps.map(s => s.stepName))
+  // Enrich real steps with template order/parallelGroup for graph layout
+  const enriched = steps.map(s => {
+    const tmpl = template.steps.find(t => t.stepName === s.stepName)
+    if (tmpl) return { ...s, _order: tmpl.order, _parallelGroup: tmpl.parallelGroup }
+    return s
+  })
+  const placeholders = template.steps
+    .filter(t => !seen.has(t.stepName))
+    .map(t => ({
+      stepId: `placeholder-${t.stepName}`,
+      stepName: t.stepName,
+      status: 'pending',
+      attempt: 0,
+      _placeholder: true,
+      _order: t.order,
+      _parallelGroup: t.parallelGroup
+    }))
+  return [...enriched, ...placeholders]
+}
+
 export default function RunDetail ({ run, appId, applicationId, onBack, onNavigateToRun }) {
   const [currentRun, setCurrentRun] = useState(run)
   const [steps, setSteps] = useState([])
   const [events, setEvents] = useState([])
-  const [activeTab, setActiveTab] = useState('steps')
+  const [activeTab, setActiveTab] = useState('trace')
   const [versionExpired, setVersionExpired] = useState(false)
+  const [template, setTemplate] = useState(null)
+  const templateLoaded = useRef(false)
 
   useEffect(() => {
     setCurrentRun(run)
     setSteps([])
     setEvents([])
     setVersionExpired(false)
+    setTemplate(null)
+    templateLoaded.current = false
   }, [run.runId])
 
   useEffect(() => {
@@ -253,6 +284,36 @@ export default function RunDetail ({ run, appId, applicationId, onBack, onNaviga
     loadSteps()
     loadEvents()
   }, [run.runId])
+
+  // Load step template for non-terminal runs so the UI can show placeholders
+  useEffect(() => {
+    if (templateLoaded.current || !run.workflowName || !appId) return
+    const isRunTerminal = ['completed', 'failed', 'cancelled'].includes(run.status)
+    if (isRunTerminal) return
+
+    templateLoaded.current = true
+    const cacheKey = `${run.workflowName}:${run.deploymentId || ''}`
+
+    if (templateCache.has(cacheKey)) {
+      setTemplate(templateCache.get(cacheKey))
+      return
+    }
+
+    async function loadTemplate () {
+      try {
+        const params = new URLSearchParams({ workflowName: run.workflowName })
+        if (run.deploymentId) params.set('deploymentId', run.deploymentId)
+        const data = await callApi('', `/api/workflow/apps/${appId}/template?${params.toString()}`, 'GET')
+        if (data && data.steps) {
+          templateCache.set(cacheKey, data)
+          setTemplate(data)
+        }
+      } catch {
+        // No template available (first run) — fall back to discovery
+      }
+    }
+    loadTemplate()
+  }, [run.runId, run.workflowName, run.deploymentId, run.status, appId])
 
   useInterval(() => {
     refreshAll()
@@ -324,16 +385,10 @@ export default function RunDetail ({ run, appId, applicationId, onBack, onNaviga
 
       <div className={styles.tabs}>
         <button
-          className={`${styles.tab} ${activeTab === 'steps' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('steps')}
+          className={`${styles.tab} ${activeTab === 'trace' ? styles.activeTab : ''}`}
+          onClick={() => setActiveTab('trace')}
         >
-          Steps ({steps.length})
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'timeline' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('timeline')}
-        >
-          Timeline
+          Trace
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'graph' ? styles.activeTab : ''}`}
@@ -342,54 +397,42 @@ export default function RunDetail ({ run, appId, applicationId, onBack, onNaviga
           Graph
         </button>
         <button
+          className={`${styles.tab} ${activeTab === 'events' ? styles.activeTab : ''}`}
+          onClick={() => setActiveTab('events')}
+        >
+          Events ({events.length})
+        </button>
+        <button
           className={`${styles.tab} ${activeTab === 'hooks' ? styles.activeTab : ''}`}
           onClick={() => setActiveTab('hooks')}
         >
           Hooks
         </button>
         <button
-          className={`${styles.tab} ${activeTab === 'events' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('events')}
+          className={`${styles.tab} ${activeTab === 'streams' ? styles.activeTab : ''}`}
+          onClick={() => setActiveTab('streams')}
         >
-          Events ({events.length})
+          Streams
         </button>
       </div>
 
       <div className={styles.content}>
-        {activeTab === 'steps' && (
-          <div className={styles.stepsList}>
-            {steps.length === 0
-              ? <p className={styles.emptyText}>No steps recorded yet.</p>
-              : steps.map((step) => (
-                <div key={step.stepId} className={styles.stepCard}>
-                  <div className={styles.stepHeader}>
-                    <span className={styles.stepName}>{formatStepName(step.stepName)}</span>
-                    <WorkflowStatusPill status={step.status} />
-                  </div>
-                  <div className={styles.stepMeta}>
-                    <span>Attempt {step.attempt}</span>
-                    <span>{formatDuration(step.startedAt, step.completedAt)}</span>
-                  </div>
-                  {step.error && (
-                    <div className={styles.stepError}>{typeof step.error === 'object' ? step.error.message : step.error}</div>
-                  )}
-                </div>
-              ))}
-          </div>
-        )}
-        {activeTab === 'timeline' && (
-          <EventTimeline events={events} steps={steps} run={currentRun} />
+        {activeTab === 'trace' && (
+          <EventTimeline events={events} steps={mergeStepsWithTemplate(steps, template)} run={currentRun} />
         )}
         {activeTab === 'graph' && (
           <Suspense fallback={<p className={styles.emptyText}>Loading graph...</p>}>
-            <WorkflowGraph steps={steps} events={events} run={currentRun} />
+            <WorkflowGraph steps={mergeStepsWithTemplate(steps, template)} events={events} run={currentRun} />
           </Suspense>
+        )}
+        {activeTab === 'events' && (
+          <EventsTable events={events} />
         )}
         {activeTab === 'hooks' && (
           <HooksTable appId={appId} runId={run.runId} />
         )}
-        {activeTab === 'events' && (
-          <EventsTable events={events} />
+        {activeTab === 'streams' && (
+          <StreamsTable appId={appId} runId={run.runId} />
         )}
       </div>
     </div>

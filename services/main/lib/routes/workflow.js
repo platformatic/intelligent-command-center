@@ -104,6 +104,53 @@ module.exports = async function (app) {
     }
   })
 
+  app.get('/workflow/apps/:appId/template', {
+    handler: async (req, reply) => {
+      const { appId } = req.params
+      const { workflowName, ...rest } = req.query
+      const target = `${workflowUrl}/api/v1/apps/${encodeURIComponent(appId)}/workflows/${encodeURIComponent(workflowName)}/template`
+      const { statusCode, body } = await request(target, {
+        method: 'GET',
+        query: rest,
+        headers: authHeaders()
+      })
+
+      reply.code(statusCode)
+      return body.json()
+    }
+  })
+
+  // List streams for a run
+  app.get('/workflow/apps/:appId/runs/:runId/streams', {
+    handler: async (req, reply) => {
+      const { appId, runId } = req.params
+      const target = `${workflowUrl}/api/v1/apps/${encodeURIComponent(appId)}/runs/${encodeURIComponent(runId)}/streams`
+      const { statusCode, body } = await request(target, {
+        method: 'GET',
+        headers: authHeaders()
+      })
+
+      reply.code(statusCode)
+      return body.json()
+    }
+  })
+
+  // Read stream content
+  app.get('/workflow/apps/:appId/streams/:name', {
+    handler: async (req, reply) => {
+      const { appId, name } = req.params
+      const target = `${workflowUrl}/api/v1/apps/${encodeURIComponent(appId)}/streams/${encodeURIComponent(name)}`
+      const { statusCode, body, headers } = await request(target, {
+        method: 'GET',
+        headers: authHeaders()
+      })
+
+      reply.code(statusCode)
+      reply.header('content-type', headers['content-type'] || 'application/octet-stream')
+      return body
+    }
+  })
+
   // Run actions: replay, cancel, wake-up
   for (const action of ['replay', 'cancel', 'wake-up']) {
     app.post(`/workflow/apps/:appId/runs/:runId/${action}`, {

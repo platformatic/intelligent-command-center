@@ -131,38 +131,52 @@ function formatStepDuration (startedAt, completedAt) {
   return formatDuration(startedAt, completedAt)
 }
 
-function buildGraph (steps, events) {
+function buildGraph (steps, events, runStatus) {
   if (!steps || steps.length === 0) return { nodes: [], edges: [] }
 
-  // Sort steps by start time
-  const sorted = [...steps].sort((a, b) => {
-    const aTime = new Date(a.startedAt || a.createdAt || 0).getTime()
-    const bTime = new Date(b.startedAt || b.createdAt || 0).getTime()
-    return aTime - bTime
-  })
+  // If steps have template order/parallelGroup metadata, use that for grouping
+  // instead of timestamp overlap (which doesn't work for placeholder steps)
+  const hasTemplateOrder = steps.some(s => s._order !== undefined)
 
-  // Detect parallel groups: steps are parallel if they overlap in time
-  // (i.e. a step started before the previous group's last step completed).
-  // Sequential steps start after the previous step completes.
-  const parallelGroups = []
-  let currentGroup = [sorted[0]]
-  let groupEndTime = new Date(sorted[0].completedAt || sorted[0].startedAt || sorted[0].createdAt || 0).getTime()
+  let parallelGroups
 
-  for (let i = 1; i < sorted.length; i++) {
-    const currStart = new Date(sorted[i].startedAt || sorted[i].createdAt || 0).getTime()
-    const currEnd = new Date(sorted[i].completedAt || sorted[i].startedAt || sorted[i].createdAt || 0).getTime()
-
-    if (currStart < groupEndTime) {
-      // This step started before the group's last step finished — parallel
-      currentGroup.push(sorted[i])
-      if (currEnd > groupEndTime) groupEndTime = currEnd
-    } else {
-      parallelGroups.push(currentGroup)
-      currentGroup = [sorted[i]]
-      groupEndTime = currEnd
+  if (hasTemplateOrder) {
+    // Group by _order, steps with the same _order are parallel
+    const orderMap = new Map()
+    const sorted = [...steps].sort((a, b) => (a._order ?? 999) - (b._order ?? 999))
+    for (const step of sorted) {
+      const order = step._order ?? 999
+      if (!orderMap.has(order)) orderMap.set(order, [])
+      orderMap.get(order).push(step)
     }
+    parallelGroups = [...orderMap.values()]
+  } else {
+    // Fall back to timestamp-based parallel detection
+    const sorted = [...steps].sort((a, b) => {
+      const aTime = new Date(a.startedAt || a.createdAt || 0).getTime()
+      const bTime = new Date(b.startedAt || b.createdAt || 0).getTime()
+      return aTime - bTime
+    })
+
+    parallelGroups = []
+    let currentGroup = [sorted[0]]
+    let groupEndTime = new Date(sorted[0].completedAt || sorted[0].startedAt || sorted[0].createdAt || 0).getTime()
+
+    for (let i = 1; i < sorted.length; i++) {
+      const currStart = new Date(sorted[i].startedAt || sorted[i].createdAt || 0).getTime()
+      const currEnd = new Date(sorted[i].completedAt || sorted[i].startedAt || sorted[i].createdAt || 0).getTime()
+
+      if (currStart < groupEndTime) {
+        currentGroup.push(sorted[i])
+        if (currEnd > groupEndTime) groupEndTime = currEnd
+      } else {
+        parallelGroups.push(currentGroup)
+        currentGroup = [sorted[i]]
+        groupEndTime = currEnd
+      }
+    }
+    parallelGroups.push(currentGroup)
   }
-  parallelGroups.push(currentGroup)
 
   const nodes = []
   const edges = []
@@ -224,23 +238,26 @@ function buildGraph (steps, events) {
     currentY += VERTICAL_SPACING
   }
 
-  // End node
-  nodes.push({
-    id: 'end',
-    type: 'startEndNode',
-    position: { x: START_X, y: currentY },
-    data: { label: 'End', type: 'end' }
-  })
-
-  for (const prevId of prevNodeIds) {
-    edges.push({
-      id: `${prevId}-end`,
-      source: prevId,
-      target: 'end',
-      type: 'bezier',
-      style: { stroke: '#6b7280', strokeWidth: 1 },
-      markerEnd: { type: MarkerType.ArrowClosed, width: 12, height: 12, color: '#6b7280' }
+  // Only show End node when the run has reached a terminal state
+  const isTerminal = ['completed', 'failed', 'cancelled'].includes(runStatus)
+  if (isTerminal) {
+    nodes.push({
+      id: 'end',
+      type: 'startEndNode',
+      position: { x: START_X, y: currentY },
+      data: { label: 'End', type: 'end' }
     })
+
+    for (const prevId of prevNodeIds) {
+      edges.push({
+        id: `${prevId}-end`,
+        source: prevId,
+        target: 'end',
+        type: 'bezier',
+        style: { stroke: '#6b7280', strokeWidth: 1 },
+        markerEnd: { type: MarkerType.ArrowClosed, width: 12, height: 12, color: '#6b7280' }
+      })
+    }
   }
 
   return { nodes, edges }
@@ -248,18 +265,18 @@ function buildGraph (steps, events) {
 
 export default function WorkflowGraph ({ steps, events, run }) {
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
-    () => buildGraph(steps, events),
-    [steps, events]
+    () => buildGraph(steps, events, run?.status),
+    [steps, events, run?.status]
   )
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
   useEffect(() => {
-    const { nodes: newNodes, edges: newEdges } = buildGraph(steps, events)
+    const { nodes: newNodes, edges: newEdges } = buildGraph(steps, events, run?.status)
     setNodes(newNodes)
     setEdges(newEdges)
-  }, [steps, events, setNodes, setEdges])
+  }, [steps, events, run?.status, setNodes, setEdges])
 
   if (!steps || steps.length === 0) {
     return <p className={styles.emptyText}>No steps to visualize.</p>
