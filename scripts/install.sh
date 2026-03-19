@@ -702,6 +702,7 @@ generate_database_sql() {
 		"scaler"
 		"trafficante"
 		"user_manager"
+		"workflow"
 	)
 
 	if [[ ${#db_services[@]} -eq 0 ]]; then

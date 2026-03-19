@@ -8,3 +8,4 @@ CREATE DATABASE scaler;
 CREATE DATABASE traffic_inspector;
 CREATE DATABASE cluster_manager;
 CREATE DATABASE risk_cold_storage;
+CREATE DATABASE workflow;
