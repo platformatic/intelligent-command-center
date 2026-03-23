@@ -357,7 +357,7 @@ importers:
         version: 17.3.1
       mercurius:
         specifier: ^16.0.0
-        version: 16.7.0(graphql@16.13.0)
+        version: 16.8.0(graphql@16.13.0)
       mermaid:
         specifier: ^11.0.0
         version: 11.13.0
@@ -472,7 +472,7 @@ importers:
         version: 5.8.4
       mercurius:
         specifier: ^16.0.0
-        version: 16.7.0(graphql@16.13.0)
+        version: 16.8.0(graphql@16.13.0)
       nock:
         specifier: ^14.0.0
         version: 14.0.11
@@ -5102,6 +5102,12 @@ packages:
     peerDependencies:
       graphql: ^16.0.0
 
+  mercurius@16.8.0:
+    resolution: {integrity: sha512-b0ZxtmqgqH8GBvXxs5wITLNZdTOVd7FzkuvUkUgg0waEM1UD8buDcl0RVrqH745WOpGRqID2ltWRVfNeLIXh5w==}
+    engines: {node: ^20.9.0 || >=22.0.0}
+    peerDependencies:
+      graphql: ^16.0.0
+
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
@@ -6783,6 +6789,18 @@ packages:
       utf-8-validate:
         optional: true
 
+  ws@8.20.0:
+    resolution: {integrity: sha512-sAt8BhgNbzCtgGbt2OxmpuryO63ZoDk/sqaB/znQm94T4fCEsy/yV+7CdC1kJhOU9lboAEU7R3kquuycDoibVA==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xdg-basedir@4.0.0:
     resolution: {integrity: sha512-PSNhEJDejZYV7h50BohL09Er9VaIefr2LMAf3OEmpCkjOi34eYyQYAXUTjEQtZJTKcF0E2UKTh+osDLsgNim9Q==}
     engines: {node: '>=8'}
@@ -8280,7 +8298,7 @@ snapshots:
     dependencies:
       '@fastify/error': 4.2.0
       graphql: 16.13.0
-      mercurius: 16.7.0(graphql@16.13.0)
+      mercurius: 16.8.0(graphql@16.13.0)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -8655,7 +8673,7 @@ snapshots:
       semver: 7.7.4
       split2: 4.2.0
       undici: 7.24.5
-      ws: 8.19.0
+      ws: 8.20.0
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -8721,7 +8739,7 @@ snapshots:
       graphql: 16.13.0
       help-me: 5.0.0
       json-schema-traverse: 1.0.0
-      mercurius: 16.7.0(graphql@16.13.0)
+      mercurius: 16.8.0(graphql@16.13.0)
       minimist: 1.2.8
       my-ua-parser: 2.0.4
       nunjucks: 3.2.4(chokidar@3.6.0)
@@ -8762,7 +8780,7 @@ snapshots:
       pino-pretty: 13.1.3
       table: 6.9.0
       undici: 7.24.5
-      ws: 8.19.0
+      ws: 8.20.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -8868,7 +8886,7 @@ snapshots:
       abstract-logger: 0.2.5
       fastify: 5.8.4
       graphql: 16.13.0
-      mercurius: 16.7.0(graphql@16.13.0)
+      mercurius: 16.8.0(graphql@16.13.0)
       metaline: 1.1.0
       pino: 9.14.0
       undici: 7.24.5
@@ -9053,7 +9071,7 @@ snapshots:
       graphql-scalars: 1.25.0(graphql@16.13.0)
       graphql-type-json: 0.3.2(graphql@16.13.0)
       inflected: 2.1.0
-      mercurius: 16.7.0(graphql@16.13.0)
+      mercurius: 16.8.0(graphql@16.13.0)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -12532,6 +12550,27 @@ snapshots:
       secure-json-parse: 4.1.0
       single-user-cache: 2.1.0
       tiny-lru: 11.4.7
+      ws: 8.20.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  mercurius@16.8.0(graphql@16.13.0):
+    dependencies:
+      '@fastify/error': 4.2.0
+      '@fastify/static': 9.0.0
+      '@fastify/websocket': 11.2.0
+      fastify-plugin: 5.1.0
+      graphql: 16.13.0
+      graphql-jit: 0.8.7(graphql@16.13.0)
+      mqemitter: 7.1.0
+      p-map: 4.0.0
+      quick-lru: 7.3.0
+      readable-stream: 4.7.0
+      safe-stable-stringify: 2.5.0
+      secure-json-parse: 4.1.0
+      single-user-cache: 2.1.0
+      tiny-lru: 11.4.7
       ws: 8.19.0
     transitivePeerDependencies:
       - bufferutil
@@ -14491,6 +14530,8 @@ snapshots:
   wrappy@1.0.2: {}
 
   ws@8.19.0: {}
+
+  ws@8.20.0: {}
 
   xdg-basedir@4.0.0: {}
 
