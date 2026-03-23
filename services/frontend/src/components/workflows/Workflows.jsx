@@ -30,7 +30,7 @@ const STATUS_OPTIONS = [
 const PAGE_SIZE = 10
 const POLL_INTERVAL = 5000
 
-export default function Workflows ({ appId: appIdProp, applicationId }) {
+export default function Workflows ({ appId: appIdProp, applicationId, services }) {
   const [runs, setRuns] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -138,6 +138,7 @@ export default function Workflows ({ appId: appIdProp, applicationId }) {
     return (
       <RunsTable
         runs={filteredRuns}
+        services={services}
         onSelectRun={setSelectedRun}
         page={page}
         hasMore={hasMore}

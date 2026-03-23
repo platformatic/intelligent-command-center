@@ -4,5 +4,5 @@ import Workflows from './Workflows'
 
 export default function WattWorkflows () {
   const { application } = useRouteLoaderData('appRoot')
-  return <Workflows appId={application?.name} applicationId={application?.id} />
+  return <Workflows appId={application?.name} applicationId={application?.id} services={application?.state?.services} />
 }

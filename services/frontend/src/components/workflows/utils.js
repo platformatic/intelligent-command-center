@@ -57,6 +57,22 @@ export function formatWorkflowName (raw) {
   return last || raw
 }
 
+export function formatApplicationName (raw, services) {
+  if (!raw) return '-'
+  // workflow//myservice/workflows/pipeline//orderPipeline → myservice
+  // workflow//./workflows/pipeline//orderPipeline → entrypoint service name
+  const parts = raw.split('//')
+  if (parts.length < 2) return '-'
+  const pathPart = parts[1]
+  const firstSegment = pathPart.split('/')[0]
+  if (!firstSegment) return '-'
+  if (firstSegment === '.') {
+    const entrypoint = services?.find((s) => s.entrypoint)
+    return entrypoint?.id || '-'
+  }
+  return firstSegment
+}
+
 // The Vercel workflow SDK serializes data as: 4-byte "devl" header + devalue-encoded payload.
 // When stored as BYTEA and returned via the API, these appear as base64 strings.
 // This function decodes them for human-readable display in the ICC dashboard.

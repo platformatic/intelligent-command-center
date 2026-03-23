@@ -7,15 +7,16 @@ import { WHITE } from '@platformatic/ui-components/src/components/constants'
 import { PlatformaticIcon } from '@platformatic/ui-components'
 
 import WorkflowStatusPill from './WorkflowStatusPill'
-import { formatRelativeTime, formatDuration, formatWorkflowName } from './utils'
+import { formatRelativeTime, formatDuration, formatWorkflowName, formatApplicationName } from './utils'
 
 import styles from './RunsTable.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 
-export default function RunsTable ({ runs, onSelectRun, page, hasMore, onPageChange }) {
+export default function RunsTable ({ runs, services, onSelectRun, page, hasMore, onPageChange }) {
   const columns = [
     { label: 'Run ID', key: 'runId' },
+    { label: 'Application', key: 'applicationName' },
     { label: 'Workflow', key: 'workflowName' },
     { label: 'Version', key: 'deploymentId' },
     { label: 'Status', key: 'status' },
@@ -33,6 +34,8 @@ export default function RunsTable ({ runs, onSelectRun, page, hasMore, onPageCha
         return formatRelativeTime(run.startedAt || run.createdAt)
       case 'duration':
         return formatDuration(run.startedAt, run.completedAt)
+      case 'applicationName':
+        return formatApplicationName(run.workflowName, services)
       case 'workflowName':
         return formatWorkflowName(run.workflowName) || '-'
       case 'deploymentId':
