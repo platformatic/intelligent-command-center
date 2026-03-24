@@ -11,6 +11,7 @@ class SignalScalerExecutor {
 
     const globalConfig = {
       reconnectTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_RECONNECT_TIMEOUT_MS),
+      readinessDelayMs: Number(app.env.PLT_SIGNALS_SCALER_READINESS_DELAY_MS),
       horizontalTrendThreshold: Number(app.env.PLT_SIGNALS_SCALER_HORIZONTAL_TREND_THRESHOLD),
       scaleUpK: Number(app.env.PLT_SIGNALS_SCALER_SCALE_UP_K),
       scaleUpMargin: Number(app.env.PLT_SIGNALS_SCALER_SCALE_UP_MARGIN),
@@ -117,8 +118,20 @@ class SignalScalerExecutor {
     await this.predictor.initialize()
   }
 
-  async onConnect (appId, controllerId, deploymentId, podId, runtimeId, timestamp) {
-    await this.predictor.onConnect(appId, controllerId, deploymentId, podId, runtimeId, timestamp)
+  async onConnect (appId, controllerId, runtimeId, timestamp) {
+    await this.predictor.onConnect(appId, controllerId, runtimeId, timestamp)
+  }
+
+  async onReady (appId, controllerId, deploymentId, podId, runtimeId, timestamp) {
+    await this.predictor.registerInstance(
+      appId,
+      controllerId,
+      deploymentId,
+      podId,
+      runtimeId,
+      timestamp,
+      timestamp
+    )
   }
 
   async onDisconnect (appId, controllerId, runtimeId, timestamp) {

@@ -75,10 +75,83 @@ module.exports = async function (app) {
       await app.signalScalerExecutor.onConnect(
         applicationId,
         controllerId,
+        runtimeId,
+        ts
+      )
+
+      return { success: true }
+    }
+  })
+
+  app.post('/ready', {
+    schema: {
+      body: {
+        type: 'object',
+        properties: {
+          applicationId: { type: 'string' },
+          runtimeId: { type: 'string' },
+          timestamp: { type: 'number' }
+        },
+        required: ['applicationId', 'runtimeId', 'timestamp']
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' }
+          }
+        }
+      }
+    },
+    handler: async (req, reply) => {
+      const algorithmVersion = req.server.env.PLT_SCALER_ALGORITHM_VERSION
+
+      if (algorithmVersion !== 'v2') {
+        return reply.code(400).send({
+          error: 'POST /ready is only available with algorithm version v2',
+          currentVersion: algorithmVersion
+        })
+      }
+
+      const k8sContext = req.k8s
+      if (!k8sContext) {
+        throw new Error('Missing k8s context')
+      }
+
+      const podId = k8sContext.pod?.name
+      const namespace = k8sContext.namespace
+
+      if (!podId) {
+        throw new Error('Missing pod ID from k8s context')
+      }
+
+      if (!app.signalScalerExecutor) {
+        throw new Error('Signal Scaler executor not initialized')
+      }
+
+      const { applicationId, runtimeId, timestamp } = req.body
+
+      const instance = await app.getInstanceByPodId(podId, namespace)
+      if (!instance) {
+        throw new Error('Instance not found for pod')
+      }
+
+      const controller = await app.getControllerByDeploymentId(
+        applicationId,
+        instance.deploymentId
+      )
+      if (!controller) {
+        throw new APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
+      }
+      const controllerId = controller.k8SControllerId
+
+      await app.signalScalerExecutor.onReady(
+        applicationId,
+        controllerId,
         instance.deploymentId,
         podId,
         runtimeId,
-        ts
+        timestamp
       )
 
       return { success: true }

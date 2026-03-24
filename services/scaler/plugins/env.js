@@ -38,6 +38,7 @@ const schema = {
 
     // LoadPredictor (v2) - Global config
     PLT_SIGNALS_SCALER_RECONNECT_TIMEOUT_MS: { type: 'number', default: 5000 },
+    PLT_SIGNALS_SCALER_READINESS_DELAY_MS: { type: 'number', default: 10000 },
     PLT_SIGNALS_SCALER_HORIZONTAL_TREND_THRESHOLD: { type: 'number', default: 0.2 },
     PLT_SIGNALS_SCALER_PENDING_SCALE_UP_EXPIRY_MS: { type: 'number', default: 60000 },
     PLT_SIGNALS_SCALER_REDEPLOY_TIMEOUT_MS: { type: 'number', default: 2 * 60 * 1000 },
@@ -49,7 +50,7 @@ const schema = {
     PLT_SIGNALS_SCALER_INIT_TIMEOUT_DOWN_FACTOR: { type: 'number', default: 1.0 },
 
     // LoadPredictor - Scaling decision parameters
-    PLT_SIGNALS_SCALER_SCALE_UP_K: { type: 'number', default: 2 },
+    PLT_SIGNALS_SCALER_SCALE_UP_K: { type: 'number', default: 1.5 },
     PLT_SIGNALS_SCALER_SCALE_UP_MARGIN: { type: 'number', default: 0.1 },
     PLT_SIGNALS_SCALER_SCALE_DOWN_MARGIN: { type: 'number', default: 0.3 },
 
@@ -58,7 +59,7 @@ const schema = {
     PLT_SIGNALS_SCALER_PROCESSING_INIT_TIMEOUT_MS: { type: 'number', default: 1000 },
     PLT_SIGNALS_SCALER_PROCESSING_COOLDOWN_MS: { type: 'number', default: 10000 },
     PLT_SIGNALS_SCALER_INSTANCES_WINDOW_MS: { type: 'number', default: 180000 },
-    PLT_SIGNALS_SCALER_MIN_INIT_TIMEOUT_MS: { type: 'number', default: 10000 },
+    PLT_SIGNALS_SCALER_MIN_INIT_TIMEOUT_MS: { type: 'number', default: 5000 },
 
     // LoadPredictor - Cooldowns
     PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_UP_MS: { type: 'number', default: 5000 },
