@@ -33,6 +33,7 @@ const schema = {
     PLT_SCALER_POD_MAX_DEFAULT_VALUE: { type: 'number', default: 10 },
     PLT_MACHINIST_URL: { type: 'string' },
     PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1', enum: ['v1', 'v2'] },
+    PLT_SCALER_SCALING_DISABLED: { type: 'boolean', default: false },
     PLT_ICC_SESSION_SECRET: { type: 'string' },
 
     // LoadPredictor (v2) - Global config

@@ -11,6 +11,11 @@ async function plugin (app) {
     return
   }
 
+  if (app.env.PLT_SCALER_SCALING_DISABLED) {
+    app.log.info('[Scaler V1] Scaling is globally disabled, skipping periodic trigger')
+    return
+  }
+
   let isServerClosed = false
   const periodicTriggerInterval = (Number(process.env.PLT_SCALER_PERIODIC_TRIGGER) || 60) * 1000
   let periodicTriggerController = null

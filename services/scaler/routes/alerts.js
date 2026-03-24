@@ -35,6 +35,10 @@ module.exports = async function (app) {
       }
     },
     handler: async (req) => {
+      if (req.server.env.PLT_SCALER_SCALING_DISABLED) {
+        return {}
+      }
+
       const k8sContext = req.k8s
       if (!k8sContext) {
         throw new Error('Missing k8s context')
