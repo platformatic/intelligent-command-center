@@ -42,6 +42,10 @@ const schema = {
     PLT_SIGNALS_SCALER_HORIZONTAL_TREND_THRESHOLD: { type: 'number', default: 0.2 },
     PLT_SIGNALS_SCALER_PENDING_SCALE_UP_EXPIRY_MS: { type: 'number', default: 60000 },
     PLT_SIGNALS_SCALER_REDEPLOY_TIMEOUT_MS: { type: 'number', default: 2 * 60 * 1000 },
+    PLT_SIGNALS_SCALER_INIT_TIMEOUT_MS: { type: 'number', default: 10000 },
+    PLT_SIGNALS_SCALER_HORIZON_MULTIPLIER: { type: 'number', default: 1.2 },
+    PLT_SIGNALS_SCALER_MIN_HORIZON_MS: { type: 'number', default: 10000 },
+    PLT_SIGNALS_SCALER_MAX_HORIZON_MS: { type: 'number', default: 40000 },
 
     // LoadPredictor - Init timeout tuning
     PLT_SIGNALS_SCALER_INIT_TIMEOUT_WINDOW_SIZE: { type: 'number', default: 5 },
@@ -55,11 +59,10 @@ const schema = {
     PLT_SIGNALS_SCALER_SCALE_DOWN_MARGIN: { type: 'number', default: 0.3 },
 
     // LoadPredictor - Default app config
-    PLT_SIGNALS_SCALER_HORIZON_MULTIPLIER: { type: 'number', default: 1.2 },
+    PLT_SIGNALS_SCALER_MAX_SCALE_UP_STEP: { type: 'number', default: 4 },
     PLT_SIGNALS_SCALER_PROCESSING_INIT_TIMEOUT_MS: { type: 'number', default: 1000 },
     PLT_SIGNALS_SCALER_PROCESSING_COOLDOWN_MS: { type: 'number', default: 10000 },
     PLT_SIGNALS_SCALER_INSTANCES_WINDOW_MS: { type: 'number', default: 180000 },
-    PLT_SIGNALS_SCALER_MIN_INIT_TIMEOUT_MS: { type: 'number', default: 5000 },
 
     // LoadPredictor - Cooldowns
     PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_UP_MS: { type: 'number', default: 5000 },
@@ -73,7 +76,7 @@ const schema = {
     PLT_SIGNALS_SCALER_ELU_REDISTRIBUTION_MS: { type: 'number', default: 30000 },
     PLT_SIGNALS_SCALER_ELU_ALPHA_UP: { type: 'number', default: 0.2 },
     PLT_SIGNALS_SCALER_ELU_ALPHA_DOWN: { type: 'number', default: 0.1 },
-    PLT_SIGNALS_SCALER_ELU_BETA_UP: { type: 'number', default: 0.2 },
+    PLT_SIGNALS_SCALER_ELU_BETA_UP: { type: 'number', default: 0.12 },
     PLT_SIGNALS_SCALER_ELU_BETA_DOWN: { type: 'number', default: 0.1 },
 
     // LoadPredictor - Heap config
@@ -82,7 +85,7 @@ const schema = {
     PLT_SIGNALS_SCALER_HEAP_REDISTRIBUTION_MS: { type: 'number', default: 30000 },
     PLT_SIGNALS_SCALER_HEAP_ALPHA_UP: { type: 'number', default: 0.2 },
     PLT_SIGNALS_SCALER_HEAP_ALPHA_DOWN: { type: 'number', default: 0.1 },
-    PLT_SIGNALS_SCALER_HEAP_BETA_UP: { type: 'number', default: 0.2 },
+    PLT_SIGNALS_SCALER_HEAP_BETA_UP: { type: 'number', default: 0.12 },
     PLT_SIGNALS_SCALER_HEAP_BETA_DOWN: { type: 'number', default: 0.1 },
 
     // LoadPredictor - Valkey key prefix

@@ -18,6 +18,10 @@ class SignalScalerExecutor {
       scaleDownMargin: Number(app.env.PLT_SIGNALS_SCALER_SCALE_DOWN_MARGIN),
       pendingScaleUpExpiryMs: Number(app.env.PLT_SIGNALS_SCALER_PENDING_SCALE_UP_EXPIRY_MS),
       redeployTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_REDEPLOY_TIMEOUT_MS),
+      initTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_INIT_TIMEOUT_MS),
+      horizonMultiplier: Number(app.env.PLT_SIGNALS_SCALER_HORIZON_MULTIPLIER),
+      minHorizonMs: Number(app.env.PLT_SIGNALS_SCALER_MIN_HORIZON_MS),
+      maxHorizonMs: Number(app.env.PLT_SIGNALS_SCALER_MAX_HORIZON_MS),
       initTimeout: {
         windowSize: Number(app.env.PLT_SIGNALS_SCALER_INIT_TIMEOUT_WINDOW_SIZE),
         stepRate: Number(app.env.PLT_SIGNALS_SCALER_INIT_TIMEOUT_STEP_RATE),
@@ -31,11 +35,10 @@ class SignalScalerExecutor {
         min: Number(app.env.PLT_SCALER_MIN_PODS_DEFAULT),
         max: Number(app.env.PLT_SCALER_MAX_PODS_DEFAULT)
       },
-      horizonMultiplier: Number(app.env.PLT_SIGNALS_SCALER_HORIZON_MULTIPLIER),
+      maxScaleUpStep: Number(app.env.PLT_SIGNALS_SCALER_MAX_SCALE_UP_STEP),
       processingInitTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_PROCESSING_INIT_TIMEOUT_MS),
       processingCooldownMs: Number(app.env.PLT_SIGNALS_SCALER_PROCESSING_COOLDOWN_MS),
       instancesWindowMs: Number(app.env.PLT_SIGNALS_SCALER_INSTANCES_WINDOW_MS),
-      minInitTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_MIN_INIT_TIMEOUT_MS),
       cooldowns: {
         scaleUpAfterScaleUpMs: Number(app.env.PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_UP_MS),
         scaleUpAfterScaleDownMs: Number(app.env.PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_DOWN_MS),
@@ -99,9 +102,7 @@ class SignalScalerExecutor {
       algorithm: 'Signal Scaler',
       globalConfig,
       defaultAppConfig: {
-        pods: defaultAppConfig.pods,
-        horizonMultiplier: defaultAppConfig.horizonMultiplier,
-        minInitTimeoutMs: defaultAppConfig.minInitTimeoutMs
+        pods: defaultAppConfig.pods
       }
     }, '[Signal Scaler] Executor initialized')
   }
