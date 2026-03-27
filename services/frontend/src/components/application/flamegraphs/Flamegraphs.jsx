@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useLoaderData, useNavigate, generatePath, useRouteLoaderData } from 'react-router-dom'
+import Paginator from '~/components/ui/Paginator'
 import { DULLS_BACKGROUND_COLOR, MEDIUM, RICH_BLACK, SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
 import { Button, Tooltip } from '@platformatic/ui-components'
 import Icons from '@platformatic/ui-components/src/components/icons'
@@ -18,9 +19,14 @@ import useSubscribeToUpdates from '~/hooks/useSubscribeToUpdates'
 import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
 import useRefreshData from '~/hooks/useRefreshData'
 
+const PAGE_SIZE = 15
+
 export default function Flamegraphs () {
-  const { flamegraphs } = useLoaderData()
+  const { flamegraphs, total: initialTotal } = useLoaderData()
   const [currentFlamegraphs, setCurrentFlamegraphs] = useState(flamegraphs)
+  const [totalFlamegraphs, setTotalFlamegraphs] = useState(initialTotal)
+  const [currentPage, setCurrentPage] = useState(0)
+  const currentPageRef = useRef(0)
   const { application } = useRouteLoaderData('appRoot')
   const [collectingCPU, setCollectingCPU] = useState(false)
   const [collectingHeap, setCollectingHeap] = useState(false)
@@ -37,8 +43,11 @@ export default function Flamegraphs () {
     if (lastMessage !== null) {
       const message = JSON.parse(lastMessage.data)
       if (message.type === 'flamegraph-created') {
-        // Always update the flamegraphs list for UI
-        setCurrentFlamegraphs(prev => [...prev, message.data])
+        setTotalFlamegraphs(prev => prev + 1)
+        // Only update the list when on the first page (newest items)
+        if (currentPageRef.current === 0) {
+          setCurrentFlamegraphs(prev => [...prev, message.data])
+        }
 
         // Only track collection if we're actively collecting
         if (isCollectingRef.current) {
@@ -113,10 +122,12 @@ export default function Flamegraphs () {
   }, [currentFlamegraphs])
 
   async function refreshFlamegraphs () {
-    const query = `where.applicationId.eq=${application.id}`
-    const [flamegraphs, alerts] = await Promise.all([
-      callApi('scaler', `flamegraphs?${query}`, 'GET'),
-      callApi('scaler', `alerts?${query}`, 'GET')
+    const offset = currentPageRef.current * PAGE_SIZE
+    const flamegraphsQuery = `applicationId=${application.id}&limit=${PAGE_SIZE}&offset=${offset}`
+    const alertsQuery = `where.applicationId.eq=${application.id}`
+    const [result, alerts] = await Promise.all([
+      callApi('scaler', `flamegraphs?${flamegraphsQuery}`, 'GET'),
+      callApi('scaler', `alerts?${alertsQuery}`, 'GET')
     ])
 
     // Build a map of flamegraphId -> array of alertIds (one flamegraph can have multiple alerts)
@@ -134,22 +145,30 @@ export default function Flamegraphs () {
 
     // Create flamegraph entries - duplicate flamegraphs for each related alert
     const flamegraphsWithAlerts = []
-    if (Array.isArray(flamegraphs)) {
-      for (const fg of flamegraphs) {
-        const alertIds = flamegraphToAlerts[fg.id]
-        if (alertIds && alertIds.length > 0) {
-          // Create one entry per alert
-          for (const alertId of alertIds) {
-            flamegraphsWithAlerts.push({ ...fg, alertId })
-          }
-        } else {
-          // No alerts - add without alertId
-          flamegraphsWithAlerts.push({ ...fg, alertId: null })
+    const flamegraphsList = result?.flamegraphs ?? []
+    for (const fg of flamegraphsList) {
+      const alertIds = flamegraphToAlerts[fg.id]
+      if (alertIds && alertIds.length > 0) {
+        // Create one entry per alert
+        for (const alertId of alertIds) {
+          flamegraphsWithAlerts.push({ ...fg, alertId })
         }
+      } else {
+        // No alerts - add without alertId
+        flamegraphsWithAlerts.push({ ...fg, alertId: null })
       }
     }
 
     setCurrentFlamegraphs(flamegraphsWithAlerts)
+    if (result?.total !== undefined) {
+      setTotalFlamegraphs(result.total)
+    }
+  }
+
+  async function handlePageChange (page) {
+    currentPageRef.current = page
+    setCurrentPage(page)
+    await refreshFlamegraphs()
   }
 
   function resetCollectionState () {
@@ -283,6 +302,13 @@ export default function Flamegraphs () {
       <div className={styles.flamegraphsContainer}>
         {rows.map((row) => renderRow(row))}
       </div>
+      {Math.ceil(totalFlamegraphs / PAGE_SIZE) > 1 && (
+        <Paginator
+          pagesNumber={Math.ceil(totalFlamegraphs / PAGE_SIZE)}
+          selectedPage={currentPage}
+          onClickPage={handlePageChange}
+        />
+      )}
     </div>
   )
 }

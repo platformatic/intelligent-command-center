@@ -340,9 +340,11 @@ export function getRouter () {
               'where.applicationId.eq': params.applicationId
             })
             const flamegraphsQuery = new URLSearchParams({
-              applicationId: params.applicationId
+              applicationId: params.applicationId,
+              limit: '50',
+              offset: '0'
             })
-            const [flamegraphs, alerts] = await Promise.all([
+            const [{ flamegraphs, total }, alerts] = await Promise.all([
               callApi('scaler', `flamegraphs?${flamegraphsQuery.toString()}`, 'GET'),
               callApi('scaler', `alerts?${query.toString()}`, 'GET')
             ])
@@ -379,7 +381,7 @@ export function getRouter () {
 
             query.set('where.status.eq', 'running')
             const pods = await callApi('control-plane', `/instances?${query.toString()}`, 'GET')
-            return { flamegraphs: flamegraphsWithAlerts, pods }
+            return { flamegraphs: flamegraphsWithAlerts, total, pods }
           },
           path: 'flamegraphs',
           element: <Flamegraphs />

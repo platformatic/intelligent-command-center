@@ -6,26 +6,33 @@ const { scanKeys } = require('../../../lib/redis-utils')
 async function plugin (app) {
   const valkey = app.store.valkey
 
-  app.decorate('getApplicationFlamegraphs', async (applicationId) => {
+  app.decorate('getApplicationFlamegraphs', async (applicationId, { limit = 50, offset = 0 } = {}) => {
     const { db, sql } = app.platformatic
 
-    const flamegraphs = await db.query(sql`
-      SELECT
-        f.id,
-        f.application_id as "applicationId",
-        f.service_id as "serviceId",
-        f.pod_id as "podId",
-        f.profile_type as "type",
-        f.created_at as "createdAt",
-        COUNT(a.id) as "alertsCount"
-      FROM flamegraphs f
-      LEFT JOIN alerts a ON f.id = a.flamegraph_id
-      WHERE f.application_id = ${applicationId}
-      GROUP BY f.id
-      ORDER BY f.created_at DESC
-    `)
+    const [flamegraphs, countResult] = await Promise.all([
+      db.query(sql`
+        SELECT
+          f.id,
+          f.application_id as "applicationId",
+          f.service_id as "serviceId",
+          f.pod_id as "podId",
+          f.profile_type as "type",
+          f.created_at as "createdAt",
+          COUNT(a.id) as "alertsCount"
+        FROM flamegraphs f
+        LEFT JOIN alerts a ON f.id = a.flamegraph_id
+        WHERE f.application_id = ${applicationId}
+        GROUP BY f.id
+        ORDER BY f.created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `),
+      db.query(sql`
+        SELECT COUNT(*) as total FROM flamegraphs
+        WHERE application_id = ${applicationId}
+      `)
+    ])
 
-    return flamegraphs
+    return { flamegraphs, total: parseInt(countResult[0].total) }
   })
 
   app.decorate('getProfilingStates', async (applicationId) => {

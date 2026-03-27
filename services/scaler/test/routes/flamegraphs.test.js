@@ -744,8 +744,9 @@ test('/GET /flamegraphs returns flamegraphs for application', async (t) => {
   })
   assert.strictEqual(statusCode, 200)
 
-  const flamegraphs = JSON.parse(body)
+  const { flamegraphs, total } = JSON.parse(body)
   assert.strictEqual(flamegraphs.length, 2)
+  assert.strictEqual(total, 2)
 
   const flamegraph1 = flamegraphs.find((f) => f.podId === podId1)
   assert.ok(flamegraph1)
@@ -760,4 +761,157 @@ test('/GET /flamegraphs returns flamegraphs for application', async (t) => {
   assert.strictEqual(flamegraph2.serviceId, serviceId2)
   assert.strictEqual(flamegraph2.flamegraph, undefined)
   assert.strictEqual(flamegraph2.alertsCount, 0)
+})
+
+test('/GET /flamegraphs supports pagination with limit and offset', async (t) => {
+  await cleanValkeyData()
+
+  const server = await buildServer(t)
+  const applicationId = randomUUID()
+  const flamegraphData = Buffer.from('test flamegraph data')
+
+  server.getInstanceByPodId = async () => ({ applicationId })
+  server.emitUpdate = async () => {}
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  // Create 5 flamegraphs for the same application
+  for (let i = 1; i <= 5; i++) {
+    const { statusCode } = await server.inject({
+      method: 'POST',
+      url: `/pods/pod-${i}/services/service-${i}/flamegraph`,
+      headers: {
+        'content-type': 'application/octet-stream',
+        'x-k8s': generateK8sHeader(`pod-${i}`)
+      },
+      payload: flamegraphData
+    })
+    assert.strictEqual(statusCode, 200)
+  }
+
+  // Verify all 5 are returned when limit is large enough
+  {
+    const { statusCode, body } = await server.inject({
+      method: 'GET',
+      url: '/flamegraphs',
+      query: { applicationId, limit: 10, offset: 0 }
+    })
+    assert.strictEqual(statusCode, 200)
+    const { flamegraphs, total } = JSON.parse(body)
+    assert.strictEqual(flamegraphs.length, 5)
+    assert.strictEqual(total, 5)
+  }
+
+  // First page: limit=2, offset=0 → 2 results, total=5
+  {
+    const { statusCode, body } = await server.inject({
+      method: 'GET',
+      url: '/flamegraphs',
+      query: { applicationId, limit: 2, offset: 0 }
+    })
+    assert.strictEqual(statusCode, 200)
+    const { flamegraphs, total } = JSON.parse(body)
+    assert.strictEqual(flamegraphs.length, 2)
+    assert.strictEqual(total, 5)
+  }
+
+  // Second page: limit=2, offset=2 → 2 results, total=5
+  {
+    const { statusCode, body } = await server.inject({
+      method: 'GET',
+      url: '/flamegraphs',
+      query: { applicationId, limit: 2, offset: 2 }
+    })
+    assert.strictEqual(statusCode, 200)
+    const { flamegraphs, total } = JSON.parse(body)
+    assert.strictEqual(flamegraphs.length, 2)
+    assert.strictEqual(total, 5)
+  }
+
+  // Last partial page: limit=2, offset=4 → 1 result, total=5
+  {
+    const { statusCode, body } = await server.inject({
+      method: 'GET',
+      url: '/flamegraphs',
+      query: { applicationId, limit: 2, offset: 4 }
+    })
+    assert.strictEqual(statusCode, 200)
+    const { flamegraphs, total } = JSON.parse(body)
+    assert.strictEqual(flamegraphs.length, 1)
+    assert.strictEqual(total, 5)
+  }
+
+  // Beyond total: offset past all records → 0 results, total still 5
+  {
+    const { statusCode, body } = await server.inject({
+      method: 'GET',
+      url: '/flamegraphs',
+      query: { applicationId, limit: 2, offset: 10 }
+    })
+    assert.strictEqual(statusCode, 200)
+    const { flamegraphs, total } = JSON.parse(body)
+    assert.strictEqual(flamegraphs.length, 0)
+    assert.strictEqual(total, 5)
+  }
+})
+
+test('/GET /flamegraphs pages are ordered newest first', async (t) => {
+  await cleanValkeyData()
+
+  const server = await buildServer(t)
+  const applicationId = randomUUID()
+  const flamegraphData = Buffer.from('test flamegraph data')
+
+  server.getInstanceByPodId = async () => ({ applicationId })
+  server.emitUpdate = async () => {}
+
+  t.after(async () => {
+    await server.close()
+    await cleanValkeyData()
+  })
+
+  const createdIds = []
+  for (let i = 1; i <= 3; i++) {
+    const { statusCode, body } = await server.inject({
+      method: 'POST',
+      url: `/pods/pod-${i}/services/service-${i}/flamegraph`,
+      headers: {
+        'content-type': 'application/octet-stream',
+        'x-k8s': generateK8sHeader(`pod-${i}`)
+      },
+      payload: flamegraphData
+    })
+    assert.strictEqual(statusCode, 200)
+    createdIds.push(JSON.parse(body).id)
+  }
+
+  // First page (limit=2) should contain the 2 most recently created flamegraphs
+  const { statusCode, body } = await server.inject({
+    method: 'GET',
+    url: '/flamegraphs',
+    query: { applicationId, limit: 2, offset: 0 }
+  })
+  assert.strictEqual(statusCode, 200)
+  const { flamegraphs, total } = JSON.parse(body)
+  assert.strictEqual(total, 3)
+  assert.strictEqual(flamegraphs.length, 2)
+
+  // Results should be ordered newest first (descending createdAt)
+  const returnedDates = flamegraphs.map(f => new Date(f.createdAt).getTime())
+  assert.ok(returnedDates[0] >= returnedDates[1], 'First result should be newer than or equal to second')
+
+  // Second page should contain the oldest flamegraph
+  const { statusCode: statusCode2, body: body2 } = await server.inject({
+    method: 'GET',
+    url: '/flamegraphs',
+    query: { applicationId, limit: 2, offset: 2 }
+  })
+  assert.strictEqual(statusCode2, 200)
+  const { flamegraphs: page2, total: total2 } = JSON.parse(body2)
+  assert.strictEqual(total2, 3)
+  assert.strictEqual(page2.length, 1)
+  assert.strictEqual(page2[0].id, createdIds[0])
 })

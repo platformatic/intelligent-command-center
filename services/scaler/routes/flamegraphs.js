@@ -71,32 +71,40 @@ module.exports = async function (app) {
       query: {
         type: 'object',
         properties: {
-          applicationId: { type: 'string' }
+          applicationId: { type: 'string' },
+          limit: { type: 'integer', default: 15, minimum: 1, maximum: 500 },
+          offset: { type: 'integer', default: 0, minimum: 0 }
         }
       },
       response: {
         200: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              applicationId: { type: 'string' },
-              serviceId: { type: 'string' },
-              podId: { type: 'string' },
-              type: { type: 'string' },
-              alertsCount: { type: 'number' },
-              createdAt: { type: 'string' }
-            }
+          type: 'object',
+          properties: {
+            flamegraphs: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  applicationId: { type: 'string' },
+                  serviceId: { type: 'string' },
+                  podId: { type: 'string' },
+                  type: { type: 'string' },
+                  alertsCount: { type: 'number' },
+                  createdAt: { type: 'string' }
+                }
+              }
+            },
+            total: { type: 'integer' }
           }
         }
       }
     },
     handler: async (req) => {
-      const { applicationId } = req.query
-      app.log.debug({ applicationId }, 'fetching flamegraphs')
+      const { applicationId, limit, offset } = req.query
+      app.log.debug({ applicationId, limit, offset }, 'fetching flamegraphs')
 
-      return app.getApplicationFlamegraphs(applicationId)
+      return app.getApplicationFlamegraphs(applicationId, { limit, offset })
     }
   })
 
