@@ -1,7 +1,6 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const { LoadPredictor } = require('../lib/load-predictor')
 
 class SignalScalerExecutor {
   #appStates = new Map()
@@ -94,6 +93,16 @@ class SignalScalerExecutor {
           pods: { min: minPods, max: maxPods }
         }
       }
+    }
+
+    let LoadPredictor
+    try {
+      LoadPredictor = require('../lib/load-predictor').LoadPredictor
+    } catch {
+      throw new Error(
+        'The predictive scaling algorithm is not available in the OSS version of ICC. ' +
+        'Please set PLT_SCALER_ALGORITHM_VERSION to "v1" or upgrade to the commercial version.'
+      )
     }
 
     this.predictor = new LoadPredictor(globalConfig, defaultAppConfig, api, valkeyConfig)
