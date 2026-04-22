@@ -67,8 +67,8 @@ const schema = {
     // LoadPredictor - Cooldowns
     PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_UP_MS: { type: 'number', default: 5000 },
     PLT_SIGNALS_SCALER_COOLDOWN_SCALE_UP_AFTER_SCALE_DOWN_MS: { type: 'number', default: 5000 },
-    PLT_SIGNALS_SCALER_COOLDOWN_SCALE_DOWN_AFTER_SCALE_UP_MS: { type: 'number', default: 30000 },
-    PLT_SIGNALS_SCALER_COOLDOWN_SCALE_DOWN_AFTER_SCALE_DOWN_MS: { type: 'number', default: 20000 },
+    PLT_SIGNALS_SCALER_COOLDOWN_SCALE_DOWN_AFTER_SCALE_UP_MS: { type: 'number', default: 3 * 60 * 1000 },
+    PLT_SIGNALS_SCALER_COOLDOWN_SCALE_DOWN_AFTER_SCALE_DOWN_MS: { type: 'number', default: 60 * 1000 },
 
     // LoadPredictor - ELU config
     PLT_SIGNALS_SCALER_ELU_WINDOW_MS: { type: 'number', default: 60000 },
