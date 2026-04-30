@@ -6,3 +6,5 @@ supportedArchitectures:
   os:
   - darwin
   - linux
+
+minimumReleaseAge: 1440
