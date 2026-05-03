@@ -228,7 +228,7 @@ importers:
         version: 0.3.3
       uuid:
         specifier: ^13.0.0
-        version: 13.0.0
+        version: 13.0.1
     devDependencies:
       '@databases/pg':
         specifier: ^5.5.0
@@ -6435,12 +6435,12 @@ packages:
   uuid4@2.0.3:
     resolution: {integrity: sha512-CTpAkEVXMNJl2ojgtpLXHgz23dh8z81u6/HEPiQFOvBc/c2pde6TVHmH4uwY0d/GLF3tb7+VDAj4+2eJaQSdZQ==}
 
-  uuid@11.1.0:
-    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+  uuid@11.1.1:
+    resolution: {integrity: sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==}
     hasBin: true
 
-  uuid@13.0.0:
-    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+  uuid@13.0.1:
+    resolution: {integrity: sha512-9ezox2roIft6ExBVTVqibSd5dc5/47Sw/uY6b4SjQUT2TzQ0tltNquWA46y4xPQmdZYqvnio22SgWd41M86+jw==}
     hasBin: true
 
   uuid@7.0.3:
@@ -12483,7 +12483,7 @@ snapshots:
       roughjs: 4.6.6
       stylis: 4.3.6
       ts-dedent: 2.2.0
-      uuid: 11.1.0
+      uuid: 11.1.1
 
   metaline@1.1.0:
     dependencies:
@@ -14214,9 +14214,9 @@ snapshots:
 
   uuid4@2.0.3: {}
 
-  uuid@11.1.0: {}
+  uuid@11.1.1: {}
 
-  uuid@13.0.0: {}
+  uuid@13.0.1: {}
 
   uuid@7.0.3: {}
 
