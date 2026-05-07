@@ -82,16 +82,16 @@ module.exports = async function (app) {
         })
       }
 
-      const k8sContext = req.k8s
-      if (!k8sContext) {
-        throw new Error('Missing k8s context')
+      const machineCtx = req.context
+      if (!machineCtx) {
+        throw new Error('Missing machine context')
       }
 
-      const podId = k8sContext.pod?.name
-      const namespace = k8sContext.namespace
+      const podId = machineCtx.machineId
+      const namespace = machineCtx.namespace
 
       if (!podId) {
-        throw new Error('Missing pod ID from k8s context')
+        throw new Error('Missing machine ID from machine context')
       }
 
       if (!app.signalScalerExecutor) {
@@ -100,7 +100,7 @@ module.exports = async function (app) {
 
       const { applicationId, runtimeId, signals, batchStartedAt } = req.body
 
-      const instance = await app.getInstanceByPodId(podId, namespace)
+      const instance = await app.getInstanceByMachineId(podId, namespace)
       if (!instance) {
         throw new Error('Instance not found for pod')
       }
@@ -112,7 +112,7 @@ module.exports = async function (app) {
       if (!controller) {
         throw new APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
       }
-      const controllerId = controller.k8SControllerId
+      const controllerId = controller.controllerId
 
       if (controller.scalingDisabled) {
         return { alerts: [] }

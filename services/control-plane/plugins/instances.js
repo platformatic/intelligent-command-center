@@ -7,7 +7,7 @@ const fp = require('fastify-plugin')
 const errors = require('./errors')
 const { getK8sToken, k8sAuthHeaders } = require('../lib/k8s-auth')
 
-async function registerWorkflowApp (appName, namespace, { workflowUrl, log, podId, deploymentVersion, serviceName, servicePort }) {
+async function registerWorkflowApp (appName, namespace, { workflowUrl, log, machineId, deploymentVersion, serviceName, servicePort }) {
   if (!workflowUrl || !getK8sToken()) return
 
   const headers = {
@@ -41,15 +41,15 @@ async function registerWorkflowApp (appName, namespace, { workflowUrl, log, podI
     return
   }
 
-  // Register queue handler so the workflow service can dispatch messages to this pod.
+  // Register queue handler so the workflow service can dispatch messages to this machine.
   // The base URL uses the K8s FQDN so cross-namespace dispatch works.
-  if (podId && deploymentVersion && serviceName && servicePort) {
+  if (machineId && deploymentVersion && serviceName && servicePort) {
     const baseUrl = `http://${serviceName}.${namespace}.svc.cluster.local:${servicePort}`
     const handlerRes = await request(`${workflowUrl}/api/v1/apps/${encodeURIComponent(appName)}/handlers`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
-        podId,
+        machineId,
         deploymentVersion,
         endpoints: {
           workflow: `${baseUrl}/.well-known/workflow/v1/flow`,
@@ -61,9 +61,9 @@ async function registerWorkflowApp (appName, namespace, { workflowUrl, log, podI
     await handlerRes.body.dump()
 
     if (handlerRes.statusCode !== 201) {
-      log.warn({ appName, podId, statusCode: handlerRes.statusCode }, 'failed to register workflow queue handler')
+      log.warn({ appName, machineId, statusCode: handlerRes.statusCode }, 'failed to register workflow queue handler')
     } else {
-      log.info({ appName, podId, deploymentVersion, baseUrl }, 'registered workflow queue handler')
+      log.info({ appName, machineId, deploymentVersion, baseUrl }, 'registered workflow queue handler')
     }
   }
 
@@ -75,10 +75,10 @@ module.exports = fp(async function (app) {
   const enableCacheRecommendations = app.env.PLT_FEATURE_CACHE_RECOMMENDATIONS
   const scalerVersion = app.env.PLT_SCALER_ALGORITHM_VERSION
 
-  app.decorate('getInstanceByPodId', async (podId, namespace) => {
+  app.decorate('getInstanceByMachineId', async (machineId, namespace) => {
     const instances = await app.platformatic.entities.instance.find({
       where: {
-        podId: { eq: podId },
+        machineId: { eq: machineId },
         namespace: { eq: namespace }
       }
     })
@@ -95,7 +95,7 @@ module.exports = fp(async function (app) {
 
   app.decorate('initApplicationInstance', async (
     applicationName,
-    podId,
+    machineId,
     namespace,
     apiVersion,
     ctx
@@ -103,12 +103,12 @@ module.exports = fp(async function (app) {
     let application = null
     let deployment = null
 
-    ctx.logger.debug({ podId }, 'Getting application instance')
+    ctx.logger.debug({ machineId }, 'Getting application instance')
 
-    // Check if pod already exists in database first
-    const instance = await app.getInstanceByPodId(podId, namespace)
+    // Check if machine already exists in database first
+    const instance = await app.getInstanceByMachineId(machineId, namespace)
     if (instance !== null) {
-      // Pod exists in DB, get application and deployment info
+      // Machine exists in DB, get application and deployment info
       ([application, deployment] = await Promise.all([
         app.getApplicationById(instance.applicationId),
         app.getDeploymentById(instance.deploymentId)
@@ -116,58 +116,58 @@ module.exports = fp(async function (app) {
 
       // If applicationName was provided in request, validate it matches DB
       if (applicationName && applicationName !== application.name) {
-        throw new errors.PodAssignedToDifferentApplication(
-          instance.podId,
+        throw new errors.MachineAssignedToDifferentApplication(
+          instance.machineId,
           application.name
         )
       }
 
-      // Get pod details to check image consistency
-      const podDetails = await app.machinist.getPodDetails(
-        podId,
+      // Get machine details to check image consistency
+      const machineDetails = await app.machinist.getMachine(
         namespace,
+        machineId,
         ctx
       )
-      const { image: imageId } = podDetails
+      const { image: imageId } = machineDetails
 
       if (imageId !== deployment.imageId) {
-        throw new errors.PodAssignedToDifferentImage(
-          instance.podId,
+        throw new errors.MachineAssignedToDifferentImage(
+          instance.machineId,
           deployment.imageId
         )
       }
 
-      ctx.logger.debug({ instance }, 'Got app instance with the same pod id')
+      ctx.logger.debug({ instance }, 'Got app instance with the same machine id')
     } else {
-      // Pod doesn't exist in DB, need to get pod details and resolve application name
-      const podDetails = await app.machinist.getPodDetails(
-        podId,
+      // Machine doesn't exist in DB, need to get machine details and resolve application name
+      const machineDetails = await app.machinist.getMachine(
         namespace,
+        machineId,
         ctx
       )
-      const { image: imageId } = podDetails
+      const { image: imageId } = machineDetails
 
       // Skew protection: detect version metadata from K8s labels
       let versionMeta = null
       const skewProtectionEnabled = app.env.PLT_FEATURE_SKEW_PROTECTION
       if (skewProtectionEnabled) {
-        const appLabel = podDetails.labels?.['app.kubernetes.io/name']
-        const versionLabel = podDetails.labels?.['plt.dev/version']
-        const hostnameLabel = podDetails.labels?.['plt.dev/hostname']
-        const pathLabel = podDetails.labels?.['plt.dev/path']
-        const workflowLabel = podDetails.labels?.['plt.dev/workflow']
+        const appLabel = machineDetails.labels?.['app.kubernetes.io/name']
+        const versionLabel = machineDetails.labels?.['plt.dev/version']
+        const hostnameLabel = machineDetails.labels?.['plt.dev/hostname']
+        const pathLabel = machineDetails.labels?.['plt.dev/path']
+        const workflowLabel = machineDetails.labels?.['plt.dev/workflow']
         const expirePolicyLabel = workflowLabel === 'true'
           ? 'workflow'
-          : podDetails.labels?.['plt.dev/expire-policy']
+          : machineDetails.labels?.['plt.dev/expire-policy']
 
         if (appLabel) {
           // For non-versioned deploys, derive version from the image tag
           const effectiveVersionLabel = versionLabel || (imageId?.includes(':') ? imageId.split(':').pop() : null)
 
           if (effectiveVersionLabel) {
-            const k8SDeploymentName = podDetails.controller?.name
+            const controllerName = machineDetails.controller?.name
             // When looking up the K8s Service, only filter by version label
-            // if the pod actually has one (non-versioned pods have a Service
+            // if the machine actually has one (non-versioned machines have a Service
             // without the plt.dev/version label).
             const svcLabels = { 'app.kubernetes.io/name': appLabel }
             if (versionLabel) svcLabels['plt.dev/version'] = versionLabel
@@ -180,8 +180,8 @@ module.exports = fp(async function (app) {
               return []
             })
             const service = services[0]
-            const serviceName = service?.metadata?.name
-            const servicePort = service?.spec?.ports?.[0]?.port
+            const serviceName = service?.name
+            const servicePort = service?.ports?.[0]?.port
 
             if (serviceName && servicePort) {
               const pathPrefix = pathLabel || (hostnameLabel ? '/' : `/${appLabel}`)
@@ -189,7 +189,7 @@ module.exports = fp(async function (app) {
               versionMeta = {
                 appLabel,
                 versionLabel: effectiveVersionLabel,
-                k8SDeploymentName,
+                controllerName,
                 serviceName,
                 servicePort,
                 pathPrefix,
@@ -198,7 +198,7 @@ module.exports = fp(async function (app) {
               }
 
               ctx.logger.info({
-                appLabel, versionLabel: effectiveVersionLabel, k8SDeploymentName, serviceName, servicePort, pathPrefix, hostname: hostnameLabel, autoVersioned: !versionLabel
+                appLabel, versionLabel: effectiveVersionLabel, controllerName, serviceName, servicePort, pathPrefix, hostname: hostnameLabel, autoVersioned: !versionLabel
               }, 'detected version metadata')
             }
           }
@@ -209,19 +209,19 @@ module.exports = fp(async function (app) {
       // and non-versioned deploys share the same ICC application record.
       if (versionMeta) {
         applicationName = versionMeta.appLabel
-        ctx.logger.debug({ podId, applicationName, method: 'version-meta' }, 'Using appLabel as application name')
+        ctx.logger.debug({ machineId, applicationName, method: 'version-meta' }, 'Using appLabel as application name')
       }
 
-      // If applicationName is not provided, get it from K8s pod details
+      // If applicationName is not provided, derive it from machine details
       if (!applicationName) {
-        ctx.logger.debug({ podId, namespace }, 'Application name not provided, fetching from Kubernetes')
-        applicationName = await app.getApplicationNameFromPodDetails(podDetails, podId, ctx)
+        ctx.logger.debug({ machineId, namespace }, 'Application name not provided, fetching from machine details')
+        applicationName = await app.getApplicationNameFromMachineDetails(machineDetails, machineId, ctx)
       } else {
-        ctx.logger.debug({ podId, applicationName, method: 'request-body' }, 'Application name provided in request body')
+        ctx.logger.debug({ machineId, applicationName, method: 'request-body' }, 'Application name provided in request body')
       }
 
       const result = await app.saveInstance(
-        applicationName, imageId, podId, namespace, ctx
+        applicationName, imageId, machineId, namespace, ctx
       )
 
       if (result.isNewApplication) {
@@ -251,20 +251,20 @@ module.exports = fp(async function (app) {
         })
       }
 
-      // Register workflow apps with the workflow service (idempotent, safe to call on every pod).
-      const isWorkflowApp = podDetails.labels?.['plt.dev/workflow'] === 'true'
+      // Register workflow apps with the workflow service (idempotent, safe to call on every machine).
+      const isWorkflowApp = machineDetails.labels?.['plt.dev/workflow'] === 'true'
       if (isWorkflowApp) {
         // For versioned deploys use version metadata; for non-versioned look up service directly
         let svcName = versionMeta?.serviceName
         let svcPort = versionMeta?.servicePort
-        // Use version label when available; for non-versioned pods derive from
+        // Use version label when available; for non-versioned machines derive from
         // the image tag (matching the auto-version logic in initApplicationInstance)
         // so that workflow runs are tagged with the same version ICC will use.
         const imageTag = (imageId || '').includes(':') ? imageId.split(':').pop() : null
-        const depVersion = versionMeta?.versionLabel || podDetails.labels?.['plt.dev/version'] || imageTag || 'local'
+        const depVersion = versionMeta?.versionLabel || machineDetails.labels?.['plt.dev/version'] || imageTag || 'local'
 
         if (!svcName || !svcPort) {
-          const appLabel = podDetails.labels?.['app.kubernetes.io/name']
+          const appLabel = machineDetails.labels?.['app.kubernetes.io/name']
           if (appLabel) {
             const services = await app.machinist.getServicesByLabels(
               namespace,
@@ -275,15 +275,15 @@ module.exports = fp(async function (app) {
               return []
             })
             const service = services[0]
-            svcName = service?.metadata?.name
-            svcPort = service?.spec?.ports?.[0]?.port
+            svcName = service?.name
+            svcPort = service?.ports?.[0]?.port
           }
         }
 
         await registerWorkflowApp(applicationName, namespace, {
           workflowUrl: app.env.PLT_WORKFLOW_URL,
           log: ctx.logger,
-          podId,
+          machineId,
           deploymentVersion: depVersion,
           serviceName: svcName,
           servicePort: svcPort
@@ -293,13 +293,13 @@ module.exports = fp(async function (app) {
       }
 
       if (result.isNewDeployment) {
-        await ctx.req.scaler.savePodController({
+        await ctx.req.scaler.saveMachineController({
           applicationId: result.application.id,
           deploymentId: result.deployment.id,
           namespace,
-          podId
+          machineId
         }).catch((err) => {
-          ctx.logger.error({ err }, 'Failed to save pod controller')
+          ctx.logger.error({ err }, 'Failed to save machine controller')
         })
 
         await app.sendSuccessfulApplicationDeployActivity(
@@ -312,9 +312,9 @@ module.exports = fp(async function (app) {
         })
       }
 
-      await app.machinist.setPodLabels(
-        podId,
+      await app.machinist.setMachineLabels(
         namespace,
+        machineId,
         {
           'platformatic.dev/monitor': 'prometheus',
           'platformatic.dev/application-id': result.application.id,
@@ -322,16 +322,16 @@ module.exports = fp(async function (app) {
         },
         ctx
       ).catch((err) => {
-        ctx.logger.error({ err }, 'Failed to set pod labels')
+        ctx.logger.error({ err }, 'Failed to set machine labels')
       })
 
       // Skew protection: persist version and apply HTTPRoute
       if (versionMeta && app.registerVersion) {
-        const { appLabel, versionLabel, k8SDeploymentName, serviceName, servicePort, pathPrefix, hostname, expirePolicy } = versionMeta
+        const { appLabel, versionLabel, controllerName, serviceName, servicePort, pathPrefix, hostname, expirePolicy } = versionMeta
 
         // Auto-create version for pre-existing non-versioned deployment.
-        // When the first versioned pod registers, check if there are older
-        // non-versioned pods for the same app. If so, create a synthetic
+        // When the first versioned machine registers, check if there are older
+        // non-versioned machines for the same app. If so, create a synthetic
         // version registry entry so the old deployment enters the normal
         // draining lifecycle.
         const existingVersions = await app.platformatic.entities.versionRegistry.find({
@@ -339,29 +339,29 @@ module.exports = fp(async function (app) {
         })
 
         // Auto-create version for pre-existing non-versioned deployment.
-        // When a versioned pod registers, check if there are older
-        // non-versioned pods for the same app that don't have a version
+        // When a versioned machine registers, check if there are older
+        // non-versioned machines for the same app that don't have a version
         // registry entry yet. If so, create a synthetic entry so the old
         // deployment enters the normal draining lifecycle.
         try {
-          const k8sState = await app.machinist.getK8sState(namespace, { 'app.kubernetes.io/name': appLabel }, ctx)
-          const nonVersionedPods = (k8sState.pods || []).filter(
+          const machines = await app.machinist.getMachines(namespace, { 'app.kubernetes.io/name': appLabel }, ctx)
+          const nonVersionedMachines = (machines || []).filter(
             p => !p.labels?.['plt.dev/version']
           )
 
-          if (nonVersionedPods.length > 0) {
-            const oldPod = nonVersionedPods[0]
-            const oldImage = oldPod.image || ''
+          if (nonVersionedMachines.length > 0) {
+            const oldMachine = nonVersionedMachines[0]
+            const oldImage = oldMachine.image || ''
             const oldVersionLabel = oldImage.includes(':') ? oldImage.split(':').pop() : oldImage
 
             // Check if this non-versioned deployment already has a version entry
             const alreadyRegistered = existingVersions.some(v => v.versionLabel === oldVersionLabel)
 
             if (!alreadyRegistered) {
-              const oldK8sDeploymentName = oldPod.controller?.name
+              const oldControllerName = oldMachine.controller?.name
 
               // Find the non-versioned Service by metadata labels
-              // (getK8sState.services uses selector matching which doesn't work here)
+              // (getMachines only returns machines, not services)
               const nonVersionedServices = await app.machinist.getServicesByLabels(
                 namespace,
                 { 'app.kubernetes.io/name': appLabel },
@@ -371,16 +371,16 @@ module.exports = fp(async function (app) {
                 return []
               })
               const oldService = nonVersionedServices.filter(
-                s => !s.metadata?.labels?.['plt.dev/version']
+                s => !s.labels?.['plt.dev/version']
               )[0]
-              const oldServiceName = oldService?.metadata?.name
-              const oldServicePort = oldService?.spec?.ports?.[0]?.port
+              const oldServiceName = oldService?.name
+              const oldServicePort = oldService?.ports?.[0]?.port
 
-              if (oldK8sDeploymentName && oldServiceName && oldServicePort) {
-                // Find the non-versioned pod's ICC deployment ID
+              if (oldControllerName && oldServiceName && oldServicePort) {
+                // Find the non-versioned machine's ICC deployment ID
                 let oldDeploymentId = result.deployment.id
                 const oldInstances = await app.platformatic.entities.instance.find({
-                  where: { podId: { eq: oldPod.id } }
+                  where: { machineId: { eq: oldMachine.id } }
                 })
                 if (oldInstances.length > 0) {
                   oldDeploymentId = oldInstances[0].deploymentId
@@ -389,7 +389,7 @@ module.exports = fp(async function (app) {
                 ctx.logger.info({
                   appLabel,
                   oldVersionLabel,
-                  oldK8sDeploymentName,
+                  oldControllerName,
                   oldServiceName
                 }, 'auto-creating version for pre-existing non-versioned deployment')
 
@@ -398,7 +398,7 @@ module.exports = fp(async function (app) {
                   deploymentId: oldDeploymentId,
                   appLabel,
                   versionLabel: oldVersionLabel,
-                  k8SDeploymentName: oldK8sDeploymentName,
+                  controllerName: oldControllerName,
                   serviceName: oldServiceName,
                   servicePort: oldServicePort,
                   namespace,
@@ -418,7 +418,7 @@ module.exports = fp(async function (app) {
           deploymentId: result.deployment.id,
           appLabel,
           versionLabel,
-          k8SDeploymentName,
+          controllerName,
           serviceName,
           servicePort,
           namespace,
@@ -477,7 +477,7 @@ module.exports = fp(async function (app) {
   app.decorate('saveInstance', async (
     applicationName,
     imageId,
-    podId,
+    machineId,
     namespace,
     ctx
   ) => {
@@ -544,7 +544,7 @@ module.exports = fp(async function (app) {
         input: {
           deploymentId: deployment.id,
           applicationId: application.id,
-          podId,
+          machineId,
           namespace,
           status: 'starting'
         },
@@ -685,27 +685,26 @@ module.exports = fp(async function (app) {
     return iccServicesConfigs
   })
 
-  app.decorate('getApplicationNameFromPodDetails', async (podDetails, podId, ctx) => {
-    ctx.logger.debug({ podId }, 'Getting application name from pod details')
+  app.decorate('getApplicationNameFromMachineDetails', async (machineDetails, machineId, ctx) => {
+    ctx.logger.debug({ machineId }, 'Getting application name from machine details')
 
-    // Try to get application name from the controller (Deployment/StatefulSet/etc.)
-    if (podDetails.controller && podDetails.controller.name) {
-      const controller = podDetails.controller
+    // Try to get application name from the controller (Deployment/StatefulSet/Service/etc.)
+    if (machineDetails.controller && machineDetails.controller.name) {
+      const controller = machineDetails.controller
       ctx.logger.debug({
-        podId,
+        machineId,
         controllerName: controller.name,
-        controllerKind: controller.kind,
         hasLabels: !!controller.metadata?.labels
-      }, 'Found controller in pod details')
+      }, 'Found controller in machine details')
 
       // Use the controller name directly as the application name
       return controller.name
     } else {
-      ctx.logger.debug({ podId }, 'No controller found in pod details')
+      ctx.logger.debug({ machineId }, 'No controller found in machine details')
     }
 
-    ctx.logger.warn({ podId }, 'Could not determine application name from Kubernetes metadata')
-    throw new errors.ApplicationNameNotFound(podId)
+    ctx.logger.warn({ machineId }, 'Could not determine application name from machine metadata')
+    throw new errors.ApplicationNameNotFound(machineId)
   })
 }, {
   name: 'instances',

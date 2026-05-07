@@ -32,6 +32,9 @@ const errors = {
   ),
   UnauthorizedError: createError(
     `${ERROR_PREFIX}_UNAUTHORIZED`, 'Unauthorized API call.', 401
+  ),
+  FailedToGetMachineDetailsError: createError(
+    `${ERROR_PREFIX}_FAILED_TO_GET_MACHINE_DETAILS`, 'Failed to get machine details: %s', 500
   )
 }
 

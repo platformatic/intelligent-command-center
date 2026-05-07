@@ -178,13 +178,11 @@ async function cleandb () {
   } catch {}
 }
 
-function generateK8sAuthContext (podId, namespace) {
-  return { namespace, pod: { name: podId } }
-}
-
-function generateK8sHeader (podId, namespace) {
-  namespace = namespace || 'platformatic'
-  return JSON.stringify(generateK8sAuthContext(podId, namespace))
+function generateMachineHeaders (machineId, namespace = 'platformatic') {
+  return {
+    'x-plt-machine-id': machineId,
+    'x-plt-machine-namespace': namespace
+  }
 }
 
 const createExecutor = (executor) => fp(async function (app) {
@@ -197,23 +195,38 @@ const createExecutor = (executor) => fp(async function (app) {
 async function startMachinist (t, opts = {}) {
   const machinist = fastify({ keepAliveTimeout: 1 })
 
-  machinist.get('/controllers/:namespace', async (req) => {
-    const podId = req.query.podId
+  machinist.get('/k8s/controllers/:namespace', async (req) => {
+    const machineId = req.query.machineId
     const defaultController = {
       name: 'test-controller',
-      namespace: 'platformatic',
-      kind: 'Controller',
-      apiVersion: 'v1',
-      replicas: 1
+      replicas: 1,
+      labels: {},
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' }
     }
-    const controller = opts.getPodController?.(podId) ?? defaultController
+    const controller = opts.getPodController?.(machineId) ?? defaultController
     return { controllers: [controller] }
   })
 
-  machinist.post('/controllers/:namespace/:controllerId', async (req) => {
-    const { namespace, controllerId } = req.params
-    const { replicaCount: replicas } = req.body
-    opts.setPodController?.({ controllerId, namespace, replicas })
+  machinist.get('/k8s/controllers/:namespace/:name', async (req) => {
+    const { name } = req.params
+    const { kind, apiVersion } = req.query
+    const defaultController = {
+      name,
+      replicas: 1,
+      labels: {},
+      providerMetadata: { kind, apiVersion },
+      machines: []
+    }
+    const controller = opts.getController?.(name, { kind, apiVersion }) ?? defaultController
+    return { controller }
+  })
+
+  machinist.post('/k8s/controllers/:namespace/:name', async (req) => {
+    const { namespace, name } = req.params
+    const { replicas } = req.body
+    const providerMetadata = { ...req.query }
+    opts.setPodController?.({ controllerId: name, namespace, replicas, providerMetadata })
+    return { name, replicas, labels: {}, providerMetadata }
   })
 
   t?.after(async () => {
@@ -305,7 +318,7 @@ module.exports = {
   buildServerWithPlugins,
   cleandb,
   cleanValkeyData,
-  generateK8sHeader,
+  generateMachineHeaders,
   getConfig,
   createExecutor,
   valkeyConnectionString,

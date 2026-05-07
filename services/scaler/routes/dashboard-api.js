@@ -75,7 +75,7 @@ module.exports = async function (app) {
       if (!controller) throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(req.params.appId)
       return app.signalScalerExecutor.predictor.getServices(
         req.params.appId,
-        controller.k8SControllerId
+        controller.controllerId
       )
     }
   })
@@ -96,7 +96,7 @@ module.exports = async function (app) {
       if (!controller) throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(req.params.appId)
       const snapshots = await app.signalScalerExecutor.predictor.getAppMetricsSnapshots(
         req.params.appId,
-        controller.k8SControllerId
+        controller.controllerId
       )
       return snapshots?.[req.params.serviceId] || null
     }
@@ -243,7 +243,7 @@ module.exports = async function (app) {
       if (!controller) throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(req.params.appId)
       return app.signalScalerExecutor.predictor.getAlignedInstanceMetrics(
         req.params.appId,
-        controller.k8SControllerId,
+        controller.controllerId,
         req.params.serviceId
       )
     }

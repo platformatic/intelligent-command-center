@@ -2,6 +2,7 @@
 
 const { request, getGlobalDispatcher, interceptors } = require('undici')
 const fp = require('fastify-plugin')
+const { FailedToGetMachineDetailsError } = require('../errors')
 
 /** @param {import('fastify').FastifyInstance} fastify */
 module.exports = fp(async function (fastify, opts) {
@@ -30,17 +31,17 @@ module.exports = fp(async function (fastify, opts) {
       preValidation: async (req) => {
         const applicationId = req.params.id
 
-        const k8sContext = req.k8s
-        if (!k8sContext) {
-          throw new Error('Missing k8s context')
+        const machineCtx = req.context
+        if (!machineCtx) {
+          throw new Error('Missing machine context')
         }
 
-        const podId = k8sContext.pod?.name
-        const podDetails = await getDetectedPodDetails(podId)
+        const machineId = machineCtx.machineId
+        const machineDetails = await getDetectedMachineDetails(machineId)
 
-        if (applicationId !== podDetails.applicationId) {
+        if (applicationId !== machineDetails.applicationId) {
           throw new Error(
-            `Pod "${podId}" cannot subscribe to application "${applicationId}" updates`
+            `Machine "${machineId}" cannot subscribe to application "${applicationId}" updates`
           )
         }
       },
@@ -49,14 +50,14 @@ module.exports = fp(async function (fastify, opts) {
         const applicationId = req.params.id
         const runtimeId = req.query.runtimeId
 
-        const k8sContext = req.k8s
-        const podId = k8sContext.pod?.name
-        const namespace = k8sContext.namespace
+        const machineCtx = req.context
+        const machineId = machineCtx.machineId
+        const namespace = machineCtx.namespace
 
         connection.on('close', async () => {
-          await saveApplicationInstanceStatus(podId, k8sContext, 'stopped')
+          await saveApplicationInstanceStatus(machineId, machineCtx, 'stopped')
           if (runtimeId) {
-            await notifyScalerDisconnect(applicationId, podId, namespace, runtimeId)
+            await notifyScalerDisconnect(applicationId, machineId, namespace, runtimeId)
           }
         })
 
@@ -69,11 +70,11 @@ module.exports = fp(async function (fastify, opts) {
           namespace: `applications/${applicationId}`
         })
         // Register the same WebSocket connection for requests TO watt too(e.g., flamegraph generation)
-        fastify.registerClientHandler(connection, podId)
+        fastify.registerClientHandler(connection, machineId)
 
-        await saveApplicationInstanceStatus(podId, k8sContext, 'running')
+        await saveApplicationInstanceStatus(machineId, machineCtx, 'running')
         if (runtimeId) {
-          await notifyScalerConnect(applicationId, podId, namespace, runtimeId)
+          await notifyScalerConnect(applicationId, machineId, namespace, runtimeId)
         }
       }
     })
@@ -87,14 +88,15 @@ module.exports = fp(async function (fastify, opts) {
       statusCodes: [502, 503, 504, 429]
     }))
 
-  async function saveApplicationInstanceStatus (podId, k8sContext, status) {
+  async function saveApplicationInstanceStatus (machineId, machineCtx, status) {
     try {
-      const url = controlPlaneUrl + `/pods/${podId}/instance/status`
+      const url = controlPlaneUrl + `/pods/${machineId}/instance/status`
       const { statusCode, body } = await request(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-k8s': JSON.stringify(k8sContext)
+          'x-plt-machine-id': machineCtx.machineId,
+          'x-plt-machine-namespace': machineCtx.namespace
         },
         body: JSON.stringify({ status }),
         dispatcher: retryDispatcher
@@ -109,7 +111,7 @@ module.exports = fp(async function (fastify, opts) {
     }
   }
 
-  async function notifyScalerConnect (applicationId, podId, namespace, runtimeId) {
+  async function notifyScalerConnect (applicationId, machineId, namespace, runtimeId) {
     if (scalerAlgorithmVersion !== 'v2') return
 
     const timestamp = Date.now()
@@ -124,7 +126,7 @@ module.exports = fp(async function (fastify, opts) {
         },
         body: JSON.stringify({
           applicationId,
-          podId,
+          machineId,
           namespace,
           runtimeId,
           timestamp
@@ -134,16 +136,16 @@ module.exports = fp(async function (fastify, opts) {
 
       if (statusCode !== 200) {
         const error = await body.text()
-        fastify.log.error({ err: error, applicationId, podId, runtimeId }, 'Error notifying scaler connect.')
+        fastify.log.error({ err: error, applicationId, machineId, runtimeId }, 'Error notifying scaler connect.')
       } else {
         await body.dump()
       }
     } catch (err) {
-      fastify.log.error({ err, applicationId, podId, runtimeId }, 'Error notifying scaler connect.')
+      fastify.log.error({ err, applicationId, machineId, runtimeId }, 'Error notifying scaler connect.')
     }
   }
 
-  async function notifyScalerDisconnect (applicationId, podId, namespace, runtimeId) {
+  async function notifyScalerDisconnect (applicationId, machineId, namespace, runtimeId) {
     if (scalerAlgorithmVersion !== 'v2') return
 
     const timestamp = Date.now()
@@ -158,7 +160,7 @@ module.exports = fp(async function (fastify, opts) {
         },
         body: JSON.stringify({
           applicationId,
-          podId,
+          machineId,
           namespace,
           runtimeId,
           timestamp
@@ -168,31 +170,32 @@ module.exports = fp(async function (fastify, opts) {
 
       if (statusCode !== 200) {
         const error = await body.text()
-        fastify.log.error({ err: error, applicationId, podId, runtimeId }, 'Error notifying scaler disconnect.')
+        fastify.log.error({ err: error, applicationId, machineId, runtimeId }, 'Error notifying scaler disconnect.')
       } else {
         await body.dump()
       }
     } catch (err) {
-      fastify.log.error({ err, applicationId, podId, runtimeId }, 'Error notifying scaler disconnect.')
+      fastify.log.error({ err, applicationId, machineId, runtimeId }, 'Error notifying scaler disconnect.')
     }
   }
 
-  async function getDetectedPodDetails (podId) {
+  async function getDetectedMachineDetails (machineId) {
     const url = controlPlaneUrl + '/instances'
     const { statusCode, body } = await request(url, {
       query: {
-        'where.podId.eq': podId
+        'where.machineId.eq': machineId
       },
       dispatcher: retryDispatcher
     })
 
     if (statusCode !== 200) {
       const error = await body.text()
-      fastify.log.error({ err: error }, 'Failed to get pod details')
+      fastify.log.error({ err: error, statusCode }, 'Failed to get machine details')
+      throw new FailedToGetMachineDetailsError(error)
     }
 
-    const podDetails = await body.json()
-    return podDetails.length > 0 ? podDetails[0] : null
+    const machineDetails = await body.json()
+    return machineDetails.length > 0 ? machineDetails[0] : null
   }
 }, {
   name: 'websocket',

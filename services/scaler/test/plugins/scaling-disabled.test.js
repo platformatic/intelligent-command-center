@@ -6,7 +6,7 @@ const assert = require('node:assert/strict')
 const { setTimeout: sleep } = require('node:timers/promises')
 const {
   buildServer,
-  generateK8sHeader,
+  generateMachineHeaders,
   cleanValkeyData,
   createAlert
 } = require('../helper')
@@ -33,7 +33,7 @@ test('POST /alerts returns empty and creates no side effects when scaling is dis
     url: '/alerts',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     payload: JSON.stringify({
       applicationId,

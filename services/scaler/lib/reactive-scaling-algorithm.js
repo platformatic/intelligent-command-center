@@ -167,7 +167,7 @@ class ReactiveScalingAlgorithm {
       processedPods[id] = processPodMetrics(metrics, clusters, this.eluThreshold, this.heapThreshold)
 
       if (processedPods[id].shouldScale) {
-        this.log.info({ podId: id }, 'Pod triggered scaling')
+        this.log.info({ podId: id }, 'Machine triggered scaling')
         triggerCount++
       }
     }

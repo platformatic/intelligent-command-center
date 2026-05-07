@@ -68,16 +68,16 @@ module.exports = fp(async function (app) {
       'platformatic.dev/application-id': application.id
     }
 
-    const k8sState = await app.machinist.getK8sState(namespace, labels, ctx)
+    const machines = await app.machinist.getMachines(namespace, labels, ctx)
 
     const pods = []
-    for (const pod of k8sState.pods) {
+    for (const machine of machines) {
       pods.push({
-        id: pod.id,
-        status: pod.status,
-        startTime: pod.startTime,
-        resources: pod.resources,
-        versionLabel: pod.labels?.['plt.dev/version']
+        id: machine.id,
+        status: machine.status,
+        startTime: machine.startTime,
+        resources: machine.resources,
+        versionLabel: machine.labels?.['plt.dev/version']
       })
     }
 

@@ -16,7 +16,7 @@ function setUpEnvironment (env = {}) {
     PLT_MAIN_URL: 'http://localhost:1234',
     PLT_CONTROL_PLANE_URL: 'http://localhost:1234',
     PLT_SCALER_URL: 'http://localhost:1234',
-    PLT_DISABLE_K8S_AUTH: true,
+    PLT_DISABLE_MACHINE_AUTH: true,
     PLT_ICC_SESSION_SECRET: 'test-secret'
   }
 
@@ -112,13 +112,13 @@ module.exports.startScaler = async function (t, opts = {}) {
   })
 
   app.post('/connect', async (request) => {
-    const { applicationId, podId, namespace, runtimeId, timestamp } = request.body
-    return opts.onConnect?.({ applicationId, podId, namespace, runtimeId, timestamp })
+    const { applicationId, machineId, namespace, runtimeId, timestamp } = request.body
+    return opts.onConnect?.({ applicationId, machineId, namespace, runtimeId, timestamp })
   })
 
   app.post('/disconnect', async (request) => {
-    const { applicationId, podId, namespace, runtimeId, timestamp } = request.body
-    return opts.onDisconnect?.({ applicationId, podId, namespace, runtimeId, timestamp })
+    const { applicationId, machineId, namespace, runtimeId, timestamp } = request.body
+    return opts.onDisconnect?.({ applicationId, machineId, namespace, runtimeId, timestamp })
   })
 
   t.after(async () => {
@@ -138,15 +138,15 @@ module.exports.startControlPlane = async function (t, opts = {}) {
   })
 
   app.post('/pods/:id/instance/status', async (request) => {
-    const podId = request.params.id
+    const machineId = request.params.id
     const status = request.body.status
-    return opts.savePodStatus?.({ podId, status })
+    return opts.saveMachineStatus?.({ machineId, status })
   })
 
   app.get('/instances', async (request) => {
-    const podId = request.query['where.podId.eq']
-    const podDetails = await opts.getPodDetails?.({ podId })
-    return [podDetails]
+    const machineId = request.query['where.machineId.eq']
+    const machineDetails = await opts.getMachineDetails?.({ machineId })
+    return [machineDetails]
   })
 
   t.after(async () => {

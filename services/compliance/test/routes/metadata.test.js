@@ -6,7 +6,7 @@ const { randomUUID } = require('node:crypto')
 const {
   startCompliance,
   startControlPlane,
-  generateK8sHeader
+  generateMachineHeaders
 } = require('../helper')
 
 test('should store a single row for all application metadata', async (t) => {
@@ -23,7 +23,7 @@ test('should store a single row for all application metadata', async (t) => {
   await startControlPlane(t, {
     getInstances: (options) => {
       assert.strictEqual(options.applicationId, applicationId)
-      assert.strictEqual(options.podId, podId)
+      assert.strictEqual(options.machineId, podId)
 
       return [{
         podId,
@@ -39,7 +39,7 @@ test('should store a single row for all application metadata', async (t) => {
     url: '/metadata',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     body: JSON.stringify({ applicationId, data: metadata })
   })
@@ -72,7 +72,7 @@ test('should not store twice metadata for the same application', async (t) => {
   await startControlPlane(t, {
     getInstances: (options) => {
       assert.strictEqual(options.applicationId, applicationId)
-      assert.strictEqual(options.podId, podId)
+      assert.strictEqual(options.machineId, podId)
 
       return [{
         podId,
@@ -88,7 +88,7 @@ test('should not store twice metadata for the same application', async (t) => {
     url: '/metadata',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     body: JSON.stringify({ applicationId, data: metadata })
   })
@@ -101,7 +101,7 @@ test('should not store twice metadata for the same application', async (t) => {
     url: '/metadata',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     body: JSON.stringify({
       applicationId,
@@ -137,7 +137,7 @@ test('should not store metadata twice for same deploymentId', async (t) => {
   await startControlPlane(t, {
     getInstances: (options) => {
       assert.strictEqual(options.applicationId, applicationId)
-      assert.strictEqual(options.podId, podId)
+      assert.strictEqual(options.machineId, podId)
 
       return [{
         podId,
@@ -156,7 +156,7 @@ test('should not store metadata twice for same deploymentId', async (t) => {
       url: '/metadata',
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId)
+        ...generateMachineHeaders(podId)
       },
       body: JSON.stringify({ applicationId, data: metadata })
     })
@@ -172,7 +172,7 @@ test('should not store metadata twice for same deploymentId', async (t) => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId)
+        ...generateMachineHeaders(podId)
       },
       url: '/metadata',
       body: JSON.stringify({
@@ -226,14 +226,14 @@ test('should store metadata twice for same applicationId even with different dep
     getInstances: (options) => {
       assert.strictEqual(options.applicationId, applicationId)
 
-      if (options.podId === podId1) {
+      if (options.machineId === podId1) {
         return [{
           podId: podId1,
           applicationId,
           deploymentId: deploymentId1
         }]
       }
-      if (options.podId === podId2) {
+      if (options.machineId === podId2) {
         return [{
           podId: podId2,
           applicationId,
@@ -253,7 +253,7 @@ test('should store metadata twice for same applicationId even with different dep
       url: '/metadata',
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId1)
+        ...generateMachineHeaders(podId1)
       },
       body: JSON.stringify({ applicationId, data: metadata1 })
     })
@@ -269,7 +269,7 @@ test('should store metadata twice for same applicationId even with different dep
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId2)
+        ...generateMachineHeaders(podId2)
       },
       url: '/metadata',
       body: JSON.stringify({

@@ -39,12 +39,12 @@ module.exports = async function (app) {
         return {}
       }
 
-      const k8sContext = req.k8s
-      if (!k8sContext) {
-        throw new Error('Missing k8s context')
+      const machineCtx = req.context
+      if (!machineCtx) {
+        throw new Error('Missing machine context')
       }
 
-      const podId = k8sContext.pod?.name
+      const podId = machineCtx.machineId
       const { alert, healthHistory, applicationId } = req.body
       const { currentHealth, unhealthy, healthConfig } = alert
       /* c8 ignore next */

@@ -17,10 +17,9 @@ test('k8s-sync plugin syncControllerData updates controllers and creates scale e
     input: {
       applicationId,
       deploymentId,
-      k8SControllerId: controllerId,
+      controllerId: controllerId,
       namespace,
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
     }
   })
@@ -67,10 +66,9 @@ test('k8s-sync plugin handles no replica changes', async (t) => {
     input: {
       applicationId,
       deploymentId,
-      k8SControllerId: controllerId,
+      controllerId: controllerId,
       namespace,
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 3
     }
   })
@@ -109,10 +107,9 @@ test('k8s-sync plugin handles scale down scenario', async (t) => {
     input: {
       applicationId,
       deploymentId,
-      k8SControllerId: controllerId,
+      controllerId: controllerId,
       namespace,
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 5
     }
   })
@@ -156,10 +153,9 @@ test('k8s-sync plugin handles machinist API failures gracefully', async (t) => {
     input: {
       applicationId,
       deploymentId,
-      k8SControllerId: controllerId,
+      controllerId: controllerId,
       namespace,
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
     }
   })
@@ -194,10 +190,9 @@ test('k8s-sync plugin handles mixed success and failure scenarios', async (t) =>
     input: {
       applicationId: applicationId1,
       deploymentId: deploymentId1,
-      k8SControllerId: 'success-controller',
+      controllerId: 'success-controller',
       namespace: 'default',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 1
     }
   })
@@ -206,10 +201,9 @@ test('k8s-sync plugin handles mixed success and failure scenarios', async (t) =>
     input: {
       applicationId: applicationId2,
       deploymentId: deploymentId2,
-      k8SControllerId: 'fail-controller',
+      controllerId: 'fail-controller',
       namespace: 'default',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 1
     }
   })
@@ -261,10 +255,9 @@ test('k8s-sync plugin processes only the most recent controller per application'
     input: {
       applicationId,
       deploymentId: deploymentId1,
-      k8SControllerId: 'old-controller',
+      controllerId: 'old-controller',
       namespace: 'default',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
     }
   })
@@ -276,10 +269,9 @@ test('k8s-sync plugin processes only the most recent controller per application'
     input: {
       applicationId,
       deploymentId: deploymentId2,
-      k8SControllerId: 'middle-controller',
+      controllerId: 'middle-controller',
       namespace: 'default',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 3
     }
   })
@@ -290,10 +282,9 @@ test('k8s-sync plugin processes only the most recent controller per application'
     input: {
       applicationId,
       deploymentId: deploymentId3,
-      k8SControllerId: 'newest-controller',
+      controllerId: 'newest-controller',
       namespace: 'default',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 4
     }
   })
@@ -352,10 +343,9 @@ test('k8s-sync plugin handles multiple applications with multiple controllers ea
     input: {
       applicationId: applicationId1,
       deploymentId: '123e4567-e89b-12d3-a456-426614174202',
-      k8SControllerId: 'app1-old',
+      controllerId: 'app1-old',
       namespace: 'default',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 1
     }
   })
@@ -366,10 +356,9 @@ test('k8s-sync plugin handles multiple applications with multiple controllers ea
     input: {
       applicationId: applicationId1,
       deploymentId: '123e4567-e89b-12d3-a456-426614174203',
-      k8SControllerId: 'app1-new',
+      controllerId: 'app1-new',
       namespace: 'default',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
     }
   })
@@ -379,10 +368,9 @@ test('k8s-sync plugin handles multiple applications with multiple controllers ea
     input: {
       applicationId: applicationId2,
       deploymentId: '123e4567-e89b-12d3-a456-426614174204',
-      k8SControllerId: 'app2-old',
+      controllerId: 'app2-old',
       namespace: 'staging',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 3
     }
   })
@@ -393,10 +381,9 @@ test('k8s-sync plugin handles multiple applications with multiple controllers ea
     input: {
       applicationId: applicationId2,
       deploymentId: '123e4567-e89b-12d3-a456-426614174205',
-      k8SControllerId: 'app2-new',
+      controllerId: 'app2-new',
       namespace: 'staging',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 4
     }
   })
@@ -449,10 +436,9 @@ test('k8s-sync plugin syncs scaler config from labels', async (t) => {
     input: {
       applicationId,
       deploymentId: '123e4567-e89b-12d3-a456-426614174301',
-      k8SControllerId: 'test-controller',
+      controllerId: 'test-controller',
       namespace: 'default',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
     }
   })
@@ -510,10 +496,9 @@ test('k8s-sync plugin provides manual scaler config sync function', async (t) =>
     input: {
       applicationId: applicationId1,
       deploymentId: '123e4567-e89b-12d3-a456-426614174402',
-      k8SControllerId: 'app1-controller',
+      controllerId: 'app1-controller',
       namespace: 'default',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
     }
   })
@@ -522,10 +507,9 @@ test('k8s-sync plugin provides manual scaler config sync function', async (t) =>
     input: {
       applicationId: applicationId2,
       deploymentId: '123e4567-e89b-12d3-a456-426614174403',
-      k8SControllerId: 'app2-controller',
+      controllerId: 'app2-controller',
       namespace: 'production',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 1
     }
   })
@@ -585,10 +569,9 @@ test('k8s-sync plugin uses custom label names from environment variables', async
     input: {
       applicationId,
       deploymentId,
-      k8SControllerId: controllerId,
+      controllerId: controllerId,
       namespace,
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 3
     }
   })
@@ -659,10 +642,9 @@ test('k8s-sync plugin records activity when scaler config changes', async (t) =>
     input: {
       applicationId,
       deploymentId,
-      k8SControllerId: controllerId,
+      controllerId: controllerId,
       namespace,
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 3
     }
   })

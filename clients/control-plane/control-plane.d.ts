@@ -69,6 +69,14 @@ declare namespace controlPlane {
      */
     getGenerationsDeploymentsForDeployment(req: GetGenerationsDeploymentsForDeploymentRequest): Promise<GetGenerationsDeploymentsForDeploymentResponses>;
     /**
+     * Get versionRegistry for deployment.
+     *
+     * Fetch all the versionRegistry for deployment from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getVersionRegistryForDeployment(req: GetVersionRegistryForDeploymentRequest): Promise<GetVersionRegistryForDeploymentResponses>;
+    /**
      * Get application for deployment.
      *
      * Fetch the application for deployment from the database.
@@ -300,6 +308,22 @@ declare namespace controlPlane {
      * @returns the API response body
      */
     getValkeyUsersForApplication(req: GetValkeyUsersForApplicationRequest): Promise<GetValkeyUsersForApplicationResponses>;
+    /**
+     * Get versionRegistry for application.
+     *
+     * Fetch all the versionRegistry for application from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getVersionRegistryForApplication(req: GetVersionRegistryForApplicationRequest): Promise<GetVersionRegistryForApplicationResponses>;
+    /**
+     * Get skewProtectionPolicies for application.
+     *
+     * Fetch all the skewProtectionPolicies for application from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getSkewProtectionPoliciesForApplication(req: GetSkewProtectionPoliciesForApplicationRequest): Promise<GetSkewProtectionPoliciesForApplicationResponses>;
     /**
      * Get applicationsConfigs.
      *
@@ -661,6 +685,126 @@ declare namespace controlPlane {
      */
     deleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigId(req: DeleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigIdRequest): Promise<DeleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigIdResponses>;
     /**
+     * Get versionRegistry.
+     *
+     * Fetch versionRegistry from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getVersionRegistry(req: GetVersionRegistryRequest): Promise<GetVersionRegistryResponses>;
+    /**
+     * Create versionRegistry.
+     *
+     * Add new versionRegistry to the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    createVersionRegistry(req: CreateVersionRegistryRequest): Promise<CreateVersionRegistryResponses>;
+    /**
+     * Update versionRegistry.
+     *
+     * Update one or more versionRegistry in the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    updateVersionRegistry(req: UpdateVersionRegistryRequest): Promise<UpdateVersionRegistryResponses>;
+    /**
+     * Get VersionRegistry by id.
+     *
+     * Fetch VersionRegistry using its id from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getVersionRegistryById(req: GetVersionRegistryByIdRequest): Promise<GetVersionRegistryByIdResponses>;
+    /**
+     * Update versionRegistry.
+     *
+     * Update versionRegistry in the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    putUpdateVersionRegistry(req: PutUpdateVersionRegistryRequest): Promise<PutUpdateVersionRegistryResponses>;
+    /**
+     * Delete versionRegistry.
+     *
+     * Delete one or more versionRegistry from the Database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    deleteVersionRegistry(req: DeleteVersionRegistryRequest): Promise<DeleteVersionRegistryResponses>;
+    /**
+     * Get application for versionRegistry.
+     *
+     * Fetch the application for versionRegistry from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getApplicationForVersionRegistry(req: GetApplicationForVersionRegistryRequest): Promise<GetApplicationForVersionRegistryResponses>;
+    /**
+     * Get deployment for versionRegistry.
+     *
+     * Fetch the deployment for versionRegistry from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getDeploymentForVersionRegistry(req: GetDeploymentForVersionRegistryRequest): Promise<GetDeploymentForVersionRegistryResponses>;
+    /**
+     * Get skewProtectionPolicies.
+     *
+     * Fetch skewProtectionPolicies from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getSkewProtectionPolicies(req: GetSkewProtectionPoliciesRequest): Promise<GetSkewProtectionPoliciesResponses>;
+    /**
+     * Create skewProtectionPolicy.
+     *
+     * Add new skewProtectionPolicy to the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    createSkewProtectionPolicy(req: CreateSkewProtectionPolicyRequest): Promise<CreateSkewProtectionPolicyResponses>;
+    /**
+     * Update skewProtectionPolicies.
+     *
+     * Update one or more skewProtectionPolicies in the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    updateSkewProtectionPolicies(req: UpdateSkewProtectionPoliciesRequest): Promise<UpdateSkewProtectionPoliciesResponses>;
+    /**
+     * Get SkewProtectionPolicy by id.
+     *
+     * Fetch SkewProtectionPolicy using its id from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getSkewProtectionPolicyById(req: GetSkewProtectionPolicyByIdRequest): Promise<GetSkewProtectionPolicyByIdResponses>;
+    /**
+     * Update skewProtectionPolicy.
+     *
+     * Update skewProtectionPolicy in the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    updateSkewProtectionPolicy(req: UpdateSkewProtectionPolicyRequest): Promise<UpdateSkewProtectionPolicyResponses>;
+    /**
+     * Delete skewProtectionPolicies.
+     *
+     * Delete one or more skewProtectionPolicies from the Database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    deleteSkewProtectionPolicies(req: DeleteSkewProtectionPoliciesRequest): Promise<DeleteSkewProtectionPoliciesResponses>;
+    /**
+     * Get application for skewProtectionPolicy.
+     *
+     * Fetch the application for skewProtectionPolicy from the database.
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getApplicationForSkewProtectionPolicy(req: GetApplicationForSkewProtectionPolicyRequest): Promise<GetApplicationForSkewProtectionPolicyResponses>;
+    /**
      * @param req - request parameters object
      * @returns the API response body
      */
@@ -700,6 +844,16 @@ declare namespace controlPlane {
      * @returns the API response body
      */
     setApplicationResources(req: SetApplicationResourcesRequest): Promise<SetApplicationResourcesResponses>;
+    /**
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    getApplicationVersions(req: GetApplicationVersionsRequest): Promise<GetApplicationVersionsResponses>;
+    /**
+     * @param req - request parameters object
+     * @returns the API response body
+     */
+    expireApplicationVersion(req: ExpireApplicationVersionRequest): Promise<ExpireApplicationVersionResponses>;
   }
   export interface ControlPlaneOptions {
     url: string
@@ -810,14 +964,14 @@ declare namespace controlPlane {
     'where.namespace.contains'?: string;
     'where.namespace.contained'?: string;
     'where.namespace.overlaps'?: string;
-    'where.status.eq'?: 'failed' | 'started' | 'starting';
-    'where.status.neq'?: 'failed' | 'started' | 'starting';
-    'where.status.gt'?: 'failed' | 'started' | 'starting';
-    'where.status.gte'?: 'failed' | 'started' | 'starting';
-    'where.status.lt'?: 'failed' | 'started' | 'starting';
-    'where.status.lte'?: 'failed' | 'started' | 'starting';
-    'where.status.like'?: 'failed' | 'started' | 'starting';
-    'where.status.ilike'?: 'failed' | 'started' | 'starting';
+    'where.status.eq'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.neq'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.gt'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.gte'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.lt'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.lte'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.like'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.ilike'?: 'failed' | 'started' | 'starting' | 'stopped';
     'where.status.in'?: string;
     'where.status.nin'?: string;
     'where.status.contains'?: string;
@@ -836,15 +990,16 @@ declare namespace controlPlane {
   /**
    * Default Response
    */
-  export type GetDeploymentsResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
+  export type GetDeploymentsResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | 'stopped' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
   export type GetDeploymentsResponses =
     GetDeploymentsResponseOK
 
   export type CreateDeploymentRequest = {
+    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
     'id'?: string;
     'applicationId': string;
     'applicationStateId'?: string | null;
-    'status': 'failed' | 'started' | 'starting';
+    'status': 'failed' | 'started' | 'starting' | 'stopped';
     'imageId': string;
     'namespace': string;
     'createdAt'?: string | null;
@@ -853,7 +1008,7 @@ declare namespace controlPlane {
   /**
    * A Deployment
    */
-  export type CreateDeploymentResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
+  export type CreateDeploymentResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | 'stopped' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
   export type CreateDeploymentResponses =
     CreateDeploymentResponseOK
 
@@ -937,14 +1092,14 @@ declare namespace controlPlane {
     'where.namespace.contains'?: string;
     'where.namespace.contained'?: string;
     'where.namespace.overlaps'?: string;
-    'where.status.eq'?: 'failed' | 'started' | 'starting';
-    'where.status.neq'?: 'failed' | 'started' | 'starting';
-    'where.status.gt'?: 'failed' | 'started' | 'starting';
-    'where.status.gte'?: 'failed' | 'started' | 'starting';
-    'where.status.lt'?: 'failed' | 'started' | 'starting';
-    'where.status.lte'?: 'failed' | 'started' | 'starting';
-    'where.status.like'?: 'failed' | 'started' | 'starting';
-    'where.status.ilike'?: 'failed' | 'started' | 'starting';
+    'where.status.eq'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.neq'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.gt'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.gte'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.lt'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.lte'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.like'?: 'failed' | 'started' | 'starting' | 'stopped';
+    'where.status.ilike'?: 'failed' | 'started' | 'starting' | 'stopped';
     'where.status.in'?: string;
     'where.status.nin'?: string;
     'where.status.contains'?: string;
@@ -954,7 +1109,7 @@ declare namespace controlPlane {
     'id'?: string;
     'applicationId': string;
     'applicationStateId'?: string | null;
-    'status': 'failed' | 'started' | 'starting';
+    'status': 'failed' | 'started' | 'starting' | 'stopped';
     'imageId': string;
     'namespace': string;
     'createdAt'?: string | null;
@@ -963,7 +1118,7 @@ declare namespace controlPlane {
   /**
    * Default Response
    */
-  export type UpdateDeploymentsResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
+  export type UpdateDeploymentsResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | 'stopped' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
   export type UpdateDeploymentsResponses =
     UpdateDeploymentsResponseOK
 
@@ -975,7 +1130,7 @@ declare namespace controlPlane {
   /**
    * A Deployment
    */
-  export type GetDeploymentByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
+  export type GetDeploymentByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | 'stopped' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
   export type GetDeploymentByIdResponses =
     GetDeploymentByIdResponseOK
 
@@ -984,7 +1139,7 @@ declare namespace controlPlane {
     'id': string;
     'applicationId': string;
     'applicationStateId'?: string | null;
-    'status': 'failed' | 'started' | 'starting';
+    'status': 'failed' | 'started' | 'starting' | 'stopped';
     'imageId': string;
     'namespace': string;
     'createdAt'?: string | null;
@@ -993,7 +1148,7 @@ declare namespace controlPlane {
   /**
    * A Deployment
    */
-  export type UpdateDeploymentResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
+  export type UpdateDeploymentResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | 'stopped' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
   export type UpdateDeploymentResponses =
     UpdateDeploymentResponseOK
 
@@ -1005,24 +1160,36 @@ declare namespace controlPlane {
   /**
    * A Deployment
    */
-  export type DeleteDeploymentsResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
+  export type DeleteDeploymentsResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | 'stopped' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
   export type DeleteDeploymentsResponses =
     DeleteDeploymentsResponseOK
 
   export type GetInstancesForDeploymentRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'namespace' | 'status'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
   /**
    * Default Response
    */
-  export type GetInstancesForDeploymentResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+  export type GetInstancesForDeploymentResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
   export type GetInstancesForDeploymentResponses =
     GetInstancesForDeploymentResponseOK
 
   export type GetGenerationsDeploymentsForDeploymentRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
     'fields'?: Array<'deploymentId' | 'generationId'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
@@ -1032,6 +1199,24 @@ declare namespace controlPlane {
   export type GetGenerationsDeploymentsForDeploymentResponseOK = Array<{ 'generationId'?: string | null; 'deploymentId'?: string | null }>
   export type GetGenerationsDeploymentsForDeploymentResponses =
     GetGenerationsDeploymentsForDeploymentResponseOK
+
+  export type GetVersionRegistryForDeploymentRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
+    'fields'?: Array<'appLabel' | 'applicationId' | 'createdAt' | 'deploymentId' | 'drainedAt' | 'expirePolicy' | 'expiredAt' | 'hostname' | 'id' | 'k8SDeploymentName' | 'namespace' | 'pathPrefix' | 'serviceName' | 'servicePort' | 'status' | 'versionLabel'>;
+    'totalCount'?: boolean;
+    'id': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetVersionRegistryForDeploymentResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'appLabel'?: string | null; 'versionLabel'?: string | null; 'k8SDeploymentName'?: string | null; 'serviceName'?: string | null; 'servicePort'?: number | null; 'namespace'?: string | null; 'pathPrefix'?: string | null; 'hostname'?: string | null; 'status'?: 'active' | 'draining' | 'expired' | null; 'expirePolicy'?: string | null; 'drainedAt'?: string | null; 'expiredAt'?: string | null; 'createdAt'?: string | null }>
+  export type GetVersionRegistryForDeploymentResponses =
+    GetVersionRegistryForDeploymentResponseOK
 
   export type GetApplicationForDeploymentRequest = {
     'fields'?: Array<'createdAt' | 'id' | 'name'>;
@@ -1130,6 +1315,7 @@ declare namespace controlPlane {
     GetGenerationsResponseOK
 
   export type CreateGenerationRequest = {
+    'fields'?: Array<'createdAt' | 'id' | 'version'>;
     'id'?: string;
     'version': number;
     'createdAt'?: string | null;
@@ -1235,7 +1421,13 @@ declare namespace controlPlane {
     DeleteGenerationsResponseOK
 
   export type GetGraphsForGenerationRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
     'fields'?: Array<'createdAt' | 'generationId' | 'graph' | 'id'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
@@ -1247,7 +1439,13 @@ declare namespace controlPlane {
     GetGraphsForGenerationResponseOK
 
   export type GetGenerationsDeploymentsForGenerationRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
     'fields'?: Array<'deploymentId' | 'generationId'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
@@ -1259,7 +1457,13 @@ declare namespace controlPlane {
     GetGenerationsDeploymentsForGenerationResponseOK
 
   export type GetGenerationsApplicationsConfigsForGenerationRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
     'fields'?: Array<'configId' | 'generationId'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
@@ -1357,6 +1561,7 @@ declare namespace controlPlane {
     GetGraphsResponseOK
 
   export type CreateGraphRequest = {
+    'fields'?: Array<'createdAt' | 'generationId' | 'graph' | 'id'>;
     'id'?: string;
     'generationId': string;
     'graph': object;
@@ -1562,6 +1767,7 @@ declare namespace controlPlane {
     GetApplicationsResponseOK
 
   export type CreateApplicationRequest = {
+    'fields'?: Array<'createdAt' | 'id' | 'name'>;
     'id'?: string;
     'name': string;
     'createdAt'?: string | null;
@@ -1667,19 +1873,31 @@ declare namespace controlPlane {
     DeleteApplicationsResponseOK
 
   export type GetDeploymentsForApplicationRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
     'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
   /**
    * Default Response
    */
-  export type GetDeploymentsForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
+  export type GetDeploymentsForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | 'stopped' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
   export type GetDeploymentsForApplicationResponses =
     GetDeploymentsForApplicationResponseOK
 
   export type GetApplicationsConfigsForApplicationRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
     'fields'?: Array<'applicationId' | 'createdAt' | 'id' | 'resources' | 'version'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
@@ -1691,7 +1909,13 @@ declare namespace controlPlane {
     GetApplicationsConfigsForApplicationResponseOK
 
   export type GetApplicationStatesForApplicationRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
     'fields'?: Array<'applicationId' | 'createdAt' | 'id' | 'pltVersion' | 'state'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
@@ -1703,19 +1927,31 @@ declare namespace controlPlane {
     GetApplicationStatesForApplicationResponseOK
 
   export type GetInstancesForApplicationRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'namespace' | 'status'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
   /**
    * Default Response
    */
-  export type GetInstancesForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+  export type GetInstancesForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
   export type GetInstancesForApplicationResponses =
     GetInstancesForApplicationResponseOK
 
   export type GetValkeyUsersForApplicationRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
     'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
@@ -1725,6 +1961,42 @@ declare namespace controlPlane {
   export type GetValkeyUsersForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'username'?: string | null; 'encryptedPassword'?: string | null; 'keyPrefix'?: string | null; 'createdAt'?: string | null }>
   export type GetValkeyUsersForApplicationResponses =
     GetValkeyUsersForApplicationResponseOK
+
+  export type GetVersionRegistryForApplicationRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
+    'fields'?: Array<'appLabel' | 'applicationId' | 'createdAt' | 'deploymentId' | 'drainedAt' | 'expirePolicy' | 'expiredAt' | 'hostname' | 'id' | 'k8SDeploymentName' | 'namespace' | 'pathPrefix' | 'serviceName' | 'servicePort' | 'status' | 'versionLabel'>;
+    'totalCount'?: boolean;
+    'id': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetVersionRegistryForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'appLabel'?: string | null; 'versionLabel'?: string | null; 'k8SDeploymentName'?: string | null; 'serviceName'?: string | null; 'servicePort'?: number | null; 'namespace'?: string | null; 'pathPrefix'?: string | null; 'hostname'?: string | null; 'status'?: 'active' | 'draining' | 'expired' | null; 'expirePolicy'?: string | null; 'drainedAt'?: string | null; 'expiredAt'?: string | null; 'createdAt'?: string | null }>
+  export type GetVersionRegistryForApplicationResponses =
+    GetVersionRegistryForApplicationResponseOK
+
+  export type GetSkewProtectionPoliciesForApplicationRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
+    'fields'?: Array<'applicationId' | 'autoCleanup' | 'cookieName' | 'createdAt' | 'httpGracePeriodMs' | 'httpMaxAliveMs' | 'id' | 'maxAgeS' | 'maxVersions' | 'updatedAt' | 'workflowGracePeriodMs' | 'workflowMaxAliveMs'>;
+    'totalCount'?: boolean;
+    'id': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetSkewProtectionPoliciesForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'httpGracePeriodMs'?: number | null; 'httpMaxAliveMs'?: number | null; 'workflowGracePeriodMs'?: number | null; 'workflowMaxAliveMs'?: number | null; 'maxAgeS'?: number | null; 'maxVersions'?: number | null; 'cookieName'?: string | null; 'autoCleanup'?: boolean | null; 'createdAt'?: string | null; 'updatedAt'?: string | null }>
+  export type GetSkewProtectionPoliciesForApplicationResponses =
+    GetSkewProtectionPoliciesForApplicationResponseOK
 
   export type GetApplicationsConfigsRequest = {
     /**
@@ -1827,6 +2099,7 @@ declare namespace controlPlane {
     GetApplicationsConfigsResponseOK
 
   export type CreateApplicationsConfigRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'id' | 'resources' | 'version'>;
     'id'?: string;
     'applicationId': string;
     'version': number;
@@ -1964,7 +2237,13 @@ declare namespace controlPlane {
     DeleteApplicationsConfigsResponseOK
 
   export type GetGenerationsApplicationsConfigsForApplicationsConfigRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
     'fields'?: Array<'configId' | 'generationId'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
@@ -2088,6 +2367,7 @@ declare namespace controlPlane {
     GetApplicationStatesResponseOK
 
   export type CreateApplicationStateRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'id' | 'pltVersion' | 'state'>;
     'id'?: string;
     'applicationId': string;
     'pltVersion': string;
@@ -2225,14 +2505,20 @@ declare namespace controlPlane {
     DeleteApplicationStatesResponseOK
 
   export type GetDeploymentsForApplicationStateRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
     'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
+    'totalCount'?: boolean;
     'id': string;
   }
 
   /**
    * Default Response
    */
-  export type GetDeploymentsForApplicationStateResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
+  export type GetDeploymentsForApplicationStateResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | 'stopped' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }>
   export type GetDeploymentsForApplicationStateResponses =
     GetDeploymentsForApplicationStateResponseOK
 
@@ -2267,7 +2553,7 @@ declare namespace controlPlane {
      * Cursor for backward pagination. List objects before this cursor position
      */
     'endBefore'?: string;
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'namespace' | 'status'>;
     'where.applicationId.eq'?: string;
     'where.applicationId.neq'?: string;
     'where.applicationId.gt'?: string;
@@ -2333,19 +2619,19 @@ declare namespace controlPlane {
     'where.namespace.contains'?: string;
     'where.namespace.contained'?: string;
     'where.namespace.overlaps'?: string;
-    'where.podId.eq'?: string;
-    'where.podId.neq'?: string;
-    'where.podId.gt'?: string;
-    'where.podId.gte'?: string;
-    'where.podId.lt'?: string;
-    'where.podId.lte'?: string;
-    'where.podId.like'?: string;
-    'where.podId.ilike'?: string;
-    'where.podId.in'?: string;
-    'where.podId.nin'?: string;
-    'where.podId.contains'?: string;
-    'where.podId.contained'?: string;
-    'where.podId.overlaps'?: string;
+    'where.machineId.eq'?: string;
+    'where.machineId.neq'?: string;
+    'where.machineId.gt'?: string;
+    'where.machineId.gte'?: string;
+    'where.machineId.lt'?: string;
+    'where.machineId.lte'?: string;
+    'where.machineId.like'?: string;
+    'where.machineId.ilike'?: string;
+    'where.machineId.in'?: string;
+    'where.machineId.nin'?: string;
+    'where.machineId.contains'?: string;
+    'where.machineId.contained'?: string;
+    'where.machineId.overlaps'?: string;
     'where.status.eq'?: 'running' | 'starting' | 'stopped';
     'where.status.neq'?: 'running' | 'starting' | 'stopped';
     'where.status.gt'?: 'running' | 'starting' | 'stopped';
@@ -2372,15 +2658,16 @@ declare namespace controlPlane {
   /**
    * Default Response
    */
-  export type GetInstancesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+  export type GetInstancesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
   export type GetInstancesResponses =
     GetInstancesResponseOK
 
   export type CreateInstanceRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'namespace' | 'status'>;
     'id'?: string;
     'applicationId': string;
     'deploymentId'?: string | null;
-    'podId': string;
+    'machineId': string;
     'namespace': string;
     'status': 'running' | 'starting' | 'stopped';
     'createdAt'?: string | null;
@@ -2389,12 +2676,12 @@ declare namespace controlPlane {
   /**
    * A Instance
    */
-  export type CreateInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+  export type CreateInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
   export type CreateInstanceResponses =
     CreateInstanceResponseOK
 
   export type UpdateInstancesRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'namespace' | 'status'>;
     'where.applicationId.eq'?: string;
     'where.applicationId.neq'?: string;
     'where.applicationId.gt'?: string;
@@ -2460,19 +2747,19 @@ declare namespace controlPlane {
     'where.namespace.contains'?: string;
     'where.namespace.contained'?: string;
     'where.namespace.overlaps'?: string;
-    'where.podId.eq'?: string;
-    'where.podId.neq'?: string;
-    'where.podId.gt'?: string;
-    'where.podId.gte'?: string;
-    'where.podId.lt'?: string;
-    'where.podId.lte'?: string;
-    'where.podId.like'?: string;
-    'where.podId.ilike'?: string;
-    'where.podId.in'?: string;
-    'where.podId.nin'?: string;
-    'where.podId.contains'?: string;
-    'where.podId.contained'?: string;
-    'where.podId.overlaps'?: string;
+    'where.machineId.eq'?: string;
+    'where.machineId.neq'?: string;
+    'where.machineId.gt'?: string;
+    'where.machineId.gte'?: string;
+    'where.machineId.lt'?: string;
+    'where.machineId.lte'?: string;
+    'where.machineId.like'?: string;
+    'where.machineId.ilike'?: string;
+    'where.machineId.in'?: string;
+    'where.machineId.nin'?: string;
+    'where.machineId.contains'?: string;
+    'where.machineId.contained'?: string;
+    'where.machineId.overlaps'?: string;
     'where.status.eq'?: 'running' | 'starting' | 'stopped';
     'where.status.neq'?: 'running' | 'starting' | 'stopped';
     'where.status.gt'?: 'running' | 'starting' | 'stopped';
@@ -2490,7 +2777,7 @@ declare namespace controlPlane {
     'id'?: string;
     'applicationId': string;
     'deploymentId'?: string | null;
-    'podId': string;
+    'machineId': string;
     'namespace': string;
     'status': 'running' | 'starting' | 'stopped';
     'createdAt'?: string | null;
@@ -2499,28 +2786,28 @@ declare namespace controlPlane {
   /**
    * Default Response
    */
-  export type UpdateInstancesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+  export type UpdateInstancesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
   export type UpdateInstancesResponses =
     UpdateInstancesResponseOK
 
   export type GetInstanceByIdRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'namespace' | 'status'>;
     'id': string;
   }
 
   /**
    * A Instance
    */
-  export type GetInstanceByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+  export type GetInstanceByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
   export type GetInstanceByIdResponses =
     GetInstanceByIdResponseOK
 
   export type UpdateInstanceRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'namespace' | 'status'>;
     'id': string;
     'applicationId': string;
     'deploymentId'?: string | null;
-    'podId': string;
+    'machineId': string;
     'namespace': string;
     'status': 'running' | 'starting' | 'stopped';
     'createdAt'?: string | null;
@@ -2529,19 +2816,19 @@ declare namespace controlPlane {
   /**
    * A Instance
    */
-  export type UpdateInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+  export type UpdateInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
   export type UpdateInstanceResponses =
     UpdateInstanceResponseOK
 
   export type DeleteInstancesRequest = {
-    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'namespace' | 'podId' | 'status'>;
+    'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'namespace' | 'status'>;
     'id': string;
   }
 
   /**
    * A Instance
    */
-  export type DeleteInstancesResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+  export type DeleteInstancesResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'namespace'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
   export type DeleteInstancesResponses =
     DeleteInstancesResponseOK
 
@@ -2565,7 +2852,7 @@ declare namespace controlPlane {
   /**
    * A Deployment
    */
-  export type GetDeploymentForInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
+  export type GetDeploymentForInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | 'stopped' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
   export type GetDeploymentForInstanceResponses =
     GetDeploymentForInstanceResponseOK
 
@@ -2684,6 +2971,7 @@ declare namespace controlPlane {
     GetValkeyUsersResponseOK
 
   export type CreateValkeyUserRequest = {
+    'fields'?: Array<'applicationId' | 'createdAt' | 'encryptedPassword' | 'id' | 'keyPrefix' | 'username'>;
     'id'?: string;
     'applicationId': string;
     'username': string;
@@ -2907,6 +3195,7 @@ declare namespace controlPlane {
     GetGenerationsDeploymentsResponseOK
 
   export type CreateGenerationsDeploymentRequest = {
+    'fields'?: Array<'deploymentId' | 'generationId'>;
     'generationId': string;
     'deploymentId': string;
   }
@@ -3069,6 +3358,7 @@ declare namespace controlPlane {
     GetGenerationsApplicationsConfigsResponseOK
 
   export type CreateGenerationsApplicationsConfigRequest = {
+    'fields'?: Array<'configId' | 'generationId'>;
     'generationId': string;
     'configId': string;
   }
@@ -3172,6 +3462,1058 @@ declare namespace controlPlane {
   export type DeleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigIdResponses =
     DeleteGenerationsApplicationsConfigsGenerationGenerationIdApplicationsConfigConfigIdResponseOK
 
+  export type GetVersionRegistryRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
+    'totalCount'?: boolean;
+    /**
+     * Include cursor headers in response. Cursor keys built from orderBy clause
+     */
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
+    'fields'?: Array<'appLabel' | 'applicationId' | 'createdAt' | 'deploymentId' | 'drainedAt' | 'expirePolicy' | 'expiredAt' | 'hostname' | 'id' | 'k8SDeploymentName' | 'namespace' | 'pathPrefix' | 'serviceName' | 'servicePort' | 'status' | 'versionLabel'>;
+    'where.appLabel.eq'?: string;
+    'where.appLabel.neq'?: string;
+    'where.appLabel.gt'?: string;
+    'where.appLabel.gte'?: string;
+    'where.appLabel.lt'?: string;
+    'where.appLabel.lte'?: string;
+    'where.appLabel.like'?: string;
+    'where.appLabel.ilike'?: string;
+    'where.appLabel.in'?: string;
+    'where.appLabel.nin'?: string;
+    'where.appLabel.contains'?: string;
+    'where.appLabel.contained'?: string;
+    'where.appLabel.overlaps'?: string;
+    'where.applicationId.eq'?: string;
+    'where.applicationId.neq'?: string;
+    'where.applicationId.gt'?: string;
+    'where.applicationId.gte'?: string;
+    'where.applicationId.lt'?: string;
+    'where.applicationId.lte'?: string;
+    'where.applicationId.like'?: string;
+    'where.applicationId.ilike'?: string;
+    'where.applicationId.in'?: string;
+    'where.applicationId.nin'?: string;
+    'where.applicationId.contains'?: string;
+    'where.applicationId.contained'?: string;
+    'where.applicationId.overlaps'?: string;
+    'where.createdAt.eq'?: string;
+    'where.createdAt.neq'?: string;
+    'where.createdAt.gt'?: string;
+    'where.createdAt.gte'?: string;
+    'where.createdAt.lt'?: string;
+    'where.createdAt.lte'?: string;
+    'where.createdAt.like'?: string;
+    'where.createdAt.ilike'?: string;
+    'where.createdAt.in'?: string;
+    'where.createdAt.nin'?: string;
+    'where.createdAt.contains'?: string;
+    'where.createdAt.contained'?: string;
+    'where.createdAt.overlaps'?: string;
+    'where.deploymentId.eq'?: string;
+    'where.deploymentId.neq'?: string;
+    'where.deploymentId.gt'?: string;
+    'where.deploymentId.gte'?: string;
+    'where.deploymentId.lt'?: string;
+    'where.deploymentId.lte'?: string;
+    'where.deploymentId.like'?: string;
+    'where.deploymentId.ilike'?: string;
+    'where.deploymentId.in'?: string;
+    'where.deploymentId.nin'?: string;
+    'where.deploymentId.contains'?: string;
+    'where.deploymentId.contained'?: string;
+    'where.deploymentId.overlaps'?: string;
+    'where.drainedAt.eq'?: string;
+    'where.drainedAt.neq'?: string;
+    'where.drainedAt.gt'?: string;
+    'where.drainedAt.gte'?: string;
+    'where.drainedAt.lt'?: string;
+    'where.drainedAt.lte'?: string;
+    'where.drainedAt.like'?: string;
+    'where.drainedAt.ilike'?: string;
+    'where.drainedAt.in'?: string;
+    'where.drainedAt.nin'?: string;
+    'where.drainedAt.contains'?: string;
+    'where.drainedAt.contained'?: string;
+    'where.drainedAt.overlaps'?: string;
+    'where.expirePolicy.eq'?: string;
+    'where.expirePolicy.neq'?: string;
+    'where.expirePolicy.gt'?: string;
+    'where.expirePolicy.gte'?: string;
+    'where.expirePolicy.lt'?: string;
+    'where.expirePolicy.lte'?: string;
+    'where.expirePolicy.like'?: string;
+    'where.expirePolicy.ilike'?: string;
+    'where.expirePolicy.in'?: string;
+    'where.expirePolicy.nin'?: string;
+    'where.expirePolicy.contains'?: string;
+    'where.expirePolicy.contained'?: string;
+    'where.expirePolicy.overlaps'?: string;
+    'where.expiredAt.eq'?: string;
+    'where.expiredAt.neq'?: string;
+    'where.expiredAt.gt'?: string;
+    'where.expiredAt.gte'?: string;
+    'where.expiredAt.lt'?: string;
+    'where.expiredAt.lte'?: string;
+    'where.expiredAt.like'?: string;
+    'where.expiredAt.ilike'?: string;
+    'where.expiredAt.in'?: string;
+    'where.expiredAt.nin'?: string;
+    'where.expiredAt.contains'?: string;
+    'where.expiredAt.contained'?: string;
+    'where.expiredAt.overlaps'?: string;
+    'where.hostname.eq'?: string;
+    'where.hostname.neq'?: string;
+    'where.hostname.gt'?: string;
+    'where.hostname.gte'?: string;
+    'where.hostname.lt'?: string;
+    'where.hostname.lte'?: string;
+    'where.hostname.like'?: string;
+    'where.hostname.ilike'?: string;
+    'where.hostname.in'?: string;
+    'where.hostname.nin'?: string;
+    'where.hostname.contains'?: string;
+    'where.hostname.contained'?: string;
+    'where.hostname.overlaps'?: string;
+    'where.id.eq'?: string;
+    'where.id.neq'?: string;
+    'where.id.gt'?: string;
+    'where.id.gte'?: string;
+    'where.id.lt'?: string;
+    'where.id.lte'?: string;
+    'where.id.like'?: string;
+    'where.id.ilike'?: string;
+    'where.id.in'?: string;
+    'where.id.nin'?: string;
+    'where.id.contains'?: string;
+    'where.id.contained'?: string;
+    'where.id.overlaps'?: string;
+    'where.k8SDeploymentName.eq'?: string;
+    'where.k8SDeploymentName.neq'?: string;
+    'where.k8SDeploymentName.gt'?: string;
+    'where.k8SDeploymentName.gte'?: string;
+    'where.k8SDeploymentName.lt'?: string;
+    'where.k8SDeploymentName.lte'?: string;
+    'where.k8SDeploymentName.like'?: string;
+    'where.k8SDeploymentName.ilike'?: string;
+    'where.k8SDeploymentName.in'?: string;
+    'where.k8SDeploymentName.nin'?: string;
+    'where.k8SDeploymentName.contains'?: string;
+    'where.k8SDeploymentName.contained'?: string;
+    'where.k8SDeploymentName.overlaps'?: string;
+    'where.namespace.eq'?: string;
+    'where.namespace.neq'?: string;
+    'where.namespace.gt'?: string;
+    'where.namespace.gte'?: string;
+    'where.namespace.lt'?: string;
+    'where.namespace.lte'?: string;
+    'where.namespace.like'?: string;
+    'where.namespace.ilike'?: string;
+    'where.namespace.in'?: string;
+    'where.namespace.nin'?: string;
+    'where.namespace.contains'?: string;
+    'where.namespace.contained'?: string;
+    'where.namespace.overlaps'?: string;
+    'where.pathPrefix.eq'?: string;
+    'where.pathPrefix.neq'?: string;
+    'where.pathPrefix.gt'?: string;
+    'where.pathPrefix.gte'?: string;
+    'where.pathPrefix.lt'?: string;
+    'where.pathPrefix.lte'?: string;
+    'where.pathPrefix.like'?: string;
+    'where.pathPrefix.ilike'?: string;
+    'where.pathPrefix.in'?: string;
+    'where.pathPrefix.nin'?: string;
+    'where.pathPrefix.contains'?: string;
+    'where.pathPrefix.contained'?: string;
+    'where.pathPrefix.overlaps'?: string;
+    'where.serviceName.eq'?: string;
+    'where.serviceName.neq'?: string;
+    'where.serviceName.gt'?: string;
+    'where.serviceName.gte'?: string;
+    'where.serviceName.lt'?: string;
+    'where.serviceName.lte'?: string;
+    'where.serviceName.like'?: string;
+    'where.serviceName.ilike'?: string;
+    'where.serviceName.in'?: string;
+    'where.serviceName.nin'?: string;
+    'where.serviceName.contains'?: string;
+    'where.serviceName.contained'?: string;
+    'where.serviceName.overlaps'?: string;
+    'where.servicePort.eq'?: number;
+    'where.servicePort.neq'?: number;
+    'where.servicePort.gt'?: number;
+    'where.servicePort.gte'?: number;
+    'where.servicePort.lt'?: number;
+    'where.servicePort.lte'?: number;
+    'where.servicePort.like'?: number;
+    'where.servicePort.ilike'?: number;
+    'where.servicePort.in'?: string;
+    'where.servicePort.nin'?: string;
+    'where.servicePort.contains'?: string;
+    'where.servicePort.contained'?: string;
+    'where.servicePort.overlaps'?: string;
+    'where.status.eq'?: 'active' | 'draining' | 'expired';
+    'where.status.neq'?: 'active' | 'draining' | 'expired';
+    'where.status.gt'?: 'active' | 'draining' | 'expired';
+    'where.status.gte'?: 'active' | 'draining' | 'expired';
+    'where.status.lt'?: 'active' | 'draining' | 'expired';
+    'where.status.lte'?: 'active' | 'draining' | 'expired';
+    'where.status.like'?: 'active' | 'draining' | 'expired';
+    'where.status.ilike'?: 'active' | 'draining' | 'expired';
+    'where.status.in'?: string;
+    'where.status.nin'?: string;
+    'where.status.contains'?: string;
+    'where.status.contained'?: string;
+    'where.status.overlaps'?: string;
+    'where.versionLabel.eq'?: string;
+    'where.versionLabel.neq'?: string;
+    'where.versionLabel.gt'?: string;
+    'where.versionLabel.gte'?: string;
+    'where.versionLabel.lt'?: string;
+    'where.versionLabel.lte'?: string;
+    'where.versionLabel.like'?: string;
+    'where.versionLabel.ilike'?: string;
+    'where.versionLabel.in'?: string;
+    'where.versionLabel.nin'?: string;
+    'where.versionLabel.contains'?: string;
+    'where.versionLabel.contained'?: string;
+    'where.versionLabel.overlaps'?: string;
+    'where.or'?: Array<string>;
+    'orderby.appLabel'?: 'asc' | 'desc';
+    'orderby.applicationId'?: 'asc' | 'desc';
+    'orderby.createdAt'?: 'asc' | 'desc';
+    'orderby.deploymentId'?: 'asc' | 'desc';
+    'orderby.drainedAt'?: 'asc' | 'desc';
+    'orderby.expirePolicy'?: 'asc' | 'desc';
+    'orderby.expiredAt'?: 'asc' | 'desc';
+    'orderby.hostname'?: 'asc' | 'desc';
+    'orderby.id'?: 'asc' | 'desc';
+    'orderby.k8SDeploymentName'?: 'asc' | 'desc';
+    'orderby.namespace'?: 'asc' | 'desc';
+    'orderby.pathPrefix'?: 'asc' | 'desc';
+    'orderby.serviceName'?: 'asc' | 'desc';
+    'orderby.servicePort'?: 'asc' | 'desc';
+    'orderby.status'?: 'asc' | 'desc';
+    'orderby.versionLabel'?: 'asc' | 'desc';
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetVersionRegistryResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'appLabel'?: string | null; 'versionLabel'?: string | null; 'k8SDeploymentName'?: string | null; 'serviceName'?: string | null; 'servicePort'?: number | null; 'namespace'?: string | null; 'pathPrefix'?: string | null; 'hostname'?: string | null; 'status'?: 'active' | 'draining' | 'expired' | null; 'expirePolicy'?: string | null; 'drainedAt'?: string | null; 'expiredAt'?: string | null; 'createdAt'?: string | null }>
+  export type GetVersionRegistryResponses =
+    GetVersionRegistryResponseOK
+
+  export type CreateVersionRegistryRequest = {
+    'fields'?: Array<'appLabel' | 'applicationId' | 'createdAt' | 'deploymentId' | 'drainedAt' | 'expirePolicy' | 'expiredAt' | 'hostname' | 'id' | 'k8SDeploymentName' | 'namespace' | 'pathPrefix' | 'serviceName' | 'servicePort' | 'status' | 'versionLabel'>;
+    'id'?: string;
+    'applicationId': string;
+    'deploymentId': string;
+    'appLabel': string;
+    'versionLabel': string;
+    'k8SDeploymentName': string;
+    'serviceName': string;
+    'servicePort': number;
+    'namespace': string;
+    'pathPrefix': string;
+    'hostname'?: string | null;
+    'status': 'active' | 'draining' | 'expired';
+    'expirePolicy': string;
+    'drainedAt'?: string | null;
+    'expiredAt'?: string | null;
+    'createdAt'?: string | null;
+  }
+
+  /**
+   * A VersionRegistry
+   */
+  export type CreateVersionRegistryResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'appLabel'?: string | null; 'versionLabel'?: string | null; 'k8SDeploymentName'?: string | null; 'serviceName'?: string | null; 'servicePort'?: number | null; 'namespace'?: string | null; 'pathPrefix'?: string | null; 'hostname'?: string | null; 'status'?: 'active' | 'draining' | 'expired' | null; 'expirePolicy'?: string | null; 'drainedAt'?: string | null; 'expiredAt'?: string | null; 'createdAt'?: string | null }
+  export type CreateVersionRegistryResponses =
+    CreateVersionRegistryResponseOK
+
+  export type UpdateVersionRegistryRequest = {
+    'fields'?: Array<'appLabel' | 'applicationId' | 'createdAt' | 'deploymentId' | 'drainedAt' | 'expirePolicy' | 'expiredAt' | 'hostname' | 'id' | 'k8SDeploymentName' | 'namespace' | 'pathPrefix' | 'serviceName' | 'servicePort' | 'status' | 'versionLabel'>;
+    'where.appLabel.eq'?: string;
+    'where.appLabel.neq'?: string;
+    'where.appLabel.gt'?: string;
+    'where.appLabel.gte'?: string;
+    'where.appLabel.lt'?: string;
+    'where.appLabel.lte'?: string;
+    'where.appLabel.like'?: string;
+    'where.appLabel.ilike'?: string;
+    'where.appLabel.in'?: string;
+    'where.appLabel.nin'?: string;
+    'where.appLabel.contains'?: string;
+    'where.appLabel.contained'?: string;
+    'where.appLabel.overlaps'?: string;
+    'where.applicationId.eq'?: string;
+    'where.applicationId.neq'?: string;
+    'where.applicationId.gt'?: string;
+    'where.applicationId.gte'?: string;
+    'where.applicationId.lt'?: string;
+    'where.applicationId.lte'?: string;
+    'where.applicationId.like'?: string;
+    'where.applicationId.ilike'?: string;
+    'where.applicationId.in'?: string;
+    'where.applicationId.nin'?: string;
+    'where.applicationId.contains'?: string;
+    'where.applicationId.contained'?: string;
+    'where.applicationId.overlaps'?: string;
+    'where.createdAt.eq'?: string;
+    'where.createdAt.neq'?: string;
+    'where.createdAt.gt'?: string;
+    'where.createdAt.gte'?: string;
+    'where.createdAt.lt'?: string;
+    'where.createdAt.lte'?: string;
+    'where.createdAt.like'?: string;
+    'where.createdAt.ilike'?: string;
+    'where.createdAt.in'?: string;
+    'where.createdAt.nin'?: string;
+    'where.createdAt.contains'?: string;
+    'where.createdAt.contained'?: string;
+    'where.createdAt.overlaps'?: string;
+    'where.deploymentId.eq'?: string;
+    'where.deploymentId.neq'?: string;
+    'where.deploymentId.gt'?: string;
+    'where.deploymentId.gte'?: string;
+    'where.deploymentId.lt'?: string;
+    'where.deploymentId.lte'?: string;
+    'where.deploymentId.like'?: string;
+    'where.deploymentId.ilike'?: string;
+    'where.deploymentId.in'?: string;
+    'where.deploymentId.nin'?: string;
+    'where.deploymentId.contains'?: string;
+    'where.deploymentId.contained'?: string;
+    'where.deploymentId.overlaps'?: string;
+    'where.drainedAt.eq'?: string;
+    'where.drainedAt.neq'?: string;
+    'where.drainedAt.gt'?: string;
+    'where.drainedAt.gte'?: string;
+    'where.drainedAt.lt'?: string;
+    'where.drainedAt.lte'?: string;
+    'where.drainedAt.like'?: string;
+    'where.drainedAt.ilike'?: string;
+    'where.drainedAt.in'?: string;
+    'where.drainedAt.nin'?: string;
+    'where.drainedAt.contains'?: string;
+    'where.drainedAt.contained'?: string;
+    'where.drainedAt.overlaps'?: string;
+    'where.expirePolicy.eq'?: string;
+    'where.expirePolicy.neq'?: string;
+    'where.expirePolicy.gt'?: string;
+    'where.expirePolicy.gte'?: string;
+    'where.expirePolicy.lt'?: string;
+    'where.expirePolicy.lte'?: string;
+    'where.expirePolicy.like'?: string;
+    'where.expirePolicy.ilike'?: string;
+    'where.expirePolicy.in'?: string;
+    'where.expirePolicy.nin'?: string;
+    'where.expirePolicy.contains'?: string;
+    'where.expirePolicy.contained'?: string;
+    'where.expirePolicy.overlaps'?: string;
+    'where.expiredAt.eq'?: string;
+    'where.expiredAt.neq'?: string;
+    'where.expiredAt.gt'?: string;
+    'where.expiredAt.gte'?: string;
+    'where.expiredAt.lt'?: string;
+    'where.expiredAt.lte'?: string;
+    'where.expiredAt.like'?: string;
+    'where.expiredAt.ilike'?: string;
+    'where.expiredAt.in'?: string;
+    'where.expiredAt.nin'?: string;
+    'where.expiredAt.contains'?: string;
+    'where.expiredAt.contained'?: string;
+    'where.expiredAt.overlaps'?: string;
+    'where.hostname.eq'?: string;
+    'where.hostname.neq'?: string;
+    'where.hostname.gt'?: string;
+    'where.hostname.gte'?: string;
+    'where.hostname.lt'?: string;
+    'where.hostname.lte'?: string;
+    'where.hostname.like'?: string;
+    'where.hostname.ilike'?: string;
+    'where.hostname.in'?: string;
+    'where.hostname.nin'?: string;
+    'where.hostname.contains'?: string;
+    'where.hostname.contained'?: string;
+    'where.hostname.overlaps'?: string;
+    'where.id.eq'?: string;
+    'where.id.neq'?: string;
+    'where.id.gt'?: string;
+    'where.id.gte'?: string;
+    'where.id.lt'?: string;
+    'where.id.lte'?: string;
+    'where.id.like'?: string;
+    'where.id.ilike'?: string;
+    'where.id.in'?: string;
+    'where.id.nin'?: string;
+    'where.id.contains'?: string;
+    'where.id.contained'?: string;
+    'where.id.overlaps'?: string;
+    'where.k8SDeploymentName.eq'?: string;
+    'where.k8SDeploymentName.neq'?: string;
+    'where.k8SDeploymentName.gt'?: string;
+    'where.k8SDeploymentName.gte'?: string;
+    'where.k8SDeploymentName.lt'?: string;
+    'where.k8SDeploymentName.lte'?: string;
+    'where.k8SDeploymentName.like'?: string;
+    'where.k8SDeploymentName.ilike'?: string;
+    'where.k8SDeploymentName.in'?: string;
+    'where.k8SDeploymentName.nin'?: string;
+    'where.k8SDeploymentName.contains'?: string;
+    'where.k8SDeploymentName.contained'?: string;
+    'where.k8SDeploymentName.overlaps'?: string;
+    'where.namespace.eq'?: string;
+    'where.namespace.neq'?: string;
+    'where.namespace.gt'?: string;
+    'where.namespace.gte'?: string;
+    'where.namespace.lt'?: string;
+    'where.namespace.lte'?: string;
+    'where.namespace.like'?: string;
+    'where.namespace.ilike'?: string;
+    'where.namespace.in'?: string;
+    'where.namespace.nin'?: string;
+    'where.namespace.contains'?: string;
+    'where.namespace.contained'?: string;
+    'where.namespace.overlaps'?: string;
+    'where.pathPrefix.eq'?: string;
+    'where.pathPrefix.neq'?: string;
+    'where.pathPrefix.gt'?: string;
+    'where.pathPrefix.gte'?: string;
+    'where.pathPrefix.lt'?: string;
+    'where.pathPrefix.lte'?: string;
+    'where.pathPrefix.like'?: string;
+    'where.pathPrefix.ilike'?: string;
+    'where.pathPrefix.in'?: string;
+    'where.pathPrefix.nin'?: string;
+    'where.pathPrefix.contains'?: string;
+    'where.pathPrefix.contained'?: string;
+    'where.pathPrefix.overlaps'?: string;
+    'where.serviceName.eq'?: string;
+    'where.serviceName.neq'?: string;
+    'where.serviceName.gt'?: string;
+    'where.serviceName.gte'?: string;
+    'where.serviceName.lt'?: string;
+    'where.serviceName.lte'?: string;
+    'where.serviceName.like'?: string;
+    'where.serviceName.ilike'?: string;
+    'where.serviceName.in'?: string;
+    'where.serviceName.nin'?: string;
+    'where.serviceName.contains'?: string;
+    'where.serviceName.contained'?: string;
+    'where.serviceName.overlaps'?: string;
+    'where.servicePort.eq'?: number;
+    'where.servicePort.neq'?: number;
+    'where.servicePort.gt'?: number;
+    'where.servicePort.gte'?: number;
+    'where.servicePort.lt'?: number;
+    'where.servicePort.lte'?: number;
+    'where.servicePort.like'?: number;
+    'where.servicePort.ilike'?: number;
+    'where.servicePort.in'?: string;
+    'where.servicePort.nin'?: string;
+    'where.servicePort.contains'?: string;
+    'where.servicePort.contained'?: string;
+    'where.servicePort.overlaps'?: string;
+    'where.status.eq'?: 'active' | 'draining' | 'expired';
+    'where.status.neq'?: 'active' | 'draining' | 'expired';
+    'where.status.gt'?: 'active' | 'draining' | 'expired';
+    'where.status.gte'?: 'active' | 'draining' | 'expired';
+    'where.status.lt'?: 'active' | 'draining' | 'expired';
+    'where.status.lte'?: 'active' | 'draining' | 'expired';
+    'where.status.like'?: 'active' | 'draining' | 'expired';
+    'where.status.ilike'?: 'active' | 'draining' | 'expired';
+    'where.status.in'?: string;
+    'where.status.nin'?: string;
+    'where.status.contains'?: string;
+    'where.status.contained'?: string;
+    'where.status.overlaps'?: string;
+    'where.versionLabel.eq'?: string;
+    'where.versionLabel.neq'?: string;
+    'where.versionLabel.gt'?: string;
+    'where.versionLabel.gte'?: string;
+    'where.versionLabel.lt'?: string;
+    'where.versionLabel.lte'?: string;
+    'where.versionLabel.like'?: string;
+    'where.versionLabel.ilike'?: string;
+    'where.versionLabel.in'?: string;
+    'where.versionLabel.nin'?: string;
+    'where.versionLabel.contains'?: string;
+    'where.versionLabel.contained'?: string;
+    'where.versionLabel.overlaps'?: string;
+    'where.or'?: Array<string>;
+    'id'?: string;
+    'applicationId': string;
+    'deploymentId': string;
+    'appLabel': string;
+    'versionLabel': string;
+    'k8SDeploymentName': string;
+    'serviceName': string;
+    'servicePort': number;
+    'namespace': string;
+    'pathPrefix': string;
+    'hostname'?: string | null;
+    'status': 'active' | 'draining' | 'expired';
+    'expirePolicy': string;
+    'drainedAt'?: string | null;
+    'expiredAt'?: string | null;
+    'createdAt'?: string | null;
+  }
+
+  /**
+   * Default Response
+   */
+  export type UpdateVersionRegistryResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'appLabel'?: string | null; 'versionLabel'?: string | null; 'k8SDeploymentName'?: string | null; 'serviceName'?: string | null; 'servicePort'?: number | null; 'namespace'?: string | null; 'pathPrefix'?: string | null; 'hostname'?: string | null; 'status'?: 'active' | 'draining' | 'expired' | null; 'expirePolicy'?: string | null; 'drainedAt'?: string | null; 'expiredAt'?: string | null; 'createdAt'?: string | null }>
+  export type UpdateVersionRegistryResponses =
+    UpdateVersionRegistryResponseOK
+
+  export type GetVersionRegistryByIdRequest = {
+    'fields'?: Array<'appLabel' | 'applicationId' | 'createdAt' | 'deploymentId' | 'drainedAt' | 'expirePolicy' | 'expiredAt' | 'hostname' | 'id' | 'k8SDeploymentName' | 'namespace' | 'pathPrefix' | 'serviceName' | 'servicePort' | 'status' | 'versionLabel'>;
+    'id': string;
+  }
+
+  /**
+   * A VersionRegistry
+   */
+  export type GetVersionRegistryByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'appLabel'?: string | null; 'versionLabel'?: string | null; 'k8SDeploymentName'?: string | null; 'serviceName'?: string | null; 'servicePort'?: number | null; 'namespace'?: string | null; 'pathPrefix'?: string | null; 'hostname'?: string | null; 'status'?: 'active' | 'draining' | 'expired' | null; 'expirePolicy'?: string | null; 'drainedAt'?: string | null; 'expiredAt'?: string | null; 'createdAt'?: string | null }
+  export type GetVersionRegistryByIdResponses =
+    GetVersionRegistryByIdResponseOK
+
+  export type PutUpdateVersionRegistryRequest = {
+    'fields'?: Array<'appLabel' | 'applicationId' | 'createdAt' | 'deploymentId' | 'drainedAt' | 'expirePolicy' | 'expiredAt' | 'hostname' | 'id' | 'k8SDeploymentName' | 'namespace' | 'pathPrefix' | 'serviceName' | 'servicePort' | 'status' | 'versionLabel'>;
+    'id': string;
+    'applicationId': string;
+    'deploymentId': string;
+    'appLabel': string;
+    'versionLabel': string;
+    'k8SDeploymentName': string;
+    'serviceName': string;
+    'servicePort': number;
+    'namespace': string;
+    'pathPrefix': string;
+    'hostname'?: string | null;
+    'status': 'active' | 'draining' | 'expired';
+    'expirePolicy': string;
+    'drainedAt'?: string | null;
+    'expiredAt'?: string | null;
+    'createdAt'?: string | null;
+  }
+
+  /**
+   * A VersionRegistry
+   */
+  export type PutUpdateVersionRegistryResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'appLabel'?: string | null; 'versionLabel'?: string | null; 'k8SDeploymentName'?: string | null; 'serviceName'?: string | null; 'servicePort'?: number | null; 'namespace'?: string | null; 'pathPrefix'?: string | null; 'hostname'?: string | null; 'status'?: 'active' | 'draining' | 'expired' | null; 'expirePolicy'?: string | null; 'drainedAt'?: string | null; 'expiredAt'?: string | null; 'createdAt'?: string | null }
+  export type PutUpdateVersionRegistryResponses =
+    PutUpdateVersionRegistryResponseOK
+
+  export type DeleteVersionRegistryRequest = {
+    'fields'?: Array<'appLabel' | 'applicationId' | 'createdAt' | 'deploymentId' | 'drainedAt' | 'expirePolicy' | 'expiredAt' | 'hostname' | 'id' | 'k8SDeploymentName' | 'namespace' | 'pathPrefix' | 'serviceName' | 'servicePort' | 'status' | 'versionLabel'>;
+    'id': string;
+  }
+
+  /**
+   * A VersionRegistry
+   */
+  export type DeleteVersionRegistryResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'appLabel'?: string | null; 'versionLabel'?: string | null; 'k8SDeploymentName'?: string | null; 'serviceName'?: string | null; 'servicePort'?: number | null; 'namespace'?: string | null; 'pathPrefix'?: string | null; 'hostname'?: string | null; 'status'?: 'active' | 'draining' | 'expired' | null; 'expirePolicy'?: string | null; 'drainedAt'?: string | null; 'expiredAt'?: string | null; 'createdAt'?: string | null }
+  export type DeleteVersionRegistryResponses =
+    DeleteVersionRegistryResponseOK
+
+  export type GetApplicationForVersionRegistryRequest = {
+    'fields'?: Array<'createdAt' | 'id' | 'name'>;
+    'id': string;
+  }
+
+  /**
+   * A Application
+   */
+  export type GetApplicationForVersionRegistryResponseOK = { 'id'?: string | null; 'name'?: string | null; 'createdAt'?: string | null }
+  export type GetApplicationForVersionRegistryResponses =
+    GetApplicationForVersionRegistryResponseOK
+
+  export type GetDeploymentForVersionRegistryRequest = {
+    'fields'?: Array<'applicationId' | 'applicationStateId' | 'createdAt' | 'id' | 'imageId' | 'namespace' | 'status'>;
+    'id': string;
+  }
+
+  /**
+   * A Deployment
+   */
+  export type GetDeploymentForVersionRegistryResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'applicationStateId'?: string | null; 'status'?: 'failed' | 'started' | 'starting' | 'stopped' | null; 'imageId'?: string | null; 'namespace'?: string | null; 'createdAt'?: string | null }
+  export type GetDeploymentForVersionRegistryResponses =
+    GetDeploymentForVersionRegistryResponseOK
+
+  export type GetSkewProtectionPoliciesRequest = {
+    /**
+     * Limit will be applied by default if not passed. If the provided value exceeds the maximum allowed value a validation error will be thrown
+     */
+    'limit'?: number;
+    'offset'?: number;
+    'totalCount'?: boolean;
+    /**
+     * Include cursor headers in response. Cursor keys built from orderBy clause
+     */
+    'cursor'?: boolean;
+    /**
+     * Cursor for forward pagination. List objects after this cursor position
+     */
+    'startAfter'?: string;
+    /**
+     * Cursor for backward pagination. List objects before this cursor position
+     */
+    'endBefore'?: string;
+    'fields'?: Array<'applicationId' | 'autoCleanup' | 'cookieName' | 'createdAt' | 'httpGracePeriodMs' | 'httpMaxAliveMs' | 'id' | 'maxAgeS' | 'maxVersions' | 'updatedAt' | 'workflowGracePeriodMs' | 'workflowMaxAliveMs'>;
+    'where.applicationId.eq'?: string;
+    'where.applicationId.neq'?: string;
+    'where.applicationId.gt'?: string;
+    'where.applicationId.gte'?: string;
+    'where.applicationId.lt'?: string;
+    'where.applicationId.lte'?: string;
+    'where.applicationId.like'?: string;
+    'where.applicationId.ilike'?: string;
+    'where.applicationId.in'?: string;
+    'where.applicationId.nin'?: string;
+    'where.applicationId.contains'?: string;
+    'where.applicationId.contained'?: string;
+    'where.applicationId.overlaps'?: string;
+    'where.autoCleanup.eq'?: boolean;
+    'where.autoCleanup.neq'?: boolean;
+    'where.autoCleanup.gt'?: boolean;
+    'where.autoCleanup.gte'?: boolean;
+    'where.autoCleanup.lt'?: boolean;
+    'where.autoCleanup.lte'?: boolean;
+    'where.autoCleanup.like'?: boolean;
+    'where.autoCleanup.ilike'?: boolean;
+    'where.autoCleanup.in'?: string;
+    'where.autoCleanup.nin'?: string;
+    'where.autoCleanup.contains'?: string;
+    'where.autoCleanup.contained'?: string;
+    'where.autoCleanup.overlaps'?: string;
+    'where.cookieName.eq'?: string;
+    'where.cookieName.neq'?: string;
+    'where.cookieName.gt'?: string;
+    'where.cookieName.gte'?: string;
+    'where.cookieName.lt'?: string;
+    'where.cookieName.lte'?: string;
+    'where.cookieName.like'?: string;
+    'where.cookieName.ilike'?: string;
+    'where.cookieName.in'?: string;
+    'where.cookieName.nin'?: string;
+    'where.cookieName.contains'?: string;
+    'where.cookieName.contained'?: string;
+    'where.cookieName.overlaps'?: string;
+    'where.createdAt.eq'?: string;
+    'where.createdAt.neq'?: string;
+    'where.createdAt.gt'?: string;
+    'where.createdAt.gte'?: string;
+    'where.createdAt.lt'?: string;
+    'where.createdAt.lte'?: string;
+    'where.createdAt.like'?: string;
+    'where.createdAt.ilike'?: string;
+    'where.createdAt.in'?: string;
+    'where.createdAt.nin'?: string;
+    'where.createdAt.contains'?: string;
+    'where.createdAt.contained'?: string;
+    'where.createdAt.overlaps'?: string;
+    'where.httpGracePeriodMs.eq'?: number;
+    'where.httpGracePeriodMs.neq'?: number;
+    'where.httpGracePeriodMs.gt'?: number;
+    'where.httpGracePeriodMs.gte'?: number;
+    'where.httpGracePeriodMs.lt'?: number;
+    'where.httpGracePeriodMs.lte'?: number;
+    'where.httpGracePeriodMs.like'?: number;
+    'where.httpGracePeriodMs.ilike'?: number;
+    'where.httpGracePeriodMs.in'?: string;
+    'where.httpGracePeriodMs.nin'?: string;
+    'where.httpGracePeriodMs.contains'?: string;
+    'where.httpGracePeriodMs.contained'?: string;
+    'where.httpGracePeriodMs.overlaps'?: string;
+    'where.httpMaxAliveMs.eq'?: number;
+    'where.httpMaxAliveMs.neq'?: number;
+    'where.httpMaxAliveMs.gt'?: number;
+    'where.httpMaxAliveMs.gte'?: number;
+    'where.httpMaxAliveMs.lt'?: number;
+    'where.httpMaxAliveMs.lte'?: number;
+    'where.httpMaxAliveMs.like'?: number;
+    'where.httpMaxAliveMs.ilike'?: number;
+    'where.httpMaxAliveMs.in'?: string;
+    'where.httpMaxAliveMs.nin'?: string;
+    'where.httpMaxAliveMs.contains'?: string;
+    'where.httpMaxAliveMs.contained'?: string;
+    'where.httpMaxAliveMs.overlaps'?: string;
+    'where.id.eq'?: string;
+    'where.id.neq'?: string;
+    'where.id.gt'?: string;
+    'where.id.gte'?: string;
+    'where.id.lt'?: string;
+    'where.id.lte'?: string;
+    'where.id.like'?: string;
+    'where.id.ilike'?: string;
+    'where.id.in'?: string;
+    'where.id.nin'?: string;
+    'where.id.contains'?: string;
+    'where.id.contained'?: string;
+    'where.id.overlaps'?: string;
+    'where.maxAgeS.eq'?: number;
+    'where.maxAgeS.neq'?: number;
+    'where.maxAgeS.gt'?: number;
+    'where.maxAgeS.gte'?: number;
+    'where.maxAgeS.lt'?: number;
+    'where.maxAgeS.lte'?: number;
+    'where.maxAgeS.like'?: number;
+    'where.maxAgeS.ilike'?: number;
+    'where.maxAgeS.in'?: string;
+    'where.maxAgeS.nin'?: string;
+    'where.maxAgeS.contains'?: string;
+    'where.maxAgeS.contained'?: string;
+    'where.maxAgeS.overlaps'?: string;
+    'where.maxVersions.eq'?: number;
+    'where.maxVersions.neq'?: number;
+    'where.maxVersions.gt'?: number;
+    'where.maxVersions.gte'?: number;
+    'where.maxVersions.lt'?: number;
+    'where.maxVersions.lte'?: number;
+    'where.maxVersions.like'?: number;
+    'where.maxVersions.ilike'?: number;
+    'where.maxVersions.in'?: string;
+    'where.maxVersions.nin'?: string;
+    'where.maxVersions.contains'?: string;
+    'where.maxVersions.contained'?: string;
+    'where.maxVersions.overlaps'?: string;
+    'where.updatedAt.eq'?: string;
+    'where.updatedAt.neq'?: string;
+    'where.updatedAt.gt'?: string;
+    'where.updatedAt.gte'?: string;
+    'where.updatedAt.lt'?: string;
+    'where.updatedAt.lte'?: string;
+    'where.updatedAt.like'?: string;
+    'where.updatedAt.ilike'?: string;
+    'where.updatedAt.in'?: string;
+    'where.updatedAt.nin'?: string;
+    'where.updatedAt.contains'?: string;
+    'where.updatedAt.contained'?: string;
+    'where.updatedAt.overlaps'?: string;
+    'where.workflowGracePeriodMs.eq'?: number;
+    'where.workflowGracePeriodMs.neq'?: number;
+    'where.workflowGracePeriodMs.gt'?: number;
+    'where.workflowGracePeriodMs.gte'?: number;
+    'where.workflowGracePeriodMs.lt'?: number;
+    'where.workflowGracePeriodMs.lte'?: number;
+    'where.workflowGracePeriodMs.like'?: number;
+    'where.workflowGracePeriodMs.ilike'?: number;
+    'where.workflowGracePeriodMs.in'?: string;
+    'where.workflowGracePeriodMs.nin'?: string;
+    'where.workflowGracePeriodMs.contains'?: string;
+    'where.workflowGracePeriodMs.contained'?: string;
+    'where.workflowGracePeriodMs.overlaps'?: string;
+    'where.workflowMaxAliveMs.eq'?: number;
+    'where.workflowMaxAliveMs.neq'?: number;
+    'where.workflowMaxAliveMs.gt'?: number;
+    'where.workflowMaxAliveMs.gte'?: number;
+    'where.workflowMaxAliveMs.lt'?: number;
+    'where.workflowMaxAliveMs.lte'?: number;
+    'where.workflowMaxAliveMs.like'?: number;
+    'where.workflowMaxAliveMs.ilike'?: number;
+    'where.workflowMaxAliveMs.in'?: string;
+    'where.workflowMaxAliveMs.nin'?: string;
+    'where.workflowMaxAliveMs.contains'?: string;
+    'where.workflowMaxAliveMs.contained'?: string;
+    'where.workflowMaxAliveMs.overlaps'?: string;
+    'where.or'?: Array<string>;
+    'orderby.applicationId'?: 'asc' | 'desc';
+    'orderby.autoCleanup'?: 'asc' | 'desc';
+    'orderby.cookieName'?: 'asc' | 'desc';
+    'orderby.createdAt'?: 'asc' | 'desc';
+    'orderby.httpGracePeriodMs'?: 'asc' | 'desc';
+    'orderby.httpMaxAliveMs'?: 'asc' | 'desc';
+    'orderby.id'?: 'asc' | 'desc';
+    'orderby.maxAgeS'?: 'asc' | 'desc';
+    'orderby.maxVersions'?: 'asc' | 'desc';
+    'orderby.updatedAt'?: 'asc' | 'desc';
+    'orderby.workflowGracePeriodMs'?: 'asc' | 'desc';
+    'orderby.workflowMaxAliveMs'?: 'asc' | 'desc';
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetSkewProtectionPoliciesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'httpGracePeriodMs'?: number | null; 'httpMaxAliveMs'?: number | null; 'workflowGracePeriodMs'?: number | null; 'workflowMaxAliveMs'?: number | null; 'maxAgeS'?: number | null; 'maxVersions'?: number | null; 'cookieName'?: string | null; 'autoCleanup'?: boolean | null; 'createdAt'?: string | null; 'updatedAt'?: string | null }>
+  export type GetSkewProtectionPoliciesResponses =
+    GetSkewProtectionPoliciesResponseOK
+
+  export type CreateSkewProtectionPolicyRequest = {
+    'fields'?: Array<'applicationId' | 'autoCleanup' | 'cookieName' | 'createdAt' | 'httpGracePeriodMs' | 'httpMaxAliveMs' | 'id' | 'maxAgeS' | 'maxVersions' | 'updatedAt' | 'workflowGracePeriodMs' | 'workflowMaxAliveMs'>;
+    'id'?: string;
+    'applicationId': string;
+    'httpGracePeriodMs'?: number | null;
+    'httpMaxAliveMs'?: number | null;
+    'workflowGracePeriodMs'?: number | null;
+    'workflowMaxAliveMs'?: number | null;
+    'maxAgeS'?: number | null;
+    'maxVersions'?: number | null;
+    'cookieName'?: string | null;
+    'autoCleanup'?: boolean | null;
+    'createdAt'?: string | null;
+    'updatedAt'?: string | null;
+  }
+
+  /**
+   * A SkewProtectionPolicy
+   */
+  export type CreateSkewProtectionPolicyResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'httpGracePeriodMs'?: number | null; 'httpMaxAliveMs'?: number | null; 'workflowGracePeriodMs'?: number | null; 'workflowMaxAliveMs'?: number | null; 'maxAgeS'?: number | null; 'maxVersions'?: number | null; 'cookieName'?: string | null; 'autoCleanup'?: boolean | null; 'createdAt'?: string | null; 'updatedAt'?: string | null }
+  export type CreateSkewProtectionPolicyResponses =
+    CreateSkewProtectionPolicyResponseOK
+
+  export type UpdateSkewProtectionPoliciesRequest = {
+    'fields'?: Array<'applicationId' | 'autoCleanup' | 'cookieName' | 'createdAt' | 'httpGracePeriodMs' | 'httpMaxAliveMs' | 'id' | 'maxAgeS' | 'maxVersions' | 'updatedAt' | 'workflowGracePeriodMs' | 'workflowMaxAliveMs'>;
+    'where.applicationId.eq'?: string;
+    'where.applicationId.neq'?: string;
+    'where.applicationId.gt'?: string;
+    'where.applicationId.gte'?: string;
+    'where.applicationId.lt'?: string;
+    'where.applicationId.lte'?: string;
+    'where.applicationId.like'?: string;
+    'where.applicationId.ilike'?: string;
+    'where.applicationId.in'?: string;
+    'where.applicationId.nin'?: string;
+    'where.applicationId.contains'?: string;
+    'where.applicationId.contained'?: string;
+    'where.applicationId.overlaps'?: string;
+    'where.autoCleanup.eq'?: boolean;
+    'where.autoCleanup.neq'?: boolean;
+    'where.autoCleanup.gt'?: boolean;
+    'where.autoCleanup.gte'?: boolean;
+    'where.autoCleanup.lt'?: boolean;
+    'where.autoCleanup.lte'?: boolean;
+    'where.autoCleanup.like'?: boolean;
+    'where.autoCleanup.ilike'?: boolean;
+    'where.autoCleanup.in'?: string;
+    'where.autoCleanup.nin'?: string;
+    'where.autoCleanup.contains'?: string;
+    'where.autoCleanup.contained'?: string;
+    'where.autoCleanup.overlaps'?: string;
+    'where.cookieName.eq'?: string;
+    'where.cookieName.neq'?: string;
+    'where.cookieName.gt'?: string;
+    'where.cookieName.gte'?: string;
+    'where.cookieName.lt'?: string;
+    'where.cookieName.lte'?: string;
+    'where.cookieName.like'?: string;
+    'where.cookieName.ilike'?: string;
+    'where.cookieName.in'?: string;
+    'where.cookieName.nin'?: string;
+    'where.cookieName.contains'?: string;
+    'where.cookieName.contained'?: string;
+    'where.cookieName.overlaps'?: string;
+    'where.createdAt.eq'?: string;
+    'where.createdAt.neq'?: string;
+    'where.createdAt.gt'?: string;
+    'where.createdAt.gte'?: string;
+    'where.createdAt.lt'?: string;
+    'where.createdAt.lte'?: string;
+    'where.createdAt.like'?: string;
+    'where.createdAt.ilike'?: string;
+    'where.createdAt.in'?: string;
+    'where.createdAt.nin'?: string;
+    'where.createdAt.contains'?: string;
+    'where.createdAt.contained'?: string;
+    'where.createdAt.overlaps'?: string;
+    'where.httpGracePeriodMs.eq'?: number;
+    'where.httpGracePeriodMs.neq'?: number;
+    'where.httpGracePeriodMs.gt'?: number;
+    'where.httpGracePeriodMs.gte'?: number;
+    'where.httpGracePeriodMs.lt'?: number;
+    'where.httpGracePeriodMs.lte'?: number;
+    'where.httpGracePeriodMs.like'?: number;
+    'where.httpGracePeriodMs.ilike'?: number;
+    'where.httpGracePeriodMs.in'?: string;
+    'where.httpGracePeriodMs.nin'?: string;
+    'where.httpGracePeriodMs.contains'?: string;
+    'where.httpGracePeriodMs.contained'?: string;
+    'where.httpGracePeriodMs.overlaps'?: string;
+    'where.httpMaxAliveMs.eq'?: number;
+    'where.httpMaxAliveMs.neq'?: number;
+    'where.httpMaxAliveMs.gt'?: number;
+    'where.httpMaxAliveMs.gte'?: number;
+    'where.httpMaxAliveMs.lt'?: number;
+    'where.httpMaxAliveMs.lte'?: number;
+    'where.httpMaxAliveMs.like'?: number;
+    'where.httpMaxAliveMs.ilike'?: number;
+    'where.httpMaxAliveMs.in'?: string;
+    'where.httpMaxAliveMs.nin'?: string;
+    'where.httpMaxAliveMs.contains'?: string;
+    'where.httpMaxAliveMs.contained'?: string;
+    'where.httpMaxAliveMs.overlaps'?: string;
+    'where.id.eq'?: string;
+    'where.id.neq'?: string;
+    'where.id.gt'?: string;
+    'where.id.gte'?: string;
+    'where.id.lt'?: string;
+    'where.id.lte'?: string;
+    'where.id.like'?: string;
+    'where.id.ilike'?: string;
+    'where.id.in'?: string;
+    'where.id.nin'?: string;
+    'where.id.contains'?: string;
+    'where.id.contained'?: string;
+    'where.id.overlaps'?: string;
+    'where.maxAgeS.eq'?: number;
+    'where.maxAgeS.neq'?: number;
+    'where.maxAgeS.gt'?: number;
+    'where.maxAgeS.gte'?: number;
+    'where.maxAgeS.lt'?: number;
+    'where.maxAgeS.lte'?: number;
+    'where.maxAgeS.like'?: number;
+    'where.maxAgeS.ilike'?: number;
+    'where.maxAgeS.in'?: string;
+    'where.maxAgeS.nin'?: string;
+    'where.maxAgeS.contains'?: string;
+    'where.maxAgeS.contained'?: string;
+    'where.maxAgeS.overlaps'?: string;
+    'where.maxVersions.eq'?: number;
+    'where.maxVersions.neq'?: number;
+    'where.maxVersions.gt'?: number;
+    'where.maxVersions.gte'?: number;
+    'where.maxVersions.lt'?: number;
+    'where.maxVersions.lte'?: number;
+    'where.maxVersions.like'?: number;
+    'where.maxVersions.ilike'?: number;
+    'where.maxVersions.in'?: string;
+    'where.maxVersions.nin'?: string;
+    'where.maxVersions.contains'?: string;
+    'where.maxVersions.contained'?: string;
+    'where.maxVersions.overlaps'?: string;
+    'where.updatedAt.eq'?: string;
+    'where.updatedAt.neq'?: string;
+    'where.updatedAt.gt'?: string;
+    'where.updatedAt.gte'?: string;
+    'where.updatedAt.lt'?: string;
+    'where.updatedAt.lte'?: string;
+    'where.updatedAt.like'?: string;
+    'where.updatedAt.ilike'?: string;
+    'where.updatedAt.in'?: string;
+    'where.updatedAt.nin'?: string;
+    'where.updatedAt.contains'?: string;
+    'where.updatedAt.contained'?: string;
+    'where.updatedAt.overlaps'?: string;
+    'where.workflowGracePeriodMs.eq'?: number;
+    'where.workflowGracePeriodMs.neq'?: number;
+    'where.workflowGracePeriodMs.gt'?: number;
+    'where.workflowGracePeriodMs.gte'?: number;
+    'where.workflowGracePeriodMs.lt'?: number;
+    'where.workflowGracePeriodMs.lte'?: number;
+    'where.workflowGracePeriodMs.like'?: number;
+    'where.workflowGracePeriodMs.ilike'?: number;
+    'where.workflowGracePeriodMs.in'?: string;
+    'where.workflowGracePeriodMs.nin'?: string;
+    'where.workflowGracePeriodMs.contains'?: string;
+    'where.workflowGracePeriodMs.contained'?: string;
+    'where.workflowGracePeriodMs.overlaps'?: string;
+    'where.workflowMaxAliveMs.eq'?: number;
+    'where.workflowMaxAliveMs.neq'?: number;
+    'where.workflowMaxAliveMs.gt'?: number;
+    'where.workflowMaxAliveMs.gte'?: number;
+    'where.workflowMaxAliveMs.lt'?: number;
+    'where.workflowMaxAliveMs.lte'?: number;
+    'where.workflowMaxAliveMs.like'?: number;
+    'where.workflowMaxAliveMs.ilike'?: number;
+    'where.workflowMaxAliveMs.in'?: string;
+    'where.workflowMaxAliveMs.nin'?: string;
+    'where.workflowMaxAliveMs.contains'?: string;
+    'where.workflowMaxAliveMs.contained'?: string;
+    'where.workflowMaxAliveMs.overlaps'?: string;
+    'where.or'?: Array<string>;
+    'id'?: string;
+    'applicationId': string;
+    'httpGracePeriodMs'?: number | null;
+    'httpMaxAliveMs'?: number | null;
+    'workflowGracePeriodMs'?: number | null;
+    'workflowMaxAliveMs'?: number | null;
+    'maxAgeS'?: number | null;
+    'maxVersions'?: number | null;
+    'cookieName'?: string | null;
+    'autoCleanup'?: boolean | null;
+    'createdAt'?: string | null;
+    'updatedAt'?: string | null;
+  }
+
+  /**
+   * Default Response
+   */
+  export type UpdateSkewProtectionPoliciesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'httpGracePeriodMs'?: number | null; 'httpMaxAliveMs'?: number | null; 'workflowGracePeriodMs'?: number | null; 'workflowMaxAliveMs'?: number | null; 'maxAgeS'?: number | null; 'maxVersions'?: number | null; 'cookieName'?: string | null; 'autoCleanup'?: boolean | null; 'createdAt'?: string | null; 'updatedAt'?: string | null }>
+  export type UpdateSkewProtectionPoliciesResponses =
+    UpdateSkewProtectionPoliciesResponseOK
+
+  export type GetSkewProtectionPolicyByIdRequest = {
+    'fields'?: Array<'applicationId' | 'autoCleanup' | 'cookieName' | 'createdAt' | 'httpGracePeriodMs' | 'httpMaxAliveMs' | 'id' | 'maxAgeS' | 'maxVersions' | 'updatedAt' | 'workflowGracePeriodMs' | 'workflowMaxAliveMs'>;
+    'id': string;
+  }
+
+  /**
+   * A SkewProtectionPolicy
+   */
+  export type GetSkewProtectionPolicyByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'httpGracePeriodMs'?: number | null; 'httpMaxAliveMs'?: number | null; 'workflowGracePeriodMs'?: number | null; 'workflowMaxAliveMs'?: number | null; 'maxAgeS'?: number | null; 'maxVersions'?: number | null; 'cookieName'?: string | null; 'autoCleanup'?: boolean | null; 'createdAt'?: string | null; 'updatedAt'?: string | null }
+  export type GetSkewProtectionPolicyByIdResponses =
+    GetSkewProtectionPolicyByIdResponseOK
+
+  export type UpdateSkewProtectionPolicyRequest = {
+    'fields'?: Array<'applicationId' | 'autoCleanup' | 'cookieName' | 'createdAt' | 'httpGracePeriodMs' | 'httpMaxAliveMs' | 'id' | 'maxAgeS' | 'maxVersions' | 'updatedAt' | 'workflowGracePeriodMs' | 'workflowMaxAliveMs'>;
+    'id': string;
+    'applicationId': string;
+    'httpGracePeriodMs'?: number | null;
+    'httpMaxAliveMs'?: number | null;
+    'workflowGracePeriodMs'?: number | null;
+    'workflowMaxAliveMs'?: number | null;
+    'maxAgeS'?: number | null;
+    'maxVersions'?: number | null;
+    'cookieName'?: string | null;
+    'autoCleanup'?: boolean | null;
+    'createdAt'?: string | null;
+    'updatedAt'?: string | null;
+  }
+
+  /**
+   * A SkewProtectionPolicy
+   */
+  export type UpdateSkewProtectionPolicyResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'httpGracePeriodMs'?: number | null; 'httpMaxAliveMs'?: number | null; 'workflowGracePeriodMs'?: number | null; 'workflowMaxAliveMs'?: number | null; 'maxAgeS'?: number | null; 'maxVersions'?: number | null; 'cookieName'?: string | null; 'autoCleanup'?: boolean | null; 'createdAt'?: string | null; 'updatedAt'?: string | null }
+  export type UpdateSkewProtectionPolicyResponses =
+    UpdateSkewProtectionPolicyResponseOK
+
+  export type DeleteSkewProtectionPoliciesRequest = {
+    'fields'?: Array<'applicationId' | 'autoCleanup' | 'cookieName' | 'createdAt' | 'httpGracePeriodMs' | 'httpMaxAliveMs' | 'id' | 'maxAgeS' | 'maxVersions' | 'updatedAt' | 'workflowGracePeriodMs' | 'workflowMaxAliveMs'>;
+    'id': string;
+  }
+
+  /**
+   * A SkewProtectionPolicy
+   */
+  export type DeleteSkewProtectionPoliciesResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'httpGracePeriodMs'?: number | null; 'httpMaxAliveMs'?: number | null; 'workflowGracePeriodMs'?: number | null; 'workflowMaxAliveMs'?: number | null; 'maxAgeS'?: number | null; 'maxVersions'?: number | null; 'cookieName'?: string | null; 'autoCleanup'?: boolean | null; 'createdAt'?: string | null; 'updatedAt'?: string | null }
+  export type DeleteSkewProtectionPoliciesResponses =
+    DeleteSkewProtectionPoliciesResponseOK
+
+  export type GetApplicationForSkewProtectionPolicyRequest = {
+    'fields'?: Array<'createdAt' | 'id' | 'name'>;
+    'id': string;
+  }
+
+  /**
+   * A Application
+   */
+  export type GetApplicationForSkewProtectionPolicyResponseOK = { 'id'?: string | null; 'name'?: string | null; 'createdAt'?: string | null }
+  export type GetApplicationForSkewProtectionPolicyResponses =
+    GetApplicationForSkewProtectionPolicyResponseOK
+
   export type EmitApplicationConfigRequest = {
     'id': string;
   }
@@ -3195,14 +4537,15 @@ declare namespace controlPlane {
     GetGenerationGraphResponseOK
 
   export type InitApplicationInstanceRequest = {
-    'podId': string;
+    'machineId': string;
     'applicationName': string;
+    'apiVersion': 'v2' | 'v3';
   }
 
   /**
    * Default Response
    */
-  export type InitApplicationInstanceResponseOK = { 'applicationId': string; 'config': { 'resources'?: { 'threads'?: number; 'heap'?: number; 'services'?: Array<{ 'name'?: string; 'heap'?: number; 'threads'?: number }> }; 'httpCacheConfig'?: object | null }; 'httpCache': { 'clientOpts'?: { 'host': string; 'port': number; 'username': string; 'password': string; 'keyPrefix': string } }; 'iccServices': Record<string, { 'url': string }> }
+  export type InitApplicationInstanceResponseOK = { 'applicationId': string; 'applicationName': string; 'config': { 'resources'?: { 'threads'?: number; 'heap'?: number; 'services'?: Array<{ 'name'?: string; 'heap'?: number; 'threads'?: number }> }; 'httpCacheConfig'?: object | null }; 'enableOpenTelemetry'?: boolean; 'enableSlicerInterceptor'?: boolean; 'enableTrafficInterceptor'?: boolean; 'httpCache': { 'clientOpts'?: { 'host': string; 'port': number; 'username': string; 'password': string; 'keyPrefix': string } | null }; 'iccServices': Record<string, { 'url': string }>; 'scaler'?: { 'version': 'v1' | 'v2' } }
   export type InitApplicationInstanceResponses =
     InitApplicationInstanceResponseOK
 
@@ -3235,7 +4578,7 @@ declare namespace controlPlane {
   /**
    * Default Response
    */
-  export type GetApplicationK8SStateResponseOK = { 'pods'?: Array<{ 'id'?: string; 'status'?: string; 'startTime'?: string; 'resources'?: { 'limits'?: { 'cpu'?: string; 'memory'?: string }; 'requests'?: { 'cpu'?: string; 'memory'?: string } } }> }
+  export type GetApplicationK8SStateResponseOK = { 'pods'?: Array<{ 'id'?: string; 'status'?: string; 'startTime'?: string; 'resources'?: { 'limits'?: { 'cpu'?: string; 'memory'?: string }; 'requests'?: { 'cpu'?: string; 'memory'?: string } }; 'versionLabel'?: string }> }
   export type GetApplicationK8SStateResponses =
     GetApplicationK8SStateResponseOK
 
@@ -3263,6 +4606,30 @@ declare namespace controlPlane {
   export type SetApplicationResourcesResponseOK = object
   export type SetApplicationResourcesResponses =
     SetApplicationResourcesResponseOK
+
+  export type GetApplicationVersionsRequest = {
+    'status'?: 'active' | 'draining' | 'expired';
+    'id': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type GetApplicationVersionsResponseOK = { 'versions': Array<{ 'id'?: string; 'deploymentId'?: string; 'appLabel'?: string; 'versionLabel'?: string; 'controllerName'?: string; 'serviceName'?: string; 'servicePort'?: number; 'namespace'?: string; 'pathPrefix'?: string; 'hostname'?: unknown; 'status'?: string; 'createdAt'?: unknown; 'expiredAt'?: unknown }> }
+  export type GetApplicationVersionsResponses =
+    GetApplicationVersionsResponseOK
+
+  export type ExpireApplicationVersionRequest = {
+    'id': string;
+    'versionLabel': string;
+  }
+
+  /**
+   * Default Response
+   */
+  export type ExpireApplicationVersionResponseOK = { 'expired': boolean; 'activeVersion': unknown; 'drainingVersions': Array<{ 'versionId'?: string; 'serviceName'?: string; 'port'?: number }> }
+  export type ExpireApplicationVersionResponses =
+    ExpireApplicationVersionResponseOK
 
 }
 

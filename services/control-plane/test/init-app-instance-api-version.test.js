@@ -12,12 +12,12 @@ const {
   startCompliance,
   startTrafficInspector,
   startScaler,
-  generateK8sHeader
+  generateMachineHeaders
 } = require('./helper')
 
 test('should return trafficante URL for apiVersion v2', async (t) => {
   const applicationName = 'test-app'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startActivities(t)
@@ -27,7 +27,7 @@ test('should return trafficante URL for apiVersion v2', async (t) => {
   await startMainService(t)
   await startTrafficInspector(t)
   await startMachinist(t, {
-    getPodDetails: () => ({ image: imageId })
+    getMachineDetails: () => ({ image: imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -35,10 +35,10 @@ test('should return trafficante URL for apiVersion v2', async (t) => {
   // Test with apiVersion v2 (default)
   const { statusCode: statusCodeV2, body: bodyV2 } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName, apiVersion: 'v2' }
   })
@@ -54,7 +54,7 @@ test('should return trafficante URL for apiVersion v2', async (t) => {
 
 test('should return trafficInspector URL for apiVersion v3', async (t) => {
   const applicationName = 'test-app-v3'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startActivities(t)
@@ -64,7 +64,7 @@ test('should return trafficInspector URL for apiVersion v3', async (t) => {
   await startMainService(t)
   await startTrafficInspector(t)
   await startMachinist(t, {
-    getPodDetails: () => ({ image: imageId })
+    getMachineDetails: () => ({ image: imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -72,10 +72,10 @@ test('should return trafficInspector URL for apiVersion v3', async (t) => {
   // Test with apiVersion v3
   const { statusCode: statusCodeV3, body: bodyV3 } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName, apiVersion: 'v3' }
   })
@@ -91,7 +91,7 @@ test('should return trafficInspector URL for apiVersion v3', async (t) => {
 
 test('should default to v2 when apiVersion is not provided', async (t) => {
   const applicationName = 'test-app-default'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startActivities(t)
@@ -101,7 +101,7 @@ test('should default to v2 when apiVersion is not provided', async (t) => {
   await startMainService(t)
   await startTrafficInspector(t)
   await startMachinist(t, {
-    getPodDetails: () => ({ image: imageId })
+    getMachineDetails: () => ({ image: imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -109,10 +109,10 @@ test('should default to v2 when apiVersion is not provided', async (t) => {
   // Test without apiVersion (should default to v2)
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName }
   })
@@ -140,7 +140,7 @@ test('should keep other service URLs unchanged for both apiVersions', async (t) 
   await startMainService(t)
   await startTrafficInspector(t)
   await startMachinist(t, {
-    getPodDetails: () => ({ image: imageId })
+    getMachineDetails: () => ({ image: imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -151,7 +151,7 @@ test('should keep other service URLs unchanged for both apiVersions', async (t) 
     url: `/pods/${podIdV2}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podIdV2)
+      ...generateMachineHeaders(podIdV2)
     },
     body: { applicationName: applicationNameV2, apiVersion: 'v2' }
   })
@@ -165,7 +165,7 @@ test('should keep other service URLs unchanged for both apiVersions', async (t) 
     url: `/pods/${podIdV3}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podIdV3)
+      ...generateMachineHeaders(podIdV3)
     },
     body: { applicationName: applicationNameV3, apiVersion: 'v3' }
   })

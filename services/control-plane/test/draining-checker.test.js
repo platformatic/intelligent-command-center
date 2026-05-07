@@ -45,7 +45,7 @@ function buildApp (opts = {}) {
   let policyIdCounter = 0
   const calls = {
     applyHTTPRoute: [],
-    updateController: []
+    updateControllerReplicas: []
   }
 
   const httpGracePeriodMs = opts.httpGracePeriodMs || 0
@@ -153,9 +153,9 @@ function buildApp (opts = {}) {
         calls.applyHTTPRoute.push({ namespace, httpRoute })
         return httpRoute
       },
-      updateController: async (controllerId, namespace, apiVersion, kind, replicas, ctx) => {
-        calls.updateController.push({ controllerId, namespace, replicas })
-        return { spec: { replicas } }
+      updateControllerReplicas: async (controllerId, namespace, replicas, ctx) => {
+        calls.updateControllerReplicas.push({ controllerId, namespace, replicas })
+        return { name: controllerId, replicas, labels: {} }
       },
       deleteDeployment: async () => ({ status: 'Success' }),
       deleteService: async () => ({ status: 'Success' })
@@ -211,7 +211,7 @@ const baseOpts = {
   deploymentId: 'dep-1',
   appLabel: 'my-app',
   versionLabel: 'v1',
-  k8SDeploymentName: 'my-app-v1',
+  controllerName: 'my-app-v1',
   serviceName: 'my-app-v1-svc',
   servicePort: 3042,
   namespace: 'platformatic',
@@ -237,7 +237,7 @@ test('should expire draining versions with zero RPS from metrics', async (t) => 
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -250,7 +250,7 @@ test('should expire draining versions with zero RPS from metrics', async (t) => 
   await setTimeout(150)
 
   assert.strictEqual(store[0].status, 'expired')
-  assert.ok(calls.updateController.length > 0)
+  assert.ok(calls.updateControllerReplicas.length > 0)
 })
 
 test('should NOT expire version within grace period even if RPS=0', async (t) => {
@@ -271,7 +271,7 @@ test('should NOT expire version within grace period even if RPS=0', async (t) =>
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -302,7 +302,7 @@ test('should force expire version past max alive regardless of traffic', async (
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -312,7 +312,7 @@ test('should force expire version past max alive regardless of traffic', async (
   await setTimeout(150)
 
   assert.strictEqual(store[0].status, 'expired')
-  assert.ok(calls.updateController.length > 0)
+  assert.ok(calls.updateControllerReplicas.length > 0)
 })
 
 test('should expire version past grace period when RPS=0', async (t) => {
@@ -335,7 +335,7 @@ test('should expire version past grace period when RPS=0', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -346,7 +346,7 @@ test('should expire version past grace period when RPS=0', async (t) => {
   await setTimeout(150)
 
   assert.strictEqual(store[0].status, 'expired')
-  assert.ok(calls.updateController.length > 0)
+  assert.ok(calls.updateControllerReplicas.length > 0)
 })
 
 test('should NOT expire version past grace period when RPS > 0', async (t) => {
@@ -369,7 +369,7 @@ test('should NOT expire version past grace period when RPS > 0', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -398,7 +398,7 @@ test('should not expire draining versions that still have traffic', async (t) =>
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -454,7 +454,7 @@ test('should handle multiple apps independently', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -463,7 +463,7 @@ test('should handle multiple apps independently', async (t) => {
     appLabel: 'other-app',
     versionLabel: 'v1',
     deploymentId: 'dep-3',
-    k8SDeploymentName: 'other-app-v1',
+    controllerName: 'other-app-v1',
     serviceName: 'other-app-v1-svc'
   }, mockCtx)
   await app.registerVersion({
@@ -471,7 +471,7 @@ test('should handle multiple apps independently', async (t) => {
     appLabel: 'other-app',
     versionLabel: 'v2',
     deploymentId: 'dep-4',
-    k8SDeploymentName: 'other-app-v2',
+    controllerName: 'other-app-v2',
     serviceName: 'other-app-v2-svc'
   }, mockCtx)
 
@@ -504,7 +504,7 @@ test('should not run checker when not leader', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -534,7 +534,7 @@ test('should stop checker when leadership is lost', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -583,7 +583,7 @@ test('should use per-app max alive instead of global', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -618,7 +618,7 @@ test('workflow versions use separate grace period and max alive', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 

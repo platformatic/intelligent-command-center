@@ -40,18 +40,18 @@ module.exports = async function (fastify, opts) {
       }
     },
     handler: async (request, reply) => {
-      const { podId } = request.params
+      const { podId: machineId } = request.params
       const { command, params } = request.body
 
       try {
-        const result = await fastify.executePodCommand(podId, command, params)
+        const result = await fastify.executeMachineCommand(machineId, command, params)
         return {
           success: true,
-          message: `Command '${command}' executed for pod ${podId}`,
+          message: `Command '${command}' executed for machine ${machineId}`,
           data: result
         }
       } catch (err) {
-        fastify.log.error({ err, podId, command }, 'Failed to execute pod command')
+        fastify.log.error({ err, machineId, command }, 'Failed to execute machine command')
         throw err
       }
     }

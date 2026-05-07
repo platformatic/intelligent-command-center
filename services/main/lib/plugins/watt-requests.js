@@ -4,14 +4,14 @@ const fp = require('fastify-plugin')
 
 /** @param {import('fastify').FastifyInstance} fastify */
 module.exports = fp(async function (fastify, opts) {
-  const podConnections = new Map()
+  const machineConnections = new Map()
 
-  fastify.decorate('podConnections', podConnections)
+  fastify.decorate('machineConnections', machineConnections)
 
-  fastify.decorate('executePodCommand', async (podId, command, params = {}) => {
-    const connection = podConnections.get(podId)
+  fastify.decorate('executeMachineCommand', async (machineId, command, params = {}) => {
+    const connection = machineConnections.get(machineId)
     if (!connection) {
-      throw new Error(`No active connection for pod ${podId}`)
+      throw new Error(`No active connection for machine ${machineId}`)
     }
 
     const commandHandlers = {
@@ -39,14 +39,14 @@ module.exports = fp(async function (fastify, opts) {
     return handler()
   })
 
-  fastify.decorate('registerClientHandler', (connection, podId) => {
-    if (podId) {
-      podConnections.set(podId, connection)
+  fastify.decorate('registerClientHandler', (connection, machineId) => {
+    if (machineId) {
+      machineConnections.set(machineId, connection)
     }
 
     connection.on('close', () => {
-      if (podId && podConnections.get(podId) === connection) {
-        podConnections.delete(podId)
+      if (machineId && machineConnections.get(machineId) === connection) {
+        machineConnections.delete(machineId)
       }
     })
   })

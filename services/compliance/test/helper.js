@@ -148,10 +148,10 @@ async function startControlPlane (t, opts = {}) {
   const controlPlane = fastify({ keepAliveTimeout: 1 })
 
   controlPlane.get('/instances/', async (req) => {
-    const podId = req.query['where.podId.eq']
+    const machineId = req.query['where.machineId.eq']
     const applicationId = req.query['where.applicationId.eq']
 
-    return opts?.getInstances({ podId, applicationId }) ?? []
+    return opts?.getInstances({ machineId, applicationId }) ?? []
   })
 
   t.after(async () => {
@@ -193,13 +193,11 @@ async function startNpmMock (t, npmPackages = []) {
   return npmRegistryClient
 }
 
-function generateK8sAuthContext (podId, namespace) {
-  return { namespace, pod: { name: podId } }
-}
-
-function generateK8sHeader (podId, namespace) {
-  namespace = namespace || 'platformatic'
-  return JSON.stringify(generateK8sAuthContext(podId, namespace))
+function generateMachineHeaders (machineId, namespace = 'platformatic') {
+  return {
+    'x-plt-machine-id': machineId,
+    'x-plt-machine-namespace': namespace
+  }
 }
 
 module.exports = {
@@ -207,5 +205,5 @@ module.exports = {
   startControlPlane,
   startNpmMock,
   setUpEnvironment,
-  generateK8sHeader
+  generateMachineHeaders
 }

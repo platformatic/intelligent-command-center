@@ -6,7 +6,7 @@ const { randomUUID } = require('node:crypto')
 const {
   startCompliance,
   startControlPlane,
-  generateK8sHeader
+  generateMachineHeaders
 } = require('../helper')
 
 test('should return true if all rules returns true', async (t) => {
@@ -41,7 +41,7 @@ test('should return true if all rules returns true', async (t) => {
     url: '/compliance',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     body: JSON.stringify({ applicationId })
   })
@@ -87,7 +87,7 @@ test('should return false if a rule returns false', async (t) => {
     url: '/compliance',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     body: JSON.stringify({ applicationId })
   })
@@ -134,7 +134,7 @@ test('should ignore disabled rules', async (t) => {
     url: '/compliance',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     body: JSON.stringify({ applicationId })
   })
@@ -183,7 +183,7 @@ test('local rules should override global ones', async (t) => {
     url: '/compliance',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     body: JSON.stringify({ applicationId })
   })
@@ -237,7 +237,7 @@ test('local rules not overriding global ones for another applicationId', async (
     url: '/compliance',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     body: JSON.stringify({ applicationId })
   })
@@ -260,7 +260,7 @@ test('should not run compliance twice for same deploymentId', async (t) => {
   await startControlPlane(t, {
     getInstances: (options) => {
       assert.strictEqual(options.applicationId, applicationId)
-      assert.strictEqual(options.podId, podId)
+      assert.strictEqual(options.machineId, podId)
 
       return [{
         podId,
@@ -291,7 +291,7 @@ test('should not run compliance twice for same deploymentId', async (t) => {
       url: '/compliance',
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId)
+        ...generateMachineHeaders(podId)
       },
       body: JSON.stringify({ applicationId })
     })
@@ -316,7 +316,7 @@ test('should not run compliance twice for same deploymentId', async (t) => {
       url: '/compliance',
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId)
+        ...generateMachineHeaders(podId)
       },
       body: JSON.stringify({ applicationId })
     })
@@ -342,14 +342,14 @@ test('should run compliance twice for same applicationId', async (t) => {
     getInstances: (options) => {
       assert.strictEqual(options.applicationId, applicationId)
 
-      if (options.podId === podId1) {
+      if (options.machineId === podId1) {
         return [{
           podId: podId1,
           applicationId,
           deploymentId: deploymentId1
         }]
       }
-      if (options.podId === podId2) {
+      if (options.machineId === podId2) {
         return [{
           podId: podId2,
           applicationId,
@@ -381,7 +381,7 @@ test('should run compliance twice for same applicationId', async (t) => {
       url: '/compliance',
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId1)
+        ...generateMachineHeaders(podId1)
       },
       body: JSON.stringify({ applicationId })
     })
@@ -406,7 +406,7 @@ test('should run compliance twice for same applicationId', async (t) => {
       url: '/compliance',
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId2)
+        ...generateMachineHeaders(podId2)
       },
       body: JSON.stringify({ applicationId })
     })

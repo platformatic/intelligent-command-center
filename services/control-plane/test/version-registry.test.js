@@ -116,7 +116,7 @@ const baseOpts = {
   deploymentId: 'dep-1',
   appLabel: 'my-app',
   versionLabel: 'v1',
-  k8SDeploymentName: 'my-app-v1',
+  controllerName: 'my-app-v1',
   serviceName: 'my-app-v1-svc',
   servicePort: 3042,
   namespace: 'platformatic',
@@ -124,12 +124,17 @@ const baseOpts = {
   hostname: null
 }
 
-test('should not register decorator when feature is disabled', async (t) => {
+test('decorators exist when feature is disabled (with safe branches)', async (t) => {
   const { app } = buildApp({ enabled: false })
   await app.ready()
   t.after(() => app.close())
 
-  assert.strictEqual(app.registerVersion, undefined)
+  // All three decorators are always registered so frontend (deployment-history)
+  // and other consumers can call them. Disabled-mode behavior is per-method:
+  // listVersions returns []; registerVersion/expireVersion throw.
+  assert.strictEqual(typeof app.registerVersion, 'function')
+  assert.strictEqual(typeof app.expireVersion, 'function')
+  assert.strictEqual(typeof app.listVersions, 'function')
 })
 
 test('should register new version as active', async (t) => {
@@ -162,7 +167,7 @@ test('should mark previous active version as draining when new version registers
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -203,7 +208,7 @@ test('should do nothing when version already exists as draining', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -225,7 +230,7 @@ test('should handle three versions: v1 draining, v2 draining, v3 active', async 
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -233,7 +238,7 @@ test('should handle three versions: v1 draining, v2 draining, v3 active', async 
     ...baseOpts,
     versionLabel: 'v3',
     deploymentId: 'dep-3',
-    k8SDeploymentName: 'my-app-v3',
+    controllerName: 'my-app-v3',
     serviceName: 'my-app-v3-svc'
   }, mockCtx)
 
@@ -283,7 +288,7 @@ test('expireVersion should expire a draining version and stop its deployment', a
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -353,7 +358,7 @@ test('maxVersions should auto-expire oldest draining versions and stop their dep
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -361,7 +366,7 @@ test('maxVersions should auto-expire oldest draining versions and stop their dep
     ...baseOpts,
     versionLabel: 'v3',
     deploymentId: 'dep-3',
-    k8SDeploymentName: 'my-app-v3',
+    controllerName: 'my-app-v3',
     serviceName: 'my-app-v3-svc'
   }, mockCtx)
 
@@ -388,7 +393,7 @@ test('maxVersions null should not expire any draining versions', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -396,7 +401,7 @@ test('maxVersions null should not expire any draining versions', async (t) => {
     ...baseOpts,
     versionLabel: 'v3',
     deploymentId: 'dep-3',
-    k8SDeploymentName: 'my-app-v3',
+    controllerName: 'my-app-v3',
     serviceName: 'my-app-v3-svc'
   }, mockCtx)
 
@@ -429,7 +434,7 @@ test('maxVersions should not expire when within limit', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -437,7 +442,7 @@ test('maxVersions should not expire when within limit', async (t) => {
     ...baseOpts,
     versionLabel: 'v3',
     deploymentId: 'dep-3',
-    k8SDeploymentName: 'my-app-v3',
+    controllerName: 'my-app-v3',
     serviceName: 'my-app-v3-svc'
   }, mockCtx)
 
@@ -481,7 +486,7 @@ test('should re-activate an expired version when redeployed', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -493,12 +498,12 @@ test('should re-activate an expired version when redeployed', async (t) => {
   const result = await app.registerVersion({
     ...baseOpts,
     deploymentId: 'dep-3',
-    k8SDeploymentName: 'my-app-v1-new',
+    controllerName: 'my-app-v1-new',
     serviceName: 'my-app-v1-new-svc'
   }, mockCtx)
 
   assert.strictEqual(store[0].status, 'active')
-  assert.strictEqual(store[0].k8SDeploymentName, 'my-app-v1-new')
+  assert.strictEqual(store[0].controllerName, 'my-app-v1-new')
   assert.strictEqual(store[0].serviceName, 'my-app-v1-new-svc')
   assert.strictEqual(store[0].deploymentId, 'dep-3')
   assert.strictEqual(store[0].drainedAt, null)
@@ -507,4 +512,60 @@ test('should re-activate an expired version when redeployed', async (t) => {
   assert.strictEqual(result.activeVersion.versionId, 'v1')
   assert.strictEqual(result.drainingVersions.length, 1)
   assert.strictEqual(result.drainingVersions[0].versionId, 'v2')
+})
+
+// ── Skew protection disabled — decorators always exist, with safe branches ──
+
+test('listVersions returns empty array when skew protection is disabled', async (t) => {
+  const { app } = buildApp({ enabled: false })
+  await app.ready()
+  t.after(() => app.close())
+
+  assert.strictEqual(typeof app.listVersions, 'function')
+  const versions = await app.listVersions('any-app-id')
+  assert.deepStrictEqual(versions, [])
+})
+
+test('listVersions accepts status param when skew disabled, still returns empty', async (t) => {
+  const { app } = buildApp({ enabled: false })
+  await app.ready()
+  t.after(() => app.close())
+
+  const versions = await app.listVersions('any-app-id', 'active')
+  assert.deepStrictEqual(versions, [])
+})
+
+test('registerVersion throws "feature not enabled" when skew protection is disabled', async (t) => {
+  const { app } = buildApp({ enabled: false })
+  await app.ready()
+  t.after(() => app.close())
+
+  assert.strictEqual(typeof app.registerVersion, 'function')
+  await assert.rejects(
+    () => app.registerVersion({
+      applicationId: 'app-1',
+      deploymentId: 'dep-1',
+      appLabel: 'my-app',
+      versionLabel: 'v1',
+      controllerName: 'my-app-v1',
+      serviceName: 'my-app-v1',
+      servicePort: 3042,
+      namespace: 'platformatic',
+      pathPrefix: '/my-app',
+      hostname: null
+    }, mockCtx),
+    err => err.code === 'PLT_CONTROL_PLANE_SKEW_PROTECTION_DISABLED' && err.statusCode === 501
+  )
+})
+
+test('expireVersion throws "feature not enabled" when skew protection is disabled', async (t) => {
+  const { app } = buildApp({ enabled: false })
+  await app.ready()
+  t.after(() => app.close())
+
+  assert.strictEqual(typeof app.expireVersion, 'function')
+  await assert.rejects(
+    () => app.expireVersion('my-app', 'v1', mockCtx),
+    err => err.code === 'PLT_CONTROL_PLANE_SKEW_PROTECTION_DISABLED' && err.statusCode === 501
+  )
 })

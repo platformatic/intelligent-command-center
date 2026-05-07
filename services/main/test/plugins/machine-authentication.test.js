@@ -7,7 +7,7 @@ const path = require('node:path')
 const fastify = require('fastify')
 const configPlugin = require('../../lib/plugins/config')
 const k8sTokenPlugin = require('../../lib/plugins/k8s-token')
-const k8sAuthPlugin = require('../../lib/plugins/k8s-authentication')
+const machineAuthPlugin = require('../../lib/plugins/machine-authentication')
 const { createSigner } = require('fast-jwt')
 const { setUpEnvironment } = require('../helper')
 const { createPublicKey, generateKeyPairSync } = require('node:crypto')
@@ -65,25 +65,25 @@ async function cleanupTestEnv () {
   await rm(testDir, { recursive: true, force: true })
 }
 
-async function setupApp (env = { PLT_DISABLE_K8S_AUTH: false }) {
+async function setupApp (env = { PLT_DISABLE_MACHINE_AUTH: false }) {
   setUpEnvironment(env)
   const app = fastify()
   await app.register(configPlugin)
   await app.register(k8sTokenPlugin)
-  await app.register(k8sAuthPlugin)
+  await app.register(machineAuthPlugin)
   app.post('/control-plane/pods/:podId/instance', async function (request, reply) {
     const headers = request.headers
 
-    await app.k8sJWTAuth(request)
-    return { k8s: request.k8s, reqHeaders: headers }
+    await app.machineAuth(request)
+    return { context: request.context, reqHeaders: headers }
   })
   app.post('/not-allowed', async function (request) {
-    return app.k8sJWTAuth(request)
+    return app.machineAuth(request)
   })
   return app
 }
 
-test('k8sJWTAuth process correctly valid token', async (t) => {
+test('machineAuth process correctly valid token', async (t) => {
   // JWKS setup
   const { n, e, kty } = jwtPublicKey
   const kid = 'TEST-KID'
@@ -176,17 +176,18 @@ test('k8sJWTAuth process correctly valid token', async (t) => {
   })
 
   assert.equal(statusCode, 200)
-  const { k8s, reqHeaders } = JSON.parse(body)
-  assert.equal(k8s.namespace, 'platformatic')
-  assert.equal(k8s.pod.name, 'plt-6cc7c6cd58-kpsdd')
+  const { context, reqHeaders } = JSON.parse(body)
+  assert.equal(context.namespace, 'platformatic')
+  assert.equal(context.machineId, 'plt-6cc7c6cd58-kpsdd')
 
   // We test the headers sent to the JWKS endpoint
   assert.equal(headers.authorization, `Bearer ${iccToken}`)
 
-  assert.deepEqual(JSON.parse(reqHeaders['x-k8s']), k8s)
+  assert.equal(reqHeaders['x-plt-machine-id'], context.machineId)
+  assert.equal(reqHeaders['x-plt-machine-namespace'], context.namespace)
 })
 
-test('k8sJWTAuth process fails if there is JWKS is not reachable', async (t) => {
+test('machineAuth process fails if there is JWKS is not reachable', async (t) => {
   // JWKS setup
   const { n, e, kty } = jwtPublicKey
   const kid = 'TEST-KID'
@@ -280,11 +281,11 @@ test('k8sJWTAuth process fails if there is JWKS is not reachable', async (t) => 
   assert.equal(statusCode, 401)
   const error = JSON.parse(body)
   assert.equal(error.error, 'Unauthorized')
-  assert.equal(error.message, 'Unauthorized API call. K8s JWT verification failed')
+  assert.equal(error.message, 'Unauthorized API call. Machine authentication failed')
   assert.equal(error.code, 'PLT_MAIN_UNAUTHORIZED')
 })
 
-test('k8sJWTAuth process fails if the JWT token is invalid', async (t) => {
+test('machineAuth process fails if the JWT token is invalid', async (t) => {
   // JWKS setup
   const { n, e, kty } = jwtPublicKey
   const kid = 'TEST-KID'
@@ -360,11 +361,11 @@ test('k8sJWTAuth process fails if the JWT token is invalid', async (t) => {
   assert.equal(statusCode, 401)
   const error = JSON.parse(body)
   assert.equal(error.error, 'Unauthorized')
-  assert.equal(error.message, 'Unauthorized API call. K8s JWT verification failed')
+  assert.equal(error.message, 'Unauthorized API call. Machine authentication failed')
   assert.equal(error.code, 'PLT_MAIN_UNAUTHORIZED')
 })
 
-test('k8sJWTAuth process fails if the token is expired', async (t) => {
+test('machineAuth process fails if the token is expired', async (t) => {
   // JWKS setup
   const { n, e, kty } = jwtPublicKey
   const kid = 'TEST-KID'
@@ -459,11 +460,11 @@ test('k8sJWTAuth process fails if the token is expired', async (t) => {
   assert.equal(statusCode, 401)
   const error = JSON.parse(body)
   assert.equal(error.error, 'Unauthorized')
-  assert.equal(error.message, 'Unauthorized API call. K8s JWT verification failed')
+  assert.equal(error.message, 'Unauthorized API call. Machine authentication failed')
   assert.equal(error.code, 'PLT_MAIN_UNAUTHORIZED')
 })
 
-test('k8sJWTAuth process fails if the route is not allowed', async (t) => {
+test('machineAuth process fails if the route is not allowed', async (t) => {
   // JWKS setup
   const { n, e, kty } = jwtPublicKey
   const kid = 'TEST-KID'
@@ -557,17 +558,17 @@ test('k8sJWTAuth process fails if the route is not allowed', async (t) => {
   assert.equal(statusCode, 401)
   const error = JSON.parse(body)
   assert.equal(error.error, 'Unauthorized')
-  assert.equal(error.message, 'Unauthorized API call. K8s authentication denied: route not in whitelist')
+  assert.equal(error.message, 'Unauthorized API call. Machine authentication denied: route not in whitelist')
   assert.equal(error.code, 'PLT_MAIN_UNAUTHORIZED')
 })
 
-test('k8sJWTAuth disabled if PLT_DISABLE_K8S_AUTH is set', async (t) => {
+test('machineAuth disabled if PLT_DISABLE_MACHINE_AUTH is set', async (t) => {
   t.after(async () => {
     await cleanupTestEnv()
     headers = {}
   })
 
-  const app = await setupApp({ PLT_DISABLE_K8S_AUTH: true })
+  const app = await setupApp({ PLT_DISABLE_MACHINE_AUTH: true })
   await app.ready()
   const { statusCode } = await app.inject({
     method: 'POST',

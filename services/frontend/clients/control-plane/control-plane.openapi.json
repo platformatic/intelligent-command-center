@@ -350,7 +350,7 @@
             "type": "string",
             "nullable": true
           },
-          "podId": {
+          "machineId": {
             "type": "string",
             "nullable": true
           },
@@ -385,7 +385,7 @@
             "type": "string",
             "nullable": true
           },
-          "podId": {
+          "machineId": {
             "type": "string"
           },
           "status": {
@@ -404,7 +404,7 @@
         "additionalProperties": false,
         "required": [
           "applicationId",
-          "podId",
+          "machineId",
           "status"
         ]
       },
@@ -4395,7 +4395,7 @@
                   "createdAt",
                   "deploymentId",
                   "id",
-                  "podId",
+                  "machineId",
                   "status"
                 ]
               }
@@ -9583,7 +9583,7 @@
                   "createdAt",
                   "deploymentId",
                   "id",
-                  "podId",
+                  "machineId",
                   "status"
                 ]
               }
@@ -9885,7 +9885,7 @@
                   "createdAt",
                   "deploymentId",
                   "id",
-                  "podId",
+                  "machineId",
                   "status"
                 ]
               }
@@ -10315,7 +10315,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.eq",
+            "name": "where.machineId.eq",
             "required": false
           },
           {
@@ -10323,7 +10323,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.neq",
+            "name": "where.machineId.neq",
             "required": false
           },
           {
@@ -10331,7 +10331,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.gt",
+            "name": "where.machineId.gt",
             "required": false
           },
           {
@@ -10339,7 +10339,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.gte",
+            "name": "where.machineId.gte",
             "required": false
           },
           {
@@ -10347,7 +10347,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.lt",
+            "name": "where.machineId.lt",
             "required": false
           },
           {
@@ -10355,7 +10355,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.lte",
+            "name": "where.machineId.lte",
             "required": false
           },
           {
@@ -10363,7 +10363,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.like",
+            "name": "where.machineId.like",
             "required": false
           },
           {
@@ -10371,7 +10371,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.ilike",
+            "name": "where.machineId.ilike",
             "required": false
           },
           {
@@ -10379,7 +10379,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.in",
+            "name": "where.machineId.in",
             "required": false
           },
           {
@@ -10387,7 +10387,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.nin",
+            "name": "where.machineId.nin",
             "required": false
           },
           {
@@ -10395,7 +10395,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.contains",
+            "name": "where.machineId.contains",
             "required": false
           },
           {
@@ -10403,7 +10403,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.contained",
+            "name": "where.machineId.contained",
             "required": false
           },
           {
@@ -10411,7 +10411,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.overlaps",
+            "name": "where.machineId.overlaps",
             "required": false
           },
           {
@@ -10626,7 +10626,7 @@
               ]
             },
             "in": "query",
-            "name": "orderby.podId",
+            "name": "orderby.machineId",
             "required": false
           },
           {
@@ -10728,7 +10728,7 @@
                   "createdAt",
                   "deploymentId",
                   "id",
-                  "podId",
+                  "machineId",
                   "status"
                 ]
               }
@@ -11158,7 +11158,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.eq",
+            "name": "where.machineId.eq",
             "required": false
           },
           {
@@ -11166,7 +11166,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.neq",
+            "name": "where.machineId.neq",
             "required": false
           },
           {
@@ -11174,7 +11174,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.gt",
+            "name": "where.machineId.gt",
             "required": false
           },
           {
@@ -11182,7 +11182,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.gte",
+            "name": "where.machineId.gte",
             "required": false
           },
           {
@@ -11190,7 +11190,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.lt",
+            "name": "where.machineId.lt",
             "required": false
           },
           {
@@ -11198,7 +11198,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.lte",
+            "name": "where.machineId.lte",
             "required": false
           },
           {
@@ -11206,7 +11206,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.like",
+            "name": "where.machineId.like",
             "required": false
           },
           {
@@ -11214,7 +11214,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.ilike",
+            "name": "where.machineId.ilike",
             "required": false
           },
           {
@@ -11222,7 +11222,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.in",
+            "name": "where.machineId.in",
             "required": false
           },
           {
@@ -11230,7 +11230,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.nin",
+            "name": "where.machineId.nin",
             "required": false
           },
           {
@@ -11238,7 +11238,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.contains",
+            "name": "where.machineId.contains",
             "required": false
           },
           {
@@ -11246,7 +11246,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.contained",
+            "name": "where.machineId.contained",
             "required": false
           },
           {
@@ -11254,7 +11254,7 @@
               "type": "string"
             },
             "in": "query",
-            "name": "where.podId.overlaps",
+            "name": "where.machineId.overlaps",
             "required": false
           },
           {
@@ -11463,7 +11463,7 @@
                   "createdAt",
                   "deploymentId",
                   "id",
-                  "podId",
+                  "machineId",
                   "status"
                 ]
               }
@@ -11535,7 +11535,7 @@
                   "createdAt",
                   "deploymentId",
                   "id",
-                  "podId",
+                  "machineId",
                   "status"
                 ]
               }
@@ -11598,7 +11598,7 @@
                   "createdAt",
                   "deploymentId",
                   "id",
-                  "podId",
+                  "machineId",
                   "status"
                 ]
               }
@@ -15374,7 +15374,7 @@
               "type": "string"
             },
             "in": "path",
-            "name": "podId",
+            "name": "machineId",
             "required": true
           }
         ],

@@ -11,7 +11,7 @@ test('execute trigger-flamegraph command on pod', async (t) => {
   const podId = 'test-pod-456'
 
   const controlPlaneUrl = await startControlPlane(t, {
-    getPodDetails: async ({ podId }) => {
+    getMachineDetails: async ({ podId }) => {
       return { id: podId, applicationId }
     }
   })
@@ -20,7 +20,7 @@ test('execute trigger-flamegraph command on pod', async (t) => {
 
   const server = await getServer(t, {
     PLT_CONTROL_PLANE_URL: controlPlaneUrl,
-    PLT_DISABLE_K8S_AUTH: false
+    PLT_DISABLE_MACHINE_AUTH: false
   })
 
   const url = await server.start()
@@ -55,7 +55,7 @@ test('execute trigger-flamegraph command on pod', async (t) => {
   assert.strictEqual(response.statusCode, 200)
   const result = JSON.parse(response.body)
   assert.strictEqual(result.success, true)
-  assert.strictEqual(result.message, `Command 'trigger-flamegraph' executed for pod ${podId}`)
+  assert.strictEqual(result.message, `Command 'trigger-flamegraph' executed for machine ${podId}`)
   assert.deepStrictEqual(result.data, { triggered: true })
 
   assert.deepStrictEqual(receivedCommand, { command: 'trigger-flamegraph', params: {} })
@@ -68,7 +68,7 @@ test('execute command with params on pod', async (t) => {
   const podId = 'test-pod-456'
 
   const controlPlaneUrl = await startControlPlane(t, {
-    getPodDetails: async ({ podId }) => {
+    getMachineDetails: async ({ podId }) => {
       return { id: podId, applicationId }
     }
   })
@@ -77,7 +77,7 @@ test('execute command with params on pod', async (t) => {
 
   const server = await getServer(t, {
     PLT_CONTROL_PLANE_URL: controlPlaneUrl,
-    PLT_DISABLE_K8S_AUTH: false
+    PLT_DISABLE_MACHINE_AUTH: false
   })
 
   const url = await server.start()
@@ -113,7 +113,7 @@ test('execute command with params on pod', async (t) => {
   assert.strictEqual(response.statusCode, 200)
   const result = JSON.parse(response.body)
   assert.strictEqual(result.success, true)
-  assert.strictEqual(result.message, `Command 'trigger-flamegraph' executed for pod ${podId}`)
+  assert.strictEqual(result.message, `Command 'trigger-flamegraph' executed for machine ${podId}`)
 
   assert.deepStrictEqual(receivedCommand, { command: 'trigger-flamegraph', params: { duration: 30 } })
 
@@ -144,7 +144,7 @@ test('execute unknown command returns error', async (t) => {
   const podId = 'test-pod-456'
 
   const controlPlaneUrl = await startControlPlane(t, {
-    getPodDetails: async ({ podId }) => {
+    getMachineDetails: async ({ podId }) => {
       return { id: podId, applicationId }
     }
   })
@@ -153,7 +153,7 @@ test('execute unknown command returns error', async (t) => {
 
   const server = await getServer(t, {
     PLT_CONTROL_PLANE_URL: controlPlaneUrl,
-    PLT_DISABLE_K8S_AUTH: false
+    PLT_DISABLE_MACHINE_AUTH: false
   })
 
   const url = await server.start()
@@ -190,7 +190,7 @@ test('execute trigger-heapprofile command on pod', async (t) => {
   const podId = 'test-pod-456'
 
   const controlPlaneUrl = await startControlPlane(t, {
-    getPodDetails: async ({ podId }) => {
+    getMachineDetails: async ({ podId }) => {
       return { id: podId, applicationId }
     }
   })
@@ -199,7 +199,7 @@ test('execute trigger-heapprofile command on pod', async (t) => {
 
   const server = await getServer(t, {
     PLT_CONTROL_PLANE_URL: controlPlaneUrl,
-    PLT_DISABLE_K8S_AUTH: false
+    PLT_DISABLE_MACHINE_AUTH: false
   })
 
   const url = await server.start()
@@ -234,7 +234,7 @@ test('execute trigger-heapprofile command on pod', async (t) => {
   assert.strictEqual(response.statusCode, 200)
   const result = JSON.parse(response.body)
   assert.strictEqual(result.success, true)
-  assert.strictEqual(result.message, `Command 'trigger-heapprofile' executed for pod ${podId}`)
+  assert.strictEqual(result.message, `Command 'trigger-heapprofile' executed for machine ${podId}`)
   assert.deepStrictEqual(result.data, { triggered: true })
 
   assert.deepStrictEqual(receivedCommand, { command: 'trigger-heapprofile', params: {} })
@@ -247,7 +247,7 @@ test('execute trigger-heapprofile command with params on pod', async (t) => {
   const podId = 'test-pod-456'
 
   const controlPlaneUrl = await startControlPlane(t, {
-    getPodDetails: async ({ podId }) => {
+    getMachineDetails: async ({ podId }) => {
       return { id: podId, applicationId }
     }
   })
@@ -256,7 +256,7 @@ test('execute trigger-heapprofile command with params on pod', async (t) => {
 
   const server = await getServer(t, {
     PLT_CONTROL_PLANE_URL: controlPlaneUrl,
-    PLT_DISABLE_K8S_AUTH: false
+    PLT_DISABLE_MACHINE_AUTH: false
   })
 
   const url = await server.start()
@@ -292,7 +292,7 @@ test('execute trigger-heapprofile command with params on pod', async (t) => {
   assert.strictEqual(response.statusCode, 200)
   const result = JSON.parse(response.body)
   assert.strictEqual(result.success, true)
-  assert.strictEqual(result.message, `Command 'trigger-heapprofile' executed for pod ${podId}`)
+  assert.strictEqual(result.message, `Command 'trigger-heapprofile' executed for machine ${podId}`)
 
   assert.deepStrictEqual(receivedCommand, { command: 'trigger-heapprofile', params: { sampleSize: 512 } })
 

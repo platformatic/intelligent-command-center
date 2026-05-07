@@ -21,10 +21,9 @@ test('updateControllerReplicas should create scale events', async (t) => {
     input: {
       applicationId,
       deploymentId,
-      k8SControllerId: k8sControllerId,
+      controllerId: k8sControllerId,
       namespace,
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
     }
   })
@@ -85,10 +84,9 @@ test('updateControllerReplicas should not create scale event when replicas uncha
     input: {
       applicationId,
       deploymentId,
-      k8SControllerId: k8sControllerId,
+      controllerId: k8sControllerId,
       namespace,
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 3
     }
   })
@@ -132,10 +130,9 @@ test('getApplicationControllers should return all controllers for an application
     input: {
       applicationId,
       deploymentId: '123e4567-e89b-12d3-a456-426614174001',
-      k8SControllerId: 'controller-v1',
+      controllerId: 'controller-v1',
       namespace: 'test-namespace',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
     }
   })
@@ -144,17 +141,16 @@ test('getApplicationControllers should return all controllers for an application
     input: {
       applicationId,
       deploymentId: '123e4567-e89b-12d3-a456-426614174002',
-      k8SControllerId: 'controller-v2',
+      controllerId: 'controller-v2',
       namespace: 'test-namespace',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 3
     }
   })
 
   const controllers = await server.getApplicationControllers(applicationId)
   assert.strictEqual(controllers.length, 2)
-  const controllerIds = controllers.map(c => c.k8SControllerId).sort()
+  const controllerIds = controllers.map(c => c.controllerId).sort()
   assert.deepStrictEqual(controllerIds, ['controller-v1', 'controller-v2'])
 })
 
@@ -184,10 +180,9 @@ test('updateControllerReplicas should use provided controller instead of looking
     input: {
       applicationId,
       deploymentId: '123e4567-e89b-12d3-a456-426614174001',
-      k8SControllerId: 'controller-v1',
+      controllerId: 'controller-v1',
       namespace: 'test-namespace',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
     }
   })
@@ -196,10 +191,9 @@ test('updateControllerReplicas should use provided controller instead of looking
     input: {
       applicationId,
       deploymentId: '123e4567-e89b-12d3-a456-426614174002',
-      k8SControllerId: 'controller-v2',
+      controllerId: 'controller-v2',
       namespace: 'test-namespace',
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 5
     }
   })
@@ -210,13 +204,13 @@ test('updateControllerReplicas should use provided controller instead of looking
   await server.updateControllerReplicas(applicationId, 4, 'Scale v1', controllerV1)
 
   const updatedV1 = await server.platformatic.entities.controller.find({
-    where: { k8SControllerId: { eq: 'controller-v1' } }
+    where: { controllerId: { eq: 'controller-v1' } }
   })
   assert.strictEqual(updatedV1[0].replicas, 4)
 
   // v2 should be unchanged
   const unchangedV2 = await server.platformatic.entities.controller.find({
-    where: { k8SControllerId: { eq: 'controller-v2' } }
+    where: { controllerId: { eq: 'controller-v2' } }
   })
   assert.strictEqual(unchangedV2[0].replicas, 5)
 })

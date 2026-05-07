@@ -5,7 +5,7 @@ const { randomUUID } = require('node:crypto')
 const assert = require('node:assert')
 const {
   buildServer,
-  generateK8sHeader,
+  generateMachineHeaders,
   cleanValkeyData,
   createAlert
 } = require('../helper')
@@ -29,7 +29,7 @@ test('receive and save alert successfully', async (t) => {
     url: '/alerts',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     payload: JSON.stringify({
       applicationId,
@@ -109,7 +109,7 @@ test('receive multiple alerts for the same pod', async (t) => {
     url: '/alerts',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     payload: JSON.stringify({
       applicationId,
@@ -132,7 +132,7 @@ test('receive multiple alerts for the same pod', async (t) => {
     url: '/alerts',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     payload: JSON.stringify({
       applicationId,
@@ -179,7 +179,7 @@ test('fail when missing k8s context', async (t) => {
     url: '/alerts',
     headers: {
       'content-type': 'application/json'
-      // No x-k8s header
+      // No machine context headers
     },
     payload: JSON.stringify({
       alert,
@@ -189,5 +189,5 @@ test('fail when missing k8s context', async (t) => {
 
   assert.strictEqual(response.statusCode, 500)
   const errorBody = JSON.parse(response.body)
-  assert.ok(errorBody.message.includes('Missing k8s context'))
+  assert.ok(errorBody.message.includes('Missing machine context'))
 })

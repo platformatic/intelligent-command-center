@@ -1,6 +1,6 @@
 'use strict'
 
-// List of routes that can be authorized via K8s JWT authentication
+// List of routes that can be authorized via machine authentication
 const k8sAllowedRoutes = [
   ['/cron/watt-jobs', ['PUT']],
   ['/risk-service/dump', '*'],

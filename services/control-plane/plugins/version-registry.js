@@ -1,11 +1,11 @@
 'use strict'
 
 const fp = require('fastify-plugin')
+const errors = require('./errors')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
   const enabled = app.env.PLT_FEATURE_SKEW_PROTECTION
-  if (!enabled) return
 
   /**
    * Registers a version in the version registry and manages lifecycle transitions.
@@ -14,7 +14,7 @@ module.exports = fp(async function (app) {
    *   active versions for the same app as `draining`.
    * - If the version already exists (any status), does nothing.
    * - Serialized per app label via pg_advisory_xact_lock to prevent a race
-   *   condition where two concurrent registrations (e.g. v1 and v2 pods starting
+   *   condition where two concurrent registrations (e.g. v1 and v2 machines starting
    *   at the same time) both insert as active and then each marks the other as
    *   draining, leaving zero active versions.
    *
@@ -23,7 +23,7 @@ module.exports = fp(async function (app) {
    * @param {string} opts.deploymentId
    * @param {string} opts.appLabel - app.kubernetes.io/name label value
    * @param {string} opts.versionLabel - plt.dev/version label value
-   * @param {string} opts.k8SDeploymentName - owning K8s Deployment name
+   * @param {string} opts.controllerName - owning K8s Deployment name
    * @param {string} opts.serviceName - K8s Service name
    * @param {number} opts.servicePort - K8s Service port
    * @param {string} opts.namespace - K8s namespace
@@ -34,6 +34,8 @@ module.exports = fp(async function (app) {
    * @returns {{ isNew: boolean, activeVersion: object|null, drainingVersions: Array }}
    */
   app.decorate('registerVersion', async (opts, ctx) => {
+    if (!enabled) throw new errors.SkewProtectionDisabled()
+
     const { entities, db, sql } = app.platformatic
 
     return db.tx(async (tx) => {
@@ -62,7 +64,7 @@ module.exports = fp(async function (app) {
               status: 'active',
               drainedAt: null,
               deploymentId: opts.deploymentId,
-              k8SDeploymentName: opts.k8SDeploymentName,
+              controllerName: opts.controllerName,
               serviceName: opts.serviceName,
               servicePort: opts.servicePort
             },
@@ -119,7 +121,7 @@ module.exports = fp(async function (app) {
           deploymentId: opts.deploymentId,
           appLabel: opts.appLabel,
           versionLabel: opts.versionLabel,
-          k8SDeploymentName: opts.k8SDeploymentName,
+          controllerName: opts.controllerName,
           serviceName: opts.serviceName,
           servicePort: opts.servicePort,
           namespace: opts.namespace,
@@ -222,6 +224,8 @@ module.exports = fp(async function (app) {
    * @returns {{ expired: boolean, activeVersion: object|null, drainingVersions: Array }}
    */
   app.decorate('expireVersion', async (appLabel, versionLabel, ctx) => {
+    if (!enabled) throw new errors.SkewProtectionDisabled()
+
     const { entities } = app.platformatic
 
     const versions = await entities.versionRegistry.find({
@@ -270,6 +274,10 @@ module.exports = fp(async function (app) {
   })
 
   app.decorate('listVersions', async (applicationId, status) => {
+    // Read-only: when skew protection is disabled the table is empty
+    // (no registerVersion calls happen), so just return [].
+    if (!enabled) return []
+
     const { entities } = app.platformatic
     const where = { applicationId: { eq: applicationId } }
     if (status) {

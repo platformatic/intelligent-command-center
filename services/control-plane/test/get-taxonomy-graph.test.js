@@ -10,7 +10,7 @@ const {
   startMainService,
   startCompliance,
   generateApplicationState,
-  generateK8sHeader
+  generateMachineHeaders
 } = require('./helper')
 
 test('should get a generation graph', async (t) => {
@@ -288,7 +288,7 @@ test('should get a previous generation graph', async (t) => {
   })
 
   await startMachinist(t, {
-    getPodDetails: () => ({ image: 'test-image-2' })
+    getMachineDetails: () => ({ image: 'test-image-2' })
   })
   await startMainService(t)
 
@@ -316,14 +316,14 @@ test('should get a previous generation graph', async (t) => {
 
   {
     const applicationName = 'test-app-2'
-    const podId = 'test-pod-2'
+    const machineId = 'test-pod-2'
 
     const { statusCode, body } = await controlPlane.inject({
       method: 'POST',
-      url: `/pods/${podId}/instance`,
+      url: `/pods/${machineId}/instance`,
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId)
+        ...generateMachineHeaders(machineId)
       },
       body: { applicationName }
     })

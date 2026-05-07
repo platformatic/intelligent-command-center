@@ -7,9 +7,11 @@ const errors = require('./errors')
 
 class Machinist {
   #dispatcher
+  #prefix
 
-  constructor (machinistUrl) {
+  constructor (machinistUrl, provider) {
     this.url = machinistUrl
+    this.#prefix = `/${provider}`
 
     this.#dispatcher = getGlobalDispatcher()
       .compose(interceptors.retry({
@@ -20,66 +22,55 @@ class Machinist {
       }))
   }
 
-  async getK8sState (namespace, labels, ctx) {
-    ctx.logger.info('Getting a k8s state')
+  async getMachine (namespace, machineId, ctx) {
+    ctx.logger.info('Getting machine details')
+
+    const url = this.url + this.#prefix + `/machines/${namespace}/${machineId}`
+    const { statusCode, body } = await request(url, {
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error({ error, machineId, namespace }, 'Failed to get machine details')
+      throw new errors.FailedToGetMachineDetails(error)
+    }
+
+    return body.json()
+  }
+
+  async getMachines (namespace, labels, ctx) {
+    ctx.logger.info('Getting machines')
 
     const serializedLabels = Object.entries(labels)
       .map(([key, value]) => `${key}=${value}`)
 
-    const query = querystring.stringify({ podSelector: serializedLabels })
-    const url = this.url + `/state/${namespace}?${query}`
+    const query = querystring.stringify({ labels: serializedLabels })
+    const url = this.url + this.#prefix + `/machines/${namespace}?${query}`
     const { statusCode, body } = await request(url, {
       dispatcher: this.#dispatcher
     })
 
     if (statusCode !== 200) {
       const error = await body.text()
-      ctx.logger.error(
-        { error, namespace, labels },
-        'Failed to get k8s state'
-      )
-      throw new errors.FailedToGetK8sState(error)
+      ctx.logger.error({ error, namespace, labels }, 'Failed to get machines')
+      throw new errors.FailedToGetMachineState(error)
     }
 
-    const state = await body.json()
-    return state
-  }
-
-  async getPodDetails (podId, namespace, ctx) {
-    ctx.logger.info('Getting a list of pods')
-
-    const url = this.url + `/pods/${namespace}/${podId}`
-    const { statusCode, body } = await request(url, {
-      dispatcher: this.#dispatcher
-    })
-
-    if (statusCode !== 200) {
-      const error = await body.text()
-      ctx.logger.error(
-        { error, podId, namespace },
-        'Failed to get pod details'
-      )
-      throw new errors.FailedToGetPodDetails(error)
-    }
-
-    const podDetails = await body.json()
-    return podDetails
+    return body.json()
   }
 
   async listGateways (namespace, ctx) {
     ctx.logger.info('Listing gateways')
 
-    const url = this.url + `/gateway/gateways/${namespace}`
+    const url = this.url + this.#prefix + `/gateway/gateways/${namespace}`
     const { statusCode, body } = await request(url, {
       dispatcher: this.#dispatcher
     })
 
     if (statusCode !== 200) {
       const error = await body.text()
-      ctx.logger.error(
-        { error, namespace },
-        'Failed to list gateways'
-      )
+      ctx.logger.error({ error, namespace }, 'Failed to list gateways')
       throw new errors.FailedToListGateways(error)
     }
 
@@ -93,17 +84,14 @@ class Machinist {
       .map(([key, value]) => `${key}=${value}`)
 
     const query = querystring.stringify({ labels: serializedLabels })
-    const url = this.url + `/services/${namespace}?${query}`
+    const url = this.url + this.#prefix + `/services/${namespace}?${query}`
     const { statusCode, body } = await request(url, {
       dispatcher: this.#dispatcher
     })
 
     if (statusCode !== 200) {
       const error = await body.text()
-      ctx.logger.error(
-        { error, namespace, labels },
-        'Failed to get services by labels'
-      )
+      ctx.logger.error({ error, namespace, labels }, 'Failed to get services by labels')
       throw new errors.FailedToGetServicesByLabels(error)
     }
 
@@ -113,22 +101,17 @@ class Machinist {
   async applyHTTPRoute (namespace, httpRoute, ctx) {
     ctx.logger.info('Applying HTTPRoute')
 
-    const url = this.url + `/gateway/httproutes/${namespace}`
+    const url = this.url + this.#prefix + `/gateway/httproutes/${namespace}`
     const { statusCode, body } = await request(url, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(httpRoute),
       dispatcher: this.#dispatcher
     })
 
     if (statusCode !== 200) {
       const error = await body.text()
-      ctx.logger.error(
-        { error, namespace },
-        'Failed to apply HTTPRoute'
-      )
+      ctx.logger.error({ error, namespace }, 'Failed to apply HTTPRoute')
       throw new errors.FailedToApplyHTTPRoute(error)
     }
 
@@ -138,17 +121,14 @@ class Machinist {
   async getHTTPRoute (namespace, name, ctx) {
     ctx.logger.info('Getting HTTPRoute')
 
-    const url = this.url + `/gateway/httproutes/${namespace}/${name}`
+    const url = this.url + this.#prefix + `/gateway/httproutes/${namespace}/${name}`
     const { statusCode, body } = await request(url, {
       dispatcher: this.#dispatcher
     })
 
     if (statusCode !== 200) {
       const error = await body.text()
-      ctx.logger.error(
-        { error, namespace, name },
-        'Failed to get HTTPRoute'
-      )
+      ctx.logger.error({ error, namespace, name }, 'Failed to get HTTPRoute')
       throw new errors.FailedToGetHTTPRoute(error)
     }
 
@@ -158,7 +138,7 @@ class Machinist {
   async deleteHTTPRoute (namespace, name, ctx) {
     ctx.logger.info('Deleting HTTPRoute')
 
-    const url = this.url + `/gateway/httproutes/${namespace}/${name}`
+    const url = this.url + this.#prefix + `/gateway/httproutes/${namespace}/${name}`
     const { statusCode, body } = await request(url, {
       method: 'DELETE',
       dispatcher: this.#dispatcher
@@ -166,53 +146,45 @@ class Machinist {
 
     if (statusCode !== 200) {
       const error = await body.text()
-      ctx.logger.error(
-        { error, namespace, name },
-        'Failed to delete HTTPRoute'
-      )
+      ctx.logger.error({ error, namespace, name }, 'Failed to delete HTTPRoute')
       throw new errors.FailedToDeleteHTTPRoute(error)
     }
   }
 
-  async updateController (controllerId, namespace, apiVersion, kind, replicas, ctx) {
+  async updateControllerReplicas (namespace, controllerId, replicas, providerMetadata, ctx) {
     ctx.logger.info({ controllerId, namespace, replicas }, 'Updating controller replicas')
 
-    const query = querystring.stringify({ kind, apiVersion })
-    const url = this.url + `/controllers/${namespace}/${controllerId}?${query}`
+    const url = this.url + this.#prefix + `/controllers/${namespace}/${controllerId}`
     const { statusCode, body } = await request(url, {
       method: 'POST',
+      query: providerMetadata,
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ replicaCount: replicas }),
+      body: JSON.stringify({ replicas }),
       dispatcher: this.#dispatcher
     })
 
     if (statusCode !== 200) {
       const error = await body.text()
-      ctx.logger.error(
-        { error, controllerId, namespace },
-        'Failed to update controller'
-      )
+      ctx.logger.error({ error, controllerId, namespace }, 'Failed to update controller')
       throw new errors.FailedToUpdateController(error)
     }
 
     return body.json()
   }
 
-  async deleteDeployment (namespace, name, ctx) {
-    ctx.logger.info({ namespace, name }, 'Deleting Deployment')
+  async deleteController (namespace, name, providerMetadata, ctx) {
+    ctx.logger.info({ namespace, name }, 'Deleting controller')
 
-    const url = this.url + `/deployments/${namespace}/${name}`
+    const url = this.url + this.#prefix + `/controllers/${namespace}/${name}`
     const { statusCode, body } = await request(url, {
       method: 'DELETE',
+      query: providerMetadata,
       dispatcher: this.#dispatcher
     })
 
     if (statusCode !== 200) {
       const error = await body.text()
-      ctx.logger.error(
-        { error, namespace, name },
-        'Failed to delete Deployment'
-      )
+      ctx.logger.error({ error, namespace, name }, 'Failed to delete controller')
       throw new errors.FailedToDeleteDeployment(error)
     }
 
@@ -222,7 +194,7 @@ class Machinist {
   async deleteService (namespace, name, ctx) {
     ctx.logger.info({ namespace, name }, 'Deleting Service')
 
-    const url = this.url + `/services/${namespace}/${name}`
+    const url = this.url + this.#prefix + `/services/${namespace}/${name}`
     const { statusCode, body } = await request(url, {
       method: 'DELETE',
       dispatcher: this.#dispatcher
@@ -230,32 +202,27 @@ class Machinist {
 
     if (statusCode !== 200) {
       const error = await body.text()
-      ctx.logger.error(
-        { error, namespace, name },
-        'Failed to delete Service'
-      )
+      ctx.logger.error({ error, namespace, name }, 'Failed to delete Service')
       throw new errors.FailedToDeleteService(error)
     }
 
     return body.json()
   }
 
-  async setPodLabels (podId, namespace, labels, ctx) {
-    ctx.logger.info('Setting pod labels')
+  async setMachineLabels (namespace, machineId, labels, ctx) {
+    ctx.logger.info('Setting machine labels')
 
-    const url = this.url + `/pods/${namespace}/${podId}/labels`
+    const url = this.url + this.#prefix + `/machines/${namespace}/${machineId}/labels`
     const { statusCode, body } = await request(url, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ labels }),
       dispatcher: this.#dispatcher
     })
 
     if (statusCode !== 200) {
       const error = await body.text()
-      throw new errors.FailedToSetPodLabels(error)
+      throw new errors.FailedToSetMachineLabels(error)
     }
   }
 }
@@ -263,7 +230,8 @@ class Machinist {
 /** @param {import('fastify').FastifyInstance} app */
 const plugin = fp(async function (app) {
   const machinist = new Machinist(
-    app.env.PLT_MACHINIST_URL
+    app.env.PLT_MACHINIST_URL,
+    app.env.PLT_MACHINIST_PROVIDER
   )
   app.decorate('machinist', machinist)
 }, {

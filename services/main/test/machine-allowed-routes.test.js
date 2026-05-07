@@ -2,7 +2,7 @@
 
 const { test } = require('node:test')
 const assert = require('node:assert')
-const isUrlAllowed = require('../lib/k8s-allowed-routes')
+const isUrlAllowed = require('../lib/machine-allowed-routes')
 
 function createMockRequest (url, method = 'GET') {
   return {

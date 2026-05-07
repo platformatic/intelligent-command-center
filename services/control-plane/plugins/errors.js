@@ -17,6 +17,11 @@ module.exports = {
   ApplicationNotFound: createError(
     `${ERROR_PREFIX}_APPLICATION_NOT_FOUND`, 'Application with id "%s" not found', 404
   ),
+  SkewProtectionDisabled: createError(
+    `${ERROR_PREFIX}_SKEW_PROTECTION_DISABLED`,
+    'Skew protection feature is not enabled (PLT_FEATURE_SKEW_PROTECTION)',
+    501
+  ),
   ApplicationConfigNotFound: createError(
     `${ERROR_PREFIX}_APPLICATION_SETTINGS_NOT_FOUND`, 'Config for "%s" application not found'
   ),
@@ -38,13 +43,13 @@ module.exports = {
   InstanceNotFound: createError(
     `${ERROR_PREFIX}_INSTANCE_NOT_FOUND`, 'Application instance "%s" not found', 404
   ),
-  PodAssignedToDifferentImage: createError(
-    `${ERROR_PREFIX}_POD_ASSIGNED_TO_DIFFERENT_IMAGE`,
-    'Pod "%s" is assigned to a different image "%s"'
+  MachineAssignedToDifferentImage: createError(
+    `${ERROR_PREFIX}_MACHINE_ASSIGNED_TO_DIFFERENT_IMAGE`,
+    'Machine "%s" is assigned to a different image "%s"'
   ),
-  PodAssignedToDifferentApplication: createError(
-    `${ERROR_PREFIX}_POD_ASSIGNED_TO_DIFFERENT_APPLICATION`,
-    'Pod "%s" is assigned to a different application "%s"',
+  MachineAssignedToDifferentApplication: createError(
+    `${ERROR_PREFIX}_MACHINE_ASSIGNED_TO_DIFFERENT_APPLICATION`,
+    'Machine "%s" is assigned to a different application "%s"',
     400
   ),
   FailedToGetLock: createError(
@@ -78,40 +83,40 @@ module.exports = {
     `${ERROR_PREFIX}_CANNOT_CREATE_COMPLIANCE_RULE`,
     'Failed to create compliance rule: %s'
   ),
-  MissingK8sAuthContext: createError(
-    `${ERROR_PREFIX}_MISSING_K8S_AUTH_CONTEXT`,
-    'Missing K8s auth context for pod "%s"',
+  MissingMachineAuthContext: createError(
+    `${ERROR_PREFIX}_MISSING_MACHINE_AUTH_CONTEXT`,
+    'Missing machine auth context for machine "%s"',
     401
   ),
-  PodIdNotAuthorized: createError(
-    `${ERROR_PREFIX}_POD_ID_NOT_AUTHORIZED`,
-    'Request pod id "%s" does not match with a jwt pod id "%s"',
+  MachineIdNotAuthorized: createError(
+    `${ERROR_PREFIX}_MACHINE_ID_NOT_AUTHORIZED`,
+    'Request machine id "%s" does not match the authenticated machine id "%s"',
     401
   ),
-  PodNamespaceNotFound: createError(
-    `${ERROR_PREFIX}_POD_NAMESPACE_NOT_FOUND`,
-    'Pod "%s" namespace not found',
+  MachineNamespaceNotFound: createError(
+    `${ERROR_PREFIX}_MACHINE_NAMESPACE_NOT_FOUND`,
+    'Machine "%s" namespace not found',
     400
   ),
   FailedToDecryptValkeyPassword: createError(
     `${ERROR_PREFIX}_FAILED_TO_DECRYPT_VALKEY_PASSWORD`,
     'Failed to decrypt valkey password for an application "%s"'
   ),
-  FailedToGetPodDetails: createError(
-    `${ERROR_PREFIX}_FAILED_TO_GET_POD_DETAILS`,
-    'Failed to get pod details'
+  FailedToGetMachineDetails: createError(
+    `${ERROR_PREFIX}_FAILED_TO_GET_MACHINE_DETAILS`,
+    'Failed to get machine details'
   ),
-  FailedToSetPodLabels: createError(
-    `${ERROR_PREFIX}_FAILED_TO_SET_POD_LABELS`,
-    'Failed to set pod labels: %s'
+  FailedToSetMachineLabels: createError(
+    `${ERROR_PREFIX}_FAILED_TO_SET_MACHINE_LABELS`,
+    'Failed to set machine labels: %s'
   ),
-  FailedToGetK8sState: createError(
-    `${ERROR_PREFIX}_FAILED_TO_GET_K8S_STATE`,
-    'Failed to get k8s state: %s'
+  FailedToGetMachineState: createError(
+    `${ERROR_PREFIX}_FAILED_TO_GET_MACHINE_STATE`,
+    'Failed to get machine state: %s'
   ),
   ApplicationNameNotFound: createError(
     `${ERROR_PREFIX}_APPLICATION_NAME_NOT_FOUND`,
-    'Application name not found for pod "%s"',
+    'Application name not found for machine "%s"',
     400
   ),
   FailedToListGateways: createError(

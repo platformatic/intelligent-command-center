@@ -158,9 +158,8 @@ test('checkScalingOnAlert should call scaling algorithm and return result', asyn
       applicationId: testAppId,
       deploymentId: '00000000-0000-0000-0000-000000000001',
       namespace: 'default',
-      k8SControllerId: 'test-controller-1',
-      kind: 'Deployment',
-      apiVersion: 'apps/v1',
+      controllerId: 'test-controller-1',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
     }
   })
@@ -238,7 +237,7 @@ test('checkScalingOnAlert should return error when no podId is provided', async 
   const result = await server.scalerExecutor.checkScalingOnAlert()
 
   assert.strictEqual(result.success, false, 'checkScalingOnAlert should fail')
-  assert.strictEqual(result.error, 'Pod ID is required', 'error message should be about missing podId')
+  assert.strictEqual(result.error, 'Machine ID is required', 'error message should be about missing podId')
 })
 
 test('checkScalingOnAlert should merge metrics from alerts with pod metrics for scaling decisions', async (t) => {
@@ -291,9 +290,8 @@ test('checkScalingOnAlert should merge metrics from alerts with pod metrics for 
       applicationId: testAppId,
       deploymentId: '00000000-0000-0000-0000-000000000002',
       namespace: 'default',
-      k8SControllerId: 'test-controller-2',
-      kind: 'Deployment',
-      apiVersion: 'apps/v1',
+      controllerId: 'test-controller-2',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 1
     }
   })
@@ -511,7 +509,7 @@ test('checkScalingOnMetrics should process applications and handle errors', asyn
   }
 
   server.getApplicationControllers = async (appId) => {
-    if (appId === 'app-1') return [{ replicas: 2, k8SControllerId: 'ctrl-1' }]
+    if (appId === 'app-1') return [{ replicas: 2, controllerId: 'ctrl-1' }]
     throw new Error('Controller not found')
   }
 
@@ -559,7 +557,7 @@ test('checkScalingOnMetrics should skip unknown applications', async (t) => {
   }
 
   server.getApplicationController = async () => ({ replicas: 1 })
-  server.getApplicationControllers = async () => [{ replicas: 1, k8SControllerId: 'ctrl-1' }]
+  server.getApplicationControllers = async () => [{ replicas: 1, controllerId: 'ctrl-1' }]
   server.getScaleConfig = async () => ({ minPods: 1, maxPods: 10 })
   server.updateControllerReplicas = async () => ({ success: true })
 
@@ -596,13 +594,13 @@ test('checkScalingOnMetrics should scale multiple controllers independently', as
 
   const scalingCalls = []
   server.updateControllerReplicas = async (appId, replicas, reason, controller) => {
-    scalingCalls.push({ appId, replicas, controllerId: controller?.k8SControllerId })
+    scalingCalls.push({ appId, replicas, controllerId: controller?.controllerId })
     return { scaleEvent: { direction: 'up', createdAt: new Date().toISOString() } }
   }
 
   server.getApplicationControllers = async () => [
-    { id: '1', k8SControllerId: 'ctrl-v2', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 1 },
-    { id: '2', k8SControllerId: 'ctrl-v1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2 }
+    { id: '1', controllerId: 'ctrl-v2', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 1 },
+    { id: '2', controllerId: 'ctrl-v1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2 }
   ]
 
   server.machinist = {
@@ -658,7 +656,7 @@ test('checkScalingOnMetrics with single controller always passes controller', as
   const server = await buildServer(t)
 
   server.getApplicationControllers = async () => [
-    { id: '1', k8SControllerId: 'ctrl-1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2 }
+    { id: '1', controllerId: 'ctrl-1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2 }
   ]
 
   server.getScaleConfig = async () => ({ minPods: 1, maxPods: 10 })
@@ -687,22 +685,22 @@ test('checkScalingOnAlert with multiple controllers finds the right one', async 
 
   const scalingCalls = []
   server.updateControllerReplicas = async (appId, replicas, reason, controller) => {
-    scalingCalls.push({ appId, replicas, controllerId: controller?.k8SControllerId })
+    scalingCalls.push({ appId, replicas, controllerId: controller?.controllerId })
     return { scaleEvent: { direction: 'up', createdAt: new Date().toISOString() } }
   }
 
   server.getApplicationControllers = async () => [
-    { id: '1', k8SControllerId: 'ctrl-v2', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 1 },
-    { id: '2', k8SControllerId: 'ctrl-v1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 3 }
+    { id: '1', controllerId: 'ctrl-v2', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 1 },
+    { id: '2', controllerId: 'ctrl-v1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 3 }
   ]
 
   server.machinist = {
     ...server.machinist,
     getControllerWithPods: async (controllerId) => {
       if (controllerId === 'ctrl-v2') {
-        return { pods: [{ id: 'pod-v2-1', name: 'pod-v2-1' }] }
+        return { machines: [{ id: 'pod-v2-1' }] }
       }
-      return { pods: [{ id: 'alert-pod', name: 'alert-pod' }, { id: 'pod-v1-2', name: 'pod-v1-2' }] }
+      return { machines: [{ id: 'alert-pod' }, { id: 'pod-v1-2' }] }
     }
   }
 
@@ -746,7 +744,7 @@ test('checkScalingOnAlert with multiple controllers finds the right one', async 
 test('executeScaling should pass controller through to updateControllerReplicas', async (t) => {
   const server = await buildServer(t)
 
-  const mockController = { id: '1', k8SControllerId: 'ctrl-1', replicas: 2 }
+  const mockController = { id: '1', controllerId: 'ctrl-1', replicas: 2 }
   let receivedController = null
 
   server.updateControllerReplicas = async (appId, replicas, reason, controller) => {
@@ -777,8 +775,8 @@ test('checkScalingOnMetrics should skip controllers with scalingDisabled', async
   }
 
   server.getApplicationControllers = async () => [
-    { id: '1', k8SControllerId: 'ctrl-active', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2, scalingDisabled: false },
-    { id: '2', k8SControllerId: 'ctrl-expired', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 0, scalingDisabled: true }
+    { id: '1', controllerId: 'ctrl-active', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2, scalingDisabled: false },
+    { id: '2', controllerId: 'ctrl-expired', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 0, scalingDisabled: true }
   ]
 
   server.getScaleConfig = async () => ({ minPods: 1, maxPods: 10 })
@@ -811,7 +809,7 @@ test('checkScalingOnAlert should skip when controller has scalingDisabled', asyn
   const server = await buildServer(t)
 
   server.getApplicationControllers = async () => [
-    { id: '1', k8SControllerId: 'ctrl-1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 0, scalingDisabled: true }
+    { id: '1', controllerId: 'ctrl-1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 0, scalingDisabled: true }
   ]
 
   server.store.getAlertsByPodId = async () => [{

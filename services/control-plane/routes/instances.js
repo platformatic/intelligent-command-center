@@ -122,15 +122,15 @@ module.exports = fp(async function (app) {
       }
     },
     handler: async (req) => {
-      const { podId, namespace } = authK8sPodRequest(req.params.podId, req.k8s)
+      const { machineId, namespace } = authMachineRequest(req.params.podId, req.context)
       const { applicationName, apiVersion = 'v2' } = req.body
 
-      const logger = req.log.child({ podId })
+      const logger = req.log.child({ machineId })
       const ctx = { req, logger }
 
       const { application, ...instanceConfig } = await app.initApplicationInstance(
         applicationName,
-        podId,
+        machineId,
         namespace,
         apiVersion,
         ctx
@@ -161,18 +161,18 @@ module.exports = fp(async function (app) {
       }
     },
     handler: async (req) => {
-      const { podId, namespace } = authK8sPodRequest(req.params.id, req.k8s)
+      const { machineId, namespace } = authMachineRequest(req.params.id, req.context)
 
-      const instance = await app.getInstanceByPodId(podId, namespace)
+      const instance = await app.getInstanceByMachineId(machineId, namespace)
       if (instance === null) {
-        throw new errors.InstanceNotFound(podId)
+        throw new errors.InstanceNotFound(machineId)
       }
 
       const { status } = req.body
 
       const logger = req.log.child({
         applicationId: instance.applicationId,
-        podId
+        machineId
       })
 
       const ctx = { req, logger }
@@ -215,18 +215,18 @@ module.exports = fp(async function (app) {
       }
     },
     handler: async (req) => {
-      const { podId, namespace } = authK8sPodRequest(req.params.id, req.k8s)
+      const { machineId, namespace } = authMachineRequest(req.params.id, req.context)
 
-      const instance = await app.getInstanceByPodId(podId, namespace)
+      const instance = await app.getInstanceByMachineId(machineId, namespace)
       if (instance === null) {
-        throw new errors.InstanceNotFound(podId)
+        throw new errors.InstanceNotFound(machineId)
       }
 
       const { metadata, services } = req.body
 
       const logger = req.log.child({
         applicationId: instance.applicationId,
-        podId
+        machineId
       })
 
       const ctx = { req, logger }
@@ -240,21 +240,21 @@ module.exports = fp(async function (app) {
     }
   })
 
-  function authK8sPodRequest (podId, k8sContext) {
-    if (!k8sContext) {
-      throw new errors.MissingK8sAuthContext(podId)
+  function authMachineRequest (machineId, machineCtx) {
+    if (!machineCtx) {
+      throw new errors.MissingMachineAuthContext(machineId)
     }
 
-    const jwtPodId = k8sContext.pod?.name
-    if (!jwtPodId || podId !== jwtPodId) {
-      throw new errors.PodIdNotAuthorized(podId, jwtPodId)
+    const authMachineId = machineCtx.machineId
+    if (!authMachineId || machineId !== authMachineId) {
+      throw new errors.MachineIdNotAuthorized(machineId, authMachineId)
     }
 
-    const namespace = k8sContext.namespace
+    const namespace = machineCtx.namespace
     if (!namespace) {
-      throw new errors.PodNamespaceNotFound(podId)
+      throw new errors.MachineNamespaceNotFound(machineId)
     }
 
-    return { podId, namespace }
+    return { machineId, namespace }
   }
 })

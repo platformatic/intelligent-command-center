@@ -39,7 +39,7 @@ module.exports = async function (app) {
                   deploymentId: { type: 'string' },
                   appLabel: { type: 'string' },
                   versionLabel: { type: 'string' },
-                  k8SDeploymentName: { type: 'string' },
+                  controllerName: { type: 'string' },
                   serviceName: { type: 'string' },
                   servicePort: { type: 'number' },
                   namespace: { type: 'string' },

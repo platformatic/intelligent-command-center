@@ -6,7 +6,7 @@ const {
   startControlPlane,
   startMachinist,
   startMainService,
-  generateK8sHeader
+  generateMachineHeaders
 } = require('./helper')
 
 test('should update application resources', async (t) => {
@@ -95,7 +95,7 @@ test('should update application resources', async (t) => {
   })
 })
 
-test('should detect a new pod after updating application resources', async (t) => {
+test('should detect a new machine after updating application resources', async (t) => {
   const applicationsUpdates = []
   await startMainService(t, {
     saveApplicationUpdate: (applicationId, update) => {
@@ -104,7 +104,7 @@ test('should detect a new pod after updating application resources', async (t) =
   })
 
   await startMachinist(t, {
-    getPodDetails: (podId) => ({ image: 'test-image' })
+    getMachineDetails: (machineId) => ({ image: 'test-image' })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -139,14 +139,14 @@ test('should detect a new pod after updating application resources', async (t) =
 
   {
     const applicationName = application.name
-    const podId = instance.podId
+    const machineId = instance.machineId
 
     const { statusCode, body } = await controlPlane.inject({
       method: 'POST',
-      url: `/pods/${podId}/instance`,
+      url: `/pods/${machineId}/instance`,
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId)
+        ...generateMachineHeaders(machineId)
       },
       body: { applicationName }
     })

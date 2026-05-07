@@ -23,11 +23,11 @@ module.exports = fp(async function (app) {
     })
   })
 
-  app.decorate('getControllerByK8sId', async (applicationId, k8sControllerId) => {
+  app.decorate('getControllerById', async (applicationId, controllerId) => {
     const controllers = await app.platformatic.entities.controller.find({
       where: {
         applicationId: { eq: applicationId },
-        k8SControllerId: { eq: k8sControllerId }
+        controllerId: { eq: controllerId }
       },
       orderBy: [{ field: 'createdAt', direction: 'desc' }],
       limit: 1
@@ -61,13 +61,12 @@ module.exports = fp(async function (app) {
       return
     }
 
-    // Update controller in Kubernetes
+    // Apply scaling decision via the provider
     await app.machinist.updateController(
-      controller.k8SControllerId,
+      controller.controllerId,
       controller.namespace,
-      controller.apiVersion,
-      controller.kind,
-      replicas
+      replicas,
+      controller.providerMetadata ?? {}
     )
 
     await app.platformatic.entities.controller.save({

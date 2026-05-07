@@ -8,8 +8,7 @@ const schema = {
   required: [
     'DEV',
     'PLT_MAIN_URL',
-    'PLT_ICC_VALKEY_CONNECTION_STRING',
-    'PLT_CONTROL_PLANE_URL'
+    'PLT_ICC_VALKEY_CONNECTION_STRING'
   ],
 
   properties: {
@@ -18,8 +17,9 @@ const schema = {
     PLT_MAIN_URL: { type: 'string' },
     PLT_SCALER_URL: { type: 'string', default: 'http://scaler.plt.local' },
     PLT_ICC_VALKEY_CONNECTION_STRING: { type: 'string' },
-    PLT_CONTROL_PLANE_URL: { type: 'string' },
-    PLT_DISABLE_K8S_AUTH: { type: 'boolean', default: false },
+    PLT_CONTROL_PLANE_URL: { type: 'string', default: 'http://control-plane.plt.local' },
+    PLT_MACHINIST_PROVIDER: { type: 'string', enum: ['k8s', 'ecs'], default: 'k8s' },
+    PLT_DISABLE_MACHINE_AUTH: { type: 'boolean', default: false },
     K8S_TOKEN_PATH: { type: 'string', default: '/var/run/secrets/kubernetes.io/serviceaccount/token' },
     K8S_CA_CERT_PATH: { type: 'string', default: '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt' },
     PLT_FEATURE_CACHE: { type: 'boolean', default: false },

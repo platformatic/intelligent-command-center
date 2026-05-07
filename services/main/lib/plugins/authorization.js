@@ -3,7 +3,7 @@
 const { request } = require('undici')
 const fp = require('fastify-plugin')
 const { getICCServices } = require('../utils')
-const isK8SAllowedUrl = require('../k8s-allowed-routes')
+const isMachineAuthAllowedUrl = require('../machine-allowed-routes')
 const {
   UnauthorizedRouteError,
   MissingAuthCredentialsError,
@@ -140,18 +140,18 @@ async function authorizeRouteWithCookie (req) {
 async function plugin (app) {
   async function authorizeRoute (req) {
   // We distinguish between API calls that are supposed to be done from
-  // the browser and those that are supposed to be done from K8S pods.
+  // the browser and those that are supposed to be done from machines (pods/tasks).
   // We need to split the two cases (assuming there is no overlap).
   // Otherwise we need to manage a lot of corner cases
-  // In this way, if it's a K8S call, the call MUST use K8S JWT token
+  // In this way, if it's a machine call, the call MUST use the provider auth (e.g. K8s JWT)
   // and if it's a browser call, the call MUST use the cookie
   // TODO:: now @fastify/auth is proably useless, as we are deciding
     // which auth method to use depending on the route
     if (isInternalICCRequest(req)) {
       return true
     }
-    if (isK8SAllowedUrl(req)) {
-      return app.k8sJWTAuth(req)
+    if (isMachineAuthAllowedUrl(req)) {
+      return app.machineAuth(req)
     }
     return authorizeRouteWithCookie(req)
   }
@@ -172,5 +172,5 @@ plugin[Symbol.for('skip-override')] = true
 
 module.exports = fp(plugin, {
   name: 'authorization',
-  dependencies: ['cookie', 'config', 'k8s-authentication']
+  dependencies: ['cookie', 'config', 'machine-authentication']
 })

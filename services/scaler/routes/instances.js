@@ -23,12 +23,12 @@ module.exports = async function (app) {
         type: 'object',
         properties: {
           applicationId: { type: 'string' },
-          podId: { type: 'string' },
+          machineId: { type: 'string' },
           namespace: { type: 'string' },
           runtimeId: { type: 'string' },
           timestamp: { type: 'number' }
         },
-        required: ['applicationId', 'podId', 'namespace', 'runtimeId']
+        required: ['applicationId', 'machineId', 'namespace', 'runtimeId']
       },
       response: {
         200: {
@@ -55,12 +55,12 @@ module.exports = async function (app) {
         throw new Error('Signal Scaler executor not initialized')
       }
 
-      const { applicationId, podId, namespace, runtimeId, timestamp } = req.body
+      const { applicationId, machineId, namespace, runtimeId, timestamp } = req.body
       const ts = timestamp || Date.now()
 
-      const instance = await app.getInstanceByPodId(podId, namespace)
+      const instance = await app.getInstanceByMachineId(machineId, namespace)
       if (!instance) {
-        throw new Error('Instance not found for pod')
+        throw new Error('Instance not found for machine')
       }
 
       const controller = await app.getControllerByDeploymentId(
@@ -70,7 +70,7 @@ module.exports = async function (app) {
       if (!controller) {
         throw new APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
       }
-      const controllerId = controller.k8SControllerId
+      const controllerId = controller.controllerId
 
       await app.signalScalerExecutor.onConnect(
         applicationId,
@@ -113,16 +113,16 @@ module.exports = async function (app) {
         })
       }
 
-      const k8sContext = req.k8s
-      if (!k8sContext) {
-        throw new Error('Missing k8s context')
+      const machineCtx = req.context
+      if (!machineCtx) {
+        throw new Error('Missing machine context')
       }
 
-      const podId = k8sContext.pod?.name
-      const namespace = k8sContext.namespace
+      const podId = machineCtx.machineId
+      const namespace = machineCtx.namespace
 
       if (!podId) {
-        throw new Error('Missing pod ID from k8s context')
+        throw new Error('Missing machine ID from machine context')
       }
 
       if (!app.signalScalerExecutor) {
@@ -131,7 +131,7 @@ module.exports = async function (app) {
 
       const { applicationId, runtimeId, timestamp } = req.body
 
-      const instance = await app.getInstanceByPodId(podId, namespace)
+      const instance = await app.getInstanceByMachineId(podId, namespace)
       if (!instance) {
         throw new Error('Instance not found for pod')
       }
@@ -143,7 +143,7 @@ module.exports = async function (app) {
       if (!controller) {
         throw new APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
       }
-      const controllerId = controller.k8SControllerId
+      const controllerId = controller.controllerId
 
       await app.signalScalerExecutor.onReady(
         applicationId,
@@ -164,12 +164,12 @@ module.exports = async function (app) {
         type: 'object',
         properties: {
           applicationId: { type: 'string' },
-          podId: { type: 'string' },
+          machineId: { type: 'string' },
           namespace: { type: 'string' },
           runtimeId: { type: 'string' },
           timestamp: { type: 'number' }
         },
-        required: ['applicationId', 'podId', 'namespace', 'runtimeId']
+        required: ['applicationId', 'machineId', 'namespace', 'runtimeId']
       },
       response: {
         200: {
@@ -196,12 +196,12 @@ module.exports = async function (app) {
         throw new Error('Signal Scaler executor not initialized')
       }
 
-      const { applicationId, podId, namespace, runtimeId, timestamp } = req.body
+      const { applicationId, machineId, namespace, runtimeId, timestamp } = req.body
       const ts = timestamp || Date.now()
 
-      const instance = await app.getInstanceByPodId(podId, namespace)
+      const instance = await app.getInstanceByMachineId(machineId, namespace)
       if (!instance) {
-        throw new Error('Instance not found for pod')
+        throw new Error('Instance not found for machine')
       }
 
       const controller = await app.getControllerByDeploymentId(
@@ -211,7 +211,7 @@ module.exports = async function (app) {
       if (!controller) {
         throw new APPLICATION_CONTROLLER_NOT_FOUND(applicationId)
       }
-      const controllerId = controller.k8SControllerId
+      const controllerId = controller.controllerId
       await app.signalScalerExecutor.onDisconnect(applicationId, controllerId, runtimeId, ts)
 
       return { success: true }

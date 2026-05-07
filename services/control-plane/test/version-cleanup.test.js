@@ -118,14 +118,14 @@ function buildApp (opts = {}) {
         if (opts.applyHTTPRouteFails) throw new Error('HTTPRoute apply failed')
         return httpRoute
       },
-      updateController: async (controllerId, namespace, apiVersion, kind, replicas, ctx) => {
-        calls.updateController.push({ controllerId, namespace, apiVersion, kind, replicas })
+      updateControllerReplicas: async (namespace, controllerId, replicas, providerMetadata, ctx) => {
+        calls.updateController.push({ controllerId, namespace, replicas, providerMetadata })
         if (opts.updateControllerFails) throw new Error('updateController failed')
-        return { spec: { replicas } }
+        return { name: controllerId, replicas, labels: {}, providerMetadata }
       },
-      deleteDeployment: async (namespace, name, ctx) => {
-        calls.deleteDeployment.push({ namespace, name })
-        if (opts.deleteDeploymentFails) throw new Error('deleteDeployment failed')
+      deleteController: async (namespace, name, providerMetadata, ctx) => {
+        calls.deleteDeployment.push({ namespace, name, providerMetadata })
+        if (opts.deleteDeploymentFails) throw new Error('deleteController failed')
         return { status: 'Success' }
       },
       deleteService: async (namespace, name, ctx) => {
@@ -143,8 +143,8 @@ function buildApp (opts = {}) {
 
   app.addHook('onReady', async () => {
     if (app.disableScaling) {
-      app.disableScaling = async (namespace, k8sDeploymentName) => {
-        calls.disableScaling.push({ namespace, k8sDeploymentName })
+      app.disableScaling = async (namespace, controllerName) => {
+        calls.disableScaling.push({ namespace, controllerName })
         if (opts.disableScalingFails) throw new Error('disableScaling failed')
         return { success: true }
       }
@@ -168,7 +168,7 @@ const baseOpts = {
   deploymentId: 'dep-1',
   appLabel: 'my-app',
   versionLabel: 'v1',
-  k8SDeploymentName: 'my-app-v1',
+  controllerName: 'my-app-v1',
   serviceName: 'my-app-v1-svc',
   servicePort: 3042,
   namespace: 'platformatic',
@@ -186,7 +186,7 @@ test('expireAndCleanup should expire version, rebuild HTTPRoute, and scale to 0'
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -208,13 +208,13 @@ test('expireAndCleanup should expire version, rebuild HTTPRoute, and scale to 0'
   // Scaling was disabled before scale-down
   assert.strictEqual(calls.disableScaling.length, 1)
   assert.strictEqual(calls.disableScaling[0].namespace, 'platformatic')
-  assert.strictEqual(calls.disableScaling[0].k8sDeploymentName, 'my-app-v1')
+  assert.strictEqual(calls.disableScaling[0].controllerName, 'my-app-v1')
 
   // Deployment was scaled to 0
   assert.strictEqual(calls.updateController.length, 1)
   assert.strictEqual(calls.updateController[0].controllerId, 'my-app-v1')
   assert.strictEqual(calls.updateController[0].replicas, 0)
-  assert.strictEqual(calls.updateController[0].kind, 'Deployment')
+  assert.strictEqual(calls.updateController[0].namespace, 'platformatic')
 })
 
 test('expireAndCleanup should skip cleanup when version is not draining', async (t) => {
@@ -244,7 +244,7 @@ test('expireAndCleanup should still scale to 0 when HTTPRoute update fails', asy
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -269,7 +269,7 @@ test('expireAndCleanup should still scale to 0 when disableScaling fails', async
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -292,7 +292,7 @@ test('expireAndCleanup should still mark expired when scale to 0 fails', async (
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -315,7 +315,7 @@ test('expireAndCleanup should not delete resources when auto-cleanup is disabled
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -336,7 +336,7 @@ test('expireAndCleanup should delete Deployment and Service when auto-cleanup is
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -366,7 +366,7 @@ test('expireAndCleanup should still delete Service when deleteDeployment fails',
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -390,7 +390,7 @@ test('expireAndCleanup should still succeed when deleteService fails', async (t)
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -427,7 +427,7 @@ test('expireAndCleanup should use per-app autoCleanup policy', async (t) => {
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -468,7 +468,7 @@ test('expireAndCleanup should call force-expire for workflow policy before clean
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -502,7 +502,7 @@ test('expireAndCleanup should not call force-expire for http-traffic policy', as
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 
@@ -535,7 +535,7 @@ test('expireAndCleanup should still proceed when force-expire fails for workflow
     ...baseOpts,
     versionLabel: 'v2',
     deploymentId: 'dep-2',
-    k8SDeploymentName: 'my-app-v2',
+    controllerName: 'my-app-v2',
     serviceName: 'my-app-v2-svc'
   }, mockCtx)
 

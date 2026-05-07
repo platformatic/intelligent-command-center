@@ -5,10 +5,10 @@ const { startMachinist } = require('../test/helper')
 
 const db = {}
 startMachinist(null, {
-  getPodDetails: async (podId) => {
-    if (!db[podId]) {
-      db[podId] = { image: randomUUID() }
+  getMachineDetails: async (machineId) => {
+    if (!db[machineId]) {
+      db[machineId] = { image: randomUUID() }
     }
-    return db[podId]
+    return db[machineId]
   }
 })

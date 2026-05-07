@@ -7,14 +7,12 @@ const { buildServer, startMachinist } = require('../helper')
 
 test('should save a new controller', async (t) => {
   const controllerId = 'controller-id'
-  const kind = 'Controller'
-  const apiVersion = 'v1'
+  const providerMetadata = { kind: 'Controller', apiVersion: 'v1' }
 
   await startMachinist(t, {
     getPodController: () => ({
       name: controllerId,
-      kind,
-      apiVersion,
+      providerMetadata,
       replicas: 1
     })
   })
@@ -39,7 +37,7 @@ test('should save a new controller', async (t) => {
       applicationId,
       deploymentId,
       namespace,
-      podId
+      machineId: podId
     })
   })
 
@@ -52,9 +50,8 @@ test('should save a new controller', async (t) => {
   assert.strictEqual(controller.applicationId, applicationId)
   assert.strictEqual(controller.deploymentId, deploymentId)
   assert.strictEqual(controller.namespace, namespace)
-  assert.strictEqual(controller.k8SControllerId, controllerId)
-  assert.strictEqual(controller.kind, kind)
-  assert.strictEqual(controller.apiVersion, apiVersion)
+  assert.strictEqual(controller.controllerId, controllerId)
+  assert.deepStrictEqual(controller.providerMetadata, providerMetadata)
   assert.strictEqual(controller.replicas, 1)
 
   const scaleConfigs = await server.platformatic.entities.applicationScaleConfig.find()
@@ -80,8 +77,7 @@ test('PUT scaling-disabled should disable scaling for a controller', async (t) =
   await startMachinist(t, {
     getPodController: () => ({
       name: 'test-ctrl',
-      kind: 'Deployment',
-      apiVersion: 'apps/v1',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
     })
   })
@@ -99,7 +95,7 @@ test('PUT scaling-disabled should disable scaling for a controller', async (t) =
     method: 'POST',
     url: '/controllers',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ applicationId, deploymentId, namespace, podId: 'pod-1' })
+    body: JSON.stringify({ applicationId, deploymentId, namespace, machineId: 'pod-1' })
   })
 
   const res = await server.inject({
@@ -113,7 +109,7 @@ test('PUT scaling-disabled should disable scaling for a controller', async (t) =
   assert.strictEqual(JSON.parse(res.body).success, true)
 
   const controllers = await server.platformatic.entities.controller.find({
-    where: { k8SControllerId: { eq: 'test-ctrl' } }
+    where: { controllerId: { eq: 'test-ctrl' } }
   })
   assert.strictEqual(controllers[0].scalingDisabled, true)
 })
@@ -122,8 +118,7 @@ test('PUT scaling-disabled should re-enable scaling', async (t) => {
   await startMachinist(t, {
     getPodController: () => ({
       name: 'test-ctrl-re',
-      kind: 'Deployment',
-      apiVersion: 'apps/v1',
+      providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 1
     })
   })
@@ -141,7 +136,7 @@ test('PUT scaling-disabled should re-enable scaling', async (t) => {
     method: 'POST',
     url: '/controllers',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ applicationId, deploymentId, namespace, podId: 'pod-1' })
+    body: JSON.stringify({ applicationId, deploymentId, namespace, machineId: 'pod-1' })
   })
 
   // Disable
@@ -163,7 +158,7 @@ test('PUT scaling-disabled should re-enable scaling', async (t) => {
   assert.strictEqual(res.statusCode, 200)
 
   const controllers = await server.platformatic.entities.controller.find({
-    where: { k8SControllerId: { eq: 'test-ctrl-re' } }
+    where: { controllerId: { eq: 'test-ctrl-re' } }
   })
   assert.strictEqual(controllers[0].scalingDisabled, false)
 })

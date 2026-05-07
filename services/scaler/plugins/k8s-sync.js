@@ -49,24 +49,23 @@ module.exports = fp(async function (app) {
       }, 'Processing most recent controller for each application')
 
       const k8sPromises = controllers.map(async (controller) => {
+        const providerMetadata = controller.provider_metadata ?? {}
         const k8sController = await app.machinist.getController(
-          controller.k8s_controller_id,
+          controller.controller_id,
           controller.namespace,
-          controller.api_version,
-          controller.kind
+          providerMetadata
         )
 
         let labels = {}
         try {
           labels = await app.machinist.getControllerLabels(
-            controller.k8s_controller_id,
+            controller.controller_id,
             controller.namespace,
-            controller.kind,
-            controller.api_version
+            providerMetadata
           )
         } catch (err) {
           logger.debug({
-            controllerId: controller.k8s_controller_id,
+            controllerId: controller.controller_id,
             err: err.message
           }, 'Failed to get controller labels, continuing without label sync')
         }
@@ -85,15 +84,14 @@ module.exports = fp(async function (app) {
           const { controller, k8sController, labels } = result.value
 
           logger.info({
-            controllerId: controller.k8s_controller_id,
+            controllerId: controller.controller_id,
             namespace: controller.namespace,
-            kind: controller.kind,
             currentReplicas: controller.replicas,
             k8sReplicas: k8sController.replicas
           }, 'Controller sync result')
 
           logger.debug({
-            controllerId: controller.k8s_controller_id,
+            controllerId: controller.controller_id,
             dbReplicas: controller.replicas,
             k8sReplicas: k8sController.replicas
           }, 'Comparing controller replicas')
@@ -105,7 +103,7 @@ module.exports = fp(async function (app) {
 
             logger.info({
               applicationId: controller.application_id,
-              controllerId: controller.k8s_controller_id,
+              controllerId: controller.controller_id,
               oldReplicas,
               newReplicas,
               replicasDiff,
@@ -116,10 +114,8 @@ module.exports = fp(async function (app) {
               input: {
                 id: controller.id,
                 applicationId: controller.application_id,
-                k8SControllerId: controller.k8s_controller_id,
+                controllerId: controller.controller_id,
                 namespace: controller.namespace,
-                apiVersion: controller.api_version,
-                kind: controller.kind,
                 replicas: newReplicas
               }
             })
@@ -257,16 +253,14 @@ module.exports = fp(async function (app) {
         try {
           logger.info({
             applicationId: controller.application_id,
-            k8SControllerId: controller.k8s_controller_id,
-            namespace: controller.namespace,
-            kind: controller.kind
+            controllerId: controller.controller_id,
+            namespace: controller.namespace
           }, 'Processing controller for scaler config sync')
 
           const labels = await app.machinist.getControllerLabels(
-            controller.k8s_controller_id,
+            controller.controller_id,
             controller.namespace,
-            controller.kind,
-            controller.api_version
+            controller.provider_metadata ?? {}
           )
 
           logger.info({
@@ -286,7 +280,7 @@ module.exports = fp(async function (app) {
         } catch (err) {
           logger.error({
             applicationId: controller.application_id,
-            k8SControllerId: controller.k8s_controller_id,
+            controllerId: controller.controller_id,
             namespace: controller.namespace,
             error: err.message
           }, 'Failed to sync scaler config for application')

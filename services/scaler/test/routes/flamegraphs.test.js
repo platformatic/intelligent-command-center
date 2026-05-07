@@ -5,7 +5,7 @@ const { randomUUID } = require('node:crypto')
 const assert = require('node:assert')
 const {
   buildServer,
-  generateK8sHeader,
+  generateMachineHeaders,
   cleanValkeyData,
   createAlert
 } = require('../helper')
@@ -26,7 +26,7 @@ test('receive and save flamegraph successfully', async (t) => {
   const applicationId = randomUUID()
   const flamegraphData = Buffer.from('test flamegraph data')
 
-  server.getInstanceByPodId = async () => ({ applicationId })
+  server.getInstanceByMachineId = async () => ({ applicationId })
 
   const emittedUpdates = []
   server.emitUpdate = async (namespace, message) => {
@@ -43,7 +43,7 @@ test('receive and save flamegraph successfully', async (t) => {
     url: `/pods/${podId}/services/${serviceId}/flamegraph`,
     headers: {
       'content-type': 'application/octet-stream',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     payload: flamegraphData
   })
@@ -107,7 +107,7 @@ test('flamegraph endpoint requires k8s context', async (t) => {
 
   assert.strictEqual(response.statusCode, 500)
   const result = JSON.parse(response.body)
-  assert.ok(result.message.includes('Missing k8s context'))
+  assert.ok(result.message.includes('Missing machine context'))
 })
 
 test('flamegraph saves successfully even if WebSocket update fails', async (t) => {
@@ -119,7 +119,7 @@ test('flamegraph saves successfully even if WebSocket update fails', async (t) =
   const applicationId = randomUUID()
   const flamegraphData = Buffer.from('test flamegraph data')
 
-  server.getInstanceByPodId = async () => ({ applicationId })
+  server.getInstanceByMachineId = async () => ({ applicationId })
 
   let errorLogged = false
   server.emitUpdate = async () => {
@@ -146,7 +146,7 @@ test('flamegraph saves successfully even if WebSocket update fails', async (t) =
     url: `/pods/${podId}/services/${serviceId}/flamegraph`,
     headers: {
       'content-type': 'application/octet-stream',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     payload: flamegraphData
   })
@@ -176,7 +176,7 @@ test('receive and save flamegraph with alertId successfully', async (t) => {
   const applicationId = randomUUID()
   const flamegraphData = Buffer.from('test flamegraph data with alert')
 
-  server.getInstanceByPodId = async () => ({ applicationId })
+  server.getInstanceByMachineId = async () => ({ applicationId })
 
   // Create a valid alert first
   const alert = await server.platformatic.entities.alert.save({
@@ -209,7 +209,7 @@ test('receive and save flamegraph with alertId successfully', async (t) => {
     url: `/pods/${podId}/services/${serviceId}/flamegraph?alertId=${alertId}`,
     headers: {
       'content-type': 'application/octet-stream',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     payload: flamegraphData
   })
@@ -265,7 +265,7 @@ test('receive and save heap profile successfully', async (t) => {
   const applicationId = randomUUID()
   const heapProfileData = Buffer.from('test heap profile data')
 
-  server.getInstanceByPodId = async () => ({ applicationId })
+  server.getInstanceByMachineId = async () => ({ applicationId })
 
   const emittedUpdates = []
   server.emitUpdate = async (namespace, message) => {
@@ -282,7 +282,7 @@ test('receive and save heap profile successfully', async (t) => {
     url: `/pods/${podId}/services/${serviceId}/flamegraph?profileType=heap`,
     headers: {
       'content-type': 'application/octet-stream',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     payload: heapProfileData
   })
@@ -332,7 +332,7 @@ test('flamegraph endpoint fails when instance not found', async (t) => {
   const serviceId = 'test-service-id'
   const flamegraphData = Buffer.from('test flamegraph data')
 
-  server.getInstanceByPodId = async () => null
+  server.getInstanceByMachineId = async () => null
 
   t.after(async () => {
     await server.close()
@@ -344,7 +344,7 @@ test('flamegraph endpoint fails when instance not found', async (t) => {
     url: `/pods/${podId}/services/${serviceId}/flamegraph`,
     headers: {
       'content-type': 'application/octet-stream',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     payload: flamegraphData
   })
@@ -362,7 +362,7 @@ test('link flamegraph to multiple alerts', async (t) => {
   const serviceId = 'test-service-id'
   const applicationId = randomUUID()
 
-  server.getInstanceByPodId = async () => ({ applicationId })
+  server.getInstanceByMachineId = async () => ({ applicationId })
   server.emitUpdate = async () => {}
 
   t.after(async () => {
@@ -376,7 +376,7 @@ test('link flamegraph to multiple alerts', async (t) => {
     url: `/pods/${podId}/services/${serviceId}/flamegraph`,
     headers: {
       'content-type': 'application/octet-stream',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     payload: Buffer.from('test flamegraph data')
   })
@@ -541,7 +541,7 @@ test('POST /flamegraphs/states saves profiling states', async (t) => {
     url: '/flamegraphs/states',
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(podId)
     },
     payload: {
       applicationId,
@@ -621,7 +621,7 @@ test('POST /flamegraphs/states requires k8s context', async (t) => {
 
   assert.strictEqual(response.statusCode, 500)
   const result = JSON.parse(response.body)
-  assert.ok(result.message.includes('Missing k8s context'))
+  assert.ok(result.message.includes('Missing machine context'))
 })
 
 test('/GET /flamegraphs returns flamegraphs for application', async (t) => {
@@ -638,7 +638,7 @@ test('/GET /flamegraphs returns flamegraphs for application', async (t) => {
   const flamegraphData1 = Buffer.from('test flamegraph data')
   const flamegraphData2 = Buffer.from('test flamegraph data')
 
-  server.getInstanceByPodId = async () => ({ applicationId })
+  server.getInstanceByMachineId = async () => ({ applicationId })
 
   t.after(async () => {
     await server.close()
@@ -656,7 +656,7 @@ test('/GET /flamegraphs returns flamegraphs for application', async (t) => {
       url: '/alerts',
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId1)
+        ...generateMachineHeaders(podId1)
       },
       payload: JSON.stringify({
         applicationId,
@@ -677,7 +677,7 @@ test('/GET /flamegraphs returns flamegraphs for application', async (t) => {
       url: '/alerts',
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId1)
+        ...generateMachineHeaders(podId1)
       },
       payload: JSON.stringify({
         applicationId,
@@ -698,7 +698,7 @@ test('/GET /flamegraphs returns flamegraphs for application', async (t) => {
       query: { profileType: 'cpu' },
       headers: {
         'content-type': 'application/octet-stream',
-        'x-k8s': generateK8sHeader(podId1)
+        ...generateMachineHeaders(podId1)
       },
       payload: flamegraphData1
     })
@@ -715,7 +715,7 @@ test('/GET /flamegraphs returns flamegraphs for application', async (t) => {
       query: { profileType: 'heap' },
       headers: {
         'content-type': 'application/octet-stream',
-        'x-k8s': generateK8sHeader(podId2)
+        ...generateMachineHeaders(podId2)
       },
       payload: flamegraphData2
     })
@@ -728,7 +728,7 @@ test('/GET /flamegraphs returns flamegraphs for application', async (t) => {
       url: `/flamegraphs/${flamegraphId1}/alerts`,
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId1)
+        ...generateMachineHeaders(podId1)
       },
       body: {
         alertIds: [allertId1, allertId2]
@@ -770,7 +770,7 @@ test('/GET /flamegraphs supports pagination with limit and offset', async (t) =>
   const applicationId = randomUUID()
   const flamegraphData = Buffer.from('test flamegraph data')
 
-  server.getInstanceByPodId = async () => ({ applicationId })
+  server.getInstanceByMachineId = async () => ({ applicationId })
   server.emitUpdate = async () => {}
 
   t.after(async () => {
@@ -785,7 +785,7 @@ test('/GET /flamegraphs supports pagination with limit and offset', async (t) =>
       url: `/pods/pod-${i}/services/service-${i}/flamegraph`,
       headers: {
         'content-type': 'application/octet-stream',
-        'x-k8s': generateK8sHeader(`pod-${i}`)
+        ...generateMachineHeaders(`pod-${i}`)
       },
       payload: flamegraphData
     })
@@ -865,7 +865,7 @@ test('/GET /flamegraphs pages are ordered newest first', async (t) => {
   const applicationId = randomUUID()
   const flamegraphData = Buffer.from('test flamegraph data')
 
-  server.getInstanceByPodId = async () => ({ applicationId })
+  server.getInstanceByMachineId = async () => ({ applicationId })
   server.emitUpdate = async () => {}
 
   t.after(async () => {
@@ -880,7 +880,7 @@ test('/GET /flamegraphs pages are ordered newest first', async (t) => {
       url: `/pods/pod-${i}/services/service-${i}/flamegraph`,
       headers: {
         'content-type': 'application/octet-stream',
-        'x-k8s': generateK8sHeader(`pod-${i}`)
+        ...generateMachineHeaders(`pod-${i}`)
       },
       payload: flamegraphData
     })

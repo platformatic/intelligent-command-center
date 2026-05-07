@@ -16,12 +16,12 @@ const {
   startCompliance,
   startTrafficInspector,
   startScaler,
-  generateK8sHeader
+  generateMachineHeaders
 } = require('./helper')
 
 test('should save an instance of a new application', async (t) => {
   const applicationName = 'test-app'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   const activities = []
@@ -40,7 +40,7 @@ test('should save an instance of a new application', async (t) => {
 
   const controllers = []
   await startScaler(t, {
-    savePodController: (controller) => {
+    saveMachineController: (controller) => {
       controllers.push(controller)
     }
   })
@@ -52,11 +52,11 @@ test('should save an instance of a new application', async (t) => {
     }
   })
 
-  const podsLabels = []
+  const machineLabelsCalls = []
   await startMachinist(t, {
-    getPodDetails: () => ({ image: imageId }),
-    setPodLabels: (podId, labels) => {
-      podsLabels.push({ podId, labels })
+    getMachineDetails: () => ({ image: imageId }),
+    setMachineLabels: (machineId, labels) => {
+      machineLabelsCalls.push({ machineId, labels })
     }
   })
 
@@ -64,10 +64,10 @@ test('should save an instance of a new application', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName }
   })
@@ -165,7 +165,7 @@ test('should save an instance of a new application', async (t) => {
   const instance = instances[0]
   assert.strictEqual(instance.applicationId, application.id)
   assert.strictEqual(instance.deploymentId, deployment.id)
-  assert.strictEqual(instance.podId, podId)
+  assert.strictEqual(instance.machineId, machineId)
   assert.strictEqual(instance.status, 'starting')
 
   const foundAppConfigs = await entities.applicationsConfig.find()
@@ -208,15 +208,15 @@ test('should save an instance of a new application', async (t) => {
   assert.strictEqual(controller.applicationId, application.id)
   assert.strictEqual(controller.deploymentId, deployment.id)
   assert.strictEqual(controller.namespace, 'platformatic')
-  assert.strictEqual(controller.podId, podId)
+  assert.strictEqual(controller.machineId, machineId)
 
   assert.strictEqual(iccUpdates.length, 2)
 
-  assert.strictEqual(podsLabels.length, 1)
+  assert.strictEqual(machineLabelsCalls.length, 1)
 
-  const podsLabels1 = podsLabels[0]
-  assert.strictEqual(podsLabels1.podId, podId)
-  assert.deepStrictEqual(podsLabels1.labels, {
+  const machineLabelsCall1 = machineLabelsCalls[0]
+  assert.strictEqual(machineLabelsCall1.machineId, machineId)
+  assert.deepStrictEqual(machineLabelsCall1.labels, {
     'platformatic.dev/monitor': 'prometheus',
     'platformatic.dev/application-id': application.id,
     'platformatic.dev/deployment-id': deployment.id
@@ -257,7 +257,7 @@ test('should save an instance of a new application', async (t) => {
 
 test('should save a new app instance with the same image', async (t) => {
   const applicationName = 'test-app'
-  const podId = 'test-pod-3'
+  const machineId = 'test-pod-3'
   const imageId = 'test-image-1'
 
   const activities = []
@@ -267,7 +267,7 @@ test('should save a new app instance with the same image', async (t) => {
   await startMetrics(t)
   await startScaler(t)
   await startMachinist(t, {
-    getPodDetails: (podId) => ({ image: imageId })
+    getMachineDetails: (machineId) => ({ image: imageId })
   })
 
   let interceptorConfig = null
@@ -321,10 +321,10 @@ test('should save a new app instance with the same image', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName }
   })
@@ -405,10 +405,10 @@ test('should save a new app instance with the same image', async (t) => {
   const instances = await entities.instance.find()
   assert.strictEqual(instances.length, 3)
 
-  const instance3 = instances.find((i) => i.podId === podId)
+  const instance3 = instances.find((i) => i.machineId === machineId)
   assert.strictEqual(instance3.applicationId, application1.id)
   assert.strictEqual(instance3.deploymentId, deployment1.id)
-  assert.strictEqual(instance3.podId, podId)
+  assert.strictEqual(instance3.machineId, machineId)
   assert.strictEqual(instance3.status, 'starting')
 
   const foundAppConfigs = await entities.applicationsConfig.find()
@@ -454,9 +454,9 @@ test('should save a new app instance with the same image', async (t) => {
   assert.deepStrictEqual(scaler, { version: 'v2' })
 })
 
-test('should detect the same pod with the same image', async (t) => {
+test('should detect the same machine with the same image', async (t) => {
   const applicationName = 'test-app-1'
-  const podId = 'test-pod-1'
+  const machineId = 'test-pod-1'
   const imageId = 'test-image-1'
 
   const activities = []
@@ -466,7 +466,7 @@ test('should detect the same pod with the same image', async (t) => {
   await startMetrics(t)
   await startScaler(t)
   await startMachinist(t, {
-    getPodDetails: (podId) => ({ image: imageId })
+    getMachineDetails: (machineId) => ({ image: imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -479,15 +479,15 @@ test('should detect the same pod with the same image', async (t) => {
   } = await controlPlane.testApi.saveInstance(
     applicationName,
     imageId,
-    podId
+    machineId
   )
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName }
   })
@@ -536,7 +536,7 @@ test('should detect the same pod with the same image', async (t) => {
   assert.strictEqual(foundInstance.id, instance1.id)
   assert.strictEqual(foundInstance.applicationId, application1.id)
   assert.strictEqual(foundInstance.deploymentId, deployment1.id)
-  assert.strictEqual(foundInstance.podId, podId)
+  assert.strictEqual(foundInstance.machineId, machineId)
   assert.strictEqual(foundInstance.status, 'starting')
 
   const foundAppConfigs = await entities.applicationsConfig.find()
@@ -565,7 +565,7 @@ test('should detect the same pod with the same image', async (t) => {
 test('should save an app instance with a different image', async (t) => {
   const applicationName = 'test-app-1'
   const imageId = 'test-image-3'
-  const podId = 'test-pod-3'
+  const machineId = 'test-pod-3'
 
   const activities = []
   await startActivities(t, {
@@ -574,7 +574,7 @@ test('should save an app instance with a different image', async (t) => {
   await startMetrics(t)
   await startScaler(t)
   await startMachinist(t, {
-    getPodDetails: () => ({ image: imageId })
+    getMachineDetails: () => ({ image: imageId })
   })
 
   const controlPlane = await startControlPlane(t)
@@ -592,10 +592,10 @@ test('should save an app instance with a different image', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName }
   })
@@ -652,7 +652,7 @@ test('should save an app instance with a different image', async (t) => {
   assert.strictEqual(instance3.applicationId, application1.id)
   assert.strictEqual(instance3.deploymentId, deployment3.id)
   assert.strictEqual(instance3.namespace, 'platformatic')
-  assert.strictEqual(instance3.podId, podId)
+  assert.strictEqual(instance3.machineId, machineId)
   assert.strictEqual(instance3.status, 'starting')
 
   const foundAppConfigs = await entities.applicationsConfig.find()
@@ -697,7 +697,7 @@ test('should save an app instance with a different image', async (t) => {
 
 test('should save an instance of a new application without httpCache', async (t) => {
   const applicationName = 'test-app'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   const activities = []
@@ -716,7 +716,7 @@ test('should save an instance of a new application without httpCache', async (t)
 
   const controllers = []
   await startScaler(t, {
-    savePodController: (controller) => {
+    saveMachineController: (controller) => {
       controllers.push(controller)
     }
   })
@@ -728,11 +728,11 @@ test('should save an instance of a new application without httpCache', async (t)
     }
   })
 
-  const podsLabels = []
+  const machineLabelsCalls = []
   await startMachinist(t, {
-    getPodDetails: () => ({ image: imageId }),
-    setPodLabels: (podId, labels) => {
-      podsLabels.push({ podId, labels })
+    getMachineDetails: () => ({ image: imageId }),
+    setMachineLabels: (machineId, labels) => {
+      machineLabelsCalls.push({ machineId, labels })
     }
   })
 
@@ -742,10 +742,10 @@ test('should save an instance of a new application without httpCache', async (t)
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName }
   })
@@ -767,7 +767,7 @@ test('should save a lot of simultaneous instances of different applications', as
 
   const controllers = []
   await startScaler(t, {
-    savePodController: (instance) => {
+    saveMachineController: (instance) => {
       controllers.push(instance)
     }
   })
@@ -789,14 +789,14 @@ test('should save a lot of simultaneous instances of different applications', as
     imageIds.push(imageId)
 
     for (let j = 0; j < APP_PODS_COUNT; j++) {
-      const podId = `test-pod-${i}-${j}`
-      params.push({ applicationName, imageId, podId })
+      const machineId = `test-pod-${i}-${j}`
+      params.push({ applicationName, imageId, machineId })
     }
   }
 
   await startMachinist(t, {
-    getPodDetails: (podId) => {
-      const { imageId } = params.find(p => p.podId === podId)
+    getMachineDetails: (machineId) => {
+      const { imageId } = params.find(p => p.machineId === machineId)
       return { image: imageId }
     }
   })
@@ -810,10 +810,10 @@ test('should save a lot of simultaneous instances of different applications', as
   const saveInstance = async (params) => {
     const { statusCode, body } = await controlPlane.inject({
       method: 'POST',
-      url: `/pods/${params.podId}/instance`,
+      url: `/pods/${params.machineId}/instance`,
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(params.podId)
+        ...generateMachineHeaders(params.machineId)
       },
       body: { applicationName: params.applicationName }
     })
@@ -900,7 +900,7 @@ test('should save a lot of simultaneous instances of different applications', as
       assert.strictEqual(instance.applicationId, application.id)
       assert.strictEqual(instance.deploymentId, deployment.id)
       assert.strictEqual(instance.status, 'starting')
-      assert.ok(instance.podId)
+      assert.ok(instance.machineId)
     }
 
     const applicationActivities = activities.filter(
@@ -970,15 +970,15 @@ test('should save a lot of simultaneous instances of different applications', as
   }
 })
 
-test('should throw 401 if x-k8s header is missing', async (t) => {
+test('should throw 401 if machine context headers are missing', async (t) => {
   const applicationName = 'test-app'
-  const podId = randomUUID()
+  const machineId = randomUUID()
 
   const controlPlane = await startControlPlane(t)
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json'
     },
@@ -990,25 +990,25 @@ test('should throw 401 if x-k8s header is missing', async (t) => {
   const error = JSON.parse(body)
   assert.deepStrictEqual(error, {
     statusCode: 401,
-    code: 'PLT_CONTROL_PLANE_MISSING_K8S_AUTH_CONTEXT',
+    code: 'PLT_CONTROL_PLANE_MISSING_MACHINE_AUTH_CONTEXT',
     error: 'Unauthorized',
-    message: `Missing K8s auth context for pod "${podId}"`
+    message: `Missing machine auth context for machine "${machineId}"`
   })
 })
 
-test('should throw 401 if pod id param does match with a jwt pod id', async (t) => {
+test('should throw 401 if machineId param does not match with the authenticated machineId', async (t) => {
   const applicationName = 'test-app'
-  const podId = randomUUID()
-  const jwtPodId = randomUUID()
+  const machineId = randomUUID()
+  const jwtMachineId = randomUUID()
 
   const controlPlane = await startControlPlane(t)
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(jwtPodId)
+      ...generateMachineHeaders(jwtMachineId)
     },
     body: { applicationName }
   })
@@ -1018,15 +1018,15 @@ test('should throw 401 if pod id param does match with a jwt pod id', async (t) 
   const error = JSON.parse(body)
   assert.deepStrictEqual(error, {
     statusCode: 401,
-    code: 'PLT_CONTROL_PLANE_POD_ID_NOT_AUTHORIZED',
+    code: 'PLT_CONTROL_PLANE_MACHINE_ID_NOT_AUTHORIZED',
     error: 'Unauthorized',
-    message: `Request pod id "${podId}" does not match with a jwt pod id "${jwtPodId}"`
+    message: `Request machine id "${machineId}" does not match the authenticated machine id "${jwtMachineId}"`
   })
 })
 
 test('should get applicationName from controller name when missing from request body', async (t) => {
   const controllerName = 'test-app-k8s-abc123def'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   const activities = []
@@ -1045,7 +1045,7 @@ test('should get applicationName from controller name when missing from request 
 
   const controllers = []
   await startScaler(t, {
-    savePodController: (controller) => {
+    saveMachineController: (controller) => {
       controllers.push(controller)
     }
   })
@@ -1057,16 +1057,16 @@ test('should get applicationName from controller name when missing from request 
     }
   })
 
-  const podsLabels = []
+  const machineLabelsCalls = []
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       controller: {
         name: controllerName
       }
     }),
-    setPodLabels: (podId, labels) => {
-      podsLabels.push({ podId, labels })
+    setMachineLabels: (machineId, labels) => {
+      machineLabelsCalls.push({ machineId, labels })
     }
   })
 
@@ -1076,10 +1076,10 @@ test('should get applicationName from controller name when missing from request 
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: {} // No applicationName in body
   })
@@ -1150,11 +1150,11 @@ test('should get applicationName from controller name when missing from request 
 })
 
 test('should throw ApplicationNameNotFound when applicationName is missing from both body and controller', async (t) => {
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       controller: null // No controller
     })
@@ -1166,10 +1166,10 @@ test('should throw ApplicationNameNotFound when applicationName is missing from 
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: {} // No applicationName in body
   })
@@ -1181,14 +1181,14 @@ test('should throw ApplicationNameNotFound when applicationName is missing from 
     statusCode: 400,
     code: 'PLT_CONTROL_PLANE_APPLICATION_NAME_NOT_FOUND',
     error: 'Bad Request',
-    message: `Application name not found for pod "${podId}"`
+    message: `Application name not found for machine "${machineId}"`
   })
 })
 
 test('should prefer applicationName from body over controller name', async (t) => {
   const bodyApplicationName = 'test-app-body'
   const controllerName = 'test-app-k8s-xyz789abc'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   const activities = []
@@ -1202,7 +1202,7 @@ test('should prefer applicationName from body over controller name', async (t) =
   await startMainService(t)
 
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       controller: {
         name: controllerName
@@ -1216,10 +1216,10 @@ test('should prefer applicationName from body over controller name', async (t) =
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName: bodyApplicationName }
   })
@@ -1243,11 +1243,11 @@ test('should prefer applicationName from body over controller name', async (t) =
 })
 
 test('should throw ApplicationNameNotFound when controller name is undefined', async (t) => {
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       controller: {
         name: undefined // No name
@@ -1261,10 +1261,10 @@ test('should throw ApplicationNameNotFound when controller name is undefined', a
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: {} // No applicationName in body
   })
@@ -1276,13 +1276,13 @@ test('should throw ApplicationNameNotFound when controller name is undefined', a
     statusCode: 400,
     code: 'PLT_CONTROL_PLANE_APPLICATION_NAME_NOT_FOUND',
     error: 'Bad Request',
-    message: `Application name not found for pod "${podId}"`
+    message: `Application name not found for machine "${machineId}"`
   })
 })
 
 test('should create HTTPRoute with default rule only for first version', async (t) => {
   const applicationName = 'test-app-skew'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
   const appLabel = 'my-versioned-app'
   const versionLabel = 'v1.2.3'
@@ -1296,7 +1296,7 @@ test('should create HTTPRoute with default rule only for first version', async (
   const servicesByLabelsRequests = []
   const appliedHTTPRoutes = []
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       labels: {
         'app.kubernetes.io/name': appLabel,
@@ -1318,15 +1318,7 @@ test('should create HTTPRoute with default rule only for first version', async (
     }],
     getServicesByLabels: (namespace, labels) => {
       servicesByLabelsRequests.push({ namespace, labels })
-      return [{
-        metadata: {
-          name: 'my-versioned-app-v1.2.3',
-          namespace: 'platformatic'
-        },
-        spec: {
-          ports: [{ port: 3042 }]
-        }
-      }]
+      return [{ name: 'my-versioned-app-v1.2.3', labels: {}, ports: [{ port: 3042 }] }]
     },
     applyHTTPRoute: (namespace, httpRoute) => {
       appliedHTTPRoutes.push({ namespace, httpRoute })
@@ -1340,10 +1332,10 @@ test('should create HTTPRoute with default rule only for first version', async (
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName }
   })
@@ -1407,20 +1399,17 @@ test('should create HTTPRoute when second version is detected', async (t) => {
   await startScaler(t)
   await startMainService(t)
 
-  let currentPodDetails = null
+  let currentMachineDetails = null
   const appliedHTTPRoutes = []
   await startMachinist(t, {
-    getPodDetails: () => currentPodDetails,
+    getMachineDetails: () => currentMachineDetails,
     listGateways: () => [{
       metadata: { name: 'platform-gateway', namespace: 'platformatic' },
       spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
     }],
     getServicesByLabels: (namespace, labels) => {
       const version = labels['plt.dev/version']
-      return [{
-        metadata: { name: `${appLabel}-${version}`, namespace: 'platformatic' },
-        spec: { ports: [{ port: 3042 }] }
-      }]
+      return [{ name: `${appLabel}-${version}`, labels: {}, ports: [{ port: 3042 }] }]
     },
     applyHTTPRoute: (namespace, httpRoute) => {
       appliedHTTPRoutes.push({ namespace, httpRoute })
@@ -1433,9 +1422,9 @@ test('should create HTTPRoute when second version is detected', async (t) => {
   })
 
   // First version — HTTPRoute with default rule only
-  const podId1 = randomUUID()
+  const machineId1 = randomUUID()
   const imageId1 = randomUUID()
-  currentPodDetails = {
+  currentMachineDetails = {
     image: imageId1,
     labels: {
       'app.kubernetes.io/name': appLabel,
@@ -1446,10 +1435,10 @@ test('should create HTTPRoute when second version is detected', async (t) => {
 
   const res1 = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId1}/instance`,
+    url: `/pods/${machineId1}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId1)
+      ...generateMachineHeaders(machineId1)
     },
     body: { applicationName }
   })
@@ -1458,9 +1447,9 @@ test('should create HTTPRoute when second version is detected', async (t) => {
   assert.strictEqual(appliedHTTPRoutes[0].httpRoute.spec.rules.length, 1)
 
   // Second version — HTTPRoute updated with both versions
-  const podId2 = randomUUID()
+  const machineId2 = randomUUID()
   const imageId2 = randomUUID()
-  currentPodDetails = {
+  currentMachineDetails = {
     image: imageId2,
     labels: {
       'app.kubernetes.io/name': appLabel,
@@ -1471,10 +1460,10 @@ test('should create HTTPRoute when second version is detected', async (t) => {
 
   const res2 = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId2}/instance`,
+    url: `/pods/${machineId2}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId2)
+      ...generateMachineHeaders(machineId2)
     },
     body: { applicationName }
   })
@@ -1513,20 +1502,17 @@ test('should use plt.dev/hostname and plt.dev/path labels when present', async (
   await startScaler(t)
   await startMainService(t)
 
-  let currentPodDetails = null
+  let currentMachineDetails = null
   const appliedHTTPRoutes = []
   await startMachinist(t, {
-    getPodDetails: () => currentPodDetails,
+    getMachineDetails: () => currentMachineDetails,
     listGateways: () => [{
       metadata: { name: 'platform-gateway', namespace: 'platformatic' },
       spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
     }],
     getServicesByLabels: (namespace, labels) => {
       const version = labels['plt.dev/version']
-      return [{
-        metadata: { name: `${appLabel}-${version}`, namespace: 'platformatic' },
-        spec: { ports: [{ port: 3042 }] }
-      }]
+      return [{ name: `${appLabel}-${version}`, labels: {}, ports: [{ port: 3042 }] }]
     },
     applyHTTPRoute: (namespace, httpRoute) => {
       appliedHTTPRoutes.push({ namespace, httpRoute })
@@ -1545,8 +1531,8 @@ test('should use plt.dev/hostname and plt.dev/path labels when present', async (
   }
 
   // First version
-  const podId1 = randomUUID()
-  currentPodDetails = {
+  const machineId1 = randomUUID()
+  currentMachineDetails = {
     image: randomUUID(),
     labels: { ...labelsBase, 'plt.dev/version': 'v1.0.0' },
     controller: { name: `${appLabel}-v1.0.0` }
@@ -1554,8 +1540,8 @@ test('should use plt.dev/hostname and plt.dev/path labels when present', async (
 
   const res1 = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId1}/instance`,
-    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId1) },
+    url: `/pods/${machineId1}/instance`,
+    headers: { 'content-type': 'application/json', ...generateMachineHeaders(machineId1) },
     body: { applicationName }
   })
   assert.strictEqual(res1.statusCode, 200, res1.body)
@@ -1570,8 +1556,8 @@ test('should use plt.dev/hostname and plt.dev/path labels when present', async (
   assert.strictEqual(versionsAfterFirst[0].hostname, 'myapp.example.com')
 
   // Second version — triggers HTTPRoute
-  const podId2 = randomUUID()
-  currentPodDetails = {
+  const machineId2 = randomUUID()
+  currentMachineDetails = {
     image: randomUUID(),
     labels: { ...labelsBase, 'plt.dev/version': 'v2.0.0' },
     controller: { name: `${appLabel}-v2.0.0` }
@@ -1579,8 +1565,8 @@ test('should use plt.dev/hostname and plt.dev/path labels when present', async (
 
   const res2 = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId2}/instance`,
-    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId2) },
+    url: `/pods/${machineId2}/instance`,
+    headers: { 'content-type': 'application/json', ...generateMachineHeaders(machineId2) },
     body: { applicationName }
   })
   assert.strictEqual(res2.statusCode, 200, res2.body)
@@ -1610,7 +1596,7 @@ test('should use custom path prefix without hostname when only plt.dev/path is s
 
   const appliedHTTPRoutes = []
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: randomUUID(),
       labels: {
         'app.kubernetes.io/name': appLabel,
@@ -1623,10 +1609,7 @@ test('should use custom path prefix without hostname when only plt.dev/path is s
       metadata: { name: 'platform-gateway', namespace: 'platformatic' },
       spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
     }],
-    getServicesByLabels: (namespace, labels) => [{
-      metadata: { name: `${appLabel}-v1.0.0`, namespace: 'platformatic' },
-      spec: { ports: [{ port: 3042 }] }
-    }],
+    getServicesByLabels: (namespace, labels) => [{ name: `${appLabel}-v1.0.0`, labels: {}, ports: [{ port: 3042 }] }],
     applyHTTPRoute: (namespace, httpRoute) => {
       appliedHTTPRoutes.push({ namespace, httpRoute })
       return httpRoute
@@ -1637,11 +1620,11 @@ test('should use custom path prefix without hostname when only plt.dev/path is s
     PLT_FEATURE_SKEW_PROTECTION: 'true'
   })
 
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
-    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId) },
+    url: `/pods/${machineId}/instance`,
+    headers: { 'content-type': 'application/json', ...generateMachineHeaders(machineId) },
     body: { applicationName }
   })
   assert.strictEqual(statusCode, 200, body)
@@ -1676,7 +1659,7 @@ test('should default pathPrefix to / when only plt.dev/hostname is set', async (
 
   const appliedHTTPRoutes = []
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: randomUUID(),
       labels: {
         'app.kubernetes.io/name': appLabel,
@@ -1689,10 +1672,7 @@ test('should default pathPrefix to / when only plt.dev/hostname is set', async (
       metadata: { name: 'platform-gateway', namespace: 'platformatic' },
       spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
     }],
-    getServicesByLabels: (namespace, labels) => [{
-      metadata: { name: `${appLabel}-v1.0.0`, namespace: 'platformatic' },
-      spec: { ports: [{ port: 3042 }] }
-    }],
+    getServicesByLabels: (namespace, labels) => [{ name: `${appLabel}-v1.0.0`, labels: {}, ports: [{ port: 3042 }] }],
     applyHTTPRoute: (namespace, httpRoute) => {
       appliedHTTPRoutes.push({ namespace, httpRoute })
       return httpRoute
@@ -1703,11 +1683,11 @@ test('should default pathPrefix to / when only plt.dev/hostname is set', async (
     PLT_FEATURE_SKEW_PROTECTION: 'true'
   })
 
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
-    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId) },
+    url: `/pods/${machineId}/instance`,
+    headers: { 'content-type': 'application/json', ...generateMachineHeaders(machineId) },
     body: { applicationName }
   })
   assert.strictEqual(statusCode, 200, body)
@@ -1730,7 +1710,7 @@ test('should default pathPrefix to / when only plt.dev/hostname is set', async (
   assert.strictEqual(versions[0].hostname, 'myapp.example.com')
 })
 
-test('should handle duplicate pod registration for the same version', async (t) => {
+test('should handle duplicate machine registration for the same version', async (t) => {
   const applicationName = 'test-app-dup-version'
   const appLabel = 'dup-version-app'
 
@@ -1742,7 +1722,7 @@ test('should handle duplicate pod registration for the same version', async (t) 
 
   const appliedHTTPRoutes = []
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: randomUUID(),
       labels: {
         'app.kubernetes.io/name': appLabel,
@@ -1754,10 +1734,7 @@ test('should handle duplicate pod registration for the same version', async (t) 
       metadata: { name: 'platform-gateway', namespace: 'platformatic' },
       spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
     }],
-    getServicesByLabels: (namespace, labels) => [{
-      metadata: { name: `${appLabel}-v1.0.0`, namespace: 'platformatic' },
-      spec: { ports: [{ port: 3042 }] }
-    }],
+    getServicesByLabels: (namespace, labels) => [{ name: `${appLabel}-v1.0.0`, labels: {}, ports: [{ port: 3042 }] }],
     applyHTTPRoute: (namespace, httpRoute) => {
       appliedHTTPRoutes.push({ namespace, httpRoute })
       return httpRoute
@@ -1769,21 +1746,21 @@ test('should handle duplicate pod registration for the same version', async (t) 
   })
 
   // First pod of v1.0.0
-  const podId1 = randomUUID()
+  const machineId1 = randomUUID()
   const res1 = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId1}/instance`,
-    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId1) },
+    url: `/pods/${machineId1}/instance`,
+    headers: { 'content-type': 'application/json', ...generateMachineHeaders(machineId1) },
     body: { applicationName }
   })
   assert.strictEqual(res1.statusCode, 200, res1.body)
 
   // Second pod of the same v1.0.0
-  const podId2 = randomUUID()
+  const machineId2 = randomUUID()
   const res2 = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId2}/instance`,
-    headers: { 'content-type': 'application/json', 'x-k8s': generateK8sHeader(podId2) },
+    url: `/pods/${machineId2}/instance`,
+    headers: { 'content-type': 'application/json', ...generateMachineHeaders(machineId2) },
     body: { applicationName }
   })
   assert.strictEqual(res2.statusCode, 200, res2.body)
@@ -1804,7 +1781,7 @@ test('should handle duplicate pod registration for the same version', async (t) 
 
 test('should skip version detection when skew protection is disabled', async (t) => {
   const applicationName = 'test-app-no-skew'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startActivities(t)
@@ -1815,7 +1792,7 @@ test('should skip version detection when skew protection is disabled', async (t)
 
   const servicesByLabelsRequests = []
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       labels: {
         'app.kubernetes.io/name': 'my-app',
@@ -1837,10 +1814,10 @@ test('should skip version detection when skew protection is disabled', async (t)
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName }
   })
@@ -1851,7 +1828,7 @@ test('should skip version detection when skew protection is disabled', async (t)
 
 test('should handle missing version labels gracefully when skew protection is enabled', async (t) => {
   const applicationName = 'test-app-no-labels'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startActivities(t)
@@ -1862,7 +1839,7 @@ test('should handle missing version labels gracefully when skew protection is en
 
   const servicesByLabelsRequests = []
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId
       // No labels
     }),
@@ -1878,10 +1855,10 @@ test('should handle missing version labels gracefully when skew protection is en
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName }
   })
@@ -1892,11 +1869,11 @@ test('should handle missing version labels gracefully when skew protection is en
 })
 
 test('should throw ApplicationNameNotFound when controller name is empty string', async (t) => {
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       controller: {
         name: '' // Empty name
@@ -1910,10 +1887,10 @@ test('should throw ApplicationNameNotFound when controller name is empty string'
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: {} // No applicationName in body
   })
@@ -1925,13 +1902,13 @@ test('should throw ApplicationNameNotFound when controller name is empty string'
     statusCode: 400,
     code: 'PLT_CONTROL_PLANE_APPLICATION_NAME_NOT_FOUND',
     error: 'Bad Request',
-    message: `Application name not found for pod "${podId}"`
+    message: `Application name not found for machine "${machineId}"`
   })
 })
 
 test('should accept controller name without dashes', async (t) => {
   const controllerName = 'nodasheshere'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startActivities(t)
@@ -1941,7 +1918,7 @@ test('should accept controller name without dashes', async (t) => {
   await startMainService(t)
 
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       controller: {
         name: controllerName
@@ -1955,10 +1932,10 @@ test('should accept controller name without dashes', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: {} // No applicationName in body
   })
@@ -1983,7 +1960,7 @@ test('should accept controller name without dashes', async (t) => {
 
 test('should accept controller regardless of type', async (t) => {
   const controllerName = 'my-app-deployment'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startActivities(t)
@@ -1993,7 +1970,7 @@ test('should accept controller regardless of type', async (t) => {
   await startMainService(t)
 
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       controller: {
         name: controllerName,
@@ -2008,10 +1985,10 @@ test('should accept controller regardless of type', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: {} // No applicationName in body
   })
@@ -2034,9 +2011,9 @@ test('should accept controller regardless of type', async (t) => {
   assert.strictEqual(application.id, applicationId)
 })
 
-test('should use existing pod data without fetching application name from Kubernetes', async (t) => {
+test('should use existing machine data without fetching application name from machine details', async (t) => {
   const applicationName = 'existing-app'
-  const podId = 'existing-pod-1'
+  const machineId = 'existing-pod-1'
   const imageId = 'existing-image-1'
 
   await startActivities(t)
@@ -2047,7 +2024,7 @@ test('should use existing pod data without fetching application name from Kubern
 
   let kubernetesCallCount = 0
   await startMachinist(t, {
-    getPodDetails: (podId) => {
+    getMachineDetails: (machineId) => {
       kubernetesCallCount++
       return {
         image: imageId,
@@ -2064,7 +2041,7 @@ test('should use existing pod data without fetching application name from Kubern
   await controlPlane.testApi.saveInstance(
     applicationName,
     imageId,
-    podId
+    machineId
   )
 
   // Reset the call count after initial setup
@@ -2072,10 +2049,10 @@ test('should use existing pod data without fetching application name from Kubern
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: {} // No applicationName in body
   })
@@ -2090,9 +2067,9 @@ test('should use existing pod data without fetching application name from Kubern
   assert.strictEqual(kubernetesCallCount, 1, 'Should only call Kubernetes once for image check')
 })
 
-test('should use existing pod data when applicationName in request matches database', async (t) => {
+test('should use existing machine data when applicationName in request matches database', async (t) => {
   const applicationName = 'matching-app'
-  const podId = 'matching-pod-1'
+  const machineId = 'matching-pod-1'
   const imageId = 'matching-image-1'
 
   await startActivities(t)
@@ -2103,7 +2080,7 @@ test('should use existing pod data when applicationName in request matches datab
 
   let kubernetesCallCount = 0
   await startMachinist(t, {
-    getPodDetails: (podId) => {
+    getMachineDetails: (machineId) => {
       kubernetesCallCount++
       return {
         image: imageId,
@@ -2120,7 +2097,7 @@ test('should use existing pod data when applicationName in request matches datab
   await controlPlane.testApi.saveInstance(
     applicationName,
     imageId,
-    podId
+    machineId
   )
 
   // Reset the call count after initial setup
@@ -2128,10 +2105,10 @@ test('should use existing pod data when applicationName in request matches datab
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName } // Provide matching applicationName
   })
@@ -2149,7 +2126,7 @@ test('should use existing pod data when applicationName in request matches datab
 test('should throw error when applicationName in request does not match database', async (t) => {
   const dbApplicationName = 'db-app'
   const requestApplicationName = 'different-app'
-  const podId = 'mismatched-pod-1'
+  const machineId = 'mismatched-pod-1'
   const imageId = 'mismatched-image-1'
 
   await startActivities(t)
@@ -2160,7 +2137,7 @@ test('should throw error when applicationName in request does not match database
 
   let kubernetesCallCount = 0
   await startMachinist(t, {
-    getPodDetails: (podId) => {
+    getMachineDetails: (machineId) => {
       kubernetesCallCount++
       return {
         image: imageId,
@@ -2177,7 +2154,7 @@ test('should throw error when applicationName in request does not match database
   await controlPlane.testApi.saveInstance(
     dbApplicationName,
     imageId,
-    podId
+    machineId
   )
 
   // Reset the call count after initial setup
@@ -2185,10 +2162,10 @@ test('should throw error when applicationName in request does not match database
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName: requestApplicationName } // Provide non-matching applicationName
   })
@@ -2198,9 +2175,9 @@ test('should throw error when applicationName in request does not match database
   const error = JSON.parse(body)
   assert.deepStrictEqual(error, {
     statusCode: 400,
-    code: 'PLT_CONTROL_PLANE_POD_ASSIGNED_TO_DIFFERENT_APPLICATION',
+    code: 'PLT_CONTROL_PLANE_MACHINE_ASSIGNED_TO_DIFFERENT_APPLICATION',
     error: 'Bad Request',
-    message: `Pod "${podId}" is assigned to a different application "${dbApplicationName}"`
+    message: `Machine "${machineId}" is assigned to a different application "${dbApplicationName}"`
   })
 
   // Verify that Kubernetes was NOT called for application name resolution
@@ -2208,10 +2185,10 @@ test('should throw error when applicationName in request does not match database
   assert.strictEqual(kubernetesCallCount, 0, 'Should not call Kubernetes when validation fails early')
 })
 
-test('versioned pod should use appLabel as ICC application name', async (t) => {
+test('versioned machine should use appLabel as ICC application name', async (t) => {
   const appLabel = 'leads-demo'
   const versionLabel = 'v1.0.0'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startActivities(t)
@@ -2221,7 +2198,7 @@ test('versioned pod should use appLabel as ICC application name', async (t) => {
   await startMainService(t)
 
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       labels: {
         'app.kubernetes.io/name': appLabel,
@@ -2233,11 +2210,8 @@ test('versioned pod should use appLabel as ICC application name', async (t) => {
       metadata: { name: 'platform-gateway', namespace: 'platformatic' },
       spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
     }],
-    getServicesByLabels: () => [{
-      metadata: { name: `${appLabel}-${versionLabel}`, namespace: 'platformatic' },
-      spec: { ports: [{ port: 3042 }] }
-    }],
-    getK8sState: () => ({ pods: [], services: [] }),
+    getServicesByLabels: () => [{ name: `${appLabel}-${versionLabel}`, labels: {}, ports: [{ port: 3042 }] }],
+    getMachines: () => [],
     applyHTTPRoute: (namespace, httpRoute) => httpRoute
   })
 
@@ -2248,10 +2222,10 @@ test('versioned pod should use appLabel as ICC application name', async (t) => {
   // Do NOT pass applicationName — let the code derive it
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: {}
   })
@@ -2282,14 +2256,14 @@ test('should auto-create version for pre-existing non-versioned deployment', asy
   await startMainService(t)
 
   // First deploy: non-versioned pod
-  const oldPodId = randomUUID()
+  const oldMachineId = randomUUID()
   const oldImageId = randomUUID()
 
-  let currentPodDetails = null
+  let currentMachineDetails = null
   const appliedHTTPRoutes = []
-  let k8sStateResponse = null
+  let machinesResponse = null
   await startMachinist(t, {
-    getPodDetails: () => currentPodDetails,
+    getMachineDetails: () => currentMachineDetails,
     listGateways: () => [{
       metadata: { name: 'platform-gateway', namespace: 'platformatic' },
       spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
@@ -2297,11 +2271,12 @@ test('should auto-create version for pre-existing non-versioned deployment', asy
     getServicesByLabels: (namespace, labels) => {
       const version = labels['plt.dev/version']
       return [{
-        metadata: { name: version ? `${appLabel}-${version}` : appLabel, namespace: 'platformatic' },
-        spec: { ports: [{ port: 3042 }] }
+        name: version ? `${appLabel}-${version}` : appLabel,
+        labels: {},
+        ports: [{ port: 3042 }]
       }]
     },
-    getK8sState: () => k8sStateResponse,
+    getMachines: () => machinesResponse ?? [],
     applyHTTPRoute: (namespace, httpRoute) => {
       appliedHTTPRoutes.push({ namespace, httpRoute })
       return httpRoute
@@ -2313,7 +2288,7 @@ test('should auto-create version for pre-existing non-versioned deployment', asy
   })
 
   // Register the non-versioned pod (no skew labels)
-  currentPodDetails = {
+  currentMachineDetails = {
     image: oldImageId,
     labels: {
       'app.kubernetes.io/name': appLabel
@@ -2323,10 +2298,10 @@ test('should auto-create version for pre-existing non-versioned deployment', asy
 
   const res1 = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${oldPodId}/instance`,
+    url: `/pods/${oldMachineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(oldPodId)
+      ...generateMachineHeaders(oldMachineId)
     },
     body: {}
   })
@@ -2340,20 +2315,17 @@ test('should auto-create version for pre-existing non-versioned deployment', asy
   assert.strictEqual(versionsAfterFirst.length, 0)
   assert.strictEqual(appliedHTTPRoutes.length, 0)
 
-  // Now deploy a versioned pod. getK8sState will return the old non-versioned pod.
-  k8sStateResponse = {
-    pods: [{
-      id: oldPodId,
-      image: oldImage,
-      labels: { 'app.kubernetes.io/name': appLabel },
-      controller: { name: appLabel }
-    }],
-    services: []
-  }
+  // Now deploy a versioned machine. getMachines returns the old non-versioned machine.
+  machinesResponse = [{
+    id: oldMachineId,
+    image: oldImage,
+    labels: { 'app.kubernetes.io/name': appLabel },
+    controller: { name: appLabel }
+  }]
 
-  const newPodId = randomUUID()
+  const newMachineId = randomUUID()
   const newImageId = randomUUID()
-  currentPodDetails = {
+  currentMachineDetails = {
     image: newImageId,
     labels: {
       'app.kubernetes.io/name': appLabel,
@@ -2364,10 +2336,10 @@ test('should auto-create version for pre-existing non-versioned deployment', asy
 
   const res2 = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${newPodId}/instance`,
+    url: `/pods/${newMachineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(newPodId)
+      ...generateMachineHeaders(newMachineId)
     },
     body: {}
   })
@@ -2384,7 +2356,7 @@ test('should auto-create version for pre-existing non-versioned deployment', asy
   const oldVersion = versions.find(v => v.versionLabel === oldImageTag)
   assert.ok(oldVersion, 'should have auto-created version for old deployment')
   assert.strictEqual(oldVersion.status, 'draining')
-  assert.strictEqual(oldVersion.k8SDeploymentName, appLabel)
+  assert.strictEqual(oldVersion.controllerName, appLabel)
   assert.strictEqual(oldVersion.serviceName, appLabel)
   assert.strictEqual(oldVersion.servicePort, 3042)
 
@@ -2410,14 +2382,14 @@ test('should auto-create version for non-versioned deployment even when other ve
   await startScaler(t)
   await startMainService(t)
 
-  const oldPodId = randomUUID()
+  const oldMachineId = randomUUID()
   const oldImageId = randomUUID()
 
-  let currentPodDetails = null
+  let currentMachineDetails = null
   const appliedHTTPRoutes = []
-  let k8sStateResponse = null
+  let machinesResponse = null
   await startMachinist(t, {
-    getPodDetails: () => currentPodDetails,
+    getMachineDetails: () => currentMachineDetails,
     listGateways: () => [{
       metadata: { name: 'platform-gateway', namespace: 'platformatic' },
       spec: { gatewayClassName: 'eg', listeners: [{ name: 'http', protocol: 'HTTP', port: 80 }] }
@@ -2425,11 +2397,12 @@ test('should auto-create version for non-versioned deployment even when other ve
     getServicesByLabels: (namespace, labels) => {
       const version = labels['plt.dev/version']
       return [{
-        metadata: { name: version ? `${appLabel}-${version}` : appLabel, namespace: 'platformatic' },
-        spec: { ports: [{ port: 3042 }] }
+        name: version ? `${appLabel}-${version}` : appLabel,
+        labels: {},
+        ports: [{ port: 3042 }]
       }]
     },
-    getK8sState: () => k8sStateResponse,
+    getMachines: () => machinesResponse ?? [],
     applyHTTPRoute: (namespace, httpRoute) => {
       appliedHTTPRoutes.push({ namespace, httpRoute })
       return httpRoute
@@ -2443,7 +2416,7 @@ test('should auto-create version for non-versioned deployment even when other ve
   const { entities } = controlPlane.platformatic
 
   // Register the non-versioned pod first (no skew labels) — this creates the application
-  currentPodDetails = {
+  currentMachineDetails = {
     image: oldImageId,
     labels: { 'app.kubernetes.io/name': appLabel },
     controller: { name: appLabel }
@@ -2451,10 +2424,10 @@ test('should auto-create version for non-versioned deployment even when other ve
 
   const res1 = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${oldPodId}/instance`,
+    url: `/pods/${oldMachineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(oldPodId)
+      ...generateMachineHeaders(oldMachineId)
     },
     body: {}
   })
@@ -2477,7 +2450,7 @@ test('should auto-create version for non-versioned deployment even when other ve
       deploymentId,
       appLabel,
       versionLabel: 'old-stale',
-      k8SDeploymentName: `${appLabel}-old`,
+      controllerName: `${appLabel}-old`,
       serviceName: `${appLabel}-old`,
       servicePort: 3042,
       namespace: 'platformatic',
@@ -2489,18 +2462,15 @@ test('should auto-create version for non-versioned deployment even when other ve
   })
 
   // Now deploy a versioned pod while the stale expired version exists
-  k8sStateResponse = {
-    pods: [{
-      id: oldPodId,
-      image: oldImage,
-      labels: { 'app.kubernetes.io/name': appLabel },
-      controller: { name: appLabel }
-    }],
-    services: []
-  }
+  machinesResponse = [{
+    id: oldMachineId,
+    image: oldImage,
+    labels: { 'app.kubernetes.io/name': appLabel },
+    controller: { name: appLabel }
+  }]
 
-  const newPodId = randomUUID()
-  currentPodDetails = {
+  const newMachineId = randomUUID()
+  currentMachineDetails = {
     image: randomUUID(),
     labels: {
       'app.kubernetes.io/name': appLabel,
@@ -2511,10 +2481,10 @@ test('should auto-create version for non-versioned deployment even when other ve
 
   const res2 = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${newPodId}/instance`,
+    url: `/pods/${newMachineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(newPodId)
+      ...generateMachineHeaders(newMachineId)
     },
     body: {}
   })
@@ -2565,7 +2535,7 @@ async function startMockWorkflowService (t, opts = {}) {
 }
 
 test('plt.dev/workflow label triggers workflow app and handler registration', async (t) => {
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
   const appLabel = 'workflow-app'
   const versionLabel = 'v1'
@@ -2577,7 +2547,7 @@ test('plt.dev/workflow label triggers workflow app and handler registration', as
   await startMainService(t)
 
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       labels: {
         'app.kubernetes.io/name': appLabel,
@@ -2586,10 +2556,7 @@ test('plt.dev/workflow label triggers workflow app and handler registration', as
       },
       controller: { name: `${appLabel}-${versionLabel}` }
     }),
-    getServicesByLabels: () => [{
-      metadata: { name: `${appLabel}-${versionLabel}`, namespace: 'platformatic' },
-      spec: { ports: [{ port: 3042 }] }
-    }],
+    getServicesByLabels: () => [{ name: `${appLabel}-${versionLabel}`, labels: {}, ports: [{ port: 3042 }] }],
     listGateways: () => [],
     applyHTTPRoute: (namespace, httpRoute) => httpRoute
   })
@@ -2603,10 +2570,10 @@ test('plt.dev/workflow label triggers workflow app and handler registration', as
 
   const { statusCode } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: {}
   })
@@ -2625,7 +2592,7 @@ test('plt.dev/workflow label triggers workflow app and handler registration', as
   // Handler registered with correct FQDN URLs
   assert.strictEqual(calls.handlers.length, 1)
   assert.strictEqual(calls.handlers[0].appId, appLabel)
-  assert.strictEqual(calls.handlers[0].podId, podId)
+  assert.strictEqual(calls.handlers[0].machineId, machineId)
   assert.strictEqual(calls.handlers[0].deploymentVersion, versionLabel)
   assert.ok(calls.handlers[0].endpoints.workflow.includes(`${appLabel}-${versionLabel}.platformatic.svc.cluster.local:3042`))
   assert.ok(calls.handlers[0].endpoints.step.includes('.well-known/workflow/v1/step'))
@@ -2641,7 +2608,7 @@ test('plt.dev/workflow label triggers workflow app and handler registration', as
 })
 
 test('no workflow label does not trigger workflow registration', async (t) => {
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
   const appLabel = 'regular-app'
   const versionLabel = 'v1'
@@ -2653,7 +2620,7 @@ test('no workflow label does not trigger workflow registration', async (t) => {
   await startMainService(t)
 
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       labels: {
         'app.kubernetes.io/name': appLabel,
@@ -2661,10 +2628,7 @@ test('no workflow label does not trigger workflow registration', async (t) => {
       },
       controller: { name: `${appLabel}-${versionLabel}` }
     }),
-    getServicesByLabels: () => [{
-      metadata: { name: `${appLabel}-${versionLabel}`, namespace: 'platformatic' },
-      spec: { ports: [{ port: 3042 }] }
-    }],
+    getServicesByLabels: () => [{ name: `${appLabel}-${versionLabel}`, labels: {}, ports: [{ port: 3042 }] }],
     listGateways: () => [],
     applyHTTPRoute: (namespace, httpRoute) => httpRoute
   })
@@ -2678,10 +2642,10 @@ test('no workflow label does not trigger workflow registration', async (t) => {
 
   const { statusCode } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: {}
   })
@@ -2704,7 +2668,7 @@ test('no workflow label does not trigger workflow registration', async (t) => {
 
 test('plt.dev/workflow label without version still registers app and binding', async (t) => {
   const applicationName = 'workflow-no-version'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageTag = `${Date.now()}`
   const imageId = `plt.localreg/plt-local/${applicationName}:${imageTag}`
 
@@ -2715,7 +2679,7 @@ test('plt.dev/workflow label without version still registers app and binding', a
   await startMainService(t)
 
   await startMachinist(t, {
-    getPodDetails: () => ({
+    getMachineDetails: () => ({
       image: imageId,
       labels: {
         'app.kubernetes.io/name': applicationName,
@@ -2723,10 +2687,7 @@ test('plt.dev/workflow label without version still registers app and binding', a
       },
       controller: { name: applicationName }
     }),
-    getServicesByLabels: () => [{
-      metadata: { name: applicationName, namespace: 'platformatic' },
-      spec: { ports: [{ port: 3042 }] }
-    }]
+    getServicesByLabels: () => [{ name: applicationName, labels: {}, ports: [{ port: 3042 }] }]
   })
 
   const { calls } = await startMockWorkflowService(t)
@@ -2737,10 +2698,10 @@ test('plt.dev/workflow label without version still registers app and binding', a
 
   const { statusCode } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance`,
+    url: `/pods/${machineId}/instance`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(podId)
+      ...generateMachineHeaders(machineId)
     },
     body: { applicationName }
   })

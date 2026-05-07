@@ -22,6 +22,7 @@ const defaultEnv = {
   PLT_EXTERNAL_SCALER_URL: '',
 
   PLT_MACHINIST_URL: 'http://localhost:3052',
+  PLT_MACHINIST_PROVIDER: 'k8s',
   PLT_SCALER_URL: 'http://localhost:3053',
   PLT_ACTIVITIES_URL: 'http://localhost:3004',
   PLT_METRICS_URL: 'http://localhost:3009',
@@ -118,18 +119,18 @@ async function startControlPlane (t, entities = {}, env = {}) {
   }
 
   app.decorate('testApi', {
-    saveInstance: async (applicationName, imageId, podId, namespace) => {
+    saveInstance: async (applicationName, imageId, machineId, namespace) => {
       namespace = namespace || 'platformatic'
 
       return app.saveInstance(
         applicationName,
         imageId,
-        podId,
+        machineId,
         namespace,
         testCtx
       )
     },
-    saveApplicationState: async (podId, state) => {
+    saveApplicationState: async (machineId, state) => {
       state = {
         metadata: {
           platformaticVersion: '1.42.0'
@@ -139,10 +140,10 @@ async function startControlPlane (t, entities = {}, env = {}) {
 
       const { statusCode, body } = await app.inject({
         method: 'POST',
-        url: `/pods/${podId}/instance/state`,
+        url: `/pods/${machineId}/instance/state`,
         headers: {
           'content-type': 'application/json',
-          'x-k8s': generateK8sHeader(podId)
+          ...generateMachineHeaders(machineId)
         },
         body: state
       })
@@ -352,14 +353,14 @@ function generateDeployment (
 function generateInstance (
   applicationId,
   deploymentId,
-  podId,
+  machineId,
   status
 ) {
   return {
     id: randomUUID(),
     applicationId,
     deploymentId,
-    podId: podId || randomUUID(),
+    machineId: machineId || randomUUID(),
     namespace: 'platformatic',
     status: status || 'starting'
   }
@@ -473,28 +474,35 @@ async function startMetrics (t, opts = {}) {
 async function startMachinist (t, opts = {}) {
   const machinist = fastify({ keepAliveTimeout: 1 })
 
-  machinist.get('/pods/:namespace/:podId', async (req) => {
-    const podId = req.params.podId
-    return opts.getPodDetails?.(podId)
+  machinist.get('/k8s/machines/:namespace/:id', async (req) => {
+    const machineId = req.params.id
+    return opts.getMachineDetails?.(machineId)
   })
 
-  machinist.get('/state/:namespace', async (req) => {
+  machinist.get('/k8s/machines/:namespace', async (req) => {
     const namespace = req.params.namespace
-    return opts.getK8sState?.(namespace)
+    const labelsParam = req.query.labels
+    const labelsArray = Array.isArray(labelsParam) ? labelsParam : [labelsParam].filter(Boolean)
+    const labels = {}
+    for (const label of labelsArray) {
+      const [key, value] = label.split('=')
+      labels[key] = value
+    }
+    return opts.getMachines?.(namespace, labels) ?? []
   })
 
-  machinist.patch('/pods/:namespace/:podId/labels', async (req) => {
-    const podId = req.params.podId
+  machinist.patch('/k8s/machines/:namespace/:id/labels', async (req) => {
+    const machineId = req.params.id
     const labels = req.body.labels
-    return opts.setPodLabels?.(podId, labels)
+    return opts.setMachineLabels?.(machineId, labels) ?? { labels }
   })
 
-  machinist.get('/gateway/gateways/:namespace', async (req) => {
+  machinist.get('/k8s/gateway/gateways/:namespace', async (req) => {
     const namespace = req.params.namespace
     return opts.listGateways?.(namespace) ?? []
   })
 
-  machinist.get('/services/:namespace', async (req) => {
+  machinist.get('/k8s/services/:namespace', async (req) => {
     const namespace = req.params.namespace
     const labelsParam = req.query.labels
     const labelsArray = Array.isArray(labelsParam) ? labelsParam : [labelsParam].filter(Boolean)
@@ -506,19 +514,31 @@ async function startMachinist (t, opts = {}) {
     return opts.getServicesByLabels?.(namespace, labels) ?? []
   })
 
-  machinist.put('/gateway/httproutes/:namespace', async (req) => {
+  machinist.put('/k8s/gateway/httproutes/:namespace', async (req) => {
     const namespace = req.params.namespace
     return opts.applyHTTPRoute?.(namespace, req.body) ?? req.body
   })
 
-  machinist.get('/gateway/httproutes/:namespace/:name', async (req) => {
-    const { namespace, name } = req.params
-    return opts.getHTTPRoute?.(namespace, name) ?? {}
-  })
-
-  machinist.delete('/gateway/httproutes/:namespace/:name', async (req) => {
+  machinist.delete('/k8s/gateway/httproutes/:namespace/:name', async (req) => {
     const { namespace, name } = req.params
     return opts.deleteHTTPRoute?.(namespace, name) ?? {}
+  })
+
+  machinist.post('/k8s/controllers/:namespace/:name', async (req) => {
+    const { namespace, name } = req.params
+    const { replicas } = req.body
+    opts.updateControllerReplicas?.(namespace, name, replicas)
+    return { name, replicas, labels: {} }
+  })
+
+  machinist.delete('/k8s/controllers/:namespace/:name', async (req) => {
+    const { namespace, name } = req.params
+    return opts.deleteController?.(namespace, name) ?? { status: 'Success' }
+  })
+
+  machinist.delete('/k8s/services/:namespace/:name', async (req) => {
+    const { namespace, name } = req.params
+    return opts.deleteService?.(namespace, name) ?? { status: 'Success' }
   })
 
   t?.after(async () => {
@@ -534,7 +554,7 @@ async function startScaler (t, opts = {}) {
 
   scaler.post('/controllers', async (req) => {
     const instance = req.body
-    await opts.savePodController?.(instance)
+    await opts.saveMachineController?.(instance)
   })
 
   t?.after(async () => {
@@ -598,13 +618,11 @@ async function startTrafficInspector (t, opts = {}) {
   return trafficInspector
 }
 
-function generateK8sAuthContext (podId, namespace) {
-  return { namespace, pod: { name: podId } }
-}
-
-function generateK8sHeader (podId, namespace) {
-  namespace = namespace || 'platformatic'
-  return JSON.stringify(generateK8sAuthContext(podId, namespace))
+function generateMachineHeaders (machineId, namespace = 'platformatic') {
+  return {
+    'x-plt-machine-id': machineId,
+    'x-plt-machine-namespace': namespace
+  }
 }
 
 module.exports = {
@@ -623,7 +641,6 @@ module.exports = {
   generateDeployment,
   generateInstance,
   generateGraph,
-  generateK8sAuthContext,
-  generateK8sHeader,
+  generateMachineHeaders,
   defaultEnv
 }

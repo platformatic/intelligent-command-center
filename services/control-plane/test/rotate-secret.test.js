@@ -10,12 +10,12 @@ const {
   startActivities,
   startCompliance,
   startMainService,
-  generateK8sHeader
+  generateMachineHeaders
 } = require('./helper')
 
 test('should reencrypt a valkey user password', async (t) => {
   const applicationName = 'test-app'
-  const podId = randomUUID()
+  const machineId = randomUUID()
   const imageId = randomUUID()
 
   await startActivities(t)
@@ -31,7 +31,7 @@ test('should reencrypt a valkey user password', async (t) => {
   await startCompliance(t)
 
   await startMachinist(t, {
-    getPodDetails: () => ({ image: imageId })
+    getMachineDetails: () => ({ image: imageId })
   })
 
   const oldSecret = 'old_secret'
@@ -47,10 +47,10 @@ test('should reencrypt a valkey user password', async (t) => {
   {
     const { statusCode, body } = await controlPlane.inject({
       method: 'POST',
-      url: `/pods/${podId}/instance`,
+      url: `/pods/${machineId}/instance`,
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId)
+        ...generateMachineHeaders(machineId)
       },
       body: { applicationName }
     })
@@ -76,10 +76,10 @@ test('should reencrypt a valkey user password', async (t) => {
   {
     const { statusCode, body } = await controlPlane.inject({
       method: 'POST',
-      url: `/pods/${podId}/instance`,
+      url: `/pods/${machineId}/instance`,
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(podId)
+        ...generateMachineHeaders(machineId)
       },
       body: { applicationName }
     })

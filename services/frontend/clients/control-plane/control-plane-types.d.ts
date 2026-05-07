@@ -614,14 +614,14 @@ export type GetDeploymentsForApplicationResponses =
   FullResponse<GetDeploymentsForApplicationResponseOK, 200>
 
 export type GetInstancesForApplicationRequest = {
-  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'status'>;
   'id': string;
 }
 
 /**
  * Default Response
  */
-export type GetInstancesForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+export type GetInstancesForApplicationResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
 export type GetInstancesForApplicationResponses =
   FullResponse<GetInstancesForApplicationResponseOK, 200>
 
@@ -1391,14 +1391,14 @@ export type DeleteDeploymentsResponses =
   FullResponse<DeleteDeploymentsResponseOK, 200>
 
 export type GetInstancesForDeploymentRequest = {
-  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'status'>;
   'id': string;
 }
 
 /**
  * Default Response
  */
-export type GetInstancesForDeploymentResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+export type GetInstancesForDeploymentResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
 export type GetInstancesForDeploymentResponses =
   FullResponse<GetInstancesForDeploymentResponseOK, 200>
 
@@ -1445,7 +1445,7 @@ export type GetInstancesRequest = {
   'limit'?: number;
   'offset'?: number;
   'totalCount'?: boolean;
-  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'status'>;
   'where.applicationId.eq'?: string;
   'where.applicationId.neq'?: string;
   'where.applicationId.gt'?: string;
@@ -1498,19 +1498,19 @@ export type GetInstancesRequest = {
   'where.id.contains'?: string;
   'where.id.contained'?: string;
   'where.id.overlaps'?: string;
-  'where.podId.eq'?: string;
-  'where.podId.neq'?: string;
-  'where.podId.gt'?: string;
-  'where.podId.gte'?: string;
-  'where.podId.lt'?: string;
-  'where.podId.lte'?: string;
-  'where.podId.like'?: string;
-  'where.podId.ilike'?: string;
-  'where.podId.in'?: string;
-  'where.podId.nin'?: string;
-  'where.podId.contains'?: string;
-  'where.podId.contained'?: string;
-  'where.podId.overlaps'?: string;
+  'where.machineId.eq'?: string;
+  'where.machineId.neq'?: string;
+  'where.machineId.gt'?: string;
+  'where.machineId.gte'?: string;
+  'where.machineId.lt'?: string;
+  'where.machineId.lte'?: string;
+  'where.machineId.like'?: string;
+  'where.machineId.ilike'?: string;
+  'where.machineId.in'?: string;
+  'where.machineId.nin'?: string;
+  'where.machineId.contains'?: string;
+  'where.machineId.contained'?: string;
+  'where.machineId.overlaps'?: string;
   'where.status.eq'?: 'running' | 'starting' | 'stopped';
   'where.status.neq'?: 'running' | 'starting' | 'stopped';
   'where.status.gt'?: 'running' | 'starting' | 'stopped';
@@ -1529,14 +1529,14 @@ export type GetInstancesRequest = {
   'orderby.createdAt'?: 'asc' | 'desc';
   'orderby.deploymentId'?: 'asc' | 'desc';
   'orderby.id'?: 'asc' | 'desc';
-  'orderby.podId'?: 'asc' | 'desc';
+  'orderby.machineId'?: 'asc' | 'desc';
   'orderby.status'?: 'asc' | 'desc';
 }
 
 /**
  * Default Response
  */
-export type GetInstancesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+export type GetInstancesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
 export type GetInstancesResponses =
   FullResponse<GetInstancesResponseOK, 200>
 
@@ -1544,7 +1544,7 @@ export type CreateInstanceRequest = {
   'id'?: string;
   'applicationId': string;
   'deploymentId'?: string | null;
-  'podId': string;
+  'machineId': string;
   'status': 'running' | 'starting' | 'stopped';
   'createdAt'?: string | null;
 }
@@ -1552,12 +1552,12 @@ export type CreateInstanceRequest = {
 /**
  * A Instance
  */
-export type CreateInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+export type CreateInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
 export type CreateInstanceResponses =
   FullResponse<CreateInstanceResponseOK, 200>
 
 export type UpdateInstancesRequest = {
-  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'status'>;
   'where.applicationId.eq'?: string;
   'where.applicationId.neq'?: string;
   'where.applicationId.gt'?: string;
@@ -1610,19 +1610,19 @@ export type UpdateInstancesRequest = {
   'where.id.contains'?: string;
   'where.id.contained'?: string;
   'where.id.overlaps'?: string;
-  'where.podId.eq'?: string;
-  'where.podId.neq'?: string;
-  'where.podId.gt'?: string;
-  'where.podId.gte'?: string;
-  'where.podId.lt'?: string;
-  'where.podId.lte'?: string;
-  'where.podId.like'?: string;
-  'where.podId.ilike'?: string;
-  'where.podId.in'?: string;
-  'where.podId.nin'?: string;
-  'where.podId.contains'?: string;
-  'where.podId.contained'?: string;
-  'where.podId.overlaps'?: string;
+  'where.machineId.eq'?: string;
+  'where.machineId.neq'?: string;
+  'where.machineId.gt'?: string;
+  'where.machineId.gte'?: string;
+  'where.machineId.lt'?: string;
+  'where.machineId.lte'?: string;
+  'where.machineId.like'?: string;
+  'where.machineId.ilike'?: string;
+  'where.machineId.in'?: string;
+  'where.machineId.nin'?: string;
+  'where.machineId.contains'?: string;
+  'where.machineId.contained'?: string;
+  'where.machineId.overlaps'?: string;
   'where.status.eq'?: 'running' | 'starting' | 'stopped';
   'where.status.neq'?: 'running' | 'starting' | 'stopped';
   'where.status.gt'?: 'running' | 'starting' | 'stopped';
@@ -1640,7 +1640,7 @@ export type UpdateInstancesRequest = {
   'id'?: string;
   'applicationId': string;
   'deploymentId'?: string | null;
-  'podId': string;
+  'machineId': string;
   'status': 'running' | 'starting' | 'stopped';
   'createdAt'?: string | null;
 }
@@ -1648,28 +1648,28 @@ export type UpdateInstancesRequest = {
 /**
  * Default Response
  */
-export type UpdateInstancesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
+export type UpdateInstancesResponseOK = Array<{ 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }>
 export type UpdateInstancesResponses =
   FullResponse<UpdateInstancesResponseOK, 200>
 
 export type GetInstanceByIdRequest = {
-  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'status'>;
   'id': string;
 }
 
 /**
  * A Instance
  */
-export type GetInstanceByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+export type GetInstanceByIdResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
 export type GetInstanceByIdResponses =
   FullResponse<GetInstanceByIdResponseOK, 200>
 
 export type UpdateInstanceRequest = {
-  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'status'>;
   'id': string;
   'applicationId': string;
   'deploymentId'?: string | null;
-  'podId': string;
+  'machineId': string;
   'status': 'running' | 'starting' | 'stopped';
   'createdAt'?: string | null;
 }
@@ -1677,19 +1677,19 @@ export type UpdateInstanceRequest = {
 /**
  * A Instance
  */
-export type UpdateInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+export type UpdateInstanceResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
 export type UpdateInstanceResponses =
   FullResponse<UpdateInstanceResponseOK, 200>
 
 export type DeleteInstancesRequest = {
-  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'podId' | 'status'>;
+  'fields'?: Array<'applicationId' | 'createdAt' | 'deploymentId' | 'id' | 'machineId' | 'status'>;
   'id': string;
 }
 
 /**
  * A Instance
  */
-export type DeleteInstancesResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'podId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
+export type DeleteInstancesResponseOK = { 'id'?: string | null; 'applicationId'?: string | null; 'deploymentId'?: string | null; 'machineId'?: string | null; 'status'?: 'running' | 'starting' | 'stopped' | null; 'createdAt'?: string | null }
 export type DeleteInstancesResponses =
   FullResponse<DeleteInstancesResponseOK, 200>
 
@@ -2296,7 +2296,7 @@ export type GetGenerationGraphResponses =
   FullResponse<GetGenerationGraphResponseOK, 200>
 
 export type InitApplicationInstanceRequest = {
-  'podId': string;
+  'machineId': string;
   'applicationName': string;
 }
 

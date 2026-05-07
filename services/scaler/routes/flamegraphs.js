@@ -127,17 +127,17 @@ module.exports = async function (app) {
       }
     },
     handler: async (req) => {
-      const k8sContext = req.k8s
-      if (!k8sContext) {
-        throw new Error('Missing k8s context')
+      const machineCtx = req.context
+      if (!machineCtx) {
+        throw new Error('Missing machine context')
       }
-      const namespace = k8sContext.namespace
+      const namespace = machineCtx.namespace
 
       const { podId, serviceId } = req.params
       const { alertId, profileType = 'cpu' } = req.query
       const flamegraph = req.body
 
-      const instance = await app.getInstanceByPodId(podId, namespace)
+      const instance = await app.getInstanceByMachineId(podId, namespace)
       if (instance === null) {
         throw new errors.INSTANCE_NOT_FOUND(podId)
       }
@@ -268,9 +268,9 @@ module.exports = async function (app) {
       }
     },
     handler: async (req) => {
-      const k8sContext = req.k8s
-      if (!k8sContext) {
-        throw new Error('Missing k8s context')
+      const machineCtx = req.context
+      if (!machineCtx) {
+        throw new Error('Missing machine context')
       }
 
       const { applicationId, podId, expiresIn, states } = req.body

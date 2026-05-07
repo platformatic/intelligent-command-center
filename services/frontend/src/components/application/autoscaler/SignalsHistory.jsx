@@ -63,15 +63,15 @@ export default function SignalsHistory ({ wattId, limit }) {
       label: 'Pod Id',
       key: 'podId',
       render: (row, value) => {
-        const instance = instances.find(instance => instance.podId === value)
+        const instance = instances.find(instance => instance.machineId === value)
         if (!instance) {
           console.warn(`Instance not found for podId: ${value}`)
           return
         }
         if (instance?.status === 'running') {
-          return <div className={styles.podId} title={instance.podId}>{truncatePodId(instance.podId)}</div>
+          return <div className={styles.machineId} title={instance.machineId}>{truncatePodId(instance.machineId)}</div>
         } else {
-          return <div className={styles.podId} title={instance.podId}>{truncatePodId(instance.podId)} <span className={styles.terminated}>(terminated)</span></div>
+          return <div className={styles.machineId} title={instance.machineId}>{truncatePodId(instance.machineId)} <span className={styles.terminated}>(terminated)</span></div>
         }
       }
     }

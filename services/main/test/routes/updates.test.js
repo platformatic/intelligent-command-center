@@ -87,12 +87,12 @@ test('the application event should be sent to the websocket', async (t) => {
   const podId = '33'
   const applicationId = 'test-app-id'
 
-  const podStatusChanges = []
+  const machineStatusChanges = []
   const controlPlaneUrl = await startControlPlane(t, {
-    savePodStatus: async ({ podId, status }) => {
-      podStatusChanges.push({ podId, status })
+    saveMachineStatus: async ({ machineId, status }) => {
+      machineStatusChanges.push({ machineId, status })
     },
-    getPodDetails: async ({ podId }) => {
+    getMachineDetails: async ({ podId }) => {
       return { id: podId, applicationId }
     }
   })
@@ -101,7 +101,7 @@ test('the application event should be sent to the websocket', async (t) => {
 
   const server = await getServer(t, {
     PLT_CONTROL_PLANE_URL: controlPlaneUrl,
-    PLT_DISABLE_K8S_AUTH: false
+    PLT_DISABLE_MACHINE_AUTH: false
   })
 
   const url = await server.start()
@@ -154,8 +154,8 @@ test('the application event should be sent to the websocket', async (t) => {
   const unsubscriptionAck = await once(socket, 'message')
   assert.deepStrictEqual(JSON.parse(unsubscriptionAck[0]), { command: 'ack' })
 
-  assert.deepStrictEqual(podStatusChanges, [
-    { podId, status: 'running' }
+  assert.deepStrictEqual(machineStatusChanges, [
+    { machineId: podId, status: 'running' }
   ])
 
   socket.close()
@@ -163,9 +163,9 @@ test('the application event should be sent to the websocket', async (t) => {
   // Wait for request to be sent to the control plane
   await sleep(500)
 
-  assert.deepStrictEqual(podStatusChanges, [
-    { podId, status: 'running' },
-    { podId, status: 'stopped' }
+  assert.deepStrictEqual(machineStatusChanges, [
+    { machineId: podId, status: 'running' },
+    { machineId: podId, status: 'stopped' }
   ])
 })
 
@@ -188,8 +188,8 @@ test('should notify scaler on connect and disconnect when runtimeId is provided 
   })
 
   const controlPlaneUrl = await startControlPlane(t, {
-    savePodStatus: async () => {},
-    getPodDetails: async ({ podId }) => {
+    saveMachineStatus: async () => {},
+    getMachineDetails: async ({ podId }) => {
       return { id: podId, applicationId }
     }
   })
@@ -200,7 +200,7 @@ test('should notify scaler on connect and disconnect when runtimeId is provided 
     PLT_CONTROL_PLANE_URL: controlPlaneUrl,
     PLT_SCALER_URL: scalerUrl,
     PLT_SCALER_ALGORITHM_VERSION: 'v2',
-    PLT_DISABLE_K8S_AUTH: false
+    PLT_DISABLE_MACHINE_AUTH: false
   })
 
   const url = await server.start()
@@ -221,7 +221,7 @@ test('should notify scaler on connect and disconnect when runtimeId is provided 
   assert.strictEqual(scalerEvents.length, 1)
   assert.strictEqual(scalerEvents[0].type, 'connect')
   assert.strictEqual(scalerEvents[0].applicationId, applicationId)
-  assert.strictEqual(scalerEvents[0].podId, podId)
+  assert.strictEqual(scalerEvents[0].machineId, podId)
   assert.strictEqual(scalerEvents[0].namespace, namespace)
   assert.strictEqual(scalerEvents[0].runtimeId, runtimeId)
   assert.ok(scalerEvents[0].timestamp)
@@ -234,7 +234,7 @@ test('should notify scaler on connect and disconnect when runtimeId is provided 
   assert.strictEqual(scalerEvents.length, 2)
   assert.strictEqual(scalerEvents[1].type, 'disconnect')
   assert.strictEqual(scalerEvents[1].applicationId, applicationId)
-  assert.strictEqual(scalerEvents[1].podId, podId)
+  assert.strictEqual(scalerEvents[1].machineId, podId)
   assert.strictEqual(scalerEvents[1].namespace, namespace)
   assert.strictEqual(scalerEvents[1].runtimeId, runtimeId)
   assert.ok(scalerEvents[1].timestamp)
@@ -259,8 +259,8 @@ test('should not notify scaler when algorithm version is v1', async (t) => {
   })
 
   const controlPlaneUrl = await startControlPlane(t, {
-    savePodStatus: async () => {},
-    getPodDetails: async ({ podId }) => {
+    saveMachineStatus: async () => {},
+    getMachineDetails: async ({ podId }) => {
       return { id: podId, applicationId }
     }
   })
@@ -271,7 +271,7 @@ test('should not notify scaler when algorithm version is v1', async (t) => {
     PLT_CONTROL_PLANE_URL: controlPlaneUrl,
     PLT_SCALER_URL: scalerUrl,
     PLT_SCALER_ALGORITHM_VERSION: 'v1',
-    PLT_DISABLE_K8S_AUTH: false
+    PLT_DISABLE_MACHINE_AUTH: false
   })
 
   const url = await server.start()
@@ -316,8 +316,8 @@ test('should not notify scaler when runtimeId is not provided', async (t) => {
   })
 
   const controlPlaneUrl = await startControlPlane(t, {
-    savePodStatus: async () => {},
-    getPodDetails: async ({ podId }) => {
+    saveMachineStatus: async () => {},
+    getMachineDetails: async ({ podId }) => {
       return { id: podId, applicationId }
     }
   })
@@ -328,7 +328,7 @@ test('should not notify scaler when runtimeId is not provided', async (t) => {
     PLT_CONTROL_PLANE_URL: controlPlaneUrl,
     PLT_SCALER_URL: scalerUrl,
     PLT_SCALER_ALGORITHM_VERSION: 'v2',
-    PLT_DISABLE_K8S_AUTH: false
+    PLT_DISABLE_MACHINE_AUTH: false
   })
 
   const url = await server.start()

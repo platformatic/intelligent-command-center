@@ -283,7 +283,7 @@ class SignalScalerExecutor {
   }
 
   async #runScheduledCheck (appId, controllerId) {
-    const controller = await this.app.getControllerByK8sId(appId, controllerId)
+    const controller = await this.app.getControllerById(appId, controllerId)
     if (!controller) {
       this.app.log.warn({ appId, controllerId }, 'Controller not found, skipping')
       return

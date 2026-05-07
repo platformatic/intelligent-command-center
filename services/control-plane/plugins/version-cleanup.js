@@ -4,8 +4,8 @@ const fp = require('fastify-plugin')
 const { request } = require('undici')
 const { forceExpire: forceExpireWorkflow } = require('../lib/expire-policies/workflow')
 
-async function setScalingDisabled (scalerUrl, namespace, k8sDeploymentName, disabled) {
-  const url = `${scalerUrl}/controllers/${encodeURIComponent(namespace)}/${encodeURIComponent(k8sDeploymentName)}/scaling-disabled`
+async function setScalingDisabled (scalerUrl, namespace, controllerName, disabled) {
+  const url = `${scalerUrl}/controllers/${encodeURIComponent(namespace)}/${encodeURIComponent(controllerName)}/scaling-disabled`
   const { statusCode, body } = await request(url, {
     method: 'PUT',
     headers: { 'content-type': 'application/json' },
@@ -26,8 +26,8 @@ module.exports = fp(async function (app) {
   const scalerUrl = app.env.PLT_SCALER_URL
   const workflowUrl = app.env.PLT_WORKFLOW_URL
 
-  app.decorate('disableScaling', async (namespace, k8sDeploymentName) => {
-    return setScalingDisabled(scalerUrl, namespace, k8sDeploymentName, true)
+  app.decorate('disableScaling', async (namespace, controllerName) => {
+    return setScalingDisabled(scalerUrl, namespace, controllerName, true)
   })
 
   /**
@@ -67,30 +67,38 @@ module.exports = fp(async function (app) {
     }
 
     // Disable autoscaler so it won't fight the scale-down
-    await app.disableScaling(version.namespace, version.k8SDeploymentName)
+    await app.disableScaling(version.namespace, version.controllerName)
       .catch(err => {
         ctx.logger.error({ err }, 'failed to disable scaling for expired version')
       })
 
     // Scale the expired Deployment to 0 replicas
-    await app.machinist.updateController(
-      version.k8SDeploymentName,
+    // Skew protection always operates on K8s Deployments — the version_registry
+    // wouldn't be populated for any other resource type. The K8s provider in
+    // machinist needs this metadata to build the right API path.
+    const providerMetadata = { kind: 'Deployment', apiVersion: 'apps/v1' }
+
+    await app.machinist.updateControllerReplicas(
       version.namespace,
-      'apps/v1',
-      'Deployment',
+      version.controllerName,
       0,
+      providerMetadata,
       ctx
     ).catch(err => {
       ctx.logger.error({ err }, 'failed to scale expired deployment to 0')
     })
 
-    // Optional: delete the K8s Deployment and Service resources
+    // Optional: delete the controller and service resources
     const policy = await app.resolveSkewPolicy(version.applicationId)
     if (policy.autoCleanup) {
-      await app.machinist.deleteDeployment(version.namespace, version.k8SDeploymentName, ctx)
-        .catch(err => {
-          ctx.logger.error({ err }, 'failed to delete expired Deployment')
-        })
+      await app.machinist.deleteController(
+        version.namespace,
+        version.controllerName,
+        providerMetadata,
+        ctx
+      ).catch(err => {
+        ctx.logger.error({ err }, 'failed to delete expired controller')
+      })
 
       await app.machinist.deleteService(version.namespace, version.serviceName, ctx)
         .catch(err => {

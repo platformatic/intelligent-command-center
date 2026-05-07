@@ -6,7 +6,7 @@ const { request } = require('undici')
 const later = require('@breejs/later')
 const {
   buildServer,
-  generateK8sHeader,
+  generateMachineHeaders,
   setupMockPrometheusServer,
   cleandb,
   cleanValkeyData,
@@ -244,7 +244,7 @@ class WattApplication {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-k8s': generateK8sHeader(this.podId)
+        ...generateMachineHeaders(this.podId)
       },
       body: JSON.stringify({
         alert: healthAlert,
@@ -395,7 +395,7 @@ async function saveController (server, applicationId) {
       applicationId,
       deploymentId: randomUUID(),
       namespace: 'platfomratic',
-      k8SControllerId: 'test-controller-id',
+      controllerId: 'test-controller-id',
       kind: 'Controller',
       apiVersion: 'v1',
       replicas: 1

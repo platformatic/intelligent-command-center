@@ -75,7 +75,7 @@ test('should save application min and max pods (triggers scale up)', async (t) =
         applicationId,
         deploymentId,
         namespace,
-        podId
+        machineId: podId
       })
     })
     assert.strictEqual(statusCode, 200)
@@ -156,7 +156,7 @@ test('should save application min and max pods (triggers scale down)', async (t)
         applicationId,
         deploymentId,
         namespace,
-        podId
+        machineId: podId
       })
     })
     assert.strictEqual(statusCode, 200)
@@ -237,7 +237,7 @@ test('should keep history of configs and get only the last one', async (t) => {
         applicationId,
         deploymentId,
         namespace,
-        podId
+        machineId: podId
       })
     })
     assert.strictEqual(statusCode, 200)

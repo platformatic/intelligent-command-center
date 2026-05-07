@@ -27,7 +27,7 @@ module.exports = async function (app) {
       const controllers = await app.platformatic.entities.controller.find({
         where: {
           namespace: { eq: namespace },
-          k8SControllerId: { eq: k8sControllerId }
+          controllerId: { eq: k8sControllerId }
         }
       })
       if (controllers.length === 0) {
@@ -42,22 +42,22 @@ module.exports = async function (app) {
 
   app.post('/controllers', {
     schema: {
-      operationId: 'savePodController',
+      operationId: 'saveMachineController',
       body: {
         type: 'object',
         properties: {
           applicationId: { type: 'string' },
           deploymentId: { type: 'string' },
           namespace: { type: 'string' },
-          podId: { type: 'string' }
+          machineId: { type: 'string' }
         },
-        required: ['applicationId', 'deploymentId', 'namespace', 'podId']
+        required: ['applicationId', 'deploymentId', 'namespace', 'machineId']
       }
     },
     handler: async (req) => {
-      const { applicationId, deploymentId, namespace, podId } = req.body
+      const { applicationId, deploymentId, namespace, machineId } = req.body
 
-      const controller = await app.machinist.getPodController(podId, namespace)
+      const controller = await app.machinist.getPodController(machineId, namespace)
       await app.saveDefaultScaleConfig(applicationId)
 
       await app.platformatic.entities.controller.save({
@@ -65,9 +65,9 @@ module.exports = async function (app) {
           applicationId,
           deploymentId,
           namespace,
-          k8SControllerId: controller.name,
-          kind: controller.kind,
-          apiVersion: controller.apiVersion,
+          controllerId: controller.name,
+          // Opaque per-provider info (e.g. K8s: { kind, apiVersion }; ECS: {})
+          providerMetadata: controller.providerMetadata ?? {},
           replicas: controller.replicas
         }
       })

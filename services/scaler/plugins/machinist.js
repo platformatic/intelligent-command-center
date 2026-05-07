@@ -8,11 +8,13 @@ class Machinist {
   #app
   #dispatcher
   #abortControllers
+  #prefix
 
-  constructor (machinistUrl, app) {
+  constructor (machinistUrl, provider, app) {
     this.url = machinistUrl
     this.#app = app
     this.#abortControllers = new Map()
+    this.#prefix = `/${provider}`
 
     this.#dispatcher = getGlobalDispatcher()
       .compose(interceptors.retry({
@@ -23,46 +25,46 @@ class Machinist {
       }))
   }
 
-  async getPodController (podId, namespace) {
-    this.#app.log.info('Getting a pod controller id')
+  async getPodController (machineId, namespace) {
+    this.#app.log.info('Getting controller for machine')
 
-    const url = this.url + `/controllers/${namespace}`
+    const url = this.url + this.#prefix + `/controllers/${namespace}`
     const { statusCode, body } = await request(url, {
-      query: { podId },
+      query: { machineId },
       dispatcher: this.#dispatcher
     })
 
     if (statusCode !== 200) {
       const error = await body.text()
       this.#app.log.error(
-        { error, podId, namespace },
-        'Failed to get pod controller id'
+        { error, machineId, namespace },
+        'Failed to get machine controller'
       )
       throw new errors.FAILED_TO_GET_POD_CONTROLLER(error)
     }
 
     const { controllers } = await body.json()
     if (controllers.length === 0) {
-      this.#app.log.error({ podId, namespace }, 'Pod has no controllers')
-      throw new errors.FAILED_TO_GET_POD_CONTROLLER('Pod has no controllers')
+      this.#app.log.error({ machineId, namespace }, 'Machine has no controllers')
+      throw new errors.FAILED_TO_GET_POD_CONTROLLER('Machine has no controllers')
     }
 
     return controllers[0]
   }
 
-  async getController (controllerId, namespace, apiVersion, kind) {
+  async getController (controllerId, namespace, providerMetadata = {}) {
     this.#app.log.debug('Getting controller details')
 
-    const url = this.url + `/controllers/${namespace}/${controllerId}`
+    const url = this.url + this.#prefix + `/controllers/${namespace}/${controllerId}`
     const { statusCode, body } = await request(url, {
-      query: { kind, apiVersion },
+      query: providerMetadata,
       dispatcher: this.#dispatcher
     })
 
     if (statusCode !== 200) {
       const error = await body.text()
       this.#app.log.error(
-        { error, controllerId, namespace, apiVersion, kind },
+        { error, controllerId, namespace },
         'Failed to get controller details'
       )
       throw new errors.FAILED_TO_GET_CONTROLLER(error)
@@ -72,18 +74,11 @@ class Machinist {
     return data.controller
   }
 
-  async getControllerWithPods (controllerId, namespace, apiVersion, kind) {
-    const controller = await this.getController(controllerId, namespace, apiVersion, kind)
-    return controller
+  async getControllerWithPods (controllerId, namespace, providerMetadata = {}) {
+    return this.getController(controllerId, namespace, providerMetadata)
   }
 
-  async updateController (
-    controllerId,
-    namespace,
-    apiVersion,
-    kind,
-    replicas
-  ) {
+  async updateController (controllerId, namespace, replicas, providerMetadata = {}) {
     const reqId = `update-${namespace}-${controllerId}`
 
     const prevSignal = this.#abortControllers.get(reqId)
@@ -96,17 +91,15 @@ class Machinist {
     this.#abortControllers.set(reqId, ac)
     this.#app.log.info('Updating controller replicas')
 
-    const url = this.url + `/controllers/${namespace}/${controllerId}`
+    const url = this.url + this.#prefix + `/controllers/${namespace}/${controllerId}`
 
     let response = null
     try {
       response = await request(url, {
         method: 'POST',
-        query: { kind, apiVersion },
-        headers: {
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify({ replicaCount: replicas }),
+        query: providerMetadata,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ replicas }),
         dispatcher: this.#dispatcher,
         signal: ac.signal
       })
@@ -131,48 +124,16 @@ class Machinist {
     }
   }
 
-  async getControllers () {
-    this.#app.log.info('Getting all controllers')
-
-    const url = this.url + '/controllers'
-    const { statusCode, body } = await request(url, {
-      dispatcher: this.#dispatcher
-    })
-
-    if (statusCode !== 200) {
-      const error = await body.text()
-      this.#app.log.error(
-        { error },
-        'Failed to get controllers'
-      )
-      throw new errors.FAILED_TO_GET_CONTROLLERS(error)
-    }
-
-    const data = await body.json()
-    return data.controllers
-  }
-
-  async getControllerLabels (name, namespace, kind, apiVersion) {
-    this.#app.log.debug('Getting controller labels', { name, namespace, kind, apiVersion })
+  async getControllerLabels (name, namespace, providerMetadata = {}) {
+    this.#app.log.debug('Getting controller labels', { name, namespace })
 
     try {
-      // Use the existing getController method to get controller details
-      const controller = await this.getController(name, namespace, apiVersion, kind)
-
-      // Get labels directly from controller.metadata.labels (standard K8s location)
-      if (controller?.metadata?.labels) {
-        this.#app.log.debug('Found labels in controller.metadata.labels:', controller.metadata.labels)
-        return controller.metadata.labels
-      }
-
-      // No labels found on the controller
-      this.#app.log.debug('No labels found on controller')
-      return {}
+      const controller = await this.getController(name, namespace, providerMetadata)
+      return controller?.labels || {}
     } catch (error) {
       this.#app.log.error('Error in getControllerLabels', {
         name,
         namespace,
-        kind,
         error: error.message
       })
       throw error
@@ -184,6 +145,7 @@ class Machinist {
 const plugin = fp(async function (app) {
   const machinist = new Machinist(
     app.env.PLT_MACHINIST_URL,
+    app.env.PLT_MACHINIST_PROVIDER,
     app
   )
   app.decorate('machinist', machinist)

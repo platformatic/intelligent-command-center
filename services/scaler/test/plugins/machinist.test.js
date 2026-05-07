@@ -26,11 +26,7 @@ async function setupMockMachinistServer (responses = {}) {
     const pathname = url.pathname
     const method = req.method
 
-    if (method === 'GET' && pathname.startsWith('/controllers/') && url.searchParams.has('podId')) {
-      const namespace = pathname.split('/')[2]
-      /* eslint-disable-next-line no-unused-vars */
-      const _ = url.searchParams.get('podId')
-
+    if (method === 'GET' && pathname.match(/^\/k8s\/controllers\/[^/]+$/) && url.searchParams.has('machineId')) {
       if (responses.getControllers && responses.getControllers.error) {
         res.writeHead(responses.getControllers.statusCode || 500, { 'Content-Type': 'application/json' })
         res.end(responses.getControllers.error)
@@ -47,15 +43,14 @@ async function setupMockMachinistServer (responses = {}) {
       res.end(JSON.stringify({
         controllers: responses.getControllers?.controllers || [
           {
-            id: 'controller-123',
             name: 'test-controller',
-            namespace,
-            apiVersion: 'apps/v1',
-            kind: 'Deployment'
+            replicas: 1,
+            labels: {},
+            providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' }
           }
         ]
       }))
-    } else if (method === 'POST' && pathname.includes('/controllers/')) {
+    } else if (method === 'POST' && pathname.includes('/k8s/controllers/')) {
       if (responses.updateController && responses.updateController.error) {
         res.writeHead(responses.updateController.statusCode || 500, { 'Content-Type': 'text/plain' })
         res.end(responses.updateController.error)
@@ -64,14 +59,10 @@ async function setupMockMachinistServer (responses = {}) {
 
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ success: true }))
-    } else if (method === 'GET' && pathname.match(/^\/controllers\/[^/]+\/[^/]+$/) && !url.searchParams.has('podId')) {
+    } else if (method === 'GET' && pathname.match(/^\/k8s\/controllers\/[^/]+\/[^/]+$/) && !url.searchParams.has('machineId')) {
       // Handle GET /controllers/:namespace/:controllerId
       const parts = pathname.split('/')
-      /* eslint-disable-next-line no-unused-vars */
-      const namespace = parts[2]
-      const controllerId = parts[3]
-      const kind = url.searchParams.get('kind')
-      const apiVersion = url.searchParams.get('apiVersion')
+      const controllerId = parts[parts.length - 1]
 
       if (responses.getController && responses.getController.error) {
         res.writeHead(responses.getController.statusCode || 500, { 'Content-Type': 'text/plain' })
@@ -82,11 +73,11 @@ async function setupMockMachinistServer (responses = {}) {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({
         controller: responses.getController?.controller || {
-          kind,
-          apiVersion,
           name: controllerId,
           replicas: 3,
-          pods: [
+          labels: {},
+          providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
+          machines: [
             {
               id: 'pod-1',
               status: 'Running',
@@ -98,35 +89,6 @@ async function setupMockMachinistServer (responses = {}) {
             }
           ]
         }
-      }))
-    } else if (method === 'GET' && pathname === '/controllers') {
-      // Handle GET /controllers
-      if (responses.getAllControllers && responses.getAllControllers.error) {
-        res.writeHead(responses.getAllControllers.statusCode || 500, { 'Content-Type': 'text/plain' })
-        res.end(responses.getAllControllers.error)
-        return
-      }
-
-      res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({
-        controllers: responses.getAllControllers?.controllers || [
-          {
-            id: 'controller-1',
-            name: 'app-1',
-            namespace: 'default',
-            apiVersion: 'apps/v1',
-            kind: 'Deployment',
-            replicas: 2
-          },
-          {
-            id: 'controller-2',
-            name: 'app-2',
-            namespace: 'production',
-            apiVersion: 'apps/v1',
-            kind: 'StatefulSet',
-            replicas: 3
-          }
-        ]
       }))
     } else {
       res.writeHead(404, { 'Content-Type': 'text/plain' })
@@ -147,7 +109,8 @@ test('machinist plugin should register successfully', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: 'http://localhost:8080'
+    PLT_MACHINIST_URL: 'http://localhost:8080',
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -173,7 +136,8 @@ test('getPodController should return controller for valid pod', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: address
+    PLT_MACHINIST_URL: address,
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -184,8 +148,8 @@ test('getPodController should return controller for valid pod', async (t) => {
 
   const controller = await app.machinist.getPodController('test-pod', 'test-namespace')
 
-  assert.strictEqual(controller.id, 'controller-123')
-  assert.strictEqual(controller.namespace, 'test-namespace')
+  assert.strictEqual(controller.name, 'test-controller')
+  assert.strictEqual(controller.replicas, 1)
 
   await app.close()
 })
@@ -206,7 +170,8 @@ test('getPodController should handle HTTP error responses', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: address
+    PLT_MACHINIST_URL: address,
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -242,7 +207,8 @@ test('getPodController should handle empty controllers array', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: address
+    PLT_MACHINIST_URL: address,
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -257,7 +223,7 @@ test('getPodController should handle empty controllers array', async (t) => {
   )
 
   const logs = mockLogger.getLogs()
-  const errorLog = logs.find(log => log.level === 'error' && log.data.podId === 'test-pod')
+  const errorLog = logs.find(log => log.level === 'error' && log.data.machineId === 'test-pod')
   assert.ok(errorLog)
 
   await app.close()
@@ -274,7 +240,8 @@ test('updateController should successfully update replicas', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: address
+    PLT_MACHINIST_URL: address,
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -286,8 +253,6 @@ test('updateController should successfully update replicas', async (t) => {
   await app.machinist.updateController(
     'controller-123',
     'test-namespace',
-    'apps/v1',
-    'Deployment',
     5
   )
 
@@ -314,7 +279,8 @@ test('updateController should handle HTTP error responses', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: address
+    PLT_MACHINIST_URL: address,
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -327,8 +293,6 @@ test('updateController should handle HTTP error responses', async (t) => {
     () => app.machinist.updateController(
       'controller-123',
       'test-namespace',
-      'apps/v1',
-      'Deployment',
       5
     ),
     errors.FAILED_TO_UPDATE_CONTROLLER
@@ -352,7 +316,8 @@ test('getController should return controller details', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: address
+    PLT_MACHINIST_URL: address,
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -363,20 +328,16 @@ test('getController should return controller details', async (t) => {
 
   const controller = await app.machinist.getController(
     'test-deployment',
-    'test-namespace',
-    'apps/v1',
-    'Deployment'
+    'test-namespace'
   )
 
   assert.ok(controller, 'Controller should be defined')
   assert.strictEqual(controller.name, 'test-deployment')
-  assert.strictEqual(controller.apiVersion, 'apps/v1')
-  assert.strictEqual(controller.kind, 'Deployment')
   assert.strictEqual(controller.replicas, 3)
-  assert.ok(Array.isArray(controller.pods))
-  assert.strictEqual(controller.pods.length, 1)
-  assert.strictEqual(controller.pods[0].id, 'pod-1')
-  assert.strictEqual(controller.pods[0].status, 'Running')
+  assert.ok(Array.isArray(controller.machines))
+  assert.strictEqual(controller.machines.length, 1)
+  assert.strictEqual(controller.machines[0].id, 'pod-1')
+  assert.strictEqual(controller.machines[0].status, 'Running')
 
   await app.close()
 })
@@ -397,7 +358,8 @@ test('getController should handle HTTP error responses', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: address
+    PLT_MACHINIST_URL: address,
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -409,9 +371,7 @@ test('getController should handle HTTP error responses', async (t) => {
   await assert.rejects(
     () => app.machinist.getController(
       'test-deployment',
-      'test-namespace',
-      'apps/v1',
-      'Deployment'
+      'test-namespace'
     ),
     errors.FAILED_TO_GET_CONTROLLER
   )
@@ -429,7 +389,8 @@ test('getController should handle network errors', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: 'http://nonexistent:9999'
+    PLT_MACHINIST_URL: 'http://nonexistent:9999',
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -441,9 +402,7 @@ test('getController should handle network errors', async (t) => {
   await assert.rejects(
     () => app.machinist.getController(
       'test-deployment',
-      'test-namespace',
-      'apps/v1',
-      'Deployment'
+      'test-namespace'
     ),
     (err) => err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' || err.code === 'EAI_AGAIN'
   )
@@ -457,7 +416,8 @@ test('Machinist class should set up retry interceptor correctly', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: 'http://localhost:8080'
+    PLT_MACHINIST_URL: 'http://localhost:8080',
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -478,7 +438,8 @@ test('getPodController should handle network errors', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: 'http://nonexistent:9999'
+    PLT_MACHINIST_URL: 'http://nonexistent:9999',
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -501,7 +462,8 @@ test('updateController should handle network errors', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: 'http://nonexistent:9999'
+    PLT_MACHINIST_URL: 'http://nonexistent:9999',
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -511,103 +473,7 @@ test('updateController should handle network errors', async (t) => {
   await app.register(machinistPlugin)
 
   await assert.rejects(
-    () => app.machinist.updateController(
-      'controller-123',
-      'test-namespace',
-      'apps/v1',
-      'Deployment',
-      5
-    ),
-    (err) => err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' || err.code === 'EAI_AGAIN'
-  )
-
-  await app.close()
-})
-
-test('getControllers should return all controllers', async (t) => {
-  const { server: mockServer, address } = await setupMockMachinistServer()
-  t.after(async () => {
-    mockServer.close()
-  })
-
-  const app = Fastify()
-  const mockLogger = createMockLogger()
-  app.log = mockLogger
-
-  const env = {
-    PLT_MACHINIST_URL: address
-  }
-
-  await app.register(fp(async function (app) {
-    app.decorate('env', env)
-  }, { name: 'env' }))
-
-  await app.register(machinistPlugin)
-
-  const controllers = await app.machinist.getControllers()
-
-  assert.ok(Array.isArray(controllers), 'Controllers should be an array')
-  assert.strictEqual(controllers.length, 2)
-  assert.strictEqual(controllers[0].id, 'controller-1')
-  assert.strictEqual(controllers[0].name, 'app-1')
-  assert.strictEqual(controllers[0].namespace, 'default')
-  assert.strictEqual(controllers[1].id, 'controller-2')
-  assert.strictEqual(controllers[1].name, 'app-2')
-  assert.strictEqual(controllers[1].namespace, 'production')
-
-  await app.close()
-})
-
-test('getControllers should handle HTTP error responses', async (t) => {
-  const { server: mockServer, address } = await setupMockMachinistServer({
-    getAllControllers: {
-      error: 'Internal server error',
-      statusCode: 500
-    }
-  })
-  t.after(async () => {
-    mockServer.close()
-  })
-
-  const app = Fastify()
-  const mockLogger = createMockLogger()
-  app.log = mockLogger
-
-  const env = {
-    PLT_MACHINIST_URL: address
-  }
-
-  await app.register(fp(async function (app) {
-    app.decorate('env', env)
-  }, { name: 'env' }))
-
-  await app.register(machinistPlugin)
-
-  await assert.rejects(
-    () => app.machinist.getControllers(),
-    errors.FAILED_TO_GET_CONTROLLERS
-  )
-
-  await app.close()
-})
-
-test('getControllers should handle network errors', async (t) => {
-  const app = Fastify()
-  const mockLogger = createMockLogger()
-  app.log = mockLogger
-
-  const env = {
-    PLT_MACHINIST_URL: 'http://nonexistent:9999'
-  }
-
-  await app.register(fp(async function (app) {
-    app.decorate('env', env)
-  }, { name: 'env' }))
-
-  await app.register(machinistPlugin)
-
-  await assert.rejects(
-    () => app.machinist.getControllers(),
+    () => app.machinist.updateController('controller-123', 'test-namespace', 5),
     (err) => err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' || err.code === 'EAI_AGAIN'
   )
 
@@ -617,12 +483,12 @@ test('getControllers should handle network errors', async (t) => {
 test('updateController should abort previous in-flight request for the same controller', async (t) => {
   const requestLog = []
   const server = createServer((req, res) => {
-    if (req.method === 'POST' && req.url.includes('/controllers/')) {
+    if (req.method === 'POST' && req.url.includes('/k8s/controllers/')) {
       let body = ''
       req.on('data', (chunk) => { body += chunk })
       req.on('end', () => {
         const parsed = JSON.parse(body)
-        requestLog.push(parsed.replicaCount)
+        requestLog.push(parsed.replicas)
         // Delay the response to give time for the second request to abort this one
         setTimeout(() => {
           res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -647,20 +513,16 @@ test('updateController should abort previous in-flight request for the same cont
   app.log = createMockLogger()
 
   await app.register(fp(async function (app) {
-    app.decorate('env', { PLT_MACHINIST_URL: address })
+    app.decorate('env', { PLT_MACHINIST_URL: address, PLT_MACHINIST_PROVIDER: 'k8s' })
   }, { name: 'env' }))
 
   await app.register(machinistPlugin)
 
   // Fire first request (don't await yet)
-  const firstRequest = app.machinist.updateController(
-    'controller-123', 'test-namespace', 'apps/v1', 'Deployment', 3
-  )
+  const firstRequest = app.machinist.updateController('controller-123', 'test-namespace', 3)
 
   // Fire second request for the same controller — should abort the first
-  const secondRequest = app.machinist.updateController(
-    'controller-123', 'test-namespace', 'apps/v1', 'Deployment', 5
-  )
+  const secondRequest = app.machinist.updateController('controller-123', 'test-namespace', 5)
 
   await assert.rejects(firstRequest, errors.SCALE_REQUEST_SUPERSEDED)
   await secondRequest // should succeed
@@ -678,15 +540,15 @@ test('updateController should not interfere with requests for different controll
   app.log = createMockLogger()
 
   await app.register(fp(async function (app) {
-    app.decorate('env', { PLT_MACHINIST_URL: address })
+    app.decorate('env', { PLT_MACHINIST_URL: address, PLT_MACHINIST_PROVIDER: 'k8s' })
   }, { name: 'env' }))
 
   await app.register(machinistPlugin)
 
   // Fire two concurrent requests for different controllers
   const [result1, result2] = await Promise.allSettled([
-    app.machinist.updateController('controller-1', 'ns-1', 'apps/v1', 'Deployment', 3),
-    app.machinist.updateController('controller-2', 'ns-2', 'apps/v1', 'Deployment', 5)
+    app.machinist.updateController('controller-1', 'ns-1', 3),
+    app.machinist.updateController('controller-2', 'ns-2', 5)
   ])
 
   assert.strictEqual(result1.status, 'fulfilled')
@@ -706,7 +568,8 @@ test('getControllerWithPods should return controller with pods', async (t) => {
   app.log = mockLogger
 
   const env = {
-    PLT_MACHINIST_URL: address
+    PLT_MACHINIST_URL: address,
+    PLT_MACHINIST_PROVIDER: 'k8s'
   }
 
   await app.register(fp(async function (app) {
@@ -717,16 +580,14 @@ test('getControllerWithPods should return controller with pods', async (t) => {
 
   const controller = await app.machinist.getControllerWithPods(
     'test-deployment',
-    'test-namespace',
-    'apps/v1',
-    'Deployment'
+    'test-namespace'
   )
 
   assert.ok(controller)
   assert.strictEqual(controller.name, 'test-deployment')
-  assert.ok(Array.isArray(controller.pods))
-  assert.strictEqual(controller.pods.length, 1)
-  assert.strictEqual(controller.pods[0].id, 'pod-1')
+  assert.ok(Array.isArray(controller.machines))
+  assert.strictEqual(controller.machines.length, 1)
+  assert.strictEqual(controller.machines[0].id, 'pod-1')
 
   await app.close()
 })
@@ -741,20 +602,16 @@ test('updateController should work after a previous request completes', async (t
   app.log = createMockLogger()
 
   await app.register(fp(async function (app) {
-    app.decorate('env', { PLT_MACHINIST_URL: address })
+    app.decorate('env', { PLT_MACHINIST_URL: address, PLT_MACHINIST_PROVIDER: 'k8s' })
   }, { name: 'env' }))
 
   await app.register(machinistPlugin)
 
   // First request completes normally
-  await app.machinist.updateController(
-    'controller-123', 'test-namespace', 'apps/v1', 'Deployment', 3
-  )
+  await app.machinist.updateController('controller-123', 'test-namespace', 3)
 
   // Second request for the same controller should also work (no stale abort controller)
-  await app.machinist.updateController(
-    'controller-123', 'test-namespace', 'apps/v1', 'Deployment', 5
-  )
+  await app.machinist.updateController('controller-123', 'test-namespace', 5)
 
   await app.close()
 })

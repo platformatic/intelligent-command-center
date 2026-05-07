@@ -49,7 +49,7 @@ class ScalerExecutor {
   }
 
   async #calculateAndApplyScaling (applicationId, podsMetrics, alerts = [], logContext = {}, controller = null) {
-    const controllerId = controller ? controller.k8SControllerId : null
+    const controllerId = controller ? controller.controllerId : null
     const currentPodCount = controller ? controller.replicas : await this.getCurrentPodCount(applicationId)
     const { minPods, maxPods } = await this.getScaleConfig(applicationId)
     const applicationName = await getApplicationName(applicationId, this.app.log)
@@ -123,16 +123,15 @@ class ScalerExecutor {
   async #partitionMetricsByController (controller, podsMetrics) {
     try {
       const k8sController = await this.app.machinist.getControllerWithPods(
-        controller.k8SControllerId, controller.namespace, controller.apiVersion, controller.kind
+        controller.controllerId, controller.namespace, controller.providerMetadata ?? {}
       )
-      if (!k8sController?.pods) {
+      if (!k8sController?.machines) {
         return podsMetrics
       }
 
       const podIds = new Set()
-      for (const pod of k8sController.pods) {
-        podIds.add(pod.id)
-        if (pod.name) podIds.add(pod.name)
+      for (const machine of k8sController.machines) {
+        podIds.add(machine.id)
       }
 
       const partitioned = {}
@@ -145,7 +144,7 @@ class ScalerExecutor {
       return Object.keys(partitioned).length > 0 ? partitioned : podsMetrics
     } catch (err) {
       this.app.log.warn(
-        { err, controllerId: controller.k8SControllerId },
+        { err, controllerId: controller.controllerId },
         'Failed to partition metrics by controller, using all metrics'
       )
       return podsMetrics
@@ -156,8 +155,8 @@ class ScalerExecutor {
     this.app.log.info({ podId, serviceId }, 'Calculating scaling after alert from pod')
 
     if (!podId || !serviceId) {
-      this.app.log.error('Pod ID and service ID are required for scaling decision')
-      return { success: false, timestamp: Date.now(), error: 'Pod ID is required' }
+      this.app.log.error('Machine ID and service ID are required for scaling decision')
+      return { success: false, timestamp: Date.now(), error: 'Machine ID is required' }
     }
 
     try {
@@ -187,14 +186,14 @@ class ScalerExecutor {
         for (const ctrl of controllers) {
           try {
             const k8sController = await this.app.machinist.getControllerWithPods(
-              ctrl.k8SControllerId, ctrl.namespace, ctrl.apiVersion, ctrl.kind
+              ctrl.controllerId, ctrl.namespace, ctrl.providerMetadata ?? {}
             )
-            if (k8sController?.pods?.some(p => p.id === podId || p.name === podId)) {
+            if (k8sController?.machines?.some(m => m.id === podId)) {
               targetController = ctrl
               break
             }
           } catch (err) {
-            this.app.log.warn({ err, controllerId: ctrl.k8SControllerId }, 'Failed to get controller pods')
+            this.app.log.warn({ err, controllerId: ctrl.controllerId }, 'Failed to get controller pods')
           }
         }
 
@@ -327,19 +326,19 @@ class ScalerExecutor {
 
               results.push({
                 applicationId,
-                controllerId: ctrl.k8SControllerId,
+                controllerId: ctrl.controllerId,
                 currentPodCount,
                 newPodCount: result.nfinal,
                 scaled
               })
             } catch (err) {
               this.app.log.error(
-                { err, applicationId, controllerId: ctrl.k8SControllerId },
+                { err, applicationId, controllerId: ctrl.controllerId },
                 'Error processing controller for metric-based scaling'
               )
               results.push({
                 applicationId,
-                controllerId: ctrl.k8SControllerId,
+                controllerId: ctrl.controllerId,
                 error: err.message
               })
             }

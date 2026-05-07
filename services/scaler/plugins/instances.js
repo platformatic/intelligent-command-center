@@ -32,12 +32,12 @@ module.exports = fp(async function (app) {
     return instances
   })
 
-  app.decorate('getInstanceByPodId', async (podId, namespace) => {
+  app.decorate('getInstanceByMachineId', async (podId, namespace) => {
     const url = `${controlPlaneUrl}/instances`
     const { statusCode, body } = await request(url, {
       method: 'GET',
       query: {
-        'where.podId.eq': podId,
+        'where.machineId.eq': podId,
         'where.namespace.eq': namespace
       },
       headers: {

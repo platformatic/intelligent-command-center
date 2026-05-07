@@ -10,7 +10,7 @@ const {
   generateApplicationState,
   generateDeployment,
   generateInstance,
-  generateK8sHeader
+  generateMachineHeaders
 } = require('./helper')
 
 test('should save a application instance state', async (t) => {
@@ -59,10 +59,10 @@ test('should save a application instance state', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${instance1.podId}/instance/state`,
+    url: `/pods/${instance1.machineId}/instance/state`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(instance1.podId)
+      ...generateMachineHeaders(instance1.machineId)
     },
     body: {
       metadata: {
@@ -138,10 +138,10 @@ test('should not set app instance state if it is already set', async (t) => {
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${instance.podId}/instance/state`,
+    url: `/pods/${instance.machineId}/instance/state`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(instance.podId)
+      ...generateMachineHeaders(instance.machineId)
     },
     body: {
       metadata: {
@@ -174,14 +174,14 @@ test('should not set app instance state if it is already set', async (t) => {
   )
 })
 
-test('should throw 401 if x-k8s header is missing', async (t) => {
-  const podId = randomUUID()
+test('should throw 401 if machine context headers are missing', async (t) => {
+  const machineId = randomUUID()
 
   const controlPlane = await startControlPlane(t)
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance/state`,
+    url: `/pods/${machineId}/instance/state`,
     headers: {
       'content-type': 'application/json'
     },
@@ -193,24 +193,24 @@ test('should throw 401 if x-k8s header is missing', async (t) => {
   const error = JSON.parse(body)
   assert.deepStrictEqual(error, {
     statusCode: 401,
-    code: 'PLT_CONTROL_PLANE_MISSING_K8S_AUTH_CONTEXT',
+    code: 'PLT_CONTROL_PLANE_MISSING_MACHINE_AUTH_CONTEXT',
     error: 'Unauthorized',
-    message: `Missing K8s auth context for pod "${podId}"`
+    message: `Missing machine auth context for machine "${machineId}"`
   })
 })
 
-test('should throw 401 if pod id param does match with a jwt pod id', async (t) => {
-  const podId = randomUUID()
-  const jwtPodId = randomUUID()
+test('should throw 401 if machineId param does not match with the authenticated machineId', async (t) => {
+  const machineId = randomUUID()
+  const jwtMachineId = randomUUID()
 
   const controlPlane = await startControlPlane(t)
 
   const { statusCode, body } = await controlPlane.inject({
     method: 'POST',
-    url: `/pods/${podId}/instance/state`,
+    url: `/pods/${machineId}/instance/state`,
     headers: {
       'content-type': 'application/json',
-      'x-k8s': generateK8sHeader(jwtPodId)
+      ...generateMachineHeaders(jwtMachineId)
     },
     body: {}
   })
@@ -220,8 +220,8 @@ test('should throw 401 if pod id param does match with a jwt pod id', async (t) 
   const error = JSON.parse(body)
   assert.deepStrictEqual(error, {
     statusCode: 401,
-    code: 'PLT_CONTROL_PLANE_POD_ID_NOT_AUTHORIZED',
+    code: 'PLT_CONTROL_PLANE_MACHINE_ID_NOT_AUTHORIZED',
     error: 'Unauthorized',
-    message: `Request pod id "${podId}" does not match with a jwt pod id "${jwtPodId}"`
+    message: `Request machine id "${machineId}" does not match the authenticated machine id "${jwtMachineId}"`
   })
 })
