@@ -82,13 +82,13 @@ jobs:
     timeout-minutes: 15
     services:
       cache-valkey:
-        image: "valkey/valkey:9.0"
+        image: "valkey/valkey:9.1"
         options: >-
           --name cache-valkey
         ports:
           - "6342:6379"
       main-valkey:
-        image: "valkey/valkey:9.0"
+        image: "valkey/valkey:9.1"
         options: >-
           --name main-valkey
         ports:
@@ -196,7 +196,7 @@ jobs:
         ports:
           - 5433:5432
       valkey:
-        image: "valkey/valkey:9.0"
+        image: "valkey/valkey:9.1"
         options: >-
           --name valkey
         ports:
@@ -290,7 +290,7 @@ jobs:
         ports:
           - 5433:5432
       cache-valkey:
-        image: "valkey/valkey:9.0"
+        image: "valkey/valkey:9.1"
         options: >-
           --name cache-valkey
         ports:
@@ -339,7 +339,7 @@ jobs:
           - 5433:5432
 
       valkey:
-        image: "valkey/valkey:9.0"
+        image: "valkey/valkey:9.1"
         options: >-
           --name valkey
         ports:
@@ -390,7 +390,7 @@ jobs:
           - 5433:5432
 
       valkey:
-        image: "valkey/valkey:9.0"
+        image: "valkey/valkey:9.1"
         options: >-
           --name valkey
         ports:
@@ -427,7 +427,7 @@ jobs:
   ci-cache-manager:
     services:
       valkey:
-        image: "valkey/valkey:9.0"
+        image: "valkey/valkey:9.1"
         options: >-
           --name valkey
         ports:
@@ -461,7 +461,7 @@ jobs:
   ci-cluster-manager:
     services:
       valkey:
-        image: "valkey/valkey:9.0"
+        image: "valkey/valkey:9.1"
         options: >-
           --name valkey
         ports:
@@ -640,7 +640,7 @@ jobs:
   ci-scaler:
     services:
       main-valkey:
-        image: "valkey/valkey:9.0"
+        image: "valkey/valkey:9.1"
         options: >-
           --name main-valkey
         ports:

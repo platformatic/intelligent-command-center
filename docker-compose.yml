@@ -15,7 +15,7 @@ services:
   applications-valkey:
     ports:
       - "6342:6379"
-    image: "valkey/valkey:9.0"
+    image: "valkey/valkey:9.1"
     volumes:
       - ./scripts/redis.acl:/etc/valkey/users.acl
     command: valkey-server --aclfile /etc/valkey/users.acl
@@ -23,7 +23,7 @@ services:
   icc-valkey:
     ports:
       - "6343:6379"
-    image: "valkey/valkey:9.0"
+    image: "valkey/valkey:9.1"
     volumes:
       - ./scripts/redis.acl:/etc/valkey/users.acl
     command: valkey-server --aclfile /etc/valkey/users.acl
