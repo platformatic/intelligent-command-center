@@ -43,7 +43,7 @@ const schema = {
     PLT_SIGNALS_SCALER_HORIZONTAL_TREND_THRESHOLD: { type: 'number', default: 0.2 },
     PLT_SIGNALS_SCALER_PENDING_SCALE_UP_EXPIRY_MS: { type: 'number', default: 60000 },
     PLT_SIGNALS_SCALER_REDEPLOY_TIMEOUT_MS: { type: 'number', default: 2 * 60 * 1000 },
-    PLT_SIGNALS_SCALER_INIT_TIMEOUT_MS: { type: 'number', default: 10000 },
+    PLT_SIGNALS_SCALER_INIT_TIMEOUT_MS: { type: 'number', default: 30000 },
     PLT_SIGNALS_SCALER_HORIZON_MULTIPLIER: { type: 'number', default: 1.2 },
     PLT_SIGNALS_SCALER_MIN_HORIZON_MS: { type: 'number', default: 10000 },
     PLT_SIGNALS_SCALER_MAX_HORIZON_MS: { type: 'number', default: 40000 },
