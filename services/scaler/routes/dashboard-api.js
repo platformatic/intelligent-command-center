@@ -4,9 +4,13 @@ const { request } = require('undici')
 const errors = require('../lib/errors')
 
 module.exports = async function (app) {
-  // TODO: this is needed for the algorithm debug purposes
+  // Debug-only surface used by the external reactive-scaling-algorithm dashboard
+  // for tuning. Off by default; opt in with PLT_SCALER_DASHBOARD_API_ENABLED=true.
   const algorithmVersion = app.env.PLT_SCALER_ALGORITHM_VERSION
   if (algorithmVersion !== 'v2') return
+  if (!app.env.PLT_SCALER_DASHBOARD_API_ENABLED) return
+
+  app.log.warn('[scaler] dashboard-api routes enabled — debug surface, do not enable in production')
 
   const controlPlaneUrl = app.env.PLT_CONTROL_PLANE_URL
 
@@ -80,6 +84,31 @@ module.exports = async function (app) {
     }
   })
 
+  app.get('/api/apps/:appId/count', {
+    schema: {
+      params: {
+        type: 'object',
+        properties: {
+          appId: { type: 'string' }
+        },
+        required: ['appId']
+      }
+    },
+    handler: async (req, reply) => {
+      const controller = await app.getApplicationController(req.params.appId)
+      if (!controller) throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(req.params.appId)
+      const snapshot = await app.signalScalerExecutor.predictor.getAppCountSnapshot(
+        req.params.appId,
+        controller.controllerId
+      )
+      if (snapshot === null) {
+        reply.code(404)
+        return { error: 'not found' }
+      }
+      return snapshot
+    }
+  })
+
   app.get('/api/apps/:appId/services/:serviceId/algorithm/metrics', {
     schema: {
       params: {
@@ -119,9 +148,15 @@ module.exports = async function (app) {
     if (events.length === 0) return null
 
     const event = events[0]
-    const metricSnapshots = await app.platformatic.entities.metricSnapshot.find({
-      where: { scaleEventId: { eq: event.id } }
-    })
+    const [metricSnapshots, countSnapshots] = await Promise.all([
+      app.platformatic.entities.metricSnapshot.find({
+        where: { scaleEventId: { eq: event.id } }
+      }),
+      app.platformatic.entities.countSnapshot.find({
+        where: { scaleEventId: { eq: event.id } },
+        limit: 1
+      })
+    ])
 
     // Reconstruct the shape the dashboard expects
     const snapshots = {}
@@ -137,7 +172,8 @@ module.exports = async function (app) {
       to: event.replicas,
       triggerService: event.triggerService,
       triggerMetric: event.triggerMetric,
-      snapshots
+      snapshots,
+      countSnapshot: countSnapshots[0]?.data ?? null
     }
   }
 

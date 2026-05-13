@@ -35,6 +35,7 @@ const schema = {
     PLT_MACHINIST_PROVIDER: { type: 'string', default: 'k8s' },
     PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1', enum: ['v1', 'v2'] },
     PLT_SCALER_SCALING_DISABLED: { type: 'boolean', default: false },
+    PLT_SCALER_DASHBOARD_API_ENABLED: { type: 'boolean', default: false },
     PLT_ICC_SESSION_SECRET: { type: 'string' },
 
     // LoadPredictor (v2) - Global config

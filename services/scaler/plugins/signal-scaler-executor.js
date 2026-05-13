@@ -258,6 +258,16 @@ class SignalScalerExecutor {
     }
   }
 
+  async #saveCountSnapshot (scaleEvent, countSnapshot) {
+    await this.app.platformatic.entities.countSnapshot.insert({
+      inputs: [{
+        scaleEventId: scaleEvent.id,
+        applicationId: scaleEvent.applicationId,
+        data: countSnapshot
+      }]
+    })
+  }
+
   #getAppState (appId, controllerId) {
     const key = `${appId}:${controllerId}`
     let state = this.#appStates.get(key)
@@ -297,9 +307,15 @@ class SignalScalerExecutor {
     const targetPodsCount = controller.replicas ?? 1
     const scale = async (targetReplicas, options = {}) => {
       const result = await this.executeScaling(appId, targetReplicas, controller, options)
-      if (result?.scaleEvent && options.snapshots) {
-        await this.#saveMetricSnapshots(result.scaleEvent, options.snapshots)
+      if (!result?.scaleEvent) return
+      const writes = []
+      if (options.snapshots) {
+        writes.push(this.#saveMetricSnapshots(result.scaleEvent, options.snapshots))
       }
+      if (options.countSnapshot) {
+        writes.push(this.#saveCountSnapshot(result.scaleEvent, options.countSnapshot))
+      }
+      if (writes.length > 0) await Promise.all(writes)
     }
 
     const processed = await this.predictor.checkForPendingBatches(appId, controllerId, targetPodsCount, scale)
