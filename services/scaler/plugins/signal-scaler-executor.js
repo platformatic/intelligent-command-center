@@ -9,6 +9,7 @@ class SignalScalerExecutor {
     this.app = app
 
     const globalConfig = {
+      debug: app.env.PLT_SCALER_DASHBOARD_API_ENABLED === true,
       reconnectTimeoutMs: Number(app.env.PLT_SIGNALS_SCALER_RECONNECT_TIMEOUT_MS),
       readinessDelayMs: Number(app.env.PLT_SIGNALS_SCALER_READINESS_DELAY_MS),
       horizontalTrendThreshold: Number(app.env.PLT_SIGNALS_SCALER_HORIZONTAL_TREND_THRESHOLD),
@@ -187,7 +188,7 @@ class SignalScalerExecutor {
       const result = await this.app.updateControllerReplicas(
         applicationId,
         targetReplicas,
-        'Signal Scaler predictive scaling',
+        options.reason,
         controller,
         options
       )

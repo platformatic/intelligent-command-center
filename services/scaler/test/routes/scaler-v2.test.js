@@ -142,14 +142,14 @@ test('GET /api/v2/application/:appId/service/:serviceId/metrics returns metric s
     initTimeoutMs: 30000,
     horizonMs: 36000,
     threshold: 0.75,
-    prediction: [{ timestamp: now, avg: 0.5, sum: 0.5 }]
+    prediction: [{ timestamp: now, avg: 0.5 }]
   }
   const heapBlob = {
     now,
     initTimeoutMs: 30000,
     horizonMs: 36000,
     threshold: 250,
-    prediction: [{ timestamp: now, avg: 100, sum: 100 }]
+    prediction: [{ timestamp: now, avg: 100 }]
   }
   await predictor.store.addService(applicationId, controllerId, deploymentId, serviceId)
   await predictor.store.saveMetricPrediction(applicationId, controllerId, serviceId, deploymentId, 'elu', eluBlob, 60000)
@@ -166,8 +166,9 @@ test('GET /api/v2/application/:appId/service/:serviceId/metrics returns metric s
   assert.strictEqual(body.elu.threshold, 0.75)
   assert.strictEqual(body.heap.threshold, 250)
   assert.strictEqual(body.elu.prediction[0].avg, 0.5)
-  // count must not leak into per-service prediction points
+  // count and sum must not appear in per-service prediction points
   assert.strictEqual(body.elu.prediction[0].count, undefined)
+  assert.strictEqual(body.elu.prediction[0].sum, undefined)
 })
 
 test('GET /api/v2/application/:appId/service/:serviceId/metrics omits missing metric', async (t) => {
@@ -217,7 +218,7 @@ test('GET /api/v2/application/:appId/service/:serviceId/metrics omits missing me
     initTimeoutMs: 30000,
     horizonMs: 36000,
     threshold: 0.75,
-    prediction: [{ timestamp: now, avg: 0.5, sum: 0.5 }]
+    prediction: [{ timestamp: now, avg: 0.5 }]
   }
   await predictor.store.addService(applicationId, controllerId, deploymentId, serviceId)
   await predictor.store.saveMetricPrediction(applicationId, controllerId, serviceId, deploymentId, 'elu', eluBlob, 60000)

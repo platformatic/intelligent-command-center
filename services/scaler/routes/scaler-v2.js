@@ -21,7 +21,12 @@ const metricSnapshotSchema = {
         type: 'object',
         properties: {
           timestamp: { type: 'integer' },
-          avg: { type: 'number' }
+          avg: { type: 'number' },
+          // Debug fields, present only when PLT_SCALER_DASHBOARD_API_ENABLED=true.
+          podsCount: { type: 'integer', minimum: 0 },
+          stableSum: { type: 'number' },
+          stablePodsCount: { type: 'number' },
+          smoothedSum: { type: 'number' }
         },
         required: ['timestamp', 'avg'],
         additionalProperties: false
