@@ -22,6 +22,7 @@ class SignalScalerExecutor {
       horizonMultiplier: Number(app.env.PLT_SIGNALS_SCALER_HORIZON_MULTIPLIER),
       minHorizonMs: Number(app.env.PLT_SIGNALS_SCALER_MIN_HORIZON_MS),
       maxHorizonMs: Number(app.env.PLT_SIGNALS_SCALER_MAX_HORIZON_MS),
+      liveMetricCount: Number(app.env.PLT_SIGNALS_SCALER_LIVE_METRIC_COUNT),
       initTimeout: {
         windowSize: Number(app.env.PLT_SIGNALS_SCALER_INIT_TIMEOUT_WINDOW_SIZE),
         stepRate: Number(app.env.PLT_SIGNALS_SCALER_INIT_TIMEOUT_STEP_RATE),

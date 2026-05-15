@@ -331,4 +331,48 @@ module.exports = async function (app) {
       return response
     }
   })
+
+  app.get('/api/v2/application/:appId/pods/health', {
+    schema: {
+      params: {
+        type: 'object',
+        properties: {
+          appId: { type: 'string', format: 'uuid' }
+        },
+        required: ['appId']
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            servicesCount: { type: 'integer', minimum: 0 },
+            pods: {
+              type: 'object',
+              additionalProperties: {
+                type: 'object',
+                properties: {
+                  startedAt: { type: 'integer' },
+                  unhealthyServicesCount: { type: 'integer', minimum: 0 }
+                },
+                required: ['startedAt', 'unhealthyServicesCount'],
+                additionalProperties: false
+              }
+            }
+          },
+          required: ['servicesCount', 'pods'],
+          additionalProperties: false
+        }
+      }
+    },
+    handler: async (req) => {
+      const controller = await app.getApplicationController(req.params.appId)
+      if (!controller) {
+        throw new errors.APPLICATION_CONTROLLER_NOT_FOUND(req.params.appId)
+      }
+      return app.signalScalerExecutor.predictor.getPodsHealth(
+        req.params.appId,
+        controller.controllerId
+      )
+    }
+  })
 }

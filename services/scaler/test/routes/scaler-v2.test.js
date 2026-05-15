@@ -592,6 +592,116 @@ test('GET /api/v2/application/:appId/service/:serviceId/instances/metrics return
   assert.strictEqual(res.statusCode, 404)
 })
 
+test('GET /api/v2/application/:appId/pods/health counts unhealthy services per pod', async (t) => {
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const controllerId = 'controller-id'
+  const namespace = 'platformatic'
+  const podId = 'pod-id'
+
+  const server = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
+  t.after(async () => {
+    await server.close()
+  })
+
+  await startMachinist(t, {
+    getPodController: () => ({
+      name: controllerId,
+      kind: 'Controller',
+      apiVersion: 'v1',
+      replicas: 1
+    }),
+    setPodController: () => {}
+  })
+
+  {
+    const { statusCode } = await server.inject({
+      method: 'POST',
+      url: '/controllers',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ applicationId, deploymentId, namespace, machineId: podId })
+    })
+    assert.strictEqual(statusCode, 200)
+  }
+
+  const predictor = server.signalScalerExecutor.predictor
+  const now = Date.now()
+  const startedAt = now - 60000
+
+  await predictor.registerInstance(
+    applicationId, controllerId, deploymentId, podId, 'inst-1',
+    startedAt, startedAt
+  )
+
+  // makeServiceSamples uses thresholds: elu=0.75, heap=250 (saved to store automatically).
+  // svc-cool: below both thresholds; svc-hot-elu: ELU above; svc-hot-heap: heap above.
+  await predictor.saveInstanceMetrics({
+    applicationId,
+    controllerId,
+    podId,
+    instanceId: 'inst-1',
+    imageId: deploymentId,
+    services: {
+      'svc-cool': makeServiceSamples(0.4, 100),
+      'svc-hot-elu': makeServiceSamples(0.9, 100),
+      'svc-hot-heap': makeServiceSamples(0.4, 400)
+    },
+    batchStartedAt: now
+  })
+
+  const res = await server.inject({
+    method: 'GET',
+    url: `/api/v2/application/${applicationId}/pods/health`
+  })
+  assert.strictEqual(res.statusCode, 200)
+  const body = res.json()
+  assert.strictEqual(body.servicesCount, 3)
+  assert.deepStrictEqual(body.pods[podId], {
+    startedAt,
+    unhealthyServicesCount: 2
+  })
+})
+
+test('GET /api/v2/application/:appId/pods/health returns empty pods when no instances', async (t) => {
+  const applicationId = randomUUID()
+  const deploymentId = randomUUID()
+  const controllerId = 'controller-id'
+  const namespace = 'platformatic'
+  const podId = 'pod-id'
+
+  const server = await buildServer(t, { PLT_SCALER_ALGORITHM_VERSION: 'v2' })
+  t.after(async () => {
+    await server.close()
+  })
+
+  await startMachinist(t, {
+    getPodController: () => ({
+      name: controllerId,
+      kind: 'Controller',
+      apiVersion: 'v1',
+      replicas: 1
+    }),
+    setPodController: () => {}
+  })
+
+  {
+    const { statusCode } = await server.inject({
+      method: 'POST',
+      url: '/controllers',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ applicationId, deploymentId, namespace, machineId: podId })
+    })
+    assert.strictEqual(statusCode, 200)
+  }
+
+  const res = await server.inject({
+    method: 'GET',
+    url: `/api/v2/application/${applicationId}/pods/health`
+  })
+  assert.strictEqual(res.statusCode, 200)
+  assert.deepStrictEqual(res.json(), { servicesCount: 0, pods: {} })
+})
+
 test('GET /api/v2/application/:appId/count returns 404 when no snapshot exists', async (t) => {
   const applicationId = randomUUID()
   const deploymentId = randomUUID()

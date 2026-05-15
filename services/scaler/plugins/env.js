@@ -59,6 +59,7 @@ const schema = {
     PLT_SIGNALS_SCALER_SCALE_UP_K: { type: 'number', default: 1.5 },
     PLT_SIGNALS_SCALER_SCALE_UP_MARGIN: { type: 'number', default: 0.1 },
     PLT_SIGNALS_SCALER_SCALE_DOWN_MARGIN: { type: 'number', default: 0.3 },
+    PLT_SIGNALS_SCALER_LIVE_METRIC_COUNT: { type: 'number', default: 3 },
 
     // LoadPredictor - Default app config
     PLT_SIGNALS_SCALER_MAX_SCALE_UP_STEP: { type: 'number', default: 4 },
