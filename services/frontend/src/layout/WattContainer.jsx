@@ -12,6 +12,7 @@ function WattContainer ({ children }) {
   const { application } = useLoaderData()
   const navigation = useNavigation()
   const { config } = useICCStore()
+  const isScalerV2 = config['scaler-algorithm-version'] === 'v2'
 
   if (navigation.state === 'loading') {
     return (
@@ -65,7 +66,7 @@ function WattContainer ({ children }) {
             disabled: (application?.deployments?.length ?? 0) === 0
           },
           {
-            link: generatePath('autoscaler', { applicationId: application.id }),
+            link: generatePath(isScalerV2 ? 'autoscaler-v2' : 'autoscaler', { applicationId: application.id }),
             label: 'Autoscaler',
             iconName: 'HorizontalPodAutoscalerIcon',
             disabled: (application?.deployments?.length ?? 0) === 0

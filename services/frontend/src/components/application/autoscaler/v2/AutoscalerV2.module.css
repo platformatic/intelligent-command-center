@@ -1,0 +1,67 @@
+.autoscalerContainer {
+  @apply w-full h-full overflow-hidden bg-rich-black;
+}
+
+.autoscalerContent {
+  @apply p-4 flex flex-col gap-y-4 h-full;
+}
+
+.autoscalerTabContainer {
+  @apply bg-rich-black flex flex-col gap-y-2 w-full flex-1 min-h-0 overflow-hidden;
+}
+
+.autoscalerTabContent {
+  @apply flex flex-col gap-y-0 flex-1 min-h-0 overflow-hidden;
+}
+
+.customTab {
+  @apply min-w-[unset] mx-5;
+}
+
+.settingsButton {
+  @apply flex items-center justify-center w-8 h-8 rounded-md border border-white/30 bg-transparent;
+}
+
+.tabContent {
+  @apply w-full py-2 flex flex-col gap-y-3 flex-1 min-h-0;
+}
+
+.liveTabLayout {
+  @apply flex items-stretch w-full flex-1 min-h-0 gap-3;
+}
+
+.liveCharts {
+  @apply flex-[2_2_0] min-w-0 min-h-0 flex flex-col gap-2;
+}
+
+.growChart {
+  @apply flex-1 min-h-0;
+}
+
+.liveSidePanel {
+  @apply flex-1 min-w-0 min-h-0 self-stretch;
+}
+
+.chartTitle {
+  @apply flex items-center;
+}
+
+.noService {
+  @apply flex items-center justify-center py-8;
+}
+
+.bannerWarn {
+  @apply shrink-0 self-start rounded px-3 py-1.5 bg-[#2A1500] border border-[#92400E]/50;
+}
+
+.bannerWarnText {
+  @apply text-[#F59E0B] text-[11px] font-semibold tracking-widest;
+}
+
+.underConstruction {
+  @apply flex-1 flex flex-col items-center justify-center gap-2;
+}
+
+.underConstructionText {
+  @apply text-[#F59E0B] text-2xl font-semibold tracking-widest;
+}

@@ -1,0 +1,87 @@
+.container {
+  @apply flex flex-col gap-3 h-full bg-black-russian rounded p-[14px] overflow-y-auto;
+}
+
+.heading {
+  @apply shrink-0;
+}
+
+.metaRow {
+  @apply flex flex-row items-center justify-between gap-2.5 shrink-0;
+}
+
+.podsRow {
+  @apply flex flex-row items-center gap-1.5;
+}
+
+.serviceRow {
+  @apply flex flex-row items-center gap-1.5 flex-wrap shrink-0;
+}
+
+.section {
+  @apply flex flex-col gap-2 shrink-0;
+}
+
+.sectionTitle {
+  @apply shrink-0;
+}
+
+.sectionTitleRow {
+  @apply flex flex-row justify-between items-center;
+}
+
+.signalCards {
+  @apply grid grid-cols-2 gap-2;
+}
+
+.signalCard {
+  @apply bg-white/5 rounded p-2.5 flex flex-col gap-1.5;
+}
+
+.signalHeader {
+  @apply flex flex-row justify-between items-center;
+}
+
+.signalValue {
+  @apply flex flex-row items-baseline gap-1;
+}
+
+.progressTrack {
+  @apply h-1.5 rounded-full bg-white/10 overflow-hidden;
+}
+
+.progressFill {
+  @apply h-full rounded-full transition-all duration-300;
+}
+
+.trendRow {
+  @apply shrink-0;
+}
+
+.metricToggle {
+  @apply flex flex-row gap-1;
+}
+
+.toggleBtn {
+  @apply px-2 py-0.5 rounded border border-white/20 cursor-pointer bg-transparent;
+}
+
+.toggleBtnActive {
+  @apply bg-white/10 border-white/40;
+}
+
+.chartWrapper {
+  @apply flex-1 min-h-[180px] relative;
+}
+
+.svg {
+  @apply w-full h-full block overflow-visible;
+}
+
+.forecastSummary {
+  @apply mt-1 shrink-0;
+}
+
+.contextText {
+  @apply leading-relaxed;
+}

@@ -13,8 +13,10 @@ import ExperimentalTag from '@platformatic/ui-components/src/components/Experime
 import DeploymentsDropdown from '../detail/deployments/DeploymentsDropdown'
 import NotLatestDeploymentBanner from './NotLatestDeploymentBanner'
 import { getVersionRegistryByApplicationId } from '~/api'
+import useICCStore from '~/useICCStore'
 
 export default function Autoscaler () {
+  const { config } = useICCStore()
   const { application } = useRouteLoaderData('appRoot')
   const [keyTabSelected, setKeyTabSelected] = useState('pods')
   const [versions, setVersions] = useState(
@@ -83,21 +85,23 @@ export default function Autoscaler () {
           </div>
 
           <div className={`${commonStyles.tinyFlexRow}`}>
-            <DeploymentsDropdown
-              deployments={versions.filter(v => v.status !== 'expired')}
-              value={selectedVersionLabel}
-              onChange={(label) => {
-                setSelectedVersionLabel(label)
-                setSearchParams((prev) => {
-                  const next = new URLSearchParams(prev)
-                  if (label) next.set('versionLabel', label)
-                  else next.delete('versionLabel')
-                  return next
-                })
-              }}
-              valueByVersionLabel
-              placeholder='Select version'
-            />
+            {config['skew-protection'] && (
+              <DeploymentsDropdown
+                deployments={versions.filter(v => v.status !== 'expired')}
+                value={selectedVersionLabel}
+                onChange={(label) => {
+                  setSelectedVersionLabel(label)
+                  setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev)
+                    if (label) next.set('versionLabel', label)
+                    else next.delete('versionLabel')
+                    return next
+                  })
+                }}
+                valueByVersionLabel
+                placeholder='Select version'
+              />
+            )}
           </div>
         </div>
 

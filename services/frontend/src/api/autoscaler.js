@@ -125,3 +125,92 @@ export async function getPodSignals (applicationId, podId) {
     return { signals: [], applicationId }
   }
 }
+
+export async function getAutoscalerV2Config (applicationId) {
+  return callApi('scaler', `/applications/${applicationId}/autoscaler-v2-config`, 'GET')
+}
+
+export async function getAppCount (appId) {
+  try {
+    return await callApi('scaler', `/api/v2/application/${appId}/count`)
+  } catch {
+    return null
+  }
+}
+
+export async function getAppServices (appId) {
+  try {
+    const result = await callApi('scaler', `/api/v2/application/${appId}/services`)
+    return Array.isArray(result) ? result : []
+  } catch {
+    return []
+  }
+}
+
+export async function getServiceMetrics (appId, serviceId) {
+  try {
+    return await callApi('scaler', `/api/v2/application/${appId}/service/${serviceId}/metrics`)
+  } catch {
+    return null
+  }
+}
+
+export async function getServiceInstanceMetrics (appId, serviceId) {
+  try {
+    return await callApi('scaler', `/api/v2/application/${appId}/service/${serviceId}/instances/metrics`)
+  } catch {
+    return null
+  }
+}
+
+export async function getScalingEventDetail (appId, eventId) {
+  try {
+    return await callApi('scaler', `/api/apps/${appId}/algorithm/scaling-event/${eventId}`)
+  } catch {
+    return null
+  }
+}
+
+export async function getMetricSnapshots (eventId) {
+  try {
+    const result = await callApi('scaler', `/metricSnapshots?where.scaleEventId.eq=${eventId}`)
+    return Array.isArray(result) ? result : []
+  } catch {
+    return []
+  }
+}
+
+export async function getPodsHealth (appId) {
+  try {
+    return await callApi('scaler', `/api/v2/application/${appId}/pods/health`)
+  } catch {
+    return null
+  }
+}
+
+export async function getScalingEvents (appId) {
+  try {
+    const query = new URLSearchParams()
+    query.set('where.applicationId.eq', appId)
+    query.set('orderBy.createdAt.desc', '1')
+    const result = await callApi('scaler', `/scaleEvents?${query.toString()}`)
+    const events = Array.isArray(result) ? result : []
+    return events
+      .filter(e => e.reason !== 'Initial controller creation')
+      .map(e => ({
+        id: e.id,
+        direction: e.direction,
+        serviceName: e.triggerService ?? null,
+        allServices: e.triggerService === null,
+        description: e.reason ?? '',
+        metrics: {
+          elu: null,
+          heap: null,
+          pods: { from: e.replicas - e.replicasDiff, to: e.replicas }
+        },
+        timestamp: new Date(e.createdAt).getTime()
+      }))
+  } catch {
+    return []
+  }
+}

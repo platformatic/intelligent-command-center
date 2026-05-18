@@ -1,0 +1,24 @@
+.root {
+  @apply flex flex-col gap-2 w-full h-full overflow-y-auto pr-1;
+  scrollbar-gutter: stable;
+}
+
+.chartItem {
+  @apply flex-[1_0_200px] min-w-0;
+}
+
+.chartWrapper {
+  @apply w-full h-full bg-black-russian rounded overflow-hidden;
+}
+
+.svg {
+  @apply block w-full h-full;
+}
+
+.placeholder {
+  @apply w-full h-full flex items-center justify-center;
+}
+
+.placeholderText {
+  @apply text-xs text-[#66696D];
+}

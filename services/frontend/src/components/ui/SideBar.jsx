@@ -17,6 +17,8 @@ function renderButton (item) {
     (item.link === 'scheduled-jobs' && location.pathname.includes('scheduled-jobs')) || // for scheduled jobs detail page
     (location.pathname.endsWith(item.link) && location.pathname !== item.link && item.link !== '') // check if the link is a subpath
 
+  const iconColor = item.iconColor || WHITE
+
   return (
     <NavLink to={`${item.link}`}>
       <div
@@ -27,7 +29,7 @@ function renderButton (item) {
           paddingClass={commonStyles.buttonSquarePadding}
           color={WHITE}
           backgroundColor={TRANSPARENT}
-          platformaticIcon={{ size: MEDIUM, iconName: item.iconName, color: WHITE }}
+          platformaticIcon={{ size: MEDIUM, iconName: item.iconName, color: iconColor }}
           selected={isSelected}
           disabled={item.disabled || false}
           bordered={false}

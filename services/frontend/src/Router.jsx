@@ -31,6 +31,7 @@ import WattWorkflows from './components/workflows/WattWorkflows'
 import ScheduledJobs from './components/scheduled-jobs/ScheduledJobs'
 import ScheduledJobDetail from './components/scheduled-jobs/ScheduledJobDetail'
 import Autoscaler from './components/application/autoscaler/Autoscaler'
+import AutoscalerV2 from './components/application/autoscaler/v2/AutoscalerV2'
 import ApplicationSettings from './components/application/settings/Settings'
 import NotFound from './pages/NotFound'
 import ServiceDetails from './components/application/services/ServiceDetails'
@@ -323,6 +324,11 @@ export function getRouter () {
           },
           path: 'autoscaler',
           element: <Autoscaler />
+        },
+        {
+          id: 'watt/autoscaler-v2',
+          path: 'autoscaler-v2',
+          element: <AutoscalerV2 />
         },
         {
           id: 'watt/settings',

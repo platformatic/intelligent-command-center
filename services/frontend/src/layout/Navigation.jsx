@@ -81,6 +81,9 @@ function getApplicationPageBreadcrumbs (routeId, application, otherParams) {
     case 'watt/autoscaler':
       output.push({ label: 'Autoscaler' })
       break
+    case 'watt/autoscaler-v2':
+      output.push({ label: 'Autoscaler' })
+      break
     case 'watt/settings':
       output.push({ label: 'Settings' })
       break

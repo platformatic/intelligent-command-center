@@ -17,7 +17,7 @@ test('k8s-sync plugin syncControllerData updates controllers and creates scale e
     input: {
       applicationId,
       deploymentId,
-      controllerId: controllerId,
+      controllerId,
       namespace,
       providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
@@ -66,7 +66,7 @@ test('k8s-sync plugin handles no replica changes', async (t) => {
     input: {
       applicationId,
       deploymentId,
-      controllerId: controllerId,
+      controllerId,
       namespace,
       providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 3
@@ -107,7 +107,7 @@ test('k8s-sync plugin handles scale down scenario', async (t) => {
     input: {
       applicationId,
       deploymentId,
-      controllerId: controllerId,
+      controllerId,
       namespace,
       providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 5
@@ -153,7 +153,7 @@ test('k8s-sync plugin handles machinist API failures gracefully', async (t) => {
     input: {
       applicationId,
       deploymentId,
-      controllerId: controllerId,
+      controllerId,
       namespace,
       providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 2
@@ -569,7 +569,7 @@ test('k8s-sync plugin uses custom label names from environment variables', async
     input: {
       applicationId,
       deploymentId,
-      controllerId: controllerId,
+      controllerId,
       namespace,
       providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 3
@@ -642,7 +642,7 @@ test('k8s-sync plugin records activity when scaler config changes', async (t) =>
     input: {
       applicationId,
       deploymentId,
-      controllerId: controllerId,
+      controllerId,
       namespace,
       providerMetadata: { kind: 'Deployment', apiVersion: 'apps/v1' },
       replicas: 3

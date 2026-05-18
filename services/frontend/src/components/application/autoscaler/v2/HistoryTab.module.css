@@ -1,0 +1,72 @@
+.container {
+  @apply flex flex-col gap-3 flex-1 min-h-0 h-full;
+}
+
+.filters {
+  @apply flex items-center justify-between gap-3 shrink-0;
+}
+
+.filterGroup {
+  @apply flex flex-row items-center gap-2;
+}
+
+.filterLabel {
+  @apply uppercase tracking-[0.06em] whitespace-nowrap;
+}
+
+.filterLabel::after {
+  content: ':';
+}
+
+.dropdown {
+  @apply bg-black-russian border border-white/20 rounded text-[#E5E6E7] text-xs py-[5px] px-2.5 outline-none cursor-pointer;
+}
+
+.dropdown:focus {
+  @apply border-white/40;
+}
+
+.directionFilter {
+  @apply flex gap-1.5;
+}
+
+.filterBtn {
+  @apply py-[5px] px-3.5 bg-transparent border border-white/20 rounded text-white/50 cursor-pointer transition-colors duration-[120ms];
+}
+
+.filterBtn:hover {
+  @apply border-white/40 text-white;
+}
+
+.filterBtnActive {
+  @apply border-white/50 text-white;
+}
+
+.columns {
+  @apply flex gap-3 flex-1 min-h-0;
+}
+
+.eventList {
+  @apply flex-1 min-w-0 min-h-0 overflow-hidden flex flex-col;
+}
+
+.eventItems {
+  @apply flex-1 min-h-0 overflow-x-hidden overflow-y-auto pr-2;
+  scrollbar-gutter: stable;
+}
+
+.paginatorRow {
+  @apply shrink-0 pt-2 border-t border-white/[0.07];
+}
+
+.detailPanel {
+  @apply flex-[2_2_0] min-h-0;
+}
+
+.detailEmpty {
+  @apply bg-black-russian rounded h-full flex items-center justify-center;
+}
+
+.empty {
+  @apply py-6 text-center;
+}

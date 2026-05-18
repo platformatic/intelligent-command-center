@@ -1,0 +1,31 @@
+.card {
+  @apply flex flex-col gap-2 bg-black-russian rounded p-2.5 min-w-0 flex-1;
+}
+
+.header {
+  @apply flex items-baseline justify-between gap-2;
+}
+
+.label {
+  @apply text-[10px] text-[#66696D] tracking-[0.22em] uppercase;
+}
+
+.valueRow {
+  @apply flex items-baseline gap-0.5;
+}
+
+.value {
+  @apply text-xl font-light text-white leading-none;
+}
+
+.unit {
+  @apply text-[11px] text-[#66696D] leading-none;
+}
+
+.chartArea {
+  @apply w-full h-12;
+}
+
+.svg {
+  @apply w-full h-full block;
+}

@@ -74,7 +74,7 @@ const schema = {
     PLT_SIGNALS_SCALER_COOLDOWN_SCALE_DOWN_AFTER_SCALE_DOWN_MS: { type: 'number', default: 60 * 1000 },
 
     // LoadPredictor - ELU config
-    PLT_SIGNALS_SCALER_ELU_WINDOW_MS: { type: 'number', default: 60000 },
+    PLT_SIGNALS_SCALER_ELU_WINDOW_MS: { type: 'number', default: 90000 },
     PLT_SIGNALS_SCALER_ELU_SAMPLE_INTERVAL: { type: 'number', default: 1000 },
     PLT_SIGNALS_SCALER_ELU_REDISTRIBUTION_MS: { type: 'number', default: 30000 },
     PLT_SIGNALS_SCALER_ELU_ALPHA_UP: { type: 'number', default: 0.2 },
@@ -84,7 +84,7 @@ const schema = {
     PLT_SIGNALS_SCALER_ELU_PRECISION: { type: 'number', default: 2 },
 
     // LoadPredictor - Heap config
-    PLT_SIGNALS_SCALER_HEAP_WINDOW_MS: { type: 'number', default: 60000 },
+    PLT_SIGNALS_SCALER_HEAP_WINDOW_MS: { type: 'number', default: 90000 },
     PLT_SIGNALS_SCALER_HEAP_SAMPLE_INTERVAL: { type: 'number', default: 1000 },
     PLT_SIGNALS_SCALER_HEAP_REDISTRIBUTION_MS: { type: 'number', default: 30000 },
     PLT_SIGNALS_SCALER_HEAP_ALPHA_UP: { type: 'number', default: 0.2 },

@@ -1,0 +1,84 @@
+.container {
+  @apply flex flex-1 min-h-0 gap-3;
+}
+
+.sidebar {
+  @apply flex flex-col gap-3 min-h-0 flex-[0_0_25%];
+}
+
+.middle {
+  @apply min-h-0 overflow-hidden flex-[0_0_50%];
+}
+
+.sidebarTitle {
+  @apply shrink-0;
+}
+
+.searchPadding {
+  @apply px-2 py-1 text-white;
+}
+
+.searchInput {
+  @apply text-xs;
+}
+
+.searchInput::placeholder {
+  @apply text-white/30;
+}
+
+.serviceList {
+  @apply flex-1 min-h-0 overflow-y-auto flex flex-col pr-1;
+  scrollbar-gutter: stable;
+}
+
+.serviceItem {
+  @apply w-full text-left px-3 py-2 rounded cursor-pointer bg-transparent border-0 transition-colors duration-[120ms] flex flex-col gap-1;
+}
+
+.serviceItem:hover {
+  @apply bg-white/[0.06];
+}
+
+.serviceItemSelected {
+  @apply bg-black-russian;
+}
+
+.serviceItemHeader {
+  @apply flex items-center justify-between gap-2;
+}
+
+.serviceItemName {
+  @apply flex-1 min-w-0 truncate;
+}
+
+.overloadDot {
+  @apply w-2 h-2 rounded-full bg-[#DD3333] shrink-0;
+}
+
+.serviceMetaOverloaded {
+  @apply flex flex-col gap-1;
+}
+
+.predictedLine {
+  @apply text-[11px] text-white/60;
+}
+
+.predictedValue {
+  @apply text-[#FEB928];
+}
+
+.metricText {
+  @apply text-[11px] text-white/50;
+}
+
+.rightPanel {
+  @apply flex flex-col min-h-0 flex-[0_0_25%];
+}
+
+.emptyContent {
+  @apply flex-1 min-h-0 bg-black-russian rounded;
+}
+
+.empty {
+  @apply py-4 text-center;
+}

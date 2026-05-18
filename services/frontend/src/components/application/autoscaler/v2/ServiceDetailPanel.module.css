@@ -1,0 +1,36 @@
+.panel {
+  @apply flex-1 min-h-0 flex flex-col gap-3;
+}
+
+.title {
+  @apply shrink-0;
+}
+
+.podList {
+  @apply flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 pr-1;
+  scrollbar-gutter: stable;
+}
+
+.podRow {
+  @apply shrink-0 bg-black-russian rounded p-3 flex flex-col gap-2;
+}
+
+.podHeader {
+  @apply flex items-center justify-between;
+}
+
+.statusDot {
+  @apply w-2.5 h-2.5 rounded-full shrink-0;
+}
+
+.statusGreen {
+  @apply bg-[#2DCA73];
+}
+
+.statusRed {
+  @apply bg-[#DD3333];
+}
+
+.charts {
+  @apply flex gap-2;
+}

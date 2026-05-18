@@ -1,0 +1,55 @@
+.panel {
+  @apply flex flex-col gap-2 w-full min-w-0 min-h-0 h-full;
+}
+
+.statsRow {
+  @apply flex gap-2;
+}
+
+.statCard {
+  @apply flex-1 min-w-0 bg-black-russian rounded p-3 flex flex-col gap-2;
+}
+
+.cardBody {
+  @apply flex flex-col gap-1 flex-1 items-center justify-center;
+}
+
+.loading {
+  @apply text-xs text-[#66696D];
+}
+
+.podsMeta {
+  @apply flex gap-3;
+}
+
+.initValue {
+  @apply block text-center;
+}
+
+.mathRow {
+  @apply flex items-center gap-1 flex-wrap;
+}
+
+.historySection {
+  @apply flex-1 min-h-0 bg-black-russian rounded p-3 flex flex-col gap-2 overflow-hidden;
+}
+
+.historyHeader {
+  @apply flex items-center gap-1.5;
+}
+
+.historyBody {
+  @apply flex-1 min-h-0 flex flex-col overflow-y-auto;
+}
+
+.emptyState {
+  @apply flex-1 flex flex-col items-center justify-center gap-2;
+}
+
+.viewHistoryButton {
+  @apply flex items-center gap-1 ml-auto py-1 px-2.5 bg-transparent border border-white/80 rounded cursor-pointer transition-colors duration-[150ms];
+}
+
+.viewHistoryButton:hover {
+  @apply bg-white/[0.08];
+}

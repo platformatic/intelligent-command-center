@@ -1,0 +1,15 @@
+.chartWrapper {
+  @apply relative w-full bg-black-russian rounded;
+}
+
+.svg {
+  @apply w-full h-[240px] block overflow-visible;
+}
+
+.placeholder {
+  @apply w-full h-[240px] flex items-center justify-center bg-black-russian rounded;
+}
+
+.placeholderText {
+  @apply text-xs text-[#66696D];
+}

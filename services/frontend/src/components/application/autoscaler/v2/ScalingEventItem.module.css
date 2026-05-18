@@ -1,0 +1,39 @@
+.eventItem {
+  @apply flex flex-col gap-1.5 py-2.5 border-b border-white/[0.07] min-w-0 overflow-hidden;
+}
+
+.eventItem:last-child {
+  @apply border-b-0;
+}
+
+.clickable {
+  @apply cursor-pointer rounded py-2.5 px-1.5 -mx-1.5 transition-colors duration-[120ms];
+}
+
+.clickable:hover {
+  @apply bg-white/[0.04];
+}
+
+.selected {
+  @apply bg-white/[0.07];
+}
+
+.eventHeader {
+  @apply flex items-center gap-2;
+}
+
+.eventTime {
+  @apply ml-auto whitespace-nowrap;
+}
+
+.eventDescription {
+  @apply m-0 leading-[1.4];
+}
+
+.eventMetrics {
+  @apply flex items-center justify-between gap-x-8 flex-wrap;
+}
+
+.metricSep {
+  @apply text-xs text-white/20;
+}
