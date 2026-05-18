@@ -23,7 +23,6 @@ const metricSnapshotSchema = {
           timestamp: { type: 'integer' },
           avg: { type: 'number' },
           // Debug fields, present only when PLT_SCALER_DASHBOARD_API_ENABLED=true.
-          podsCount: { type: 'integer', minimum: 0 },
           stableSum: { type: 'number' },
           stablePodsCount: { type: 'number' },
           smoothedSum: { type: 'number' }
@@ -47,9 +46,10 @@ const metricSnapshotSchema = {
     now: { type: 'integer' },
     initTimeoutMs: { type: 'integer' },
     horizonMs: { type: 'integer' },
-    threshold: { type: 'number' }
+    threshold: { type: 'number' },
+    trendDirection: { type: 'string', enum: ['up', 'horizontal', 'down'] }
   },
-  required: ['history', 'prediction', 'now', 'initTimeoutMs', 'horizonMs', 'threshold'],
+  required: ['history', 'prediction', 'now', 'initTimeoutMs', 'horizonMs', 'threshold', 'trendDirection'],
   additionalProperties: false
 }
 

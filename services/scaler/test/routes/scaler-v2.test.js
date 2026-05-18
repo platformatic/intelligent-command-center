@@ -142,6 +142,7 @@ test('GET /api/v2/application/:appId/service/:serviceId/metrics returns metric s
     initTimeoutMs: 30000,
     horizonMs: 36000,
     threshold: 0.75,
+    trendDirection: 'up',
     prediction: [{ timestamp: now, avg: 0.5 }]
   }
   const heapBlob = {
@@ -149,6 +150,7 @@ test('GET /api/v2/application/:appId/service/:serviceId/metrics returns metric s
     initTimeoutMs: 30000,
     horizonMs: 36000,
     threshold: 250,
+    trendDirection: 'horizontal',
     prediction: [{ timestamp: now, avg: 100 }]
   }
   await predictor.store.addService(applicationId, controllerId, deploymentId, serviceId)
@@ -218,6 +220,7 @@ test('GET /api/v2/application/:appId/service/:serviceId/metrics omits missing me
     initTimeoutMs: 30000,
     horizonMs: 36000,
     threshold: 0.75,
+    trendDirection: 'up',
     prediction: [{ timestamp: now, avg: 0.5 }]
   }
   await predictor.store.addService(applicationId, controllerId, deploymentId, serviceId)
