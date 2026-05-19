@@ -3,7 +3,7 @@ import React, { useEffect, useId, useRef, useState } from 'react'
 import { getServiceMetrics, getAppCount } from '~/api/autoscaler'
 import { scalerXDomain } from '~/components/metrics/chart_constants.js'
 import styles from './ServiceCharts.module.css'
-import { unitPluralUpper } from './unitLabel'
+import { unitSingular, unitPlural, unitPluralUpper } from './unitLabel'
 
 const L = 56 // left margin (y-axis label + ticks)
 const R = 12 // right margin
@@ -350,7 +350,7 @@ function draw (svgEl, data, config, width, height, chartId) {
     if (type === 'elu') return `${Math.round(v * 100)}%`
     if (type === 'heap') return `${Math.round(v)} MB`
     const n = Math.round(v)
-    return `${n} ${n === 1 ? 'pod' : 'pods'}`
+    return `${n} ${n === 1 ? unitSingular : unitPlural}`
   }
 
   g.append('rect')
