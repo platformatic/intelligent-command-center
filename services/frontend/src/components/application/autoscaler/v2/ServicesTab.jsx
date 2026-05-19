@@ -16,17 +16,33 @@ export default function ServicesTab ({ appId }) {
 
   useEffect(() => {
     if (!appId) return
-    getAppServices(appId).then(svcs => {
-      setServices(svcs)
-      if (svcs.length > 0) setSelectedService(svcs[0])
-    })
-  }, [appId])
+    let cancelled = false
 
-  useEffect(() => {
-    if (!selectedService) return
-    const id = setInterval(() => setTick(t => t + 1), REFRESH_INTERVAL_MS)
-    return () => clearInterval(id)
-  }, [selectedService])
+    // Initial load — auto-select first service
+    getAppServices(appId).then(svcs => {
+      if (cancelled) return
+      setServices(svcs)
+      setSelectedService(svcs[0] ?? null)
+    })
+
+    // Polling — refresh list and charts without resetting selection
+    const id = setInterval(async () => {
+      try {
+        const svcs = await getAppServices(appId)
+        if (cancelled) return
+        setServices(svcs)
+        setSelectedService(prev =>
+          prev !== null ? (svcs.find(s => s.id === prev.id) ?? prev) : prev
+        )
+        setTick(t => t + 1)
+      } catch { /* ignore */ }
+    }, REFRESH_INTERVAL_MS)
+
+    return () => {
+      cancelled = true
+      clearInterval(id)
+    }
+  }, [appId])
 
   const filtered = useMemo(() => {
     if (!search) return services
