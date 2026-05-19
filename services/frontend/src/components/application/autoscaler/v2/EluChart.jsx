@@ -88,7 +88,7 @@ function processData (allMetrics, services) {
     const serviceId = services[i]
     const pts = (metrics.elu.history ?? [])
       .map(d => ({ t: (d.timestamp - now) / 1000, value: d.avg ?? 0 }))
-      .filter(d => Number.isFinite(d.t) && Number.isFinite(d.value))
+      .filter(d => Number.isFinite(d.t) && Number.isFinite(d.value) && d.t <= 0)
 
     if (pts.length > 0) {
       lines[serviceId] = [...pts, { t: 0, value: pts.at(-1).value }]

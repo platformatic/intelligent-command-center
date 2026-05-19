@@ -207,7 +207,7 @@ function renderForecastChart (svgEl, data, metric, chartId, width, height) {
 
   // Decision line
   g.append('line')
-    .attr('x1', decisionX).attr('y1', -T + 4)
+    .attr('x1', decisionX).attr('y1', 0)
     .attr('x2', decisionX).attr('y2', iH)
     .attr('stroke', '#B2B4B6').attr('stroke-width', 1)
 
