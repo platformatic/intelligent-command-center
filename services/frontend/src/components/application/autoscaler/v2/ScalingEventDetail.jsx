@@ -117,9 +117,12 @@ function renderForecastChart (svgEl, data, metric, chartId, width, height) {
   const isElu = metric === 'elu'
   const scale = isElu ? 100 : 1
 
-  const histPts = history
+  const rawHistPts = history
     .map(d => ({ t: (d.timestamp - now) / 1000, v: d.avg * scale }))
-    .filter(d => Number.isFinite(d.t) && Number.isFinite(d.v))
+    .filter(d => Number.isFinite(d.t) && Number.isFinite(d.v) && d.t <= 0)
+  const histPts = rawHistPts.length > 0
+    ? [...rawHistPts, { t: 0, v: rawHistPts.at(-1).v }]
+    : rawHistPts
 
   const predPts = prediction
     .map(d => ({ t: (d.timestamp - now) / 1000, v: d.avg * scale }))

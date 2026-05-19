@@ -91,7 +91,7 @@ function processData (allMetrics, services) {
       .filter(d => Number.isFinite(d.t) && Number.isFinite(d.value))
 
     if (pts.length > 0) {
-      lines[serviceId] = pts
+      lines[serviceId] = [...pts, { t: 0, value: pts.at(-1).value }]
       const localMax = d3.max(pts, d => d.value)
       if (localMax > yMax) yMax = localMax
     }

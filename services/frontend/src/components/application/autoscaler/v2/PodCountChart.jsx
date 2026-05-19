@@ -7,7 +7,6 @@ import styles from './PodCountChart.module.css'
 const X_MARGIN = 56
 const Y_MARGIN = 20
 const BOTTOM_MARGIN = 30
-const HISTORY_WINDOW_S = 90
 
 export default function PodCountChart ({ appId, serviceId, tick }) {
   const svgRef = useRef()
@@ -78,19 +77,19 @@ export default function PodCountChart ({ appId, serviceId, tick }) {
 function renderChart (countData, svgEl, chartId, width, height) {
   const { history = [], prediction = [], now, initTimeoutMs } = countData
 
+  const innerW = width - X_MARGIN - 10
+  const innerH = height - Y_MARGIN - BOTTOM_MARGIN
+
+  const [tMin, tMax] = scalerXDomain
+
   const rawHistPts = history
     .map(d => ({ t: (d.timestamp - now) / 1000, pods: d.count ?? 0 }))
-    .filter(d => Number.isFinite(d.t) && Number.isFinite(d.pods) && d.t >= -HISTORY_WINDOW_S)
+    .filter(d => Number.isFinite(d.t) && Number.isFinite(d.pods) && d.t >= tMin && d.t <= 0)
     .sort((a, b) => a.t - b.t)
 
   const predPts = prediction
     .map(d => ({ t: (d.timestamp - now) / 1000, pods: d.count ?? 0 }))
     .filter(d => Number.isFinite(d.t) && Number.isFinite(d.pods))
-
-  const innerW = width - X_MARGIN - 10
-  const innerH = height - Y_MARGIN - BOTTOM_MARGIN
-
-  const [tMin, tMax] = scalerXDomain
 
   // When there is no meaningful history, extend a flat line across the past
   const histPts = rawHistPts.length <= 1
@@ -100,7 +99,11 @@ function renderChart (countData, svgEl, chartId, width, height) {
           : (predPts.length > 0 ? predPts[0].pods : 0)
         return [{ t: tMin, pods: podCount }, { t: 0, pods: podCount }]
       })()
-    : rawHistPts
+    : [
+        ...(rawHistPts[0].t > tMin ? [{ t: tMin, pods: rawHistPts[0].pods }] : []),
+        ...rawHistPts,
+        { t: 0, pods: rawHistPts.at(-1).pods }
+      ]
 
   const allP = [...histPts.map(d => d.pods), ...predPts.map(d => d.pods)]
   const pMax = allP.length ? Math.max(...allP) : 4
