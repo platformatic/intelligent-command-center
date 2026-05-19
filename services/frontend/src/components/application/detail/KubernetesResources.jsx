@@ -9,6 +9,7 @@ import KubernetesResourcePercentage from '~/components/application/detail/kubern
 import KubernetesResourceNumeric from '~/components/application/detail/kubernetes_resources/KubernetesResourceNumeric'
 import { getKubernetesResources } from '~/api'
 import { REFRESH_INTERVAL } from '~/ui-constants'
+import { unitPluralCap } from '~/components/application/autoscaler/v2/unitLabel'
 
 function KubernetesResources ({
   gridClassName = '',
@@ -128,18 +129,18 @@ function KubernetesResources ({
           />
           <KubernetesResourceNumeric
             key='pods_instances'
-            title='Pods'
+            title={unitPluralCap}
             podsUsed={values?.pods?.current ?? '-'}
             podsAll={values?.pods?.max ?? '-'}
             valuesLoading={initialLoading}
             values={[{
               key_value: 'pods_used',
-              label: 'Pods used:',
+              label: `${unitPluralCap} used:`,
               className: 'boxPodsUsed',
               value: values?.pods?.current ?? '-'
             }, {
               key_value: 'pods_available',
-              label: 'Pods available:',
+              label: `${unitPluralCap} available:`,
               className: 'boxPodsAvailable',
               value: (values?.pods?.max ?? 0) - (values?.pods?.current ?? 0)
             }]}

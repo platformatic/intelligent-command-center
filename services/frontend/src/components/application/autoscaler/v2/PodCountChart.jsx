@@ -2,6 +2,7 @@ import * as d3 from 'd3'
 import React, { useEffect, useId, useRef, useState } from 'react'
 import { getAppCount } from '~/api/autoscaler'
 import { scalerXDomain } from '~/components/metrics/chart_constants.js'
+import { unitPluralUpper } from './unitLabel'
 import styles from './PodCountChart.module.css'
 
 const X_MARGIN = 56
@@ -237,7 +238,7 @@ function renderChart (countData, svgEl, chartId, width, height) {
     .attr('fill', '#66696D')
     .attr('font-size', '9px')
     .attr('letter-spacing', '0.08em')
-    .text('PODS (#)')
+    .text(`${unitPluralUpper} (#)`)
 
   // Y axis labels
   g.append('g')

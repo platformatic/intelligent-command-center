@@ -13,6 +13,7 @@ import tooltipStyles from '~/styles/TooltipStyles.module.css'
 import { REFRESH_INTERVAL } from '~/ui-constants'
 
 import { getFormattedTimeAndDate } from '~/utilities/dates'
+import { unitSingularCap } from '~/components/application/autoscaler/v2/unitLabel'
 import dayjs from 'dayjs'
 import callApi from '~/api/common'
 import useSubscribeToUpdates from '~/hooks/useSubscribeToUpdates'
@@ -352,7 +353,7 @@ function FlamegraphRow ({ date, flamegraphs, application, alertId = null, scaleE
                   </div>
                   <div className={styles.separator}>|</div>
                   <div>
-                    <span className={styles.label}>Pod ID:</span>
+                    <span className={styles.label}>{unitSingularCap} ID:</span>
                     <div className={styles.value}>{fg.podId}</div>
                   </div>
                   <div className={styles.separator}>|</div>

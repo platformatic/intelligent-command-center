@@ -13,6 +13,8 @@ import {
   setBaseUrl as setBaseUrlCompendium
 } from '../clients/compendium/compendium.mjs'
 
+import { unitSingular, unitSingularCap } from './components/application/autoscaler/v2/unitLabel'
+
 import {
   setBaseUrl as setBaseURiskManager
 } from '../clients/risk-manager/risk-manager.mjs'
@@ -537,7 +539,7 @@ export const getScalingEventHistory = async (taxonomyId, applicationId) => {
       const scaleType = ev.note.startsWith('Scaled down') ? 'DOWN' : 'UP'
       return {
         datetime: ev.metadata.creationTimestamp,
-        activity: scaleType === 'DOWN' ? 'Pod removed' : 'New pod',
+        activity: scaleType === 'DOWN' ? `${unitSingularCap} removed` : `New ${unitSingular}`,
         description: ev.note,
         scaleType
       }

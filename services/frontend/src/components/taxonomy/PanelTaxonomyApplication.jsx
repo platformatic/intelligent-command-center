@@ -13,6 +13,7 @@ import {
   getApiApplicationScaleConfig,
   getApiCompliancy
 } from '~/api'
+import { unitPluralCap } from '~/components/application/autoscaler/v2/unitLabel'
 
 function PanelTaxonomyApplication ({ id, name, services, mainTaxonomyId, islatestGeneration = true }) {
   const TOOLTIP_OFFSET = 16
@@ -152,18 +153,18 @@ function PanelTaxonomyApplication ({ id, name, services, mainTaxonomyId, islates
             />
             <KubernetesResourceNumeric
               key='pods_instances'
-              title='Pods'
+              title={unitPluralCap}
               podsUsed={values?.pods?.pods ?? '-'}
               podsAll={values?.pods?.podsAll ?? '-'}
               valuesLoading={valuesLoading}
               values={[{
                 key_value: 'pods_used',
-                label: 'Pods used:',
+                label: `${unitPluralCap} used:`,
                 className: 'boxPodsUsed',
                 value: values?.pods?.pods ?? '-'
               }, {
                 key_value: 'pods_available',
-                label: 'Pods available:',
+                label: `${unitPluralCap} available:`,
                 className: 'boxPodsAvailable',
                 value: (values?.pods?.podsAll ?? 0) - (values?.pods?.pods ?? 0)
               }]}

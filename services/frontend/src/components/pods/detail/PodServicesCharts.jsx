@@ -10,6 +10,7 @@ import { BorderedBox } from '@platformatic/ui-components'
 import PodServicesMetrics from '~/components/metrics/PodServicesMetrics'
 import { getPodPerformances } from '~/components/pods/performances'
 import { UNKNOWN_PERFORMANCE, GREAT_PERFORMANCE, GOOD_PERFORMANCE } from '~/ui-constants'
+import { unitSingularCap } from '~/components/application/autoscaler/v2/unitLabel'
 
 export default function PodServicesCharts () {
   const [showAggregatedMetrics, setShowAggregatedMetrics] = useState(false)
@@ -64,7 +65,7 @@ export default function PodServicesCharts () {
               color={colorPod}
               size={MEDIUM}
             />
-            <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite} `}>Pod Detail</p>
+            <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite} `}>{unitSingularCap} Detail</p>
             <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>{pod.id}</span>
           </div>
         </div>

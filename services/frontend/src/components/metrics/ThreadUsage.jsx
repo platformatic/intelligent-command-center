@@ -12,6 +12,7 @@ import { REFRESH_INTERVAL_METRICS } from '../../ui-constants.js'
 import useRefreshData from '~/hooks/useRefreshData'
 import callApi from '~/api/common'
 import { convertThreadsToArray } from './utils'
+import { unitSingularCap } from '~/components/application/autoscaler/v2/unitLabel'
 
 const ThreadUsage = ({
   data = [],
@@ -160,7 +161,7 @@ const ThreadUsage = ({
         const lastPart = podId.substring(podId.length - 6)
         displayPodId = `${firstPart}...${lastPart}`
       }
-      return `<div>Pod Id: ${displayPodId}<br/><span class="text-sm">Threads Used: ${threadCount}</span></div>`
+      return `<div>${unitSingularCap} Id: ${displayPodId}<br/><span class="text-sm">Threads Used: ${threadCount}</span></div>`
     }
 
     // Handle min/max lines and labels

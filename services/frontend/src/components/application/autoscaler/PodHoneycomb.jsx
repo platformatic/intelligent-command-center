@@ -3,6 +3,7 @@ import Honeycomb from './honeycomb/Honeycomb'
 import Hexagon from './honeycomb/Hexagon'
 import styles from './PodHoneycomb.module.css'
 import { calculateHexagonPerformance } from '../../../utils/podPerformance'
+import { unitPluralCap } from './v2/unitLabel'
 
 export default function PodHoneyComb ({
   pods,
@@ -28,7 +29,7 @@ export default function PodHoneyComb ({
   return (
     <div className={styles.container}>
       <div className={styles.title}>
-        Pod Usage
+        {unitPluralCap} Usage
       </div>
       <div className={styles.honeycomb}>
         <Honeycomb

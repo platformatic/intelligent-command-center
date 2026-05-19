@@ -13,6 +13,7 @@ import { getPodSignals } from '~/api/autoscaler'
 import { getPodPerformances } from '~/components/pods/performances'
 
 import ArcMetric from '~/components/application/autoscaler/ArcMetrics'
+import { unitSingularCap } from '~/components/application/autoscaler/v2/unitLabel'
 import AlertEvent from '../../application/autoscaler/AlertEvent'
 
 export default function PodOverview () {
@@ -258,7 +259,7 @@ export default function PodOverview () {
   }
   function renderArcMetric (valueKey) {
     const data = getArcMetricValue(valueKey)
-    const title = valueKey === 'memory' ? 'Pod Memory Allocation & Usage' : 'Pod CPU Allocation & Usage'
+    const title = valueKey === 'memory' ? `${unitSingularCap} Memory Allocation & Usage` : `${unitSingularCap} CPU Allocation & Usage`
     if (data) {
       return <ArcMetric {...data} title={title} />
     }
@@ -273,7 +274,7 @@ export default function PodOverview () {
               color={colorPod}
               size={MEDIUM}
             />
-            <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite} `}>Pod Detail</p>
+            <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite} `}>{unitSingularCap} Detail</p>
             <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>{podId}</span>
           </div>
         </div>

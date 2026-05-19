@@ -5,6 +5,7 @@ import commonStyles from '~/styles/CommonStyles.module.css'
 import { BorderedBox, VerticalSeparator } from '@platformatic/ui-components'
 import { BLACK_RUSSIAN, MEDIUM, OPACITY_15, SMALL, TRANSPARENT, WARNING_YELLOW, WHITE } from '@platformatic/ui-components/src/components/constants'
 import Icons from '@platformatic/ui-components/src/components/icons'
+import { unitSingularCap } from '~/components/application/autoscaler/v2/unitLabel'
 
 function PodPerformanceIssues ({
   reasons = []
@@ -120,7 +121,7 @@ function PodPerformanceIssues ({
     <BorderedBox color={TRANSPARENT} backgroundColor={BLACK_RUSSIAN} classes={`${styles.borderedBoxPodPerformanceIssue} ${commonStyles.flexGrow}`}>
       <div className={`${commonStyles.smallFlexBlock} ${commonStyles.fullHeight}`}>
         <div className={`${commonStyles.smallFlexRow}`}>
-          <p className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite}`}>Pod Performance Issues</p>
+          <p className={`${typographyStyles.desktopBodySemibold} ${typographyStyles.textWhite}`}>{unitSingularCap} Performance Issues</p>
         </div>
         {renderComponent()}
       </div>
