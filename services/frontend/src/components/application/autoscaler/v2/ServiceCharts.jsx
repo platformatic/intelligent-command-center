@@ -199,15 +199,21 @@ function draw (svgEl, data, config, width, height, chartId) {
   // Prediction
   if (type === 'pods') {
     const lastHistV = histPts.length > 0 ? histPts[histPts.length - 1].v : (predPts[0]?.v ?? 0)
-    g.append('line')
-      .attr('x1', x(0)).attr('y1', y(lastHistV))
-      .attr('x2', iW).attr('y2', y(lastHistV))
-      .attr('stroke', 'rgba(255,255,255,0.6)').attr('stroke-width', 1.5)
+    const predEndV = predPts.length > 0 ? predPts[predPts.length - 1].v : lastHistV
+    const podPredData = predPts.length > 0
+      ? [...predPts, { t: tEnd, v: predEndV }]
+      : [{ t: 0, v: lastHistV }, { t: tEnd, v: lastHistV }]
+    g.append('path')
+      .datum(podPredData)
+      .attr('fill', 'none')
+      .attr('stroke', '#FEB928')
+      .attr('stroke-width', 1.5)
       .attr('stroke-dasharray', '6,4')
+      .attr('d', d3.line().x(d => x(d.t)).y(d => y(d.v)).curve(d3.curveStepAfter))
   } else if (predPts.length > 0) {
     const firstPred = predPts[0]
     const lastPred = predPts[predPts.length - 1]
-    g.append('path').datum([firstPred, lastPred])
+    g.append('path').datum([...predPts, { t: tEnd, v: lastPred.v }])
       .attr('fill', 'none').attr('stroke', '#FEB928').attr('stroke-width', 1.5)
       .attr('stroke-dasharray', '6,4')
       .attr('d', d3.line().x(d => x(d.t)).y(d => y(d.v)))
