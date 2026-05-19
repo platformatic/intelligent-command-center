@@ -130,8 +130,9 @@ function renderChart (countData, svgEl, chartId, width, height) {
 
   const g = svg.append('g').attr('transform', `translate(${X_MARGIN}, ${Y_MARGIN})`)
 
-  // Horizontal grid lines
-  const yTicks = d3.range(0, yMax + 1).slice(0, 6)
+  // Horizontal grid lines — evenly spaced integers spanning full domain
+  const tickStep = yMax <= 5 ? 1 : Math.ceil(yMax / 5)
+  const yTicks = d3.range(0, yMax + 1, tickStep)
   g.append('g')
     .call(
       d3.axisLeft(y)
