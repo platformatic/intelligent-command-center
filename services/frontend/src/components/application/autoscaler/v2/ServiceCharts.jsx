@@ -215,7 +215,19 @@ function draw (svgEl, data, config, width, height, chartId) {
   } else if (predPts.length > 0) {
     const firstPred = predPts[0]
     const lastPred = predPts[predPts.length - 1]
-    g.append('path').datum([...predPts, { t: tEnd, v: lastPred.v }])
+    let projectedV = lastPred.v
+    if (predPts.length >= 2) {
+      const prevPred = predPts[predPts.length - 2]
+      const dt = lastPred.t - prevPred.t
+      if (dt > 0) {
+        const slope = (lastPred.v - prevPred.v) / dt
+        projectedV = lastPred.v + slope * (tEnd - lastPred.t)
+        const yMax = y.domain()[1]
+        if (projectedV > yMax) projectedV = yMax
+        if (projectedV < 0) projectedV = 0
+      }
+    }
+    g.append('path').datum([...predPts, { t: tEnd, v: projectedV }])
       .attr('fill', 'none').attr('stroke', '#FEB928').attr('stroke-width', 1.5)
       .attr('stroke-dasharray', '6,4')
       .attr('d', d3.line().x(d => x(d.t)).y(d => y(d.v)))
