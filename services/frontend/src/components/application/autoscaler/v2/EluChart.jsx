@@ -74,8 +74,6 @@ function processData (allMetrics, services) {
   let now = Date.now()
   let threshold = null
   const lines = {}
-  let yMax = 0
-
   for (let i = 0; i < services.length; i++) {
     const metrics = allMetrics[i]
     if (!metrics?.elu) continue
@@ -92,24 +90,19 @@ function processData (allMetrics, services) {
 
     if (pts.length > 0) {
       lines[serviceId] = [...pts, { t: 0, value: pts.at(-1).value }]
-      const localMax = d3.max(pts, d => d.value)
-      if (localMax > yMax) yMax = localMax
     }
   }
 
-  return { lines, threshold, yMax }
+  return { lines, threshold }
 }
 
-function formatElu (v) {
+function formatPct (v) {
   if (!Number.isFinite(v)) return '—'
-  if (v === 0) return '0'
-  if (Math.abs(v) < 1e-3) return v.toExponential(2)
-  if (v <= 1) return v.toFixed(3)
-  return v.toFixed(1)
+  return `${Math.round(v * 100)}%`
 }
 
 function renderChart (data, svgEl, chartId) {
-  const { lines, threshold, yMax } = data
+  const { lines, threshold } = data
   const serviceIds = Object.keys(lines)
   if (serviceIds.length === 0) return
 
@@ -119,17 +112,9 @@ function renderChart (data, svgEl, chartId) {
   const innerW = width - X_MARGIN - 10
   const innerH = height - Y_MARGIN - BOTTOM_MARGIN
 
-  // Auto-scale: include threshold only when it's ≤5× the data max
-  const thresholdInRange = threshold != null && threshold <= yMax * 5
-  const domainMax = Math.max(
-    thresholdInRange ? threshold * 1.05 : 0,
-    yMax * 1.2,
-    1e-10
-  )
-
   const [tMin, tMax] = scalerXDomain
   const x = d3.scaleLinear().domain([tMin, tMax]).range([0, innerW])
-  const y = d3.scaleLinear().domain([0, domainMax]).range([innerH, 0])
+  const y = d3.scaleLinear().domain([0, 1]).range([innerH, 0])
 
   const svg = d3.select(svgEl)
   svg.selectAll('*').remove()
@@ -149,7 +134,7 @@ function renderChart (data, svgEl, chartId) {
   const g = svg.append('g').attr('transform', `translate(${X_MARGIN}, ${Y_MARGIN})`)
 
   // Horizontal grid lines
-  const yTicks = y.ticks(5)
+  const yTicks = [0, 0.5, 1]
   g.append('g')
     .call(
       d3.axisLeft(y)
@@ -197,7 +182,7 @@ function renderChart (data, svgEl, chartId) {
   }
 
   // Threshold line — only when it falls within the visible domain
-  if (threshold != null && threshold >= 0 && threshold <= domainMax) {
+  if (threshold != null && threshold >= 0 && threshold <= 1) {
     g.append('line')
       .attr('x1', 0).attr('y1', y(threshold))
       .attr('x2', innerW).attr('y2', y(threshold))
@@ -275,7 +260,7 @@ function renderChart (data, svgEl, chartId) {
         tooltip.style.display = 'block'
         tooltip.style.left = (event.clientX - wrapperRect.left + 14) + 'px'
         tooltip.style.top = (event.clientY - wrapperRect.top - 42) + 'px'
-        tooltip.innerHTML = `<strong>${id}</strong><br>ELU: ${formatElu(pt.value)}`
+        tooltip.innerHTML = `<strong>${id}</strong><br>ELU: ${formatPct(pt.value)}`
       })
       .on('mouseleave', () => handleHover(null))
   }
@@ -293,12 +278,12 @@ function renderChart (data, svgEl, chartId) {
     .attr('letter-spacing', '0.08em')
     .text('ELU PER APPLICATION')
 
-  // Y axis — auto-formatted labels
+  // Y axis — percentage labels
   g.append('g')
     .call(
       d3.axisLeft(y)
         .tickValues(yTicks)
-        .tickFormat(d => formatElu(d))
+        .tickFormat(d => formatPct(d))
     )
     .call(gr => gr.select('.domain').remove())
     .call(gr => gr.selectAll('.tick line').remove())

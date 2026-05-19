@@ -16,8 +16,35 @@
   @apply flex flex-col items-center gap-3 bg-black-russian rounded-lg p-4 shrink-0 w-[200px] h-full;
 }
 
+.podIdWrapper {
+  @apply relative w-full flex items-center gap-1;
+}
+
+.podIdWrapper::after {
+  content: attr(data-fullname);
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  color: #111;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: inherit;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.podIdWrapper:hover::after {
+  opacity: 1;
+}
+
 .podId {
-  @apply w-full truncate text-center;
+  @apply min-w-0 flex-1 truncate block;
 }
 
 .podHexWrap {

@@ -118,7 +118,13 @@ function draw (svgEl, data, config, width, height, chartId) {
         : (predPts.length > 0 ? predPts[0].v : 0)
       histPts = [{ t: tStart, v: podCount }, { t: 0, v: podCount }]
     } else {
-      histPts = rawHistPts
+      const first = rawHistPts[0]
+      const last = rawHistPts[rawHistPts.length - 1]
+      histPts = [
+        ...(first.t > tStart ? [{ t: tStart, v: first.v }] : []),
+        ...rawHistPts,
+        ...(last.t < 0 ? [{ t: 0, v: last.v }] : [])
+      ]
     }
   } else if (type === 'elu') {
     y = d3.scaleLinear().domain([0, 1]).range([iH, 0])
@@ -164,7 +170,7 @@ function draw (svgEl, data, config, width, height, chartId) {
     .attr('fill', `url(#${hId})`)
 
   // Grid lines
-  const yTicks = y.ticks(5)
+  const yTicks = type === 'elu' ? [0, 0.5, 1] : y.ticks(5)
   g.append('g')
     .call(d3.axisLeft(y).tickValues(yTicks).tickSize(-iW).tickFormat(''))
     .call(gr => gr.select('.domain').remove())
@@ -230,7 +236,7 @@ function draw (svgEl, data, config, width, height, chartId) {
   // Y axis tick labels
   g.append('g')
     .call(d3.axisLeft(y).tickValues(yTicks)
-      .tickFormat(d => type === 'elu' ? d.toFixed(2) : String(Math.round(d))))
+      .tickFormat(d => type === 'elu' ? `${Math.round(d * 100)}%` : String(Math.round(d))))
     .call(gr => gr.select('.domain').remove())
     .call(gr => gr.selectAll('.tick line').remove())
     .selectAll('text').attr('fill', '#66696D').attr('font-size', '10px')
@@ -296,4 +302,68 @@ function draw (svgEl, data, config, width, height, chartId) {
       .attr('fill', '#4D5054').attr('font-size', '9px').attr('letter-spacing', '0.07em')
       .text(rightLabel)
   }
+
+  // Tooltip + crosshair
+  const wrapper = svgEl.parentElement
+  let tooltip = wrapper.querySelector('[data-svc-tooltip]')
+  if (!tooltip) {
+    tooltip = document.createElement('div')
+    tooltip.setAttribute('data-svc-tooltip', '')
+    Object.assign(tooltip.style, {
+      position: 'absolute',
+      pointerEvents: 'none',
+      display: 'none',
+      background: '#fff',
+      color: '#111',
+      borderRadius: '4px',
+      padding: '5px 9px',
+      fontSize: '12px',
+      fontFamily: 'inherit',
+      lineHeight: '1.5',
+      whiteSpace: 'nowrap',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+      zIndex: '10'
+    })
+    wrapper.appendChild(tooltip)
+  }
+
+  const crosshair = g.append('line')
+    .attr('y1', 0).attr('y2', iH)
+    .attr('stroke', 'rgba(255,255,255,0.35)')
+    .attr('stroke-width', 1)
+    .attr('stroke-dasharray', '3,3')
+    .attr('display', 'none')
+    .attr('pointer-events', 'none')
+
+  const allPts = [...(histPts ?? []), ...(predPts ?? [])].sort((a, b) => a.t - b.t)
+  const bisect = d3.bisector(d => d.t).center
+
+  function fmtValue (v) {
+    if (type === 'elu') return `${Math.round(v * 100)}%`
+    if (type === 'heap') return `${Math.round(v)} MB`
+    const n = Math.round(v)
+    return `${n} ${n === 1 ? 'pod' : 'pods'}`
+  }
+
+  g.append('rect')
+    .attr('x', 0).attr('y', 0)
+    .attr('width', iW).attr('height', iH)
+    .attr('fill', 'transparent')
+    .on('mousemove', function (event) {
+      const [mx] = d3.pointer(event)
+      const t = x.invert(mx)
+      const idx = Math.max(0, Math.min(bisect(allPts, t), allPts.length - 1))
+      const pt = allPts[idx]
+      if (!pt) return
+      crosshair.attr('x1', mx).attr('x2', mx).attr('display', null)
+      const wrapperRect = wrapper.getBoundingClientRect()
+      tooltip.style.display = 'block'
+      tooltip.style.left = (event.clientX - wrapperRect.left + 14) + 'px'
+      tooltip.style.top = (event.clientY - wrapperRect.top - 42) + 'px'
+      tooltip.textContent = fmtValue(pt.v)
+    })
+    .on('mouseleave', function () {
+      crosshair.attr('display', 'none')
+      tooltip.style.display = 'none'
+    })
 }

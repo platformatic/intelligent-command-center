@@ -3,6 +3,8 @@ import typographyStyles from '~/styles/Typography.module.css'
 import { getAppCount, getPodsHealth } from '~/api/autoscaler'
 import PodHoneyComb from '../PodHoneycomb'
 import styles from './PodsTab.module.css'
+import Icons from '@platformatic/ui-components/src/components/icons'
+import { SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
 
 export default function PodsTab ({ appId }) {
   const [appCount, setAppCount] = useState(null)
@@ -74,9 +76,14 @@ function PodCard ({ podId, unhealthyServicesCount, totalServices }) {
 
   return (
     <div className={styles.podCard}>
-      <span className={`${typographyStyles.desktopBodyLarge} ${typographyStyles.textWhite70} ${styles.podId}`} title={podId}>
-        {podId}
-      </span>
+      <div className={styles.podIdWrapper} data-fullname={podId}>
+        <span className={`${typographyStyles.desktopBodySmallest} ${typographyStyles.textWhite70} ${styles.podId}`}>
+          {podId}
+        </span>
+        <div className={styles.copyToClipBoard} onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(podId) }}>
+          <Icons.CopyPasteIcon color={WHITE} size={SMALL} />
+        </div>
+      </div>
       <div className={styles.podHexWrap}>
         <svg viewBox='0 0 120 128' fill='none' xmlns='http://www.w3.org/2000/svg' className={styles.podHexSvg}>
           <defs>

@@ -8,7 +8,7 @@
 }
 
 .chartWrapper {
-  @apply w-full h-full bg-black-russian rounded overflow-hidden;
+  @apply relative w-full h-full bg-black-russian rounded overflow-hidden;
 }
 
 .svg {
