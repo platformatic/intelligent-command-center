@@ -111,7 +111,9 @@ function draw (svgEl, data, config, width, height, chartId) {
     const pMax = Math.max(10, ...history.map(d => d.count), ...prediction.map(d => d.count))
     y = d3.scaleLinear().domain([0, Math.ceil(pMax * 1.15)]).range([iH, 0])
     predPts = prediction.map(d => ({ t: (d.timestamp - now) / 1000, v: d.count }))
-    const rawHistPts = history.map(d => ({ t: (d.timestamp - now) / 1000, v: d.count }))
+    const rawHistPts = history
+      .map(d => ({ t: (d.timestamp - now) / 1000, v: d.count }))
+      .filter(d => d.t >= tStart && d.t <= 0)
     if (rawHistPts.length <= 1) {
       const podCount = rawHistPts.length === 1
         ? rawHistPts[0].v
