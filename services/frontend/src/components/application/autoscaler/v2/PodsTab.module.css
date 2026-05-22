@@ -3,17 +3,16 @@
 }
 
 .scroll {
-  @apply shrink-0 overflow-x-auto overflow-y-hidden;
-  height: 280px;
+  @apply shrink-0 overflow-x-hidden overflow-y-auto;
   scrollbar-gutter: stable;
 }
 
 .row {
-  @apply flex flex-row gap-4 h-full pb-2;
+  @apply flex flex-row flex-wrap gap-4 pb-2;
 }
 
 .podCard {
-  @apply flex flex-col items-center gap-3 bg-black-russian rounded-lg p-4 shrink-0 w-[200px] h-full;
+  @apply flex flex-col items-center gap-3 bg-black-russian rounded-lg p-4 shrink-0 w-[200px];
 }
 
 .podIdWrapper {
