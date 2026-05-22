@@ -547,10 +547,14 @@ test('GET /api/v2/application/:appId/service/:serviceId/instances/metrics return
   })
   assert.strictEqual(res.statusCode, 200)
   const body = res.json()
-  assert.ok(body[podId], `expected pod ${podId} in response`)
-  assert.ok(body[podId].elu.length > 0)
-  assert.ok(body[podId].heap.length > 0)
-  for (const point of body[podId].elu) {
+  assert.ok(Array.isArray(body))
+  const pod = body.find(p => p.podId === podId)
+  assert.ok(pod, `expected pod ${podId} in response`)
+  assert.strictEqual(typeof pod.startedAt, 'number')
+  assert.strictEqual(typeof pod.overloaded, 'boolean')
+  assert.ok(pod.elu.history.length > 0)
+  assert.ok(pod.heap.history.length > 0)
+  for (const point of pod.elu.history) {
     assert.strictEqual(typeof point.timestamp, 'number')
     assert.strictEqual(typeof point.value, 'number')
   }

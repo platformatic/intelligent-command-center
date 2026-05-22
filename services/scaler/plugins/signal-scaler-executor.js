@@ -53,8 +53,7 @@ class SignalScalerExecutor {
         alphaUp: Number(app.env.PLT_SIGNALS_SCALER_ELU_ALPHA_UP),
         alphaDown: Number(app.env.PLT_SIGNALS_SCALER_ELU_ALPHA_DOWN),
         betaUp: Number(app.env.PLT_SIGNALS_SCALER_ELU_BETA_UP),
-        betaDown: Number(app.env.PLT_SIGNALS_SCALER_ELU_BETA_DOWN),
-        precision: Number(app.env.PLT_SIGNALS_SCALER_ELU_PRECISION)
+        betaDown: Number(app.env.PLT_SIGNALS_SCALER_ELU_BETA_DOWN)
       },
       heap: {
         windowMs: Number(app.env.PLT_SIGNALS_SCALER_HEAP_WINDOW_MS),
@@ -63,8 +62,7 @@ class SignalScalerExecutor {
         alphaUp: Number(app.env.PLT_SIGNALS_SCALER_HEAP_ALPHA_UP),
         alphaDown: Number(app.env.PLT_SIGNALS_SCALER_HEAP_ALPHA_DOWN),
         betaUp: Number(app.env.PLT_SIGNALS_SCALER_HEAP_BETA_UP),
-        betaDown: Number(app.env.PLT_SIGNALS_SCALER_HEAP_BETA_DOWN),
-        precision: Number(app.env.PLT_SIGNALS_SCALER_HEAP_PRECISION)
+        betaDown: Number(app.env.PLT_SIGNALS_SCALER_HEAP_BETA_DOWN)
       }
     }
 

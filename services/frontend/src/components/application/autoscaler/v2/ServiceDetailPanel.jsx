@@ -7,19 +7,31 @@ import { unitPluralCap } from './unitLabel'
 
 const ELU_THRESHOLD = 0.7
 
-function dictToPods (dict) {
-  return Object.entries(dict).map(([podId, metrics]) => {
-    const lastElu = metrics.elu.at(-1)?.value ?? 0
-    const lastHeap = metrics.heap.at(-1)?.value ?? 0
+function toPods (list) {
+  return list.map((pod) => {
+    const currentElu = pod.elu.current ?? 0
+    const currentHeap = pod.heap.current ?? 0
     return {
-      podId,
-      isHealthy: lastElu < 0.9,
-      currentElu: Math.round(lastElu * 100),
-      currentHeap: Math.round(lastHeap),
-      elu: metrics.elu,
-      heap: metrics.heap
+      podId: pod.podId,
+      isHealthy: !pod.overloaded,
+      currentElu: Math.round(currentElu * 100),
+      currentHeap: Math.round(currentHeap),
+      elu: pod.elu.history,
+      heap: pod.heap.history
     }
   })
+}
+
+function timestampRange (pods, metric) {
+  let tMin = Infinity
+  let tMax = -Infinity
+  for (const pod of pods) {
+    for (const { timestamp } of pod[metric]) {
+      if (timestamp < tMin) tMin = timestamp
+      if (timestamp > tMax) tMax = timestamp
+    }
+  }
+  return tMin === Infinity ? null : { tMin, tMax }
 }
 
 export default function ServiceDetailPanel ({ appId, serviceId, tick }) {
@@ -35,12 +47,15 @@ export default function ServiceDetailPanel ({ appId, serviceId, tick }) {
       getServiceMetrics(appId, serviceId)
     ]).then(([instanceData, svcMetrics]) => {
       if (cancelled) return
-      setPods(instanceData && typeof instanceData === 'object' && !Array.isArray(instanceData) ? dictToPods(instanceData) : [])
+      setPods(Array.isArray(instanceData) ? toPods(instanceData) : [])
       setHeapThreshold(svcMetrics?.heap?.threshold ?? undefined)
     })
 
     return () => { cancelled = true }
   }, [appId, serviceId, tick])
+
+  const eluRange = timestampRange(pods, 'elu')
+  const heapRange = timestampRange(pods, 'heap')
 
   return (
     <div className={styles.panel}>
@@ -49,14 +64,20 @@ export default function ServiceDetailPanel ({ appId, serviceId, tick }) {
       </span>
       <div className={styles.podList}>
         {pods.map(pod => (
-          <PodRow key={pod.podId} pod={pod} heapThreshold={heapThreshold} />
+          <PodRow
+            key={pod.podId}
+            pod={pod}
+            heapThreshold={heapThreshold}
+            eluRange={eluRange}
+            heapRange={heapRange}
+          />
         ))}
       </div>
     </div>
   )
 }
 
-function PodRow ({ pod, heapThreshold }) {
+function PodRow ({ pod, heapThreshold, eluRange, heapRange }) {
   return (
     <div className={styles.podRow}>
       <div className={styles.podHeader}>
@@ -73,6 +94,8 @@ function PodRow ({ pod, heapThreshold }) {
           color='#C61BE2'
           data={pod.elu}
           threshold={ELU_THRESHOLD}
+          tMin={eluRange?.tMin}
+          tMax={eluRange?.tMax}
         />
         <MiniMetricChart
           label='H E A P'
@@ -81,6 +104,8 @@ function PodRow ({ pod, heapThreshold }) {
           color='#00BCD4'
           data={pod.heap}
           threshold={heapThreshold}
+          tMin={heapRange?.tMin}
+          tMax={heapRange?.tMax}
         />
       </div>
     </div>

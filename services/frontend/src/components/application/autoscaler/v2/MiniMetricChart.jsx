@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import React, { useEffect, useRef, useState } from 'react'
 import styles from './MiniMetricChart.module.css'
 
-export default function MiniMetricChart ({ label, value, unit, color, data = [], threshold }) {
+export default function MiniMetricChart ({ label, value, unit, color, data = [], threshold, tMin, tMax }) {
   const svgRef = useRef()
   const wrapperRef = useRef()
   const [size, setSize] = useState({ width: 0, height: 0 })
@@ -19,8 +19,9 @@ export default function MiniMetricChart ({ label, value, unit, color, data = [],
 
   useEffect(() => {
     if (!svgRef.current || !size.width || !size.height || data.length < 2) return
-    draw(svgRef.current, data, color, threshold, size.width, size.height)
-  }, [data, color, threshold, size])
+    if (tMin === undefined || tMax === undefined || tMin >= tMax) return
+    draw(svgRef.current, data, color, threshold, size.width, size.height, tMin, tMax)
+  }, [data, color, threshold, size, tMin, tMax])
 
   return (
     <div className={styles.card}>
@@ -38,7 +39,7 @@ export default function MiniMetricChart ({ label, value, unit, color, data = [],
   )
 }
 
-function draw (svgEl, data, color, threshold, width, height) {
+function draw (svgEl, data, color, threshold, width, height, tMin, tMax) {
   const svg = d3.select(svgEl)
   svg.selectAll('*').remove()
   svg.attr('width', width).attr('height', height)
@@ -47,7 +48,7 @@ function draw (svgEl, data, color, threshold, width, height) {
   const yMax = threshold !== undefined ? Math.max(d3.max(data, d => d.value), threshold * 1.15) : d3.max(data, d => d.value)
   const pad = (yMax - yMin) * 0.15 || 1
 
-  const x = d3.scaleLinear().domain([0, data.length - 1]).range([0, width])
+  const x = d3.scaleLinear().domain([tMin, tMax]).range([0, width])
   const y = d3.scaleLinear().domain([yMin - pad, yMax + pad]).range([height, 0])
 
   if (threshold !== undefined) {
@@ -63,7 +64,7 @@ function draw (svgEl, data, color, threshold, width, height) {
   }
 
   const line = d3.line()
-    .x((_, i) => x(i))
+    .x(d => x(d.timestamp))
     .y(d => y(d.value))
     .curve(d3.curveCatmullRom.alpha(0.5))
 

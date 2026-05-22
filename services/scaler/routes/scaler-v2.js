@@ -235,36 +235,55 @@ module.exports = async function (app) {
       },
       response: {
         200: {
-          type: 'object',
-          additionalProperties: {
+          type: 'array',
+          items: {
             type: 'object',
             properties: {
+              podId: { type: 'string' },
+              startedAt: { type: 'integer' },
+              overloaded: { type: 'boolean' },
               elu: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    timestamp: { type: 'integer' },
-                    value: { type: 'number' }
-                  },
-                  required: ['timestamp', 'value'],
-                  additionalProperties: false
-                }
+                type: 'object',
+                properties: {
+                  current: { type: ['number', 'null'] },
+                  history: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        timestamp: { type: 'integer' },
+                        value: { type: 'number' }
+                      },
+                      required: ['timestamp', 'value'],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: ['current', 'history'],
+                additionalProperties: false
               },
               heap: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    timestamp: { type: 'integer' },
-                    value: { type: 'number' }
-                  },
-                  required: ['timestamp', 'value'],
-                  additionalProperties: false
-                }
+                type: 'object',
+                properties: {
+                  current: { type: ['number', 'null'] },
+                  history: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        timestamp: { type: 'integer' },
+                        value: { type: 'number' }
+                      },
+                      required: ['timestamp', 'value'],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: ['current', 'history'],
+                additionalProperties: false
               }
             },
-            required: ['elu', 'heap'],
+            required: ['podId', 'startedAt', 'overloaded', 'elu', 'heap'],
             additionalProperties: false
           }
         }
@@ -285,7 +304,14 @@ module.exports = async function (app) {
         reply.code(404)
         return { error: 'not found' }
       }
-      return result
+      return Object.entries(result)
+        .map(([podId, pod]) => ({ podId, ...pod }))
+        .sort((a, b) => {
+          if (a.overloaded !== b.overloaded) {
+            return a.overloaded ? -1 : 1
+          }
+          return a.startedAt - b.startedAt
+        })
     }
   })
 
