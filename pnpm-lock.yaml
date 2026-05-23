@@ -90,7 +90,7 @@ importers:
         version: 0.3.3
       msgpackr:
         specifier: ^1.11.2
-        version: 1.11.10
+        version: 1.11.12
       platformatic:
         specifier: ^2.70.1
         version: 2.75.2(@types/node@25.8.0)
@@ -5107,8 +5107,8 @@ packages:
     resolution: {integrity: sha512-P0efT1C9jIdVRefqjzOQ9Xml57zpOXnIuS+csaB4MdZbTdmGDLo8XhzBG1N7aO11gKDDkJvBLULeFTo46wwreA==}
     hasBin: true
 
-  msgpackr@1.11.10:
-    resolution: {integrity: sha512-iCZNq+HszvF+fC3anCm4nBmWEnbeIAfpDs6IStAEKhQ2YSgkjzVG2FF9XJqwwQh5bH3N9OUTUt4QwVN6MLMLtA==}
+  msgpackr@1.11.12:
+    resolution: {integrity: sha512-RBdJ1Un7yGlXWajrkxcSa93nvQ0w4zBf60c0yYv7YtBelP8H2FA7XsfBbMHtXKXUMUxH7zV3Zuozh+kUQWhHvg==}
 
   mute-stream@1.0.0:
     resolution: {integrity: sha512-avsJQhyd+680gKXyG/sQc0nXaC6rBkPOfyHYcFb9+hdkqQkR9bdnkJ0AMZhke0oesPqIO+mFFJ+IdBc7mst4IA==}
@@ -8789,7 +8789,7 @@ snapshots:
       '@platformatic/utils': 2.75.2
       amaro: 0.3.2
       iovalkey: 0.3.3
-      msgpackr: 1.11.10
+      msgpackr: 1.11.12
       semver: 7.7.4
     transitivePeerDependencies:
       - bufferutil
@@ -12629,7 +12629,7 @@ snapshots:
       '@msgpackr-extract/msgpackr-extract-win32-x64': 3.0.3
     optional: true
 
-  msgpackr@1.11.10:
+  msgpackr@1.11.12:
     optionalDependencies:
       msgpackr-extract: 3.0.3
 
