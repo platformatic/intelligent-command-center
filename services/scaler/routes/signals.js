@@ -69,10 +69,6 @@ module.exports = async function (app) {
       }
     },
     handler: async (req, reply) => {
-      if (req.server.env.PLT_SCALER_SCALING_DISABLED) {
-        return { alerts: [] }
-      }
-
       const algorithmVersion = req.server.env.PLT_SCALER_ALGORITHM_VERSION
 
       if (algorithmVersion !== 'v2') {

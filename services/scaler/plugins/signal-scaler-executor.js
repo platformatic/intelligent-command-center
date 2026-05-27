@@ -174,7 +174,12 @@ class SignalScalerExecutor {
 
     // Save alerts for services where max value exceeds threshold.
     // This creates alert entities that link to flamegraphs in the dashboard.
-    const alerts = await this.#saveAlertsIfNeeded(applicationId, podId, signals)
+    // Skipped when PLT_SCALER_SCALING_DISABLED is set — alerts are a
+    // scaling-related side effect, and "disabled" mode should not write to DB.
+    let alerts = []
+    if (!this.app.env.PLT_SCALER_SCALING_DISABLED) {
+      alerts = await this.#saveAlertsIfNeeded(applicationId, podId, signals)
+    }
     return { alerts }
   }
 
@@ -307,7 +312,19 @@ class SignalScalerExecutor {
     }
 
     const targetPodsCount = controller.replicas ?? 1
+    const globalDisabled = !!this.app.env.PLT_SCALER_SCALING_DISABLED
     const scale = async (targetReplicas, options = {}) => {
+      // Global env var: keep running checkForPendingBatches so the predictor
+      // still populates services-summary / metric snapshots in the store
+      // (queryable via /scaler/api/v2/...). Only skip the actual scaling
+      // action (machinist call + DB scale event + tied snapshots).
+      if (globalDisabled) {
+        this.app.log.info(
+          { appId, controllerId, targetReplicas },
+          'Scaling globally disabled, skipping action (signals + snapshots still processed)'
+        )
+        return
+      }
       const result = await this.executeScaling(appId, targetReplicas, controller, options)
       if (!result?.scaleEvent) return
       const writes = []
