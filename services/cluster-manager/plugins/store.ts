@@ -1,13 +1,11 @@
 /// <reference path="../global.d.ts" />
 
-'use strict'
-
-const fp = require('fastify-plugin')
-const { randomUUID } = require('node:crypto')
-const { RecommendationCalculating, RecommendationNotFound } = require('../lib/errors.js')
+import fp from 'fastify-plugin'
+import { randomUUID } from 'node:crypto'
+import { RecommendationCalculating, RecommendationNotFound } from '../lib/errors.ts'
 
 /** @param {import('fastify').FastifyInstance} app */
-module.exports = fp(async function (app) {
+export default fp(async function (app) {
   function addMetadataToSteps (steps) {
     return steps?.map((s) => {
       return {

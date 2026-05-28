@@ -1,15 +1,13 @@
-'use strict'
-
-const assert = require('node:assert')
-const { test } = require('node:test')
-const { randomUUID } = require('node:crypto')
-const {
+import assert from 'node:assert'
+import { test } from 'node:test'
+import { randomUUID } from 'node:crypto'
+import {
   bootstrap,
   getRandomElementFromArray,
   startControlPlane,
   startRiskService,
   startMetrics
-} = require('../helper')
+} from '../helper.ts'
 
 test('should update recommendation status', async (t) => {
   const server = await bootstrap(t)

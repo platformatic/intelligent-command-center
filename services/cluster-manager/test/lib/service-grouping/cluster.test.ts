@@ -3,11 +3,11 @@ import test from 'node:test'
 
 import pino from 'pino'
 
-import { BudgetSet } from '../../../lib/service-grouping/budget-set'
-import { Cluster } from '../../../lib/service-grouping/cluster'
-import { OptimizationStep } from '../../../lib/service-grouping/optimization-step'
-import { LinkCost } from '../../../lib/service-grouping/link-cost'
-import { ServiceLink } from '../../../lib/service-grouping/service-link'
+import { BudgetSet } from '../../../lib/service-grouping/budget-set.ts'
+import { Cluster } from '../../../lib/service-grouping/cluster.ts'
+import type { OptimizationStep } from '../../../lib/service-grouping/optimization-step.ts'
+import { LinkCost } from '../../../lib/service-grouping/link-cost.ts'
+import { ServiceLink } from '../../../lib/service-grouping/service-link.ts'
 
 const budgets = BudgetSet.from({
   cpu: { min: 0, max: 25 },

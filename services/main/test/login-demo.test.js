@@ -13,7 +13,7 @@ test('demo login should be disabled', async (t) => {
   const app = await getServer(t, {
     DEMO_LOGIN: 'false'
   })
-  const url = await app.start()
+  const url = app.url
 
   const demoLoginRes = await request(`${url}/api/login/demo`)
   const json = await demoLoginRes.body.json()
@@ -32,7 +32,7 @@ test('should enable demo login', async (t) => {
     DEMO_LOGIN: 'true',
     VITE_SUPPORTED_LOGINS: 'demo'
   })
-  const url = await app.start()
+  const url = app.url
 
   // Mock internal user-manager service
   agent
@@ -147,7 +147,7 @@ test('should check password', async (t) => {
     DEMO_LOGIN: 'true',
     PLT_MAIN_SITE_PASSWORD: 'apassword'
   })
-  const url = await app.start()
+  const url = app.url
 
   {
     const demoLoginRes = await request(`${url}/api/login/demo`, {

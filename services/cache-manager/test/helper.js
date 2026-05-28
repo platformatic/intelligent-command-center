@@ -7,8 +7,8 @@ const { once } = require('node:events')
 const { createServer } = require('node:http')
 const { setTimeout: sleep } = require('node:timers/promises')
 const { Client, interceptors } = require('undici')
-const { buildServer } = require('@platformatic/service')
-const { loadConfig, buildServer: buildRuntimeServer } = require('@platformatic/runtime')
+const platformaticService = require('@platformatic/service')
+const platformaticRuntime = require('@platformatic/runtime')
 const RedisCacheStore = require('undici-cache-redis')
 const { flushall } = require('../../../lib/redis-utils')
 
@@ -25,7 +25,7 @@ async function startCacheManager (t, env = {}) {
   setUpEnvironment(env)
   await cleanValkey()
 
-  const app = await buildServer({
+  const capability = await platformaticService.create(join(__dirname, '..'), {
     server: {
       hostname: '127.0.0.1',
       port: 3001,
@@ -40,9 +40,11 @@ async function startCacheManager (t, env = {}) {
     },
     watch: false
   })
+  await capability.init()
+  const app = capability.getApplication()
 
-  await app.start()
-  t.after(() => app.close())
+  await capability.start()
+  t.after(() => capability.stop())
 
   return app
 }
@@ -123,13 +125,14 @@ async function startNextCacheApp (t, keyPrefix) {
     PLT_NEXT_CACHE_REDIS_PREFIX: keyPrefix
   }
 
-  const { configManager, args } = await loadConfig(
-    {}, ['-c', runtimeConfigPath, '--production'], { env }
-  )
-  configManager.args = args
-
-  const nextCacheApp = await buildRuntimeServer({ configManager, env })
-  await nextCacheApp.buildService('frontend')
+  const nextCacheApp = await platformaticRuntime.create(projectDir, runtimeConfigPath, { env, isProduction: true })
+  await nextCacheApp.init()
+  // Build the frontend application before starting the runtime
+  if (typeof nextCacheApp.buildApplication === 'function') {
+    await nextCacheApp.buildApplication('frontend')
+  } else if (typeof nextCacheApp.buildService === 'function') {
+    await nextCacheApp.buildService('frontend')
+  }
   nextCacheApp.url = await nextCacheApp.start()
 
   t.after(() => nextCacheApp.close())

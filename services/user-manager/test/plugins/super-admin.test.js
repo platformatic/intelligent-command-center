@@ -2,18 +2,13 @@
 
 const { test } = require('node:test')
 const assert = require('node:assert')
-const { getServer, clearUserDb } = require('../helper')
+const { getServer } = require('../helper')
 
 test('should store the super admin on boot', async (t) => {
   const superAdminEmail = 'john@doe.com'
   process.env.PLT_USER_MANAGER_SUPER_ADMIN_EMAIL = superAdminEmail
 
   const server = await getServer(t)
-
-  t.after(async () => {
-    const { db, sql } = server.platformatic
-    await clearUserDb(db, sql)
-  })
 
   const foundUser = await server.platformatic.entities.user.find({
     where: { email: { eq: superAdminEmail } }
@@ -31,11 +26,6 @@ test('add multiple super admins', async (t) => {
   process.env.PLT_USER_MANAGER_SUPER_ADMIN_EMAIL = superAdminEmails
 
   const server = await getServer(t)
-
-  t.after(async () => {
-    const { db, sql } = server.platformatic
-    await clearUserDb(db, sql)
-  })
 
   const foundUsers = await server.platformatic.entities.user.find()
   assert.equal(foundUsers.length, 3)

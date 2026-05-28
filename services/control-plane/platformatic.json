@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.59.0.json",
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/3.54.0.json",
   "server": {
     "pluginTimeout": 60000
   },
@@ -25,34 +25,7 @@
     "paths": [
       "./plugins",
       "./routes"
-    ],
-    "typescript": false
+    ]
   },
-  "clients": [
-    {
-      "schema": "../../clients/activities/activities.openapi.json",
-      "name": "activities",
-      "type": "openapi",
-      "serviceId": "activities"
-    },
-    {
-      "schema": "../../clients/metrics/metrics.openapi.json",
-      "name": "metrics",
-      "type": "openapi",
-      "serviceId": "metrics"
-    },
-    {
-      "schema": "../../clients/scaler/scaler.openapi.json",
-      "name": "scaler",
-      "type": "openapi",
-      "serviceId": "scaler"
-    },
-    {
-      "schema": "../../clients/traffic-inspector/traffic-inspector.openapi.json",
-      "name": "trafficInspector",
-      "type": "openapi",
-      "serviceId": "traffic-inspector"
-    }
-  ],
   "watch": "{DEV_K8S}"
 }

@@ -14,7 +14,7 @@ test('should simulate login via Google', async (t) => {
   let stateHasBeenChecked = false
   let stateCookie = null
   const app = await getServer(t)
-  const url = await app.start()
+  const url = app.url
   const googleUserData = {
     id: '123456',
     login: 'test-user',

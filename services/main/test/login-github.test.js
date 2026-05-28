@@ -21,7 +21,7 @@ test('should simulate login via GitHub', async (t) => {
     email: 'test@user.com'
   }
   const app = await getServer(t)
-  const url = await app.start()
+  const url = app.url
 
   // Mock Github OAuth endpoints
   agent
@@ -190,7 +190,7 @@ test('should call GitHub\'s user/email endpoint if no email is provided', async 
     avatar_url: 'https://picsum.photos/200'
   }
   const app = await getServer(t)
-  const url = await app.start()
+  const url = app.url
 
   // Mock Github OAuth endpoints
   agent

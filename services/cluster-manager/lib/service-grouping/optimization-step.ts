@@ -1,14 +1,15 @@
-import type { App } from './app'
-import type { Service } from './service'
-import { splitServiceTarget, type ServiceTarget } from './service-link'
+import type { App } from './app.ts'
+import type { Service } from './service.ts'
+import { splitServiceTarget, type ServiceTarget } from './service-link.ts'
 
-export enum OptimizationStepType {
-  CreateApplication = 'create-application',
-  DeleteApplication = 'delete-application',
-  MoveService = 'move-service',
-  DuplicateService = 'duplicate-service',
-  ChangeUrl = 'change-service'
-}
+export const OptimizationStepType = {
+  CreateApplication: 'create-application',
+  DeleteApplication: 'delete-application',
+  MoveService: 'move-service',
+  DuplicateService: 'duplicate-service',
+  ChangeUrl: 'change-service'
+} as const
+export type OptimizationStepType = typeof OptimizationStepType[keyof typeof OptimizationStepType]
 
 export interface OptimizationStep {
   type: OptimizationStepType

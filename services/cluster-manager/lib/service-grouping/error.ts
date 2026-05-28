@@ -1,8 +1,8 @@
-import type { App } from './app'
-import { Budget } from './budget'
-import type { BudgetSet } from './budget-set'
-import type { Service } from './service'
-import type { ServiceLink } from './service-link'
+import type { App } from './app.ts'
+import { Budget } from './budget.ts'
+import type { BudgetSet } from './budget-set.ts'
+import type { Service } from './service.ts'
+import type { ServiceLink } from './service-link.ts'
 
 export class BudgetMustBePositiveError extends Error {
   property: keyof Budget

@@ -22,8 +22,6 @@ test('should return the config', async (t) => {
     }
   })
 
-  await server.start()
-
   const { statusCode, headers, body } = await server.inject({
     method: 'GET',
     url: '/api/config',
@@ -58,8 +56,6 @@ test('should return the config with scaler algorithm version v2', async (t) => {
       authorized: true
     }
   })
-
-  await server.start()
 
   const { statusCode, headers, body } = await server.inject({
     method: 'GET',

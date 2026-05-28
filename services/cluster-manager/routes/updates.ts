@@ -1,5 +1,5 @@
 /** @param {import('fastify').FastifyInstance} app */
-module.exports = async function (app, opts) {
+export default async function (app, opts) {
   app.get('/updates', {
     handler: async (req) => {
       const newRecommendations = await app.platformatic.entities.recommendation.find({

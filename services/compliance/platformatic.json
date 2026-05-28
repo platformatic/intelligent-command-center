@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.16.0.json",
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/3.54.0.json",
   "db": {
     "connectionString": "{PLT_COMPLIANCE_DATABASE_URL}",
     "schemalock": true,
@@ -39,13 +39,5 @@
         "path": "./routes"
       }
     ]
-  },
-  "clients": [
-    {
-      "schema": "../../clients/control-plane/control-plane.openapi.json",
-      "name": "controlPlane",
-      "type": "openapi",
-      "serviceId": "control-plane"
-    }
-  ]
+  }
 }

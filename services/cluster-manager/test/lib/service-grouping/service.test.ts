@@ -4,11 +4,11 @@ import pino from 'pino'
 
 import type { Logger, Bindings } from 'pino'
 
-import { Service } from '../../../lib/service-grouping/service'
-import { App } from '../../../lib/service-grouping/app'
-import { BudgetSet } from '../../../lib/service-grouping/budget-set'
-import { LinkCost } from '../../../lib/service-grouping/link-cost'
-import { ServiceLink } from '../../../lib/service-grouping/service-link'
+import { Service } from '../../../lib/service-grouping/service.ts'
+import { App } from '../../../lib/service-grouping/app.ts'
+import { BudgetSet } from '../../../lib/service-grouping/budget-set.ts'
+import { LinkCost } from '../../../lib/service-grouping/link-cost.ts'
+import { ServiceLink } from '../../../lib/service-grouping/service-link.ts'
 
 const budgets = BudgetSet.from({
   cpu: { min: 0, max: 10 },

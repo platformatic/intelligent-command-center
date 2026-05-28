@@ -2,13 +2,13 @@
 
 const { join } = require('node:path')
 const { randomUUID } = require('node:crypto')
-const { buildServer: buildDbServer } = require('@platformatic/db')
+const platformaticDb = require('@platformatic/db')
 const { flushall } = require('../../../lib/redis-utils')
 
 const defaultEnv = {
   PLT_TRAFFIC_INSPECTOR_DATABASE_URL: 'postgres://postgres:postgres@127.0.0.1:5433/traffic_inspector',
   PLT_ICC_VALKEY_CONNECTION_STRING: 'redis://localhost:6343',
-  PLT_CONTROL_PLANE: 'http://127.0.0.1:3042'
+  PLT_CONTROL_PLANE_URL: 'http://127.0.0.1:3042'
 }
 
 function setUpEnvironment (env = {}) {
@@ -18,8 +18,7 @@ function setUpEnvironment (env = {}) {
 async function startTrafficInspector (t, entities = {}, env = {}) {
   setUpEnvironment(env)
 
-  const clientsDir = join(__dirname, '..', '..', '..', 'clients')
-  const app = await buildDbServer({
+  const capability = await platformaticDb.create(join(__dirname, '..'), {
     server: {
       hostname: '127.0.0.1',
       port: 3064,
@@ -49,19 +48,13 @@ async function startTrafficInspector (t, entities = {}, env = {}) {
         join(__dirname, '..', 'routes')
       ]
     },
-    clients: [
-      {
-        schema: join(clientsDir, 'control-plane', 'control-plane.openapi.json'),
-        name: 'controlPlane',
-        type: 'openapi',
-        url: process.env.PLT_CONTROL_PLANE || 'http://127.0.0.1:3042'
-      }
-    ],
     watch: false
   })
+  await capability.init()
+  const app = capability.getApplication()
 
   if (t !== null) {
-    t.after(() => app.close())
+    t.after(() => capability.stop())
   }
 
   const { db, sql } = app.platformatic
@@ -71,7 +64,7 @@ async function startTrafficInspector (t, entities = {}, env = {}) {
   await db.query(sql`DELETE FROM "recommendations_routes"`)
   await db.query(sql`DELETE FROM "recommendations"`)
 
-  await app.start()
+  await capability.start()
   await flushall(app.redis)
 
   if (entities.versions?.length > 0) {

@@ -1,7 +1,7 @@
 import { strictEqual } from 'node:assert'
 import test from 'node:test'
 
-import { LinkCost } from '../../../lib/service-grouping/link-cost'
+import { LinkCost } from '../../../lib/service-grouping/link-cost.ts'
 
 test('new LinkCost', () => {
   const a = new LinkCost(1, 2)

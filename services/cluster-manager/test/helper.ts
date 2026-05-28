@@ -1,12 +1,13 @@
-'use strict'
+import { join, resolve, dirname } from 'node:path'
+import { readFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { create as createDb } from '@platformatic/db'
+import fastify from 'fastify'
 
-const { join, resolve } = require('node:path')
-const { readFile } = require('node:fs/promises')
-const { existsSync } = require('node:fs')
-const { buildServer } = require('@platformatic/db')
-const fastify = require('fastify')
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
-function setUpEnvironment(env = {}) {
+export function setUpEnvironment (env = {}) {
   const defaultEnv = {
     PLT_CLIENTS_ROLE: 'clients',
     PLT_TOKEN_SVC_HOST: '',
@@ -19,9 +20,8 @@ function setUpEnvironment(env = {}) {
   Object.assign(process.env, defaultEnv, env)
 }
 
-async function serviceConfig(overrides: { logLevel?: string }) {
+async function serviceConfig (overrides: { logLevel?: string }) {
   // Find package.json by traversing up from current directory.
-  // We need this because we have a relative path to the clients folder which is in ICC root
   let currentDir = __dirname
   let packageRoot
   while (currentDir !== '/') {
@@ -36,7 +36,6 @@ async function serviceConfig(overrides: { logLevel?: string }) {
     throw new Error('Could not find package.json')
   }
 
-  const clientsDir = join(packageRoot, '..', '..', 'clients')
   const config = JSON.parse(await readFile(join(packageRoot, 'platformatic.json'), 'utf8'))
   config.server = {
     logger: { level: 'silent' },
@@ -52,31 +51,17 @@ async function serviceConfig(overrides: { logLevel?: string }) {
       join(packageRoot, 'routes')
     ]
   }
-  config.clients = [
-    {
-      schema: join(clientsDir, 'control-plane', 'control-plane.openapi.json'),
-      name: 'controlPlane',
-      type: 'openapi',
-      url: process.env.PLT_CONTROL_PLANE_URL || 'http://127.0.0.1:3042'
-    },
-    {
-      schema: join(clientsDir, 'metrics', 'metrics.openapi.json'),
-      name: 'metrics',
-      type: 'openapi',
-      url: process.env.PLT_METRICS_URL || 'http://127.0.0.1:3009'
-    },
-    {
-      schema: join(clientsDir, 'risk-service', 'risk-service.openapi.json'),
-      name: 'riskService',
-      type: 'openapi',
-      url: process.env.PLT_RISK_SERVICE_URL || 'http://127.0.0.1:3006'
-    }
-  ]
+  // Massimo clients are registered by services/cluster-manager/plugins/clients.ts.
+  // The PLT_<APP>_URL env vars override the http://<id>.plt.local default
+  // (see lib/clients-plugin.js), so we just default ports for the mocks.
+  process.env.PLT_CONTROL_PLANE_URL ||= 'http://127.0.0.1:3042'
+  process.env.PLT_METRICS_URL ||= 'http://127.0.0.1:3009'
+  process.env.PLT_RISK_SERVICE_URL ||= 'http://127.0.0.1:3006'
 
   return config
 }
 
-const bootstrap = async function bootstrap(t: any, serverOverrides: { logLevel?: string } = {}, env: any = {}) {
+export const bootstrap = async function bootstrap (t: any, serverOverrides: { logLevel?: string } = {}, env: any = {}): Promise<any> {
   setUpEnvironment(env)
   const options = await serviceConfig(serverOverrides)
 
@@ -94,18 +79,20 @@ const bootstrap = async function bootstrap(t: any, serverOverrides: { logLevel?:
   // this is needed to run the seeds/recommendations.js script from root directory
   options.migrations.dir = join(packageRoot, 'migrations')
 
-  const server = await buildServer(options)
-  t.after(() => server.close())
+  const capability = await createDb(join(__dirname, '..'), options)
+  await capability.init()
+  const server = capability.getApplication()
+  t.after(() => capability.stop())
 
   const { db, sql } = server.platformatic
   await db.query(sql`DELETE FROM "recommendations"`)
   await db.query(sql`ALTER SEQUENCE recommendations_count_seq RESTART`)
 
-  await server.start()
+  await capability.start()
   return server
 }
 
-async function startRiskService(t: any, opts: any = {}) {
+export async function startRiskService (t: any, opts: any = {}) {
   const risk = fastify({ keepAliveTimeout: 1 })
 
   risk.get('/latencies', async (req) => {
@@ -120,7 +107,7 @@ async function startRiskService(t: any, opts: any = {}) {
   return risk
 }
 
-async function startControlPlane(t: any, opts: any = {}) {
+export async function startControlPlane (t: any, opts: any = {}) {
   const controlPlane = fastify({ keepAliveTimeout: 1 })
 
   controlPlane.get('/graph', async () => {
@@ -136,7 +123,7 @@ async function startControlPlane(t: any, opts: any = {}) {
   return controlPlane
 }
 
-async function startMetrics(t: any, opts: any = {}) {
+export async function startMetrics (t: any, opts: any = {}) {
   const metrics = fastify({ keepAliveTimeout: 1 })
 
   metrics.post('/services', async (req) => {
@@ -155,15 +142,6 @@ async function startMetrics(t: any, opts: any = {}) {
   return metrics
 }
 
-function getRandomElementFromArray(array: any[]) {
+export function getRandomElementFromArray (array: any[]) {
   return array[Math.floor(Math.random() * array.length)]
-}
-
-module.exports = {
-  bootstrap,
-  getRandomElementFromArray,
-  setUpEnvironment,
-  startRiskService,
-  startControlPlane,
-  startMetrics
 }

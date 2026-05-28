@@ -1,11 +1,11 @@
 import assert from 'node:assert'
 
-import type { BudgetSet } from './budget-set'
-import type { CostSet } from './cluster'
+import type { BudgetSet } from './budget-set.ts'
+import type { CostSet } from './cluster.ts'
 import {
   BudgetMustBePositiveError,
   BudgetMaxLessThanMinError
-} from './error'
+} from './error.ts'
 
 export interface BudgetInput {
   min: number,

@@ -1,8 +1,8 @@
 import assert, { deepStrictEqual, strictEqual } from 'node:assert'
 import test from 'node:test'
 
-import { BudgetSet } from '../../../lib/service-grouping/budget-set.js'
-import { Budget } from '../../../lib/service-grouping/budget.js'
+import { BudgetSet } from '../../../lib/service-grouping/budget-set.ts'
+import { Budget } from '../../../lib/service-grouping/budget.ts'
 
 test('new BudgetSet', () => {
   const inputs = [

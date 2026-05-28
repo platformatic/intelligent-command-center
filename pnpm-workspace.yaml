@@ -4,7 +4,16 @@ packages:
 
 supportedArchitectures:
   os:
-  - darwin
-  - linux
+    - darwin
+    - linux
 
 minimumReleaseAge: 1440
+
+resolutionMode: highest
+
+allowBuilds:
+  esbuild: true
+  msgpackr-extract: true
+  protobufjs: true
+  sharp: true
+  thread-cpu-usage: true

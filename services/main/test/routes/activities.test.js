@@ -56,7 +56,6 @@ test('get activities', async (t) => {
       authorized: true
     }
   })
-  await app.start()
   {
     const res = await app.inject({
       method: 'GET',
@@ -129,7 +128,6 @@ test('should send x-user header to activities', async (t) => {
     })
 
   const app = await getServer(t)
-  await app.start()
 
   // perform request
   const res = await app.inject({

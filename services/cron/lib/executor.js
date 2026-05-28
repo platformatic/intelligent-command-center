@@ -40,32 +40,18 @@ class Executor {
     if (this.isMetricsEnabled) {
       const { client, registry } = promClient
       const labelNames = ['jobId', 'jobName', 'applicationId']
+      // v3 promotes the prometheus registry to a process-global, so a
+      // repeated `new Counter({ name })` on a process-warm registry throws
+      // "metric ... has already been registered". Reuse the existing
+      // counter if one is already registered.
+      const counter = (name, help) => {
+        return registry.getSingleMetric(name) || new client.Counter({ name, help, registers: [registry], labelNames })
+      }
       this.jobsMetrics = {
-        messagesSent: new client.Counter({
-          name: 'icc_jobs_messages_sent',
-          help: 'Messages sent by jobs',
-          registers: [registry],
-          labelNames
-        }),
-        messagesFailed: new client.Counter({
-          name: 'icc_jobs_messages_failed',
-          help: 'Messages failed by jobs',
-          registers: [registry],
-          labelNames
-        }),
-        messagesRetries: new client.Counter({
-          name: 'icc_jobs_messages_retries',
-          help: 'Messages retried by jobs',
-          registers: [registry],
-          labelNames
-
-        }),
-        messagesExecutionTimeSum: new client.Counter({
-          name: 'icc_jobs_messages_execution_time_sum',
-          help: 'Time spent processing messages',
-          registers: [registry],
-          labelNames
-        })
+        messagesSent: counter('icc_jobs_messages_sent', 'Messages sent by jobs'),
+        messagesFailed: counter('icc_jobs_messages_failed', 'Messages failed by jobs'),
+        messagesRetries: counter('icc_jobs_messages_retries', 'Messages retried by jobs'),
+        messagesExecutionTimeSum: counter('icc_jobs_messages_execution_time_sum', 'Time spent processing messages')
       }
     }
   }

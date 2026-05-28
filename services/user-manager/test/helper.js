@@ -3,7 +3,7 @@
 const { join } = require('node:path')
 const { readFile } = require('node:fs/promises')
 const { randomBytes } = require('node:crypto')
-const { buildServer } = require('@platformatic/db')
+const platformaticDb = require('@platformatic/db')
 
 async function getServer (t, users = []) {
   process.env.PLT_USER_MANAGER_SESSION_SECRET_KEY = randomBytes(32).toString('base64url')
@@ -24,8 +24,7 @@ async function getServer (t, users = []) {
         path: join(__dirname, '..', 'plugins'),
         encapsulate: false
       }
-    ],
-    typescript: '{PLT_USER_MANAGER_TYPESCRIPT}'
+    ]
   }
   config.watch = false
 
@@ -35,7 +34,9 @@ async function getServer (t, users = []) {
   config.db.connectionString = connectionString
 
   // Add your config customizations here
-  const server = await buildServer(config)
+  const capability = await platformaticDb.create(join(__dirname, '..'), config)
+  await capability.init()
+  const server = capability.getApplication()
   const { db, sql } = server.platformatic
   if (process.env.PLT_USER_MANAGER_SUPER_ADMIN_EMAIL) {
     // do not delete the databases, the test will fail
@@ -44,8 +45,9 @@ async function getServer (t, users = []) {
   }
   t && t.after(async () => {
     await clearUserDb(db, sql)
-    server.close()
+    await capability.stop()
     delete process.env.PLT_USER_MANAGER_SESSION_SECRET_KEY
+    delete process.env.PLT_USER_MANAGER_SUPER_ADMIN_EMAIL
   })
 
   if (users.length > 0) {

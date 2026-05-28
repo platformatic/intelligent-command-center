@@ -33,7 +33,7 @@ test('should return 204 when posting an update', async (t) => {
 
 test('the icc event should be sent to the websocket', async (t) => {
   const server = await getServer(t)
-  const url = await server.start()
+  const url = server.url
 
   const wsUrl = url.replace('http', 'ws') + '/api/updates/icc'
 
@@ -104,7 +104,7 @@ test('the application event should be sent to the websocket', async (t) => {
     PLT_DISABLE_MACHINE_AUTH: false
   })
 
-  const url = await server.start()
+  const url = server.url
 
   const jwt = k8sAuth.generateToken(podId)
   const wsUrl = url.replace('http', 'ws') + `/api/updates/applications/${applicationId}`
@@ -203,7 +203,7 @@ test('should notify scaler on connect and disconnect when runtimeId is provided 
     PLT_DISABLE_MACHINE_AUTH: false
   })
 
-  const url = await server.start()
+  const url = server.url
 
   const jwt = k8sAuth.generateToken(podId, namespace)
   const wsUrl = url.replace('http', 'ws') + `/api/updates/applications/${applicationId}?runtimeId=${runtimeId}`
@@ -274,7 +274,7 @@ test('should not notify scaler when algorithm version is v1', async (t) => {
     PLT_DISABLE_MACHINE_AUTH: false
   })
 
-  const url = await server.start()
+  const url = server.url
 
   const jwt = k8sAuth.generateToken(podId, namespace)
   const wsUrl = url.replace('http', 'ws') + `/api/updates/applications/${applicationId}?runtimeId=${runtimeId}`
@@ -331,7 +331,7 @@ test('should not notify scaler when runtimeId is not provided', async (t) => {
     PLT_DISABLE_MACHINE_AUTH: false
   })
 
-  const url = await server.start()
+  const url = server.url
 
   const jwt = k8sAuth.generateToken(podId, namespace)
   // Note: no runtimeId in the URL

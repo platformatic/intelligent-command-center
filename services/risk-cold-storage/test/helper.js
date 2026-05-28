@@ -2,7 +2,7 @@
 
 const { join, resolve } = require('node:path')
 const { readdir } = require('node:fs/promises')
-const { buildServer } = require('@platformatic/db')
+const platformaticDb = require('@platformatic/db')
 const { mockClient: awsMockClient } = require('aws-sdk-client-mock')
 const { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3')
 
@@ -93,15 +93,20 @@ module.exports.bootstrap = async function bootstrap (t, env = {}, clients = {}) 
   process.env = {}
 
   let server = null
+  let capability = null
   t.after(async () => {
     if (server) {
       await dropTables(server)
-      await server.close()
+    }
+    if (capability) {
+      await capability.stop()
     }
   })
   setUpEnvironment(env)
   const options = dbConfig()
-  server = await buildServer(options)
+  capability = await platformaticDb.create(join(__dirname, '..'), options)
+  await capability.init()
+  server = capability.getApplication()
 
   // We inject here the mocked "clients" for other runtime's services
   server.addHook('preHandler', (req, _reply, done) => {
@@ -113,7 +118,7 @@ module.exports.bootstrap = async function bootstrap (t, env = {}, clients = {}) 
 
   await clear(server)
 
-  await server.start()
+  await capability.start()
   return server
 }
 

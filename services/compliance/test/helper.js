@@ -1,7 +1,7 @@
 'use strict'
 
 const { join } = require('node:path')
-const { buildServer } = require('@platformatic/db')
+const platformaticDb = require('@platformatic/db')
 const fastify = require('fastify')
 const {
   MockAgent,
@@ -28,9 +28,7 @@ function setUpEnvironment (env = {}) {
 async function startCompliance (t, envOverride, rulesData) {
   setUpEnvironment(envOverride)
 
-  const clientsDir = join(__dirname, '..', '..', '..', 'clients')
-
-  const app = await buildServer({
+  const capability = await platformaticDb.create(join(__dirname, '..'), {
     server: {
       hostname: '127.0.0.1',
       port: 3003,
@@ -50,25 +48,19 @@ async function startCompliance (t, envOverride, rulesData) {
         { path: join(__dirname, '..', 'plugins') },
         { path: join(__dirname, '..', 'routes') }
       ]
-    },
-    clients: [
-      {
-        schema: join(clientsDir, 'control-plane', 'control-plane.openapi.json'),
-        name: 'controlPlane',
-        type: 'openapi',
-        url: process.env.PLT_CONTROL_PLANE_URL
-      }
-    ]
+    }
   })
+  await capability.init()
+  const app = capability.getApplication()
 
   t.after(async () => {
-    await app.close()
+    await capability.stop()
   })
 
   const { db, sql } = app.platformatic
 
   // save rules
-  await app.start()
+  await capability.start()
 
   await db.query(sql`DELETE FROM "reports"`)
   await db.query(sql`DELETE FROM "rule_configs"`)

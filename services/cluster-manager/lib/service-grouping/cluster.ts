@@ -2,24 +2,24 @@ import assert from 'node:assert'
 
 import pino, { type Logger } from 'pino'
 
-import type { BudgetSetInput } from './budget-set'
-import type { LinkCostInput } from './link-cost'
-import type { ServiceTarget, LinkTarget } from './service-link'
-import type { OptimizationStep } from './optimization-step'
+import type { BudgetSetInput } from './budget-set.ts'
+import type { LinkCostInput } from './link-cost.ts'
+import type { ServiceTarget, LinkTarget } from './service-link.ts'
+import type { OptimizationStep } from './optimization-step.ts'
 
-import { App } from './app'
-import { Budget } from './budget'
-import { BudgetSet } from './budget-set'
-import { InsufficientBudgetError } from './error'
-import { LinkCost } from './link-cost'
+import { App } from './app.ts'
+import { Budget } from './budget.ts'
+import { BudgetSet } from './budget-set.ts'
+import { InsufficientBudgetError } from './error.ts'
+import { LinkCost } from './link-cost.ts'
 import {
   CreateApplication,
   DeleteApplication,
   DuplicateService,
   MoveService
-} from './optimization-step'
-import { ServiceLink } from './service-link'
-import { Service } from './service'
+} from './optimization-step.ts'
+import { ServiceLink } from './service-link.ts'
+import { Service } from './service.ts'
 
 export interface ServiceDefinition {
   name: string,

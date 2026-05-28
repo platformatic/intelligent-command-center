@@ -176,9 +176,13 @@ class NextCacheManager extends EventEmitter {
 
   async #getCacheHandler () {
     if (!this.#cacheHandler) {
-      const { cachingValkey } = await import('@platformatic/next')
-
-      this.#cacheHandler = new cachingValkey.CacheHandler({
+      // v2 exposed `cachingValkey` directly on the package; v3 exposes
+      // a path lookup via getCacheHandlerPath('valkey-isr') and expects
+      // the consumer to dynamic-import that path.
+      const next = await import('@platformatic/next')
+      const cachingPath = next.getCacheHandlerPath('valkey-isr')
+      const { CacheHandler } = await import(cachingPath)
+      this.#cacheHandler = new CacheHandler({
         standalone: true,
         logger: this.#logger,
         store: this.#redis

@@ -4,8 +4,35 @@ const { buildServer } = require('../helper')
 const { test } = require('node:test')
 const { once, EventEmitter } = require('events')
 const tspl = require('@matteo.collina/tspl')
-const { request } = require('undici')
 const Fastify = require('fastify')
+
+// In v3, only the Runtime binds the Prometheus HTTP endpoint; standalone
+// capabilities just register metrics on globalThis.platformatic.prometheus.
+// Read the prom registry off globalThis instead of querying HTTP.
+async function readMetrics () {
+  const reg = globalThis.platformatic?.prometheus?.registry
+  if (!reg) throw new Error('prometheus registry not initialized')
+  return reg.metrics()
+}
+
+// Poll the registry until a counter reaches `target`. Used to bridge the
+// race between target.post's `ee.emit('called')` (which the test awaits)
+// and the executor's downstream increment of the same counter (which only
+// runs after makeCallback's HTTP response resolves).
+async function waitForMetric (name, target, { timeout = 5000 } = {}) {
+  const reg = globalThis.platformatic?.prometheus?.registry
+  if (!reg) throw new Error('prometheus registry not initialized')
+  const metric = reg.getSingleMetric(name)
+  if (!metric) throw new Error(`metric ${name} not registered`)
+  const deadline = Date.now() + timeout
+  while (Date.now() < deadline) {
+    const { values } = await metric.get()
+    const total = values.reduce((acc, v) => acc + v.value, 0)
+    if (total >= target) return
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
+  throw new Error(`metric ${name} did not reach ${target} within ${timeout}ms`)
+}
 
 test('happy path', async (t) => {
   const plan = tspl(t, { plan: 10 })
@@ -55,12 +82,12 @@ test('happy path', async (t) => {
   const p2 = once(ee, 'called')
   await p2
 
-  const { body } = await request('http://127.0.0.1:19090', {
-    method: 'GET',
-    path: '/metrics'
-  })
+  // Bridge the race between target.post's ee.emit and the executor's
+  // messagesSent.inc() — the inc only runs after `await makeCallback`
+  // resolves on the response, which is later than the emit.
+  await waitForMetric('icc_jobs_messages_sent', 1)
 
-  const metrics = await body.text()
+  const metrics = await readMetrics()
 
   const metricsNames = metrics
     .split('\n')
@@ -137,12 +164,12 @@ test('message failures', async (t) => {
     await p1
   }
 
-  const { body } = await request('http://127.0.0.1:19090', {
-    method: 'GET',
-    path: '/metrics'
-  })
+  // The executor's `messagesFailed.inc()` happens AFTER target.post emits
+  // (await makeCallback resolves only when the HTTP 500 response lands).
+  // Wait for the counter to actually catch up before reading metrics.
+  await waitForMetric('icc_jobs_messages_failed', 5)
 
-  const metrics = await body.text()
+  const metrics = await readMetrics()
 
   const jobsMessagesSentMetrics = metrics.split('\n').filter(line => line && line.startsWith('icc_jobs_messages_sent'))
   const jobsMessagesFailedMetrics = metrics.split('\n').filter(line => line && line.startsWith('icc_jobs_messages_failed'))

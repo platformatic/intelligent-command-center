@@ -14,14 +14,15 @@
     "@fastify/jwt": "^10.0.0",
     "@fastify/oauth2": "^8.1.0",
     "@fastify/websocket": "^11.0.2",
-    "@platformatic/composer": "^2.70.1",
+    "@platformatic/gateway": "^3.54.0",
     "fastify-plugin": "^5.0.1",
     "get-jwks": "^11.0.0",
     "mqemitter-redis": "^7.0.0",
-    "platformatic": "^2.70.1",
+    "platformatic": "^3.54.0",
     "semver": "^7.7.2",
     "undici": "^7.1.0",
-    "ws": "^8.18.1"
+    "ws": "^8.18.1",
+    "massimo": "^1.2.0"
   },
   "devDependencies": {
     "@fastify/secure-session": "^8.2.0",

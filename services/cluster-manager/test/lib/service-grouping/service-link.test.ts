@@ -1,14 +1,14 @@
 import { deepStrictEqual, strictEqual } from 'node:assert'
 import test from 'node:test'
 
-import type { ServiceTarget, LinkTarget } from '../../../lib/service-grouping/service-link'
+import type { ServiceTarget, LinkTarget } from '../../../lib/service-grouping/service-link.ts'
 import {
   splitServiceTarget,
   splitLinkTarget,
   ServiceLink
-} from '../../../lib/service-grouping/service-link'
-import { Service } from '../../../lib/service-grouping/service'
-import { LinkCost } from '../../../lib/service-grouping/link-cost'
+} from '../../../lib/service-grouping/service-link.ts'
+import { Service } from '../../../lib/service-grouping/service.ts'
+import { LinkCost } from '../../../lib/service-grouping/link-cost.ts'
 
 test('splitServiceTarget', () => {
   const target: ServiceTarget = 'app:service'

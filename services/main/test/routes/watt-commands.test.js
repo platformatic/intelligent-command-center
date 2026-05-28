@@ -23,7 +23,7 @@ test('execute trigger-flamegraph command on pod', async (t) => {
     PLT_DISABLE_MACHINE_AUTH: false
   })
 
-  const url = await server.start()
+  const url = server.url
 
   const jwt = k8sAuth.generateToken(podId)
   const wsUrl = url.replace('http', 'ws') + `/api/updates/applications/${applicationId}`
@@ -80,7 +80,7 @@ test('execute command with params on pod', async (t) => {
     PLT_DISABLE_MACHINE_AUTH: false
   })
 
-  const url = await server.start()
+  const url = server.url
 
   const jwt = k8sAuth.generateToken(podId)
   const wsUrl = url.replace('http', 'ws') + `/api/updates/applications/${applicationId}`
@@ -156,7 +156,7 @@ test('execute unknown command returns error', async (t) => {
     PLT_DISABLE_MACHINE_AUTH: false
   })
 
-  const url = await server.start()
+  const url = server.url
 
   const jwt = k8sAuth.generateToken(podId)
   const wsUrl = url.replace('http', 'ws') + `/api/updates/applications/${applicationId}`
@@ -202,7 +202,7 @@ test('execute trigger-heapprofile command on pod', async (t) => {
     PLT_DISABLE_MACHINE_AUTH: false
   })
 
-  const url = await server.start()
+  const url = server.url
 
   const jwt = k8sAuth.generateToken(podId)
   const wsUrl = url.replace('http', 'ws') + `/api/updates/applications/${applicationId}`
@@ -259,7 +259,7 @@ test('execute trigger-heapprofile command with params on pod', async (t) => {
     PLT_DISABLE_MACHINE_AUTH: false
   })
 
-  const url = await server.start()
+  const url = server.url
 
   const jwt = k8sAuth.generateToken(podId)
   const wsUrl = url.replace('http', 'ws') + `/api/updates/applications/${applicationId}`

@@ -3,7 +3,7 @@
 const { join } = require('node:path')
 const { randomUUID } = require('node:crypto')
 const { readFile } = require('node:fs/promises')
-const { buildServer: buildDbServer } = require('@platformatic/db')
+const platformaticDb = require('@platformatic/db')
 const fastify = require('fastify')
 
 const defaultEnv = {
@@ -45,10 +45,8 @@ function setUpEnvironment (env = {}) {
 async function startControlPlane (t, entities = {}, env = {}) {
   setUpEnvironment(env)
 
-  const clientsDir = join(__dirname, '..', '..', '..', 'clients')
-
   const originalConfig = JSON.parse(await readFile(join(__dirname, '..', 'platformatic.json'), 'utf-8'))
-  const app = await buildDbServer({
+  const capability = await platformaticDb.create(join(__dirname, '..'), {
     server: {
       hostname: '127.0.0.1',
       port: 3042,
@@ -77,34 +75,10 @@ async function startControlPlane (t, entities = {}, env = {}) {
         join(__dirname, '..', 'routes')
       ]
     },
-    clients: [
-      {
-        schema: join(clientsDir, 'activities', 'activities.openapi.json'),
-        name: 'activities',
-        type: 'openapi',
-        url: process.env.PLT_ACTIVITIES_URL
-      },
-      {
-        schema: join(clientsDir, 'metrics', 'metrics.openapi.json'),
-        name: 'metrics',
-        type: 'openapi',
-        url: process.env.PLT_METRICS_URL
-      },
-      {
-        schema: join(clientsDir, 'scaler', 'scaler.openapi.json'),
-        name: 'scaler',
-        type: 'openapi',
-        url: process.env.PLT_SCALER_URL
-      },
-      {
-        schema: join(clientsDir, 'traffic-inspector', 'traffic-inspector.openapi.json'),
-        name: 'trafficInspector',
-        type: 'openapi',
-        url: process.env.PLT_TRAFFIC_INSPECTOR_URL
-      }
-    ],
     watch: false
   })
+  await capability.init()
+  const app = capability.getApplication()
 
   const testCtx = {
     logger: app.log,
@@ -155,7 +129,7 @@ async function startControlPlane (t, entities = {}, env = {}) {
   })
 
   if (t) {
-    t.after(() => app.close())
+    t.after(() => capability.stop())
   }
 
   const { db, sql } = app.platformatic
@@ -263,7 +237,7 @@ async function startControlPlane (t, entities = {}, env = {}) {
     })
   }
 
-  await app.start()
+  await capability.start()
   return app
 }
 

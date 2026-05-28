@@ -3,7 +3,7 @@
 const { beforeEach, afterEach } = require('node:test')
 const { join } = require('path')
 const { setGlobalDispatcher, Agent } = require('undici')
-const { buildServer: buildDbServer } = require('@platformatic/db')
+const platformaticDb = require('@platformatic/db')
 const createConnectionPool = require('@databases/pg')
 
 const connectionString = 'postgres://postgres:postgres@127.0.0.1:5433/cron'
@@ -20,7 +20,9 @@ async function getConfig (enableMetrics) {
     logger: { level: 'error' }
   }
   config.db = {
-    connectionString
+    connectionString,
+    graphql: true,
+    openapi: true
   }
 
   config.migrations = {
@@ -34,9 +36,10 @@ async function getConfig (enableMetrics) {
       join(__dirname, '..', 'routes')
     ]
   }
-  config.metrics = {
-    port: 19090
-  }
+  // In v3 the Prometheus HTTP endpoint is bound by @platformatic/runtime
+  // (see runtime/lib/prom-server.js). A standalone capability does not
+  // bind a metrics port, so we expose the registry off `globalThis` and
+  // let tests assert against it directly.
   return { config }
 }
 
@@ -48,8 +51,16 @@ function setUpEnvironment (env = {}) {
 async function buildServer (t, env = {}) {
   setUpEnvironment(env)
   const { config } = await getConfig()
-  const server = await buildDbServer(config)
-  t.after(() => server.close())
+  // v3 promotes the prom-client registry to a process-global, which
+  // also means counter values bleed across tests in the same file.
+  // Reset the registry before each boot so each test sees only its own
+  // increments. The executor reuses metrics via registry.getSingleMetric
+  // so re-init after clear() works.
+  globalThis.platformatic?.prometheus?.registry?.resetMetrics?.()
+  const capability = await platformaticDb.create(join(__dirname, '..'), config)
+  await capability.init()
+  const server = capability.getApplication()
+  t.after(() => capability.stop())
   return server
 }
 

@@ -2,14 +2,17 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
-    "outDir": "dist",
     "moduleResolution": "NodeNext",
-    "declaration": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "verbatimModuleSyntax": true,
     "noImplicitAny": false,
     "preserveConstEnums": true,
-    "sourceMap": true,
     "skipLibCheck": true,
-    "strict": false
+    "strict": false,
+    "allowJs": true,
+    "checkJs": false
   },
   "include": ["lib/**/*", "plugins/**/*", "routes/**/*", "test/**/*"]
 }

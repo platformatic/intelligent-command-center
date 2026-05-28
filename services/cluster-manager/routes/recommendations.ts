@@ -1,10 +1,9 @@
 /// <reference path="../global.d.ts" />
-'use strict'
 
-const { InvalidStatus, InvalidStatusFlow } = require('../lib/errors.js')
+import { InvalidStatus, InvalidStatusFlow } from '../lib/errors.ts'
 
 /** @param {import('fastify').FastifyInstance} app */
-module.exports = async function (app, opts) {
+export default async function (app, opts) {
   app.decorate('getRecommendationsCount', async () => {
     const { db, sql } = app.platformatic
     const queryCount = sql`SELECT COUNT(*) FROM recommendations`

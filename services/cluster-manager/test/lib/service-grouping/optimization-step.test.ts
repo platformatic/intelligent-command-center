@@ -7,11 +7,11 @@ import {
   DeleteApplication,
   MoveService,
   DuplicateService
-} from '../../../lib/service-grouping/optimization-step'
+} from '../../../lib/service-grouping/optimization-step.ts'
 
-import { App } from '../../../lib/service-grouping/app'
-import { ServiceTarget } from '../../../lib/service-grouping/service-link'
-import { Service } from '../../../lib/service-grouping/service'
+import { App } from '../../../lib/service-grouping/app.ts'
+import type { ServiceTarget } from '../../../lib/service-grouping/service-link.ts'
+import { Service } from '../../../lib/service-grouping/service.ts'
 
 test('CreateApplication', () => {
   const app = { name: 'app' } as App

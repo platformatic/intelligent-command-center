@@ -1,5 +1,6 @@
-import { ApplicationMap, Cluster, ServiceLinkInput } from './cluster'
-import { ServiceTarget } from './service-link'
+import type { ApplicationMap, ServiceLinkInput } from './cluster.ts'
+import type { ServiceTarget } from './service-link.ts'
+import { Cluster } from './cluster.ts'
 
 export interface MermaidInputConfig {
   applications: ApplicationMap

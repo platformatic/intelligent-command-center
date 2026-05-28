@@ -26,7 +26,6 @@ test('should set x-user header when proxying a request to an internal service', 
     email: 'foo@bar.com',
     username: 'foobar'
   }
-  await server.start()
   const agent = new MockAgent()
   const gd = getGlobalDispatcher()
 

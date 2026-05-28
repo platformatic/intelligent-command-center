@@ -1,10 +1,11 @@
 import type { Logger } from 'pino'
 
-import type { CostSet } from './cluster'
+import type { CostSet } from './cluster.ts'
 
-import { Service, ServiceName, ServiceType } from './service'
-import { BudgetSet } from './budget-set'
-import { ServiceExistsInAppError } from './error'
+import type { ServiceName, ServiceType } from './service.ts'
+import { Service } from './service.ts'
+import { BudgetSet } from './budget-set.ts'
+import { ServiceExistsInAppError } from './error.ts'
 
 export type AppName = string
 

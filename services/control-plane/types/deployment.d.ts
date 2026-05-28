@@ -1,0 +1,13 @@
+/**
+ * Deployment
+ * A Deployment
+ */
+export interface Deployment {
+  id?: string;
+  applicationId: string;
+  applicationStateId?: string | null;
+  createdAt?: string | null;
+  imageId: string;
+  namespace: string;
+  status: "failed" | "started" | "starting" | "stopped";
+}

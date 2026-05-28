@@ -1,5 +1,4 @@
 /// <reference path="../global.d.ts" />
-'use strict'
 
 // Budget
 const budgetType = (min, max) => ({
@@ -120,7 +119,7 @@ const composerCostsType = {
 }
 
 /** @param {import('fastify').FastifyInstance} app */
-module.exports = async function (app, opts) {
+export default async function (app, opts) {
   app.get('/optimize', {
     schema: {
       operationId: 'optimize',

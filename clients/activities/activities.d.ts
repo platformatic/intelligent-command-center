@@ -1,5 +1,5 @@
 import { type FastifyReply, type FastifyPluginAsync } from 'fastify'
-import { type GetHeadersOptions } from '@platformatic/client'
+import { type GetHeadersOptions } from 'massimo'
 
 declare namespace activities {
   export type Activities = {

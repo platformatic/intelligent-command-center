@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.16.0.json",
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/3.54.0.json",
   "db": {
     "connectionString": "{PLT_COLD_STORAGE_DATABASE_URL}",
     "graphql": false,
@@ -20,18 +20,9 @@
     "paths": [
       "./plugins",
       "./routes"
-    ],
-    "typescript": false
+    ]
   },
   "types": {
     "autogenerate": false
-  },
-  "clients": [
-    {
-      "schema": "../../clients/risk-service/risk-service.openapi.json",
-      "name": "riskService",
-      "type": "openapi",
-      "serviceId": "risk-service"
-    }
-  ]
+  }
 }

@@ -2,7 +2,7 @@
 
 const { join } = require('node:path')
 const { readFile } = require('node:fs/promises')
-const { buildServer } = require('@platformatic/service')
+const platformaticService = require('@platformatic/service')
 const fastify = require('fastify')
 const formBody = require('@fastify/formbody')
 
@@ -21,13 +21,16 @@ async function startMetrics (t, controlPlane, env) {
   config.server.logger ||= {}
   config.server.logger.level = 'error'
   config.watch = false
-  const server = await buildServer(config)
+  const capability = await platformaticService.create(join(__dirname, '..'), config)
+  await capability.init()
+  const server = capability.getApplication()
   // We inject here the mocked "clients" for other runtime's services
   server.addHook('preHandler', (req, _reply, done) => {
     req.controlPlane = controlPlane
     done()
   })
-  t.after(() => server.close())
+  t.after(() => capability.stop())
+  await capability.start()
   return server
 }
 

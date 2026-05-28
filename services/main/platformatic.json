@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.platformatic.dev/@platformatic/composer/2.59.0.json",
+  "$schema": "https://schemas.platformatic.dev/@platformatic/gateway/3.54.0.json",
   "server": {
     "healthCheck": {
       "exposeStatusRoute": {
@@ -10,9 +10,9 @@
       }
     }
   },
-  "composer": {
+  "gateway": {
     "openapi": {},
-    "services": [
+    "applications": [
       {
         "id": "control-plane",
         "proxy": {
@@ -119,13 +119,5 @@
         "path": "./lib/resources"
       }
     ]
-  },
-  "clients": [
-    {
-      "schema": "../../clients/activities/activities.openapi.json",
-      "name": "activities",
-      "type": "openapi",
-      "serviceId": "activities"
-    }
-  ]
+  }
 }

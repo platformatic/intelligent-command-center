@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from 'node:assert'
 import test from 'node:test'
 
-import { Budget } from '../../../lib/service-grouping/budget'
+import { Budget } from '../../../lib/service-grouping/budget.ts'
 import {
   BudgetMustBePositiveError,
   BudgetMaxLessThanMinError,
@@ -9,11 +9,11 @@ import {
   ServiceMoveError,
   InsufficientBudgetError,
   ServiceLinkNotRelatedError
-} from '../../../lib/service-grouping/error'
-import { Service } from '../../../lib/service-grouping/service'
-import { App } from '../../../lib/service-grouping/app'
-import { ServiceLink } from '../../../lib/service-grouping/service-link'
-import { BudgetSet } from '../../../lib/service-grouping/budget-set'
+} from '../../../lib/service-grouping/error.ts'
+import { Service } from '../../../lib/service-grouping/service.ts'
+import { App } from '../../../lib/service-grouping/app.ts'
+import { ServiceLink } from '../../../lib/service-grouping/service-link.ts'
+import { BudgetSet } from '../../../lib/service-grouping/budget-set.ts'
 
 test('BudgetMustBePositiveError', () => {
   const budget = { min: -1 } as Budget

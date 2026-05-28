@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.50.0.json",
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/3.54.0.json",
   "server": {
     "pluginTimeout": 60000
   },
@@ -7,8 +7,14 @@
     "connectionString": "{PLT_TRAFFIC_INSPECTOR_DATABASE_URL}",
     "openapi": {
       "ignoreRoutes": [
-        { "method": "POST", "path": "/recommendations"},
-        { "method": "POST", "path": "/requests"}
+        {
+          "method": "POST",
+          "path": "/recommendations"
+        },
+        {
+          "method": "POST",
+          "path": "/requests"
+        }
       ]
     },
     "events": false,
@@ -29,16 +35,7 @@
     "paths": [
       "./plugins",
       "./routes"
-    ],
-    "typescript": false
+    ]
   },
-  "clients": [
-    {
-      "schema": "../../clients/control-plane/control-plane.openapi.json",
-      "name": "controlPlane",
-      "type": "openapi",
-      "serviceId": "control-plane"
-    }
-  ],
   "watch": "{DEV_K8S}"
 }

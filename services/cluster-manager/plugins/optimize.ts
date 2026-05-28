@@ -1,14 +1,10 @@
 /// <reference path="../global.d.ts" />
 
-'use strict'
+import fp from 'fastify-plugin'
+import { Cluster } from '../lib/service-grouping/cluster.ts'
+import { OptimizeError, RecommendationCalculating } from '../lib/errors.ts'
 
-const fp = require('fastify-plugin')
-const { OptimizeError, RecommendationCalculating } = require('../lib/errors.js')
-
-
-
-module.exports = fp(async function (app: any) {
-  const { Cluster } = await import('../lib/service-grouping/cluster.js')
+export default fp(async function (app: any) {
   app.decorate('optimizeAndRecommend', async (metricsData: any = {}, ctx: any) => {
     const { composerCosts, podBudget } = metricsData
     let calculatingRecommendation

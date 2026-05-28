@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.62.0.json",
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/3.54.0.json",
   "watch": {
     "enabled": "{DEV_K8S}"
   },
@@ -40,24 +40,9 @@
     "autoApply": true
   },
   "plugins": {
-    "paths": ["./plugins", "./routes"],
-    "typescript": false
-  },
-  "metrics": {
-    "server": "parent"
-  },
-  "clients": [
-    {
-      "schema": "../../clients/activities/activities.openapi.json",
-      "name": "activities",
-      "type": "openapi",
-      "serviceId": "activities"
-    },
-    {
-      "schema": "../../clients/control-plane/control-plane.openapi.json",
-      "name": "controlPlane",
-      "type": "openapi",
-      "serviceId": "control-plane"
-    }
-  ]
+    "paths": [
+      "./plugins",
+      "./routes"
+    ]
+  }
 }

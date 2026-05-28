@@ -42,7 +42,6 @@ test('get package versions', async (t) => {
       }
     }).persist()
   const app = await getServer(t)
-  await app.start()
 
   authorizeEndpoint(agent, 'GET', '/api/package_versions')
 
@@ -146,7 +145,6 @@ test('get package versions returns latest per major version', async (t) => {
     }).persist()
 
   const app = await getServer(t)
-  await app.start()
 
   // Mock authorization
   const { authorizeEndpoint } = require('../helper')

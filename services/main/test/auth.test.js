@@ -12,7 +12,6 @@ test('return 401 if auth credentials are missing', async (t) => {
   await startActivities(t, generateRandomActivities(1))
 
   const server = await getServer(t)
-  await server.start()
 
   const res = await server.inject({
     method: 'GET',
@@ -34,7 +33,6 @@ test('return 401 if auth credentials are missing', async (t) => {
 
 test('report user-manager error if its response is not 200', async (t) => {
   const server = await getServer(t)
-  await server.start()
   agent
     .get('http://user-manager.plt.local')
     .intercept({
@@ -78,7 +76,6 @@ test('report user-manager error if its response is not 200', async (t) => {
 
 test('handle user-manager missing credentials error', async (t) => {
   const server = await getServer(t)
-  await server.start()
   agent
     .get('http://user-manager.plt.local')
     .intercept({
@@ -128,7 +125,6 @@ test('return 403 if user is not authorized', async (t) => {
       authorized: false
     }
   })
-  await server.start()
 
   const res = await server.inject({
     method: 'GET',
@@ -170,7 +166,6 @@ test('forward /me to user-manager', async (t) => {
       }
     })
   const server = await getServer(t)
-  await server.start()
   authorizeEndpoint(agent, 'GET', '/api/me')
   const res = await server.inject({
     method: 'GET',
@@ -191,7 +186,6 @@ test('return activities if logged in', async (t) => {
   authorizeEndpoint(null, 'GET', '/api/events?limit=10&offset=0')
 
   const server = await getServer(t)
-  await server.start()
   const res = await server.inject({
     method: 'GET',
     path: '/api/events',
@@ -210,7 +204,6 @@ test('return activities if logged in', async (t) => {
 
 test('should start login with google flow without authorization', async (t) => {
   const server = await getServer(t)
-  await server.start()
   const res = await server.inject({
     method: 'GET',
     path: '/api/login/google'
@@ -221,7 +214,6 @@ test('should start login with google flow without authorization', async (t) => {
 
 test('should callback the login with google flow without authorization', async (t) => {
   const server = await getServer(t)
-  await server.start()
   const res = await server.inject({
     method: 'GET',
     path: '/api/login/google/callback'
@@ -237,7 +229,6 @@ test('should callback the login with google flow without authorization', async (
 
 test('should start login with github flow without authorization', async (t) => {
   const server = await getServer(t)
-  await server.start()
   const res = await server.inject({
     method: 'GET',
     path: '/api/login/github'
@@ -248,7 +239,6 @@ test('should start login with github flow without authorization', async (t) => {
 
 test('should callback the login with github flow without authorization', async (t) => {
   const server = await getServer(t)
-  await server.start()
   const res = await server.inject({
     method: 'GET',
     path: '/api/login/github/callback'
@@ -308,7 +298,6 @@ test('add x-user header to internal service after authorization', async (t) => {
       }
     })
   const server = await getServer(t)
-  await server.start()
   const res = await server.inject({
     method: 'GET',
     path: '/api/events',

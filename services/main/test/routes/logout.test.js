@@ -7,7 +7,6 @@ const { MockAgent, getGlobalDispatcher, setGlobalDispatcher } = require('undici'
 
 test('should logout and return set-cookie headers from user-manager', async (t) => {
   const iccEntrypoint = await getServer(t)
-  await iccEntrypoint.start()
   // Mock user Manager
   const agent = new MockAgent()
   setGlobalDispatcher(agent)

@@ -2,10 +2,10 @@ import assert, { deepStrictEqual, strictEqual, throws } from 'node:assert'
 import test from 'node:test'
 import pino from 'pino'
 
-import { App } from '../../../lib/service-grouping/app'
-import { BudgetSet } from '../../../lib/service-grouping/budget-set'
-import { Service } from '../../../lib/service-grouping/service'
-import { LinkCost } from '../../../lib/service-grouping/link-cost'
+import { App } from '../../../lib/service-grouping/app.ts'
+import { BudgetSet } from '../../../lib/service-grouping/budget-set.ts'
+import { Service } from '../../../lib/service-grouping/service.ts'
+import { LinkCost } from '../../../lib/service-grouping/link-cost.ts'
 
 const logger = pino({ level: 'silent' })
 

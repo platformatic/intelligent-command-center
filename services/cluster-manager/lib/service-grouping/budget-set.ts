@@ -1,7 +1,7 @@
-import type { BudgetInput } from './budget'
-import type { CostSet } from './cluster'
+import type { BudgetInput } from './budget.ts'
+import type { CostSet } from './cluster.ts'
 
-import { Budget } from './budget'
+import { Budget } from './budget.ts'
 
 export interface BudgetSetInput {
   [name: string]: BudgetInput

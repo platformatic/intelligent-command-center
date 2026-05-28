@@ -1,7 +1,7 @@
 import { deepStrictEqual, doesNotThrow, strictEqual, throws } from 'node:assert'
 import test from 'node:test'
 
-import { Budget } from '../../../lib/service-grouping/budget'
+import { Budget } from '../../../lib/service-grouping/budget.ts'
 
 test('new Budget', () => {
   throws(() => new Budget(-1, 0, 0), /^BudgetMustBePositiveError/, 'min must be positive')

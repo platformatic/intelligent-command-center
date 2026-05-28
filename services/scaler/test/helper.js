@@ -4,7 +4,18 @@ const { beforeEach, afterEach } = require('node:test')
 const { join } = require('node:path')
 const { randomUUID } = require('node:crypto')
 const { setGlobalDispatcher, Agent } = require('undici')
-const { buildServer: buildDbServer } = require('@platformatic/db')
+const platformaticDb = require('@platformatic/db')
+
+async function buildDbServer (t, config) {
+  const capability = await platformaticDb.create(join(__dirname, '..'), config)
+  await capability.init()
+  const server = capability.getApplication()
+  server.__capability = capability
+  if (t) {
+    t.after(() => capability.stop())
+  }
+  return server
+}
 const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const createConnectionPool = require('@databases/pg')
@@ -68,8 +79,10 @@ async function getConfig () {
       join(__dirname, '..', 'routes')
     ]
   }
-  config.metrics = {
-    port: 0
+  config.runtime = {
+    metrics: {
+      port: 0
+    }
   }
   return { config }
 }
@@ -91,11 +104,7 @@ function setUpEnvironment (env = {}) {
 async function buildServer (t, options = {}) {
   setUpEnvironment(options)
   const { config } = await getConfig()
-  const server = await buildDbServer(config)
-
-  if (t) {
-    t.after(() => server.close())
-  }
+  const server = await buildDbServer(t, config)
 
   await cleanDb(server)
   await cleanValkeyData()
@@ -110,7 +119,7 @@ async function buildServerWithPlugins (t, options = {}, plugins = []) {
     paths: []
   }
 
-  const server = await buildDbServer(config)
+  const server = await buildDbServer(t, config)
 
   await cleanDb(server)
 
@@ -118,7 +127,6 @@ async function buildServerWithPlugins (t, options = {}, plugins = []) {
     await server.register(plugin)
   }
 
-  t.after(() => server.close())
   return server
 }
 

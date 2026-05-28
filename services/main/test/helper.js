@@ -5,7 +5,17 @@ const { join } = require('node:path')
 const { readFile } = require('node:fs/promises')
 const { randomUUID, createPublicKey, generateKeyPairSync } = require('node:crypto')
 const Fastify = require('fastify')
-const { buildServer } = require('@platformatic/composer')
+const platformaticGateway = require('@platformatic/gateway')
+
+async function buildServer (t, config) {
+  const capability = await platformaticGateway.create(join(__dirname, '..'), config)
+  await capability.init()
+  await capability.start()
+  const app = capability.getApplication()
+  app.url = capability.getUrl()
+  t.after(() => capability.stop())
+  return app
+}
 const { MockAgent, setGlobalDispatcher, getGlobalDispatcher } = require('undici')
 const { createSigner } = require('fast-jwt')
 
@@ -33,8 +43,8 @@ module.exports.getComposerWithService = async function (t, services = []) {
     level: 'silent'
   }
   config.watch = false
-  config.composer = {
-    services: services.map((s) => {
+  config.gateway = {
+    applications: services.map((s) => {
       return {
         id: s.id,
         origin: s.origin,
@@ -44,10 +54,9 @@ module.exports.getComposerWithService = async function (t, services = []) {
       }
     })
   }
-  delete config.clients
+  delete config.composer
   // Add your config customizations here
-  const server = await buildServer(config)
-  t.after(() => server.close())
+  const server = await buildServer(t, config)
   return server
 }
 
@@ -62,8 +71,8 @@ module.exports.getServer = async function (t, env) {
   }
   config.watch = false
 
-  config.composer = {
-    services: [
+  config.gateway = {
+    applications: [
       {
         id: 'control-plane',
         origin: process.env.PLT_CONTROL_PLANE_URL,
@@ -73,10 +82,10 @@ module.exports.getServer = async function (t, env) {
       }
     ]
   }
+  delete config.composer
 
   // Add your config customizations here
-  const server = await buildServer(config)
-  t.after(() => server.close())
+  const server = await buildServer(t, config)
   return server
 }
 

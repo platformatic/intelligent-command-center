@@ -3,7 +3,7 @@
 const { readFile } = require('node:fs/promises')
 const { join } = require('node:path')
 const crypto = require('node:crypto')
-const { buildServer } = require('@platformatic/service')
+const platformaticService = require('@platformatic/service')
 
 const createSpanId = () => {
   return crypto.randomBytes(8).toString('base64')
@@ -166,10 +166,12 @@ async function serviceConfig (overrides) {
 const bootstrap = async function bootstrap (t, serverOverrides = {}, env = {}) {
   setUpEnvironment(env)
   const options = await serviceConfig(serverOverrides)
-  const server = await buildServer(options)
+  const capability = await platformaticService.create(join(__dirname, '..'), options)
+  await capability.init()
+  const server = capability.getApplication()
   t.after(async () => {
     await server.store.flushAll()
-    await server.close()
+    await capability.stop()
   })
 
   server.addHook('onRequest', function (req, reply, done) {
@@ -179,7 +181,8 @@ const bootstrap = async function bootstrap (t, serverOverrides = {}, env = {}) {
     done()
   })
 
-  await server.start()
+  await capability.start()
+  server.url = capability.getUrl()
   return server
 }
 

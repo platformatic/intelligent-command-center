@@ -1,7 +1,8 @@
 import test from 'node:test'
 
-import { Cluster, ClusterInput } from '../../../lib/service-grouping/cluster'
-import { mermaidInput, mermaidOutput } from '../../../lib/service-grouping/mermaid'
+import type { ClusterInput } from '../../../lib/service-grouping/cluster.ts'
+import { Cluster } from '../../../lib/service-grouping/cluster.ts'
+import { mermaidInput, mermaidOutput } from '../../../lib/service-grouping/mermaid.ts'
 import { strictEqual } from 'node:assert'
 
 Error.stackTraceLimit = 100

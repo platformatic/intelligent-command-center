@@ -1,6 +1,6 @@
-import type { AppName } from './app'
-import type { Service, ServiceName } from './service'
-import type { LinkCost } from './link-cost'
+import type { AppName } from './app.ts'
+import type { Service, ServiceName } from './service.ts'
+import type { LinkCost } from './link-cost.ts'
 
 export type ServiceTarget = `${string}:${string}`
 

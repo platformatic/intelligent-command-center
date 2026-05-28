@@ -2,12 +2,13 @@ import assert from 'node:assert'
 
 import type { Logger } from 'pino'
 
-import type { App } from './app'
-import type { CostSet } from './cluster'
-import type { LinkCost } from './link-cost'
+import type { App } from './app.ts'
+import type { CostSet } from './cluster.ts'
+import type { LinkCost } from './link-cost.ts'
 
-import { ServiceLinkNotRelatedError, ServiceMoveError } from './error'
-import { ServiceLink, ServiceTarget } from './service-link'
+import { ServiceLinkNotRelatedError, ServiceMoveError } from './error.ts'
+import type { ServiceTarget } from './service-link.ts'
+import { ServiceLink } from './service-link.ts'
 
 export type ServiceName = string
 export type ServiceType = string

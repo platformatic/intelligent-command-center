@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.platformatic.dev/@platformatic/db/2.45.0.json",
+  "$schema": "https://schemas.platformatic.dev/@platformatic/db/3.54.0.json",
   "watch": {
     "enabled": "{DEV_K8S}"
   },
@@ -16,10 +16,6 @@
     "paths": [
       "./routes",
       "./plugins"
-    ],
-    "typescript": false
-  },
-  "metrics": {
-    "server": "parent"
+    ]
   }
 }

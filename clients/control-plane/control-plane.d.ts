@@ -1,5 +1,5 @@
 import { type FastifyReply, type FastifyPluginAsync } from 'fastify'
-import { type GetHeadersOptions, type StatusCode1xx, type StatusCode2xx, type StatusCode3xx, type StatusCode4xx, type StatusCode5xx } from '@platformatic/client'
+import { type GetHeadersOptions, type StatusCode1xx, type StatusCode2xx, type StatusCode3xx, type StatusCode4xx, type StatusCode5xx } from 'massimo'
 import { type FormData } from 'undici'
 
 declare namespace controlPlane {

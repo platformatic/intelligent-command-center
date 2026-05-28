@@ -1,10 +1,11 @@
 {
   "name": "cluster-manager",
   "version": "3.6.0",
+  "type": "module",
   "scripts": {
     "start": "platformatic start",
-    "build": "rm -rf dist && tsc",
-    "test": "npm run lint && npm run test:all",
+    "build": "tsc --noEmit",
+    "test": "npm run lint && npm run build && npm run test:all",
     "test:all": "borp \"test/**/*.test.ts\" --concurrency 1 --timeout=60000",
     "test:service-grouping": "borp test/lib/service-grouping/*.test.ts --timeout=60000",
     "test:routes": "borp test/routes/*.test.ts --concurrency 1 --timeout=60000",
@@ -16,17 +17,18 @@
     "@types/node": "^24.3.0",
     "@typescript-eslint/eslint-plugin": "^8.40.0",
     "@typescript-eslint/parser": "^8.40.0",
-    "borp": "^0.21.0",
+    "borp": "^1.0.0",
     "eslint": "^10.0.0",
     "fastify": "^5.5.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {
     "@fastify/error": "^4.2.0",
-    "@platformatic/db": "^2.74.3",
+    "@platformatic/db": "^3.54.0",
     "fastify-plugin": "^5.0.1",
     "pino": "^10.0.0",
-    "undici": "^7.14.0"
+    "undici": "^7.14.0",
+    "massimo": "^1.2.0"
   },
   "engines": {
     "node": "^18.8.0 || >=20.6.0"

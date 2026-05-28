@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemas.platformatic.dev/@platformatic/service/2.64.0.json",
+  "$schema": "https://schemas.platformatic.dev/@platformatic/service/3.54.0.json",
   "server": {
     "pluginTimeout": 60000
   },
@@ -17,19 +17,5 @@
       }
     ]
   },
-  "clients": [
-    {
-      "schema": "../../clients/risk-cold-storage/coldStorage.openapi.json",
-      "name": "coldStorage",
-      "type": "openapi",
-      "serviceId": "risk-cold-storage"
-    },
-    {
-      "schema": "../../clients/traffic-inspector/traffic-inspector.openapi.json",
-      "name": "trafficInspector",
-      "type": "openapi",
-      "serviceId": "traffic-inspector"
-    }
-  ],
   "watch": "{DEV_K8S}"
 }

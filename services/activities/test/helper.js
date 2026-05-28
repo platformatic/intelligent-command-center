@@ -1,7 +1,7 @@
 'use strict'
 
 const { join } = require('node:path')
-const { buildServer } = require('@platformatic/db')
+const platformaticDb = require('@platformatic/db')
 
 function setUpEnvironment (env = {}) {
   const defaultEnv = {
@@ -14,7 +14,7 @@ function setUpEnvironment (env = {}) {
 async function startActivities (t, envOverride, activities = []) {
   setUpEnvironment(envOverride)
 
-  const app = await buildServer({
+  const capability = await platformaticDb.create(join(__dirname, '..'), {
     server: {
       hostname: '127.0.0.1',
       port: 0,
@@ -37,14 +37,16 @@ async function startActivities (t, envOverride, activities = []) {
       }]
     }
   })
+  await capability.init()
+  const app = capability.getApplication()
 
   t && t.after(async () => {
-    await app.close()
+    await capability.stop()
   })
 
   const { db, sql } = app.platformatic
 
-  await app.start()
+  await capability.start()
 
   await db.query(sql`DELETE FROM "activities"`)
   if (activities.length > 0) {
