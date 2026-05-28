@@ -6,6 +6,12 @@ concurrency:
   group: "${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
   cancel-in-progress: true
 
+env:
+  # Silence dotenv 17.x tip output. The volume of these lines from many
+  # platformatic plugins triggers Node's test-runner IPC parser to misframe
+  # buffers and throw "Unable to deserialize cloned data".
+  DOTENV_CONFIG_QUIET: "true"
+
 jobs:
   setup-node_modules:
     runs-on: ubuntu-latest
