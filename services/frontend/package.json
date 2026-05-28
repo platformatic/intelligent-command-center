@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "platformatic start",
-    "test:server": "npm run lint && borp -T --ignore='./src/**/*test.js'",
+    "test:server": "npm run lint && borp --ignore='./src/**/*test.js'",
     "test": "npm run test:server && npm run test:ui",
     "test:ui": "echo \"No UI test implemented, yet!\""
   },
@@ -20,7 +20,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "@xyflow/react": "^12.10.1",
     "autoprefixer": "^10.4.20",
-    "borp": "^0.21.0",
+    "borp": "^1.0.0",
     "d3": "~7.9.0",
     "dayjs": "^1.11.13",
     "dotenv": "^17.0.0",
