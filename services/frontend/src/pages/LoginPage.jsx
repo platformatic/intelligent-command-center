@@ -32,6 +32,17 @@ function LoginControls ({ provider, loginHandler }) {
         backgroundColor={WHITE}
         platformaticIcon={{ iconName: 'SocialGitHubIcon', color: RICH_BLACK }}
       />
+    ),
+    demo: (
+      <Button
+        textClass={typographyStyles.desktopButtonSmall}
+        paddingClass={commonStyles.smallButtonPadding}
+        onClick={() => loginHandler('demo')}
+        label='Demo Login'
+        bordered={false}
+        color={RICH_BLACK}
+        backgroundColor={WHITE}
+      />
     )
   }
   return loginButtons[provider]
@@ -42,8 +53,8 @@ function LoginPage () {
   const supportedLogins = (import.meta.env.VITE_SUPPORTED_LOGINS ?? '')
     .split(',')
     .filter(login => !!login && login !== '')
-    // Filter out demo and password logins for OSS version
-    .filter(login => login !== 'demo' && login !== 'password')
+    // Filter out password login for OSS version (demo allowed)
+    .filter(login => login !== 'password')
 
   function handleLoginButton (provider) {
     setInnerLoading(true)
