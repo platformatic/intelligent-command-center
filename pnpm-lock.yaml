@@ -50,7 +50,7 @@ importers:
         version: 4.2.0
       '@platformatic/db':
         specifier: ^3.54.0
-        version: 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+        version: 3.55.0(@types/node@25.9.2)(typescript@5.9.3)
     devDependencies:
       borp:
         specifier: ^1.0.0
@@ -133,7 +133,7 @@ importers:
         version: 4.2.0
       '@platformatic/db':
         specifier: ^3.54.0
-        version: 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+        version: 3.55.0(@types/node@24.13.1)(typescript@5.9.3)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.1.0
@@ -155,7 +155,7 @@ importers:
         version: 10.0.1(eslint@10.4.1(jiti@1.21.7))
       '@types/node':
         specifier: ^24.3.0
-        version: 24.12.4
+        version: 24.13.1
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.40.0
         version: 8.60.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@1.21.7))(typescript@5.9.3))(eslint@10.4.1(jiti@1.21.7))(typescript@5.9.3)
@@ -185,7 +185,7 @@ importers:
         version: 4.2.0
       '@platformatic/db':
         specifier: ^3.54.0
-        version: 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+        version: 3.55.0(@types/node@25.9.2)(typescript@5.9.3)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.1.0
@@ -241,7 +241,7 @@ importers:
         version: 5.5.0(typescript@5.9.3)
       '@platformatic/db':
         specifier: ^3.54.0
-        version: 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+        version: 3.55.0(@types/node@25.9.2)(typescript@5.9.3)
       borp:
         specifier: ^1.0.0
         version: 1.0.0
@@ -265,7 +265,7 @@ importers:
         version: 4.2.0
       '@platformatic/db':
         specifier: ^3.54.0
-        version: 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+        version: 3.55.0(@types/node@25.9.2)(typescript@5.9.3)
       cron-parser:
         specifier: ^5.0.3
         version: 5.5.0
@@ -339,7 +339,7 @@ importers:
         version: 19.2.3(@types/react@19.2.17)
       '@vitejs/plugin-react':
         specifier: ^5.0.0
-        version: 5.2.0(vite@5.4.21(@types/node@24.12.4))
+        version: 5.2.0(vite@5.4.21(@types/node@25.9.2))
       '@xyflow/react':
         specifier: ^12.10.1
         version: 12.10.2(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -402,10 +402,10 @@ importers:
         version: 2.0.3
       vite:
         specifier: ^5.4.11
-        version: 5.4.21(@types/node@24.12.4)
+        version: 5.4.21(@types/node@25.9.2)
       vitest:
         specifier: ^4.0.0
-        version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@5.4.21(@types/node@24.12.4))
+        version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@25.9.2)(vite@5.4.21(@types/node@25.9.2))
       ws:
         specifier: ^8.18.0
         version: 8.21.0
@@ -545,7 +545,7 @@ importers:
         version: 5.0.3
       '@platformatic/db':
         specifier: ^3.54.0
-        version: 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+        version: 3.55.0(@types/node@25.9.2)(typescript@5.9.3)
       ajv:
         specifier: ^8.17.1
         version: 8.20.0
@@ -655,7 +655,7 @@ importers:
         version: 4.2.0
       '@platformatic/db':
         specifier: ^3.54.0
-        version: 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+        version: 3.55.0(@types/node@25.9.2)(typescript@5.9.3)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.1.0
@@ -723,7 +723,7 @@ importers:
     devDependencies:
       '@platformatic/db':
         specifier: ^3.54.0
-        version: 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+        version: 3.55.0(@types/node@25.9.2)(typescript@5.9.3)
       borp:
         specifier: ^1.0.0
         version: 1.0.0
@@ -747,7 +747,7 @@ importers:
         version: 8.3.0(bare-events@2.8.3)(bare-url@2.4.3)
       '@platformatic/db':
         specifier: ^3.54.0
-        version: 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+        version: 3.55.0(@types/node@25.9.2)(typescript@5.9.3)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.1.0
@@ -2530,8 +2530,11 @@ packages:
   '@types/node@22.19.19':
     resolution: {integrity: sha512-dyh/xO2Fh5bYrfWaaqGrRQQGkNdmYw6AmaAUvYeUMNTWQtvb796ikLdmTchRmOlOiIJ1TDXfWgVx1QkUlQ6Hew==}
 
-  '@types/node@24.12.4':
-    resolution: {integrity: sha512-GUUEShf+PBCGW2KaXwcIt3Yk+e3pkKwWKb9GSyM9WQVE+ep2jzmHdGsHzu4wgcZy5fN9FBdVzjpBQsYlpfpgLA==}
+  '@types/node@24.13.1':
+    resolution: {integrity: sha512-RSpUJGmvsJ1ZeBehQZFhIdpsz+bIpES0nIQXko4Ybq+N+kX6XvOq3Jo+iJ82FWLdblFq85AsMikd3m35jgezYg==}
+
+  '@types/node@25.9.2':
+    resolution: {integrity: sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw==}
 
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
@@ -6061,8 +6064,11 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
-  undici-types@7.16.0:
-    resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
+  undici-types@7.18.2:
+    resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
+
+  undici-types@7.24.6:
+    resolution: {integrity: sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg==}
 
   undici@6.26.0:
     resolution: {integrity: sha512-4yqz8a3n5HmGTlsbADNtr/dJlhkh/55Rq798G6ibiULcXbDtaLpTl1pvdqcbFfeoj3iSi52lePFM7h9H21cw/A==}
@@ -6846,7 +6852,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@databases/mysql@7.0.0(@types/node@24.12.4)(typescript@5.9.3)':
+  '@databases/mysql@7.0.0(@types/node@24.13.1)(typescript@5.9.3)':
     dependencies:
       '@babel/code-frame': 7.29.7
       '@databases/escape-identifier': 1.0.3
@@ -6854,7 +6860,20 @@ snapshots:
       '@databases/push-to-async-iterable': 3.0.0
       '@databases/shared': 3.1.0
       '@databases/sql': 3.3.0
-      mysql2: 3.22.4(@types/node@24.12.4)
+      mysql2: 3.22.4(@types/node@24.13.1)
+    transitivePeerDependencies:
+      - '@types/node'
+      - typescript
+
+  '@databases/mysql@7.0.0(@types/node@25.9.2)(typescript@5.9.3)':
+    dependencies:
+      '@babel/code-frame': 7.29.7
+      '@databases/escape-identifier': 1.0.3
+      '@databases/mysql-config': 3.2.0(typescript@5.9.3)
+      '@databases/push-to-async-iterable': 3.0.0
+      '@databases/shared': 3.1.0
+      '@databases/sql': 3.3.0
+      mysql2: 3.22.4(@types/node@25.9.2)
     transitivePeerDependencies:
       - '@types/node'
       - typescript
@@ -7925,11 +7944,11 @@ snapshots:
       leven: 3.1.0
       undici: 7.26.0
 
-  '@platformatic/db-core@3.55.0(@types/node@24.12.4)(typescript@5.9.3)':
+  '@platformatic/db-core@3.55.0(@types/node@24.13.1)(typescript@5.9.3)':
     dependencies:
       '@platformatic/sql-events': 3.55.0
       '@platformatic/sql-graphql': 3.55.0
-      '@platformatic/sql-mapper': 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+      '@platformatic/sql-mapper': 3.55.0(@types/node@24.13.1)(typescript@5.9.3)
       '@platformatic/sql-openapi': 3.55.0(typescript@5.9.3)
       fastify-plugin: 5.1.0
     transitivePeerDependencies:
@@ -7940,7 +7959,22 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@platformatic/db@3.55.0(@types/node@24.12.4)(typescript@5.9.3)':
+  '@platformatic/db-core@3.55.0(@types/node@25.9.2)(typescript@5.9.3)':
+    dependencies:
+      '@platformatic/sql-events': 3.55.0
+      '@platformatic/sql-graphql': 3.55.0
+      '@platformatic/sql-mapper': 3.55.0(@types/node@25.9.2)(typescript@5.9.3)
+      '@platformatic/sql-openapi': 3.55.0(typescript@5.9.3)
+      fastify-plugin: 5.1.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - pg-native
+      - supports-color
+      - typescript
+      - utf-8-validate
+
+  '@platformatic/db@3.55.0(@types/node@24.13.1)(typescript@5.9.3)':
     dependencies:
       '@fastify/accepts': 5.0.4
       '@fastify/basic-auth': 6.2.0
@@ -7951,13 +7985,62 @@ snapshots:
       '@fastify/swagger': 9.7.0
       '@platformatic/basic': 3.55.0
       '@platformatic/db-authorization': 3.55.0
-      '@platformatic/db-core': 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+      '@platformatic/db-core': 3.55.0(@types/node@24.13.1)(typescript@5.9.3)
       '@platformatic/foundation': 3.55.0
       '@platformatic/service': 3.55.0(typescript@5.9.3)
       '@platformatic/sql-events': 3.55.0
       '@platformatic/sql-graphql': 3.55.0
       '@platformatic/sql-json-schema-mapper': 3.55.0
-      '@platformatic/sql-mapper': 3.55.0(@types/node@24.12.4)(typescript@5.9.3)
+      '@platformatic/sql-mapper': 3.55.0(@types/node@24.13.1)(typescript@5.9.3)
+      '@platformatic/sql-openapi': 3.55.0(typescript@5.9.3)
+      '@platformatic/telemetry': 3.55.0
+      camelcase: 6.3.0
+      close-with-grace: 2.5.0
+      code-block-writer: 13.0.3
+      console-table-printer: 2.16.0
+      env-schema: 7.0.0
+      execa: 9.6.1
+      fastify: 5.8.5
+      fastify-metrics: 12.1.0(fastify@5.8.5)
+      fastify-plugin: 5.1.0
+      fastify-print-routes: 5.0.1
+      graphql: 16.14.0
+      help-me: 5.0.0
+      minimist: 1.2.8
+      my-ua-parser: 2.0.4
+      ora: 6.3.1
+      pino: 9.14.0
+      pino-pretty: 13.1.3
+      postgrator: 8.0.0
+      rfdc: 1.4.1
+      rimraf: 4.4.1
+      semgrator: 0.3.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - pg-native
+      - supports-color
+      - typescript
+      - utf-8-validate
+
+  '@platformatic/db@3.55.0(@types/node@25.9.2)(typescript@5.9.3)':
+    dependencies:
+      '@fastify/accepts': 5.0.4
+      '@fastify/basic-auth': 6.2.0
+      '@fastify/cors': 10.1.0
+      '@fastify/deepmerge': 2.0.2
+      '@fastify/error': 4.2.0
+      '@fastify/static': 9.1.3
+      '@fastify/swagger': 9.7.0
+      '@platformatic/basic': 3.55.0
+      '@platformatic/db-authorization': 3.55.0
+      '@platformatic/db-core': 3.55.0(@types/node@25.9.2)(typescript@5.9.3)
+      '@platformatic/foundation': 3.55.0
+      '@platformatic/service': 3.55.0(typescript@5.9.3)
+      '@platformatic/sql-events': 3.55.0
+      '@platformatic/sql-graphql': 3.55.0
+      '@platformatic/sql-json-schema-mapper': 3.55.0
+      '@platformatic/sql-mapper': 3.55.0(@types/node@25.9.2)(typescript@5.9.3)
       '@platformatic/sql-openapi': 3.55.0(typescript@5.9.3)
       '@platformatic/telemetry': 3.55.0
       camelcase: 6.3.0
@@ -8294,9 +8377,29 @@ snapshots:
       code-block-writer: 13.0.3
       safe-identifier: 0.4.2
 
-  '@platformatic/sql-mapper@3.55.0(@types/node@24.12.4)(typescript@5.9.3)':
+  '@platformatic/sql-mapper@3.55.0(@types/node@24.13.1)(typescript@5.9.3)':
     dependencies:
-      '@databases/mysql': 7.0.0(@types/node@24.12.4)(typescript@5.9.3)
+      '@databases/mysql': 7.0.0(@types/node@24.13.1)(typescript@5.9.3)
+      '@databases/pg': 5.5.0(typescript@5.9.3)
+      '@databases/sql': 3.3.0
+      '@fastify/error': 4.2.0
+      '@hapi/topo': 6.0.2
+      '@matteo.collina/sqlite-pool': 0.7.0
+      '@platformatic/foundation': 3.55.0
+      '@platformatic/telemetry': 3.55.0
+      async-cache-dedupe: 2.2.0
+      camelcase: 6.3.0
+      fastify-plugin: 5.1.0
+      inflected: 2.1.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - pg-native
+      - supports-color
+      - typescript
+
+  '@platformatic/sql-mapper@3.55.0(@types/node@25.9.2)(typescript@5.9.3)':
+    dependencies:
+      '@databases/mysql': 7.0.0(@types/node@25.9.2)(typescript@5.9.3)
       '@databases/pg': 5.5.0(typescript@5.9.3)
       '@databases/sql': 3.3.0
       '@fastify/error': 4.2.0
@@ -8637,7 +8740,7 @@ snapshots:
 
   '@types/better-sqlite3@7.6.13':
     dependencies:
-      '@types/node': 24.12.4
+      '@types/node': 25.9.2
 
   '@types/chai@5.2.3':
     dependencies:
@@ -8785,9 +8888,13 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  '@types/node@24.12.4':
+  '@types/node@24.13.1':
     dependencies:
-      undici-types: 7.16.0
+      undici-types: 7.18.2
+
+  '@types/node@25.9.2':
+    dependencies:
+      undici-types: 7.24.6
 
   '@types/react-dom@19.2.3(@types/react@19.2.17)':
     dependencies:
@@ -8808,7 +8915,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.12.4
+      '@types/node': 22.19.19
 
   '@typescript-eslint/eslint-plugin@8.60.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@1.21.7))(typescript@5.9.3))(eslint@10.4.1(jiti@1.21.7))(typescript@5.9.3)':
     dependencies:
@@ -8908,7 +9015,7 @@ snapshots:
       d3-selection: 3.0.0
       d3-transition: 3.0.1(d3-selection@3.0.0)
 
-  '@vitejs/plugin-react@5.2.0(vite@5.4.21(@types/node@24.12.4))':
+  '@vitejs/plugin-react@5.2.0(vite@5.4.21(@types/node@25.9.2))':
     dependencies:
       '@babel/core': 7.29.7
       '@babel/plugin-transform-react-jsx-self': 7.29.7(@babel/core@7.29.7)
@@ -8916,7 +9023,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-rc.3
       '@types/babel__core': 7.20.5
       react-refresh: 0.18.0
-      vite: 5.4.21(@types/node@24.12.4)
+      vite: 5.4.21(@types/node@25.9.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -8929,13 +9036,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.8(vite@5.4.21(@types/node@24.12.4))':
+  '@vitest/mocker@4.1.8(vite@5.4.21(@types/node@25.9.2))':
     dependencies:
       '@vitest/spy': 4.1.8
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 5.4.21(@types/node@24.12.4)
+      vite: 5.4.21(@types/node@25.9.2)
 
   '@vitest/pretty-format@4.1.8':
     dependencies:
@@ -11500,9 +11607,21 @@ snapshots:
 
   my-ua-parser@2.0.4: {}
 
-  mysql2@3.22.4(@types/node@24.12.4):
+  mysql2@3.22.4(@types/node@24.13.1):
     dependencies:
-      '@types/node': 24.12.4
+      '@types/node': 24.13.1
+      aws-ssl-profiles: 1.1.2
+      denque: 2.1.0
+      generate-function: 2.3.1
+      iconv-lite: 0.7.2
+      long: 5.3.2
+      lru.min: 1.1.4
+      named-placeholders: 1.1.6
+      sql-escaper: 1.3.3
+
+  mysql2@3.22.4(@types/node@25.9.2):
+    dependencies:
+      '@types/node': 25.9.2
       aws-ssl-profiles: 1.1.2
       denque: 2.1.0
       generate-function: 2.3.1
@@ -12049,7 +12168,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.1
-      '@types/node': 24.12.4
+      '@types/node': 25.9.2
       long: 5.3.2
 
   protobufjs@8.0.1:
@@ -12064,7 +12183,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.1
-      '@types/node': 24.12.4
+      '@types/node': 25.9.2
       long: 5.3.2
 
   protobufjs@8.5.0:
@@ -12958,7 +13077,9 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  undici-types@7.16.0: {}
+  undici-types@7.18.2: {}
+
+  undici-types@7.24.6: {}
 
   undici@6.26.0: {}
 
@@ -13027,19 +13148,19 @@ snapshots:
 
   version-guard@1.1.3: {}
 
-  vite@5.4.21(@types/node@24.12.4):
+  vite@5.4.21(@types/node@25.9.2):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.5.15
       rollup: 4.60.4
     optionalDependencies:
-      '@types/node': 24.12.4
+      '@types/node': 25.9.2
       fsevents: 2.3.3
 
-  vitest@4.1.8(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(vite@5.4.21(@types/node@24.12.4)):
+  vitest@4.1.8(@opentelemetry/api@1.9.1)(@types/node@25.9.2)(vite@5.4.21(@types/node@25.9.2)):
     dependencies:
       '@vitest/expect': 4.1.8
-      '@vitest/mocker': 4.1.8(vite@5.4.21(@types/node@24.12.4))
+      '@vitest/mocker': 4.1.8(vite@5.4.21(@types/node@25.9.2))
       '@vitest/pretty-format': 4.1.8
       '@vitest/runner': 4.1.8
       '@vitest/snapshot': 4.1.8
@@ -13056,11 +13177,11 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vite: 5.4.21(@types/node@24.12.4)
+      vite: 5.4.21(@types/node@25.9.2)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
-      '@types/node': 24.12.4
+      '@types/node': 25.9.2
     transitivePeerDependencies:
       - msw
 
