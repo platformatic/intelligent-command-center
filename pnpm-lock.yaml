@@ -87,7 +87,7 @@ importers:
         version: 0.3.3
       msgpackr:
         specifier: ^1.11.2
-        version: 1.11.12
+        version: 1.11.13
       platformatic:
         specifier: ^3.54.0
         version: 3.55.0
@@ -4836,8 +4836,8 @@ packages:
     resolution: {integrity: sha512-4kmO/MdyUIkLIvTPr8VHLil4AtoKIoniWPIEk5+CDy0xnWC84azhSFmuJ7PxZdsYtiP5kEeQsORAVIeMgxT+Hw==}
     hasBin: true
 
-  msgpackr@1.11.12:
-    resolution: {integrity: sha512-RBdJ1Un7yGlXWajrkxcSa93nvQ0w4zBf60c0yYv7YtBelP8H2FA7XsfBbMHtXKXUMUxH7zV3Zuozh+kUQWhHvg==}
+  msgpackr@1.11.13:
+    resolution: {integrity: sha512-pWaxg0k1iiNdkAayUQ7Zlz/vYNfVefUttmHxqFcQjjtyqFa3w4x5rginOEzy/GvbWhBDD9K65/ZXyq8qz8utaQ==}
 
   my-ua-parser@2.0.4:
     resolution: {integrity: sha512-lhPyjoce3SRNXqgozoVti8XWC6oWY/rMcXljvov9IAgHKj2ZTU3dR5iQ7jLrIj02xD4Ggn6doTi7K2pnSbjzeg==}
@@ -8127,7 +8127,7 @@ snapshots:
       amaro: 0.3.2
       iovalkey: 0.3.3
       light-my-request: 6.6.0
-      msgpackr: 1.11.12
+      msgpackr: 1.11.13
       semver: 7.8.1
     transitivePeerDependencies:
       - bufferutil
@@ -11488,7 +11488,7 @@ snapshots:
       '@msgpackr-extract/msgpackr-extract-win32-x64': 3.0.4
     optional: true
 
-  msgpackr@1.11.12:
+  msgpackr@1.11.13:
     optionalDependencies:
       msgpackr-extract: 3.0.4
 
