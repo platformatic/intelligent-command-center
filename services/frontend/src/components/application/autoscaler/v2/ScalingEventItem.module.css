@@ -1,5 +1,5 @@
 .eventItem {
-  @apply flex flex-col gap-1.5 py-2.5 border-b border-white/[0.07] min-w-0 overflow-hidden;
+  @apply flex flex-col gap-1.5 py-2.5 border-b border-white/[0.07] min-w-0 overflow-hidden bg-[#00050B];
 }
 
 .eventItem:last-child {

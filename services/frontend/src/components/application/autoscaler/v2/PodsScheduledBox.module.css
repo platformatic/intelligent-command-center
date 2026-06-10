@@ -1,0 +1,27 @@
+.box {
+  @apply flex-1 min-w-0 rounded p-3 flex flex-col gap-2 bg-[#090E17];
+}
+
+.title {
+  @apply shrink-0;
+}
+
+.loadingSection {
+  @apply flex-1 flex items-center justify-center;
+}
+
+.loadingText {
+  @apply text-xs text-[#66696D];
+}
+
+.deltaSection {
+  @apply flex items-center justify-center py-1;
+}
+
+.deltaText {
+  @apply text-white text-2xl font-bold;
+}
+
+.hexRow {
+  @apply flex items-center justify-center gap-3;
+}

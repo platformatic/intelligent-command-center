@@ -1,4 +1,5 @@
 import * as d3 from 'd3'
+import { drawFutureHatch } from './chartHatch'
 import React, { useEffect, useId, useRef, useState } from 'react'
 import { getServiceMetrics, getAppCount } from '~/api/autoscaler'
 import { scalerXDomain } from '~/components/metrics/chart_constants.js'
@@ -145,16 +146,6 @@ function draw (svgEl, data, config, width, height, chartId) {
 
   const defs = svg.append('defs')
 
-  // Hatched pattern for future region
-  const hId = `h${chartId}`
-  const pat = defs.append('pattern')
-    .attr('id', hId).attr('patternUnits', 'userSpaceOnUse')
-    .attr('width', 10).attr('height', 10)
-  pat.append('rect').attr('width', 10).attr('height', 10).attr('fill', '#00050B')
-  pat.append('line')
-    .attr('x1', 0).attr('y1', 10).attr('x2', 10).attr('y2', 0)
-    .attr('stroke', 'rgba(255,255,255,0.05)').attr('stroke-width', 2.5)
-
   // Area gradient
   const gId = `g${chartId}`
   const grad = defs.append('linearGradient')
@@ -165,11 +156,7 @@ function draw (svgEl, data, config, width, height, chartId) {
 
   const g = svg.append('g').attr('transform', `translate(${L},${T})`)
 
-  // Future hatched background
-  g.append('rect')
-    .attr('x', x(0)).attr('y', 0)
-    .attr('width', Math.max(0, iW - x(0))).attr('height', iH)
-    .attr('fill', `url(#${hId})`)
+  drawFutureHatch(defs, g, `h${chartId}`, x, iW, iH)
 
   // Grid lines
   const yTicks = type === 'elu' ? [0, 0.5, 1] : y.ticks(5)
@@ -208,7 +195,7 @@ function draw (svgEl, data, config, width, height, chartId) {
     g.append('path')
       .datum(podPredData)
       .attr('fill', 'none')
-      .attr('stroke', '#FEB928')
+      .attr('stroke', 'rgba(255,255,255,0.7)')
       .attr('stroke-width', 1.5)
       .attr('stroke-dasharray', '6,4')
       .attr('d', d3.line().x(d => x(d.t)).y(d => y(d.v)).curve(d3.curveStepAfter))
@@ -227,13 +214,16 @@ function draw (svgEl, data, config, width, height, chartId) {
         if (projectedV < 0) projectedV = 0
       }
     }
-    g.append('path').datum([...predPts, { t: tEnd, v: projectedV }])
-      .attr('fill', 'none').attr('stroke', '#FEB928').attr('stroke-width', 1.5)
+    const predData = [...predPts, { t: tEnd, v: projectedV }]
+    const overThreshold = threshVal != null && predData.some(d => d.v > threshVal)
+    const predColor = overThreshold ? '#FEB928' : 'rgba(255,255,255,0.7)'
+    g.append('path').datum(predData)
+      .attr('fill', 'none').attr('stroke', predColor).attr('stroke-width', 1.5)
       .attr('stroke-dasharray', '6,4')
       .attr('d', d3.line().x(d => x(d.t)).y(d => y(d.v)))
     g.append('circle')
       .attr('cx', x(firstPred.t)).attr('cy', y(firstPred.v))
-      .attr('r', 3.5).attr('fill', '#FEB928')
+      .attr('r', 3.5).attr('fill', predColor)
   }
 
   // NOW line — starts just below the "NOW" label so it doesn't cross the text.
@@ -264,7 +254,7 @@ function draw (svgEl, data, config, width, height, chartId) {
   // Y axis rotated label
   g.append('text')
     .attr('transform', 'rotate(-90)')
-    .attr('x', -iH / 2).attr('y', -L + 11)
+    .attr('x', -iH / 2).attr('y', -L + 19)
     .attr('text-anchor', 'middle')
     .attr('fill', '#66696D').attr('font-size', '8px').attr('letter-spacing', '0.09em')
     .text(yLabel)

@@ -3,7 +3,7 @@
 }
 
 .sidebar {
-  @apply flex flex-col gap-3 min-h-0 flex-[0_0_25%];
+  @apply flex flex-col gap-3 min-h-0 flex-[0_0_25%] bg-black-russian;
 }
 
 .middle {
@@ -27,12 +27,12 @@
 }
 
 .serviceList {
-  @apply flex-1 min-h-0 overflow-y-auto flex flex-col pr-1;
+  @apply flex-1 min-h-0 overflow-y-auto flex flex-col pr-1 gap-2;
   scrollbar-gutter: stable;
 }
 
 .serviceItem {
-  @apply w-full text-left px-3 py-2 rounded cursor-pointer bg-transparent border-0 transition-colors duration-[120ms] flex flex-col gap-1;
+  @apply w-full text-left px-3 py-2 rounded cursor-pointer bg-rich-black border-0 transition-colors duration-[120ms] flex flex-col gap-1;
 }
 
 .serviceItem:hover {
@@ -40,7 +40,7 @@
 }
 
 .serviceItemSelected {
-  @apply bg-black-russian;
+  @apply bg-[#33373C];
 }
 
 .serviceItemHeader {

@@ -1,5 +1,5 @@
 .panel {
-  @apply flex-1 min-h-0 flex flex-col gap-3;
+  @apply flex-1 min-h-0 flex flex-col gap-3 bg-black-russian;
 }
 
 .title {
@@ -12,7 +12,7 @@
 }
 
 .podRow {
-  @apply shrink-0 bg-black-russian rounded p-3 flex flex-col gap-2;
+  @apply shrink-0 bg-rich-black rounded p-3 flex flex-col gap-2;
 }
 
 .podHeader {
@@ -20,11 +20,7 @@
 }
 
 .statusDot {
-  @apply w-2.5 h-2.5 rounded-full shrink-0;
-}
-
-.statusGreen {
-  @apply bg-[#2DCA73];
+  @apply w-2 h-2 rounded-full shrink-0;
 }
 
 .statusRed {

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import Icons from '@platformatic/ui-components/src/components/icons'
 import { MAIN_GREEN, MEDIUM, SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
-import Hexagon from '../Hexagon'
 import typographyStyles from '~/styles/Typography.module.css'
 import { getAppCount, getScalingEvents } from '~/api/autoscaler'
 import ScalingEventItem from './ScalingEventItem'
+import PodsScheduledBox from './PodsScheduledBox'
 import styles from './LiveStatsPanel.module.css'
 import { unitPluralCap } from './unitLabel'
 
@@ -59,27 +59,6 @@ function InitStatisticsCard ({ count }) {
   )
 }
 
-function PodsScheduledCard ({ count }) {
-  if (!count) return <StatCard title={`${unitPluralCap} Scheduled`}><span className={styles.loading}>—</span></StatCard>
-
-  const from = count.history.length > 0 ? count.history[count.history.length - 1].count : 0
-  const to = count.prediction.length > 0 ? count.prediction[count.prediction.length - 1].count : from
-  const delta = to - from
-  const deltaLabel = delta > 0 ? `+ ${delta}` : String(delta)
-
-  return (
-    <StatCard title={`${unitPluralCap} Scheduled`}>
-      <div className={styles.mathRow}>
-        <Hexagon number={from} color={WHITE} borderColor={WHITE} />
-        <Icons.ArrowRightIcon size={SMALL} color={WHITE} />
-        <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>{deltaLabel}</span>
-        <Icons.ArrowRightIcon size={SMALL} color={WHITE} />
-        <Hexagon number={to} color='tertiary-blue' borderColor='tertiary-blue' />
-      </div>
-    </StatCard>
-  )
-}
-
 const WINDOW_MS = 90_000
 
 export default function LiveStatsPanel ({ appId, onViewHistory, tick }) {
@@ -112,7 +91,7 @@ export default function LiveStatsPanel ({ appId, onViewHistory, tick }) {
       <div className={styles.statsRow}>
         <PodsUsageCard count={count} />
         <InitStatisticsCard count={count} />
-        <PodsScheduledCard count={count} />
+        <PodsScheduledBox count={count} />
       </div>
 
       <div className={styles.historySection}>

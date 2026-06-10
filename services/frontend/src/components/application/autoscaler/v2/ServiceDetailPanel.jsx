@@ -84,7 +84,9 @@ function PodRow ({ pod, heapThreshold, eluRange, heapRange }) {
         <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>
           {pod.podId}
         </span>
-        <span className={`${styles.statusDot} ${pod.isHealthy ? styles.statusGreen : styles.statusRed}`} />
+        {!pod.isHealthy && (
+          <span className={`${styles.statusDot} ${styles.statusRed}`} />
+        )}
       </div>
       <div className={styles.charts}>
         <MiniMetricChart

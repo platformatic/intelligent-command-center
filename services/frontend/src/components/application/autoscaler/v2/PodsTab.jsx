@@ -110,7 +110,7 @@ function PodCard ({ podId, unhealthyServicesCount, totalServices }) {
             : (
               <>
                 <text x='60' y='60' textAnchor='middle' fontFamily='sans-serif'>
-                  <tspan fill={color} fontSize='30' fontWeight='700'>{unhealthyServicesCount}</tspan>
+                  <tspan fill={color} fontSize='20' fontWeight='700'>{unhealthyServicesCount}</tspan>
                   <tspan fill='rgba(255,255,255,0.5)' fontSize='13' dx='4'>/ {totalServices}</tspan>
                 </text>
                 <text x='60' y='80' textAnchor='middle' fill='white' fontSize='10' fontFamily='sans-serif'>Unhealthy</text>

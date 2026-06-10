@@ -1,11 +1,12 @@
 import * as d3 from 'd3'
+import { drawFutureHatch } from './chartHatch'
 import React, { useEffect, useId, useRef, useState } from 'react'
 import { getServiceMetrics } from '~/api/autoscaler'
 import { scalerXDomain } from '~/components/metrics/chart_constants.js'
 import styles from './EluChart.module.css'
 
-const X_MARGIN = 56
-const Y_MARGIN = 20
+const X_MARGIN = 64
+const Y_MARGIN = 38
 const BOTTOM_MARGIN = 30
 
 export default function EluChart ({ appId, services, tick }) {
@@ -147,6 +148,15 @@ function renderChart (data, svgEl, chartId) {
     .attr('stroke', '#1A1E23')
     .attr('stroke-width', 1)
 
+  // Y axis vertical line
+  g.append('line')
+    .attr('x1', 0).attr('y1', 0)
+    .attr('x2', 0).attr('y2', innerH)
+    .attr('stroke', '#4D5054')
+    .attr('stroke-width', 1)
+
+  drawFutureHatch(defs, g, `eluHatch${chartId}`, x, innerW, innerH)
+
   const lineGen = d3.line()
     .x(d => x(d.t))
     .y(d => y(d.value))
@@ -199,6 +209,26 @@ function renderChart (data, svgEl, chartId) {
     .attr('stroke', '#4D5054')
     .attr('stroke-width', 1)
     .attr('stroke-dasharray', '6,6')
+
+  // "now" label
+  g.append('text')
+    .attr('x', nowX)
+    .attr('y', -3)
+    .attr('text-anchor', 'middle')
+    .attr('fill', 'rgba(255,255,255,0.8)')
+    .attr('font-size', '9px')
+    .attr('letter-spacing', '0.07em')
+    .text('NOW')
+
+  // ◄ PAST region label (top of chart)
+  g.append('text')
+    .attr('x', 0)
+    .attr('y', -18)
+    .attr('text-anchor', 'start')
+    .attr('fill', '#4D5054')
+    .attr('font-size', '9px')
+    .attr('letter-spacing', '0.07em')
+    .text('◄ PAST')
 
   // Tooltip
   const wrapper = svgEl.parentElement
@@ -271,7 +301,7 @@ function renderChart (data, svgEl, chartId) {
   g.append('text')
     .attr('transform', 'rotate(-90)')
     .attr('x', -innerH / 2)
-    .attr('y', -X_MARGIN + 11)
+    .attr('y', -X_MARGIN + 19)
     .attr('text-anchor', 'middle')
     .attr('fill', '#66696D')
     .attr('font-size', '9px')

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { PlatformaticIcon, TabbedWindow } from '@platformatic/ui-components'
-import { MAIN_GREEN, MEDIUM, WHITE } from '@platformatic/ui-components/src/components/constants'
+import { MEDIUM, WHITE } from '@platformatic/ui-components/src/components/constants'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import ExperimentalTag from '@platformatic/ui-components/src/components/ExperimentalTag'
@@ -174,7 +174,7 @@ export default function AutoscalerV2 () {
       <div className={styles.autoscalerContent}>
         <div className={`${commonStyles.tinyFlexRow} ${commonStyles.fullWidth} ${commonStyles.itemsCenter} ${commonStyles.justifyBetween}`}>
           <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
-            <PlatformaticIcon iconName='HorizontalPodAutoscalerIcon' color={MAIN_GREEN} size={MEDIUM} />
+            <PlatformaticIcon iconName='HorizontalPodAutoscalerIcon' color={WHITE} size={MEDIUM} />
             <p className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>Autoscaler</p>
             <ExperimentalTag />
           </div>
