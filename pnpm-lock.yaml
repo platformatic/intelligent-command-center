@@ -438,7 +438,7 @@ importers:
         version: 11.2.0
       '@platformatic/gateway':
         specifier: ^3.54.0
-        version: 3.55.0(chokidar@3.6.0)(typescript@5.9.3)
+        version: 3.57.0(chokidar@3.6.0)(typescript@5.9.3)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.1.0
@@ -1334,8 +1334,8 @@ packages:
   '@fastify/under-pressure@9.0.3':
     resolution: {integrity: sha512-uWzyFn9ThgGgynxyoX/kqgLtPtNBXXvQgN3U8fSRPNBS1y5mEZC/uCBRx03hXm9PDsQwTGN7qt83ItsHVQ0L4A==}
 
-  '@fastify/view@10.0.2':
-    resolution: {integrity: sha512-tGjXFyDUMj5a+E8BBrQ2wpsVnpOfMq3cqy4WD8pnjWPE/HGNItBASUPoPUcX/QjPhxfuZZTYv2XdCmKXdcMZPw==}
+  '@fastify/view@12.0.0':
+    resolution: {integrity: sha512-Prcoim4yTwG6vPnIyGrWViDx6FFnchV0GQWeBgAgywlL1JflGhTLDhIsyd7EkOreYHyqALqxnmhhJhD4NrJTWw==}
 
   '@fastify/websocket@11.2.0':
     resolution: {integrity: sha512-3HrDPbAG1CzUCqnslgJxppvzaAZffieOVbLp1DAy1huCSynUWPifSvfdEDUR8HlJLp3sp1A36uOM2tJogADS8w==}
@@ -2007,8 +2007,8 @@ packages:
     resolution: {integrity: sha512-9BZ1Vs2h0XM928wtnPDYkaEBLwH+8Q+xafAxII1TO/P7lZ5vVDXqjG3xZHWzVwLu1IJBoPbFy2mIkMtRIRS2Rw==}
     engines: {node: '>=22.19.0'}
 
-  '@platformatic/gateway@3.55.0':
-    resolution: {integrity: sha512-48h1qru2eF1Ai4fxED/XQxId2+NsH2libS8XQs9SOTkOMkX15u+UIN+4RqLCkKdCqAfZZqqdu+lySKZKp0jc4A==}
+  '@platformatic/gateway@3.57.0':
+    resolution: {integrity: sha512-r3ZEny7bOpjRqF++f1UZ6fHD16YSfOfGxsVgUM1QH7oAy4oYP9MbtzXdjT0bqZ7QCrNoC1o/U14xwzxcbz75hg==}
     engines: {node: '>=22.19.0'}
 
   '@platformatic/generators@3.55.0':
@@ -2023,8 +2023,8 @@ packages:
     resolution: {integrity: sha512-hKtBmRxbezjUlCf2ucEjvr3xUdOQEugjBEsmbdVoqtHTpsGvrRIh2jQdQ2zzVr80Nf1sRhXeCYlAElBKtLqzFg==}
     engines: {node: '>=22.19.0'}
 
-  '@platformatic/graphql-composer@0.10.1':
-    resolution: {integrity: sha512-c10wlGoAOgD8dMP1HyyCOK5qUi9o+TPlMZ1fj0AL8D49aDKZczkMsR6V+rNa4jPrujxWPGQlylJNEgF7HXOGsg==}
+  '@platformatic/graphql-composer@0.11.0':
+    resolution: {integrity: sha512-e3EZH1okfdQPkhTNPrijgGQrlETFVO1V5WOjxN4EJFYRlurZdmqSuJw56JgvD08TMhdRXgwQK9bAbn1ZY2YzHg==}
 
   '@platformatic/http-metrics@0.3.0':
     resolution: {integrity: sha512-e+wQJDCd9v7yKeV4u30ibAe5uGB14k+jDw1w9FqsM3tDgFY0UEHb24hJR9j2bVa6091e+ppGy3L4LhyUR92M0w==}
@@ -7268,7 +7268,7 @@ snapshots:
       '@fastify/error': 4.2.0
       fastify-plugin: 5.1.0
 
-  '@fastify/view@10.0.2':
+  '@fastify/view@12.0.0':
     dependencies:
       fastify-plugin: 5.1.0
       toad-cache: 3.7.1
@@ -8171,32 +8171,33 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@platformatic/gateway@3.55.0(chokidar@3.6.0)(typescript@5.9.3)':
+  '@platformatic/gateway@3.57.0(chokidar@3.6.0)(typescript@5.9.3)':
     dependencies:
       '@fastify/error': 4.2.0
       '@fastify/http-proxy': 11.5.0
       '@fastify/reply-from': 12.6.2
       '@fastify/static': 9.1.3
       '@fastify/swagger': 9.7.0
-      '@fastify/view': 10.0.2
-      '@platformatic/basic': 3.55.0
+      '@fastify/view': 12.0.0
+      '@platformatic/basic': 3.57.0
       '@platformatic/fastify-openapi-glue': 5.1.0
-      '@platformatic/foundation': 3.55.0
-      '@platformatic/graphql-composer': 0.10.1
-      '@platformatic/scalar-theme': 3.55.0
-      '@platformatic/service': 3.55.0(typescript@5.9.3)
-      '@platformatic/telemetry': 3.55.0
+      '@platformatic/foundation': 3.57.0
+      '@platformatic/globals': 3.57.0
+      '@platformatic/graphql-composer': 0.11.0
+      '@platformatic/scalar-theme': 3.57.0
+      '@platformatic/service': 3.57.0(typescript@5.9.3)
+      '@platformatic/telemetry': 3.57.0
       '@scalar/fastify-api-reference': 1.34.6(typescript@5.9.3)
       ajv: 8.20.0
-      console-table-printer: 2.16.0
+      console-table-printer: 2.16.1
       execa: 9.6.1
       fast-deep-equal: 3.1.3
       fastify: 5.8.5
       fastify-plugin: 5.1.0
-      graphql: 16.14.1
+      graphql: 16.14.2
       help-me: 5.0.0
       json-schema-traverse: 1.0.0
-      mercurius: 16.9.0(graphql@16.14.1)
+      mercurius: 16.9.0(graphql@16.14.2)
       minimist: 1.2.8
       my-ua-parser: 2.0.4
       nunjucks: 3.2.4(chokidar@3.6.0)
@@ -8243,12 +8244,12 @@ snapshots:
       '@platformatic/prom-client': 1.0.0
       pino: 9.14.0
 
-  '@platformatic/graphql-composer@0.10.1':
+  '@platformatic/graphql-composer@0.11.0':
     dependencies:
       abstract-logger: 0.2.5
       fastify: 5.8.5
-      graphql: 16.14.1
-      mercurius: 16.9.0(graphql@16.14.1)
+      graphql: 16.14.2
+      mercurius: 16.9.0(graphql@16.14.2)
       metaline: 1.1.0
       pino: 9.14.0
       undici: 7.27.2
