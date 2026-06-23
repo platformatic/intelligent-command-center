@@ -13,8 +13,7 @@ class ScalerExecutor {
       maxClusters: Number(app.env.PLT_SCALER_MAX_CLUSTERS),
       heapThreshold: Number(app.env.PLT_SCALER_HEAP_THRESHOLD),
       postScalingWindow: Number(app.env.PLT_SCALER_POST_EVAL_WINDOW),
-      // scaleUpCooldownPeriod: Number(app.env.PLT_SCALER_COOLDOWN),
-      scaleUpCooldownPeriod: 15, // Temporary override
+      scaleUpCooldownPeriod: Number(app.env.PLT_SCALER_COOLDOWN),
       // eluThreshold: Number(app.env.PLT_SCALER_ELU_THRESHOLD),
       eluThreshold: 0.8, // Temporary override
       minPodsDefault: Number(app.env.PLT_SCALER_MIN_PODS_DEFAULT),
