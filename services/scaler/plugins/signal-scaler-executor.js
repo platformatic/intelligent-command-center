@@ -316,17 +316,20 @@ class SignalScalerExecutor {
     const scale = async (targetReplicas, options = {}) => {
       // Global env var: keep running checkForPendingBatches so the predictor
       // still populates services-summary / metric snapshots in the store
-      // (queryable via /scaler/api/v2/...). Only skip the actual scaling
-      // action (machinist call + DB scale event + tied snapshots).
+      // (queryable via /scaler/api/v2/...). Skip the actual scaling action
+      // (machinist call + DB scale event + tied snapshots) and report back
+      // that no scaling happened so the predictor does not record pending
+      // scale-ups or last-scale timestamps that would corrupt the init-
+      // timeout learner when an unrelated pod later connects.
       if (globalDisabled) {
         this.app.log.info(
           { appId, controllerId, targetReplicas },
           'Scaling globally disabled, skipping action (signals + snapshots still processed)'
         )
-        return
+        return false
       }
       const result = await this.executeScaling(appId, targetReplicas, controller, options)
-      if (!result?.scaleEvent) return
+      if (!result?.scaleEvent) return true
       const writes = []
       if (options.snapshots) {
         writes.push(this.#saveMetricSnapshots(result.scaleEvent, options.snapshots))
@@ -335,6 +338,7 @@ class SignalScalerExecutor {
         writes.push(this.#saveCountSnapshot(result.scaleEvent, options.countSnapshot))
       }
       if (writes.length > 0) await Promise.all(writes)
+      return true
     }
 
     const processed = await this.predictor.checkForPendingBatches(appId, controllerId, targetPodsCount, scale)
