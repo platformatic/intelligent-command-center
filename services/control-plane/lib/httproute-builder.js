@@ -35,7 +35,12 @@ function buildHTTPRoute ({
         headers: [{
           name: 'Cookie',
           type: 'RegularExpression',
-          value: `(^|;\\s*)${cookieName}=${version.versionId}(;|$)`
+          // Gateway controllers (e.g. Envoy) match header RegularExpression as a
+          // FULL-string match over the whole Cookie header, so the pattern must
+          // tolerate other cookies before/after ours. A substring-style pattern
+          // like `(^|;\s*)name=val(;|$)` only matches when our cookie is the only
+          // one present, which breaks real browsers that send multiple cookies.
+          value: `(.*;\\s*)?${cookieName}=${version.versionId}(\\s*;.*)?`
         }]
       }],
       filters: [URL_REWRITE_FILTER],

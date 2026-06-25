@@ -86,7 +86,7 @@ test('should build HTTPRoute with one draining version', async () => {
   assert.strictEqual(cookieRule.matches[0].headers[0].type, 'RegularExpression')
   assert.strictEqual(
     cookieRule.matches[0].headers[0].value,
-    '(^|;\\s*)__plt_dpl=v1.0.0-old(;|$)'
+    '(.*;\\s*)?__plt_dpl=v1.0.0-old(\\s*;.*)?'
   )
   assert.deepStrictEqual(cookieRule.filters, [URL_REWRITE_FILTER])
   assert.deepStrictEqual(cookieRule.backendRefs, [{
@@ -138,7 +138,7 @@ test('should build HTTPRoute with multiple draining versions', async () => {
   // First draining version cookie rule
   assert.strictEqual(
     route.spec.rules[0].matches[0].headers[0].value,
-    '(^|;\\s*)__plt_dpl=v1.0.0-aaa(;|$)'
+    '(.*;\\s*)?__plt_dpl=v1.0.0-aaa(\\s*;.*)?'
   )
   assert.strictEqual(route.spec.rules[0].backendRefs[0].name, 'myapp-v1.0.0')
 
@@ -149,7 +149,7 @@ test('should build HTTPRoute with multiple draining versions', async () => {
   // Second draining version cookie rule
   assert.strictEqual(
     route.spec.rules[2].matches[0].headers[0].value,
-    '(^|;\\s*)__plt_dpl=v1.5.0-bbb(;|$)'
+    '(.*;\\s*)?__plt_dpl=v1.5.0-bbb(\\s*;.*)?'
   )
   assert.strictEqual(route.spec.rules[2].backendRefs[0].name, 'myapp-v1.5.0')
 
@@ -194,7 +194,12 @@ test('should produce correct cookie regex pattern', async () => {
   })
 
   const regex = route.spec.rules[0].matches[0].headers[0].value
-  const re = new RegExp(regex)
+  // Gateway controllers (e.g. Envoy) evaluate a RegularExpression header match as
+  // a FULL-string match over the entire Cookie header. Anchor the pattern here to
+  // mirror that: a substring (unanchored) check would pass even for a pattern that
+  // only matches when our cookie is the sole one present, which is the real bug
+  // this rule must avoid (browsers send multiple cookies).
+  const re = new RegExp('^' + regex + '$')
 
   // Cookie is the only one
   assert.ok(re.test('__plt_dpl=v1.2.3-abc123'))
@@ -261,7 +266,7 @@ test('should use custom cookieName in cookie regex and Set-Cookie header', async
   const cookieRule = route.spec.rules[0]
   assert.strictEqual(
     cookieRule.matches[0].headers[0].value,
-    '(^|;\\s*)my_cookie=v1.0.0-old(;|$)'
+    '(.*;\\s*)?my_cookie=v1.0.0-old(\\s*;.*)?'
   )
 
   // Set-Cookie header should use custom cookie name

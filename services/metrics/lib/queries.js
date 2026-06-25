@@ -78,15 +78,37 @@ const createRequestPerSecondQuery = ({ applicationId, timeWindow }) =>
     kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"} > 0
   )`
 
+// Convert a Prometheus range duration (as produced by the draining checker,
+// e.g. "30s", "5m", "1h") into seconds. Defaults to 1 on an unexpected format
+// so the query degrades to a request count rather than throwing.
+const promWindowToSeconds = (timeWindow) => {
+  const match = /^(\d+)([smh])$/.exec(String(timeWindow))
+  if (!match) return 1
+  const value = Number(match[1])
+  if (match[2] === 'h') return value * 3600
+  if (match[2] === 'm') return value * 60
+  return value
+}
+
 // Request per second for a specific app version, filtered by K8s pod labels.
 // Used by the draining lifecycle checker to detect whether a draining version
-// still has traffic. A rate of 0 over the grace period window means no traffic.
+// still has traffic. A value of 0 over the window means no traffic.
+//
+// NOTE: http_request_all_summary_seconds_count is a prom-client summary whose
+// observation window is reset on every scrape (`collect: () => this.reset()`),
+// so its _count is a per-scrape delta, NOT a monotonic counter. rate() assumes a
+// cumulative counter and therefore returns ~0 on this metric even under steady
+// traffic, which would expire a draining version that is still being hit.
+// sum_over_time() adds the per-scrape counts across the window (each request is
+// counted in exactly one scrape sample, so there is no double counting), giving
+// the total requests in the window; dividing by the window length yields the
+// average requests per second.
 const createVersionRPSQuery = ({ appLabel, versionLabel, timeWindow }) =>
   `sum(
-    rate(http_request_all_summary_seconds_count[${timeWindow}])
+    sum_over_time(http_request_all_summary_seconds_count[${timeWindow}])
     * on(pod) group_left()
     kube_pod_labels{label_app_kubernetes_io_name="${appLabel}", label_plt_dev_version="${versionLabel}"}
-  )`
+  ) / ${promWindowToSeconds(timeWindow)}`
 
 module.exports = {
   createRSSMemoryQuery,
