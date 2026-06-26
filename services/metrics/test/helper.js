@@ -330,6 +330,8 @@ async function startPrometheus (t, machineId) {
       value = 1721122686
     } else if (query.includes('nodejs_heap_size_used_bytes')) {
       value = 3721122686
+    } else if (query.includes('container_cpu_usage_seconds_total')) {
+      value = 2.71828
     } else if (query.includes('process_cpu_percent_usage')) {
       value = 2.71828
     } else if (query.includes('thread_cpu_percent_usage')) {

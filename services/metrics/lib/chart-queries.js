@@ -34,8 +34,16 @@ const createUsedHEAPMemoryPodChartQuery = (podId, serviceId = null) => {
 }
 
 const createCPUPodChartQuery = (podId, serviceId = null) => {
+  // Whole pod: container cgroup CPU as a percentage of the pod's CPU limit
+  // (process_cpu_percent_usage is node-wide). Single service: per-thread CPU.
   if (!serviceId) {
-    return `process_cpu_percent_usage{instanceId="${podId}"}`
+    return `sum(rate(container_cpu_usage_seconds_total{pod="${podId}", container!="POD"}[1m]))
+      / (
+        sum(kube_pod_container_resource_limits{resource="cpu", unit="core", pod="${podId}"})
+        or
+        sum(kube_pod_container_resource_requests{resource="cpu", unit="core", pod="${podId}"})
+      )
+      * 100`
   }
   return `thread_cpu_percent_usage{instanceId="${podId}"${serviceIdFilter(serviceId)}}`
 }

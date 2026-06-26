@@ -20,9 +20,30 @@ const createTotalHEAPMemoryQuery = ({ appId, versionLabel }) =>
 const createUsedHEAPMemoryQuery = ({ appId, versionLabel }) =>
   `avg(sum by (instanceId) (${withVersionFilter(`nodejs_heap_size_used_bytes{${getAppFilter(appId)}}`, versionLabel)}))`
 
-// The CPU usage is the same for all the services in the same pod, so we can use the `max` to get the value for the whole pod.
-const createCPUQuery = ({ appId, versionLabel }) =>
-  `avg(max by (instanceId) (${withVersionFilter(`process_cpu_percent_usage{${getAppFilter(appId)}}`, versionLabel)}))`
+// Whole-application CPU as a percentage of the pod's CPU limit (falling back to
+// the CPU request when no limit is set), averaged across the application's pods.
+//
+// We must NOT use process_cpu_percent_usage here: it is computed from os.cpus()
+// and is therefore node-wide (identical for every pod on the node), so it cannot
+// represent a single application. The container cgroup CPU covers the whole Watt
+// process (all worker threads, GC, libuv) and, divided by the pod's allocation,
+// gives the app's CPU as a percentage of its limit.
+const createCPUQuery = ({ appId, versionLabel }) => {
+  const vf = versionLabel ? `, label_plt_dev_version="${versionLabel}"` : ''
+  const podLabels = `kube_pod_labels{label_platformatic_dev_application_id="${appId}", label_platformatic_dev_monitor="prometheus"${vf}}`
+  return `avg(
+    sum(rate(container_cpu_usage_seconds_total{container!="POD"}[1m])) by (pod)
+    * on(pod) group_left() ${podLabels}
+    /
+    (
+      sum(kube_pod_container_resource_limits{resource="cpu", unit="core"}) by (pod)
+      or
+      sum(kube_pod_container_resource_requests{resource="cpu", unit="core"}) by (pod)
+    )
+    * on(pod) group_left() ${podLabels}
+    * 100
+  )`
+}
 
 const createEventLoopQuery = ({ appId, versionLabel }) =>
   `avg(max by(instanceId) (${withVersionFilter(`nodejs_eventloop_utilization{${getAppFilter(appId)}}`, versionLabel)}))`
@@ -44,13 +65,20 @@ const createUsedHEAPMemoryPodQuery = ({ podId, timeWindow }) =>
 const createMemoryLimitPodQuery = (podId) =>
   `kube_pod_container_resource_limits{resource="memory", pod="${podId}"}`
 
-// CPU usage percentage from Node.js process
+// Whole-pod CPU as a percentage of the pod's CPU limit (see createCPUQuery for
+// why process_cpu_percent_usage cannot be used: it is node-wide).
 const createCPUPodQuery = ({ podId }) =>
-  `avg(process_cpu_percent_usage{instanceId="${podId}"})`
+  `sum(rate(container_cpu_usage_seconds_total{pod="${podId}", container!="POD"}[1m]))
+    / (
+      sum(kube_pod_container_resource_limits{resource="cpu", unit="core", pod="${podId}"})
+      or
+      sum(kube_pod_container_resource_requests{resource="cpu", unit="core", pod="${podId}"})
+    )
+    * 100`
 
 // number of cores
 const createAllocatedCPUPodQuery = ({ podId }) =>
-  `kube_pod_container_resource_limits{resource="cpu", pod="${podId}}"}`
+  `kube_pod_container_resource_limits{resource="cpu", pod="${podId}"}`
 
 const createEventLoopPodQuery = ({ podId }) =>
   `max(nodejs_eventloop_utilization{instanceId="${podId}"})`

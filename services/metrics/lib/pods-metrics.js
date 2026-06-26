@@ -92,14 +92,17 @@ const getPodChartsMetrics = async ({ podId, serviceId = null }) => {
   const numberOfPoints = rssRes?.data?.result[0]?.values.length
   const data = []
   for (let i = 0; i < numberOfPoints; i++) {
-    const date = rssRes?.data?.result[0]?.values[i][0]
-    const rss = rssRes?.data?.result[0]?.values[i][1]
-    const totalHeapSize = totalHeapRes?.data?.result[0]?.values[i][1]
-    const usedHeapSize = usedHeapRes?.data?.result[0]?.values[i][1]
-    const oldSpaceSize = oldSpaceSizeRes?.data?.result[0]?.values[i][1]
-    const newSpaceSize = newSpaceSizeRes?.data?.result[0]?.values[i][1]
-    const cpu = cpuRes?.data?.result[0]?.values[i][1]
-    const elu = eventLoopRes?.data?.result[0]?.values[i][1]
+    // Series can have fewer points than RSS (e.g. the rate()-based CPU has no
+    // value until the pod is ~1m old), so index safely and default to null
+    // rather than throwing and 500-ing the whole chart.
+    const date = rssRes?.data?.result[0]?.values?.[i]?.[0]
+    const rss = rssRes?.data?.result[0]?.values?.[i]?.[1] ?? null
+    const totalHeapSize = totalHeapRes?.data?.result[0]?.values?.[i]?.[1] ?? null
+    const usedHeapSize = usedHeapRes?.data?.result[0]?.values?.[i]?.[1] ?? null
+    const oldSpaceSize = oldSpaceSizeRes?.data?.result[0]?.values?.[i]?.[1] ?? null
+    const newSpaceSize = newSpaceSizeRes?.data?.result[0]?.values?.[i]?.[1] ?? null
+    const cpu = cpuRes?.data?.result[0]?.values?.[i]?.[1] ?? null
+    const elu = eventLoopRes?.data?.result[0]?.values?.[i]?.[1] ?? null
     data.push({
       date: new Date(date * 1000),
       cpu,

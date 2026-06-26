@@ -38,7 +38,7 @@ test('pod CPU / event loop metrics', async (t) => {
   const metrics = res.json()
 
   const expected = {
-    cpu: 25,
+    cpu: 0.5,
     eventLoop: 46.1803,
     podCores: 2
   }
