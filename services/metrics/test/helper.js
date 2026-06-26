@@ -182,7 +182,7 @@ async function startPrometheusK8s (t, applicationId, urlPrefix = '/') {
   )`)
 
   const requestPerSecondQuery = sanitizePromQuery(`avg(
-    rate(http_request_all_summary_seconds_count[5m])
+    (sum_over_time(http_request_all_summary_seconds_count[5m]) / 300)
     * on(pod) group_left(label_platformatic_dev_application_id)
     kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"} > 0
   )`)

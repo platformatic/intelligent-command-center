@@ -2,7 +2,7 @@
 
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
-const { createVersionRPSQuery } = require('../lib/queries')
+const { createVersionRPSQuery, createRequestPerSecondQuery } = require('../lib/queries')
 
 // http_request_all_summary_seconds_count resets on every scrape, so it is not a
 // monotonic counter and rate() returns ~0 even under steady traffic. The version
@@ -26,4 +26,15 @@ test('createVersionRPSQuery normalizes the window units to seconds', () => {
   assert.ok(ends('45s', 45), 'seconds')
   assert.ok(ends('2m', 120), 'minutes')
   assert.ok(ends('1h', 3600), 'hours')
+})
+
+test('createRequestPerSecondQuery uses sum_over_time normalized by the window', () => {
+  const q = createRequestPerSecondQuery({ applicationId: 'app-1', timeWindow: '5m' })
+  assert.ok(
+    q.includes('sum_over_time(http_request_all_summary_seconds_count[5m]) / 300'),
+    'per-pod RPS from sum_over_time over the window divided by window seconds'
+  )
+  assert.ok(!/\brate\(/.test(q), 'does not use rate() on the reset-per-scrape summary')
+  assert.ok(q.includes('label_platformatic_dev_application_id="app-1"'))
+  assert.ok(q.includes('> 0'), 'keeps the >0 filter so idle pods do not skew the average')
 })

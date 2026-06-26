@@ -71,13 +71,6 @@ const createRequestLatencyQuery = ({ applicationId, timeWindow }) =>
     ) > 0
   )`
 
-const createRequestPerSecondQuery = ({ applicationId, timeWindow }) =>
-  `avg(
-    rate(http_request_all_summary_seconds_count[${timeWindow}])
-    * on(pod) group_left(label_platformatic_dev_application_id)
-    kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"} > 0
-  )`
-
 // Convert a Prometheus range duration (as produced by the draining checker,
 // e.g. "30s", "5m", "1h") into seconds. Defaults to 1 on an unexpected format
 // so the query degrades to a request count rather than throwing.
@@ -89,6 +82,17 @@ const promWindowToSeconds = (timeWindow) => {
   if (match[2] === 'm') return value * 60
   return value
 }
+
+// http_request_all_summary_seconds_count resets on every scrape (see the note on
+// createVersionRPSQuery below), so rate() returns ~0 under steady traffic. Use
+// sum_over_time over the window divided by the window length to get per-pod RPS,
+// then average across the pods that actually served traffic (the > 0 filter).
+const createRequestPerSecondQuery = ({ applicationId, timeWindow }) =>
+  `avg(
+    (sum_over_time(http_request_all_summary_seconds_count[${timeWindow}]) / ${promWindowToSeconds(timeWindow)})
+    * on(pod) group_left(label_platformatic_dev_application_id)
+    kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"} > 0
+  )`
 
 // Request per second for a specific app version, filtered by K8s pod labels.
 // Used by the draining lifecycle checker to detect whether a draining version
