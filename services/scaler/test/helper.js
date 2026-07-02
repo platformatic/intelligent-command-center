@@ -92,8 +92,7 @@ const defaultEnv = {
   PLT_SCALER_DATABASE_URL: connectionString,
   PLT_ICC_VALKEY_CONNECTION_STRING: valkeyConnectionString,
   PLT_SCALER_PROMETHEUS_URL: 'http://localhost:9090',
-  PLT_SCALER_DEBOUNCE: 10000,
-  PLT_FEATURE_SCALER_TRENDS_LEARNING: true
+  PLT_SCALER_DEBOUNCE: 10000
 }
 
 function setUpEnvironment (env = {}) {
@@ -136,9 +135,6 @@ async function cleanDb (app) {
     await db.query(sql`DELETE FROM "signals"`)
   } catch (err) {}
   try {
-    await db.query(sql`DELETE FROM "performance_history"`)
-  } catch (err) {}
-  try {
     await db.query(sql`DELETE FROM "scale_events"`)
   } catch (err) {}
   try {
@@ -153,12 +149,6 @@ async function cleanDb (app) {
   try {
     await db.query(sql`DELETE FROM "alerts"`)
   } catch (err) {}
-
-  if (app.store) {
-    try {
-      await app.store.savePredictions([])
-    } catch (err) {}
-  }
 }
 
 let pool = null
@@ -182,7 +172,6 @@ async function cleandb () {
     await pool.query(sql`DELETE FROM application_scale_configs;`)
     await pool.query(sql`DELETE FROM controllers;`)
     await pool.query(sql`DELETE FROM scale_events;`)
-    await pool.query(sql`DELETE FROM performance_history;`)
   } catch {}
 }
 

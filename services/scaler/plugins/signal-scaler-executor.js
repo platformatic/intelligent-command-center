@@ -77,7 +77,7 @@ class SignalScalerExecutor {
         let maxPods = defaultAppConfig.pods.max
 
         try {
-          const scaleConfig = await app.getScaleConfig(appId)
+          const scaleConfig = await app.getScalingLimits(appId)
           if (scaleConfig) {
             if (scaleConfig.minPods !== undefined) {
               minPods = scaleConfig.minPods
@@ -220,7 +220,7 @@ class SignalScalerExecutor {
 
   async getScaleConfig (applicationId) {
     try {
-      const scaleConfig = await this.app.getScaleConfig(applicationId)
+      const scaleConfig = await this.app.getScalingLimits(applicationId)
       if (scaleConfig) {
         const { minPods, maxPods } = scaleConfig
         this.app.log.debug({ applicationId, minPods, maxPods }, 'Retrieved scale config')
@@ -341,7 +341,11 @@ class SignalScalerExecutor {
       return true
     }
 
-    const processed = await this.predictor.checkForPendingBatches(appId, controllerId, targetPodsCount, scale)
+    const onTarget = (value, now) =>
+      Promise.resolve(this.app.recordTarget ? this.app.recordTarget(appId, value, now) : null)
+        .catch(err => this.app.log.error({ err, appId }, '[time-slot-stats] record failed'))
+
+    const processed = await this.predictor.checkForPendingBatches(appId, controllerId, targetPodsCount, scale, onTarget)
     if (processed) {
       const appConfig = await this.predictor.getApplicationConfig(appId)
       this.#scheduleProcessing(appId, controllerId, appConfig.processingCooldownMs)

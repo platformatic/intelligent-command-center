@@ -26,7 +26,6 @@ const schema = {
     PLT_SCALER_MAX_PODS_DEFAULT: { type: 'number', default: 10 },
     PLT_SCALER_PERIODIC_TRIGGER: { type: 'number', default: 60 }, // in seconds
     PLT_SCALER_SYNC_K8S: { type: 'number', default: 60 }, // in seconds
-    PLT_FEATURE_SCALER_TRENDS_LEARNING: { type: 'boolean', default: false },
     PLT_SCALER_POD_MIN_LABEL: { type: 'string', default: 'icc.platformatic.dev/scaler-min' },
     PLT_SCALER_POD_MIN_DEFAULT_VALUE: { type: 'number', default: 1 },
     PLT_SCALER_POD_MAX_LABEL: { type: 'string', default: 'icc.platformatic.dev/scaler-max' },
@@ -36,6 +35,16 @@ const schema = {
     PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1', enum: ['v1', 'v2'] },
     PLT_SCALER_SCALING_DISABLED: { type: 'boolean', default: false },
     PLT_SCALER_DASHBOARD_API_ENABLED: { type: 'boolean', default: false },
+    PLT_SCALER_SCHEDULER_ENABLED: { type: 'boolean', default: true },
+    PLT_SCALER_SCHEDULER_TICK_MINUTES: { type: 'number', default: 1 },
+    PLT_SCALER_TIME_SLOT_MINUTES: { type: 'number', default: 5 },
+    PLT_SCALER_TIME_SLOT_TIMEZONE: { type: 'string', default: 'UTC' },
+    PLT_SCALER_TIME_WINDOW_MINUTES: { type: 'number', default: 15 },
+    PLT_SCALER_PATTERN_PERCENTILE: { type: 'string', default: 'p50', enum: ['min', 'max', 'p50', 'p75', 'p90', 'p95', 'p99'] },
+    PLT_SCALER_PATTERN_PREDICTION_DAYS: { type: 'number', default: 60 },
+    PLT_SCALER_WINDOW_CATEGORIES: { type: 'number', default: 5 },
+    PLT_SCALER_WINDOW_MIN_PODS: { type: 'number', default: 3 },
+    PLT_SCALER_WINDOW_MIN_FRACTION: { type: 'number', default: 0.1 },
     PLT_ICC_SESSION_SECRET: { type: 'string' },
 
     // LoadPredictor (v2) - Global config

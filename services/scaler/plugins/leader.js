@@ -24,14 +24,14 @@ async function plugin (app) {
       app.startScalerV2Trigger()
     }
 
-    // Start prediction scheduling if available
-    if (app.startPredictionScheduling) {
-      app.startPredictionScheduling()
-    }
-
     // Start K8s sync if available
     if (app.startK8sSync) {
       app.startK8sSync()
+    }
+
+    // Start scheduler if available
+    if (app.startScheduler) {
+      app.startScheduler()
     }
   }
 
@@ -46,14 +46,14 @@ async function plugin (app) {
       app.stopScalerV2Trigger()
     }
 
-    // Stop prediction scheduling if available
-    if (app.stopPredictionScheduling) {
-      app.stopPredictionScheduling()
-    }
-
     // Stop K8s sync if available
     if (app.stopK8sSync) {
       app.stopK8sSync()
+    }
+
+    // Stop scheduler if available
+    if (app.stopScheduler) {
+      app.stopScheduler()
     }
   }
 
@@ -117,5 +117,5 @@ async function plugin (app) {
 
 module.exports = fp(plugin, {
   name: 'leader',
-  dependencies: ['env', 'scaler-executor', 'prediction-scheduler', 'k8s-sync']
+  dependencies: ['env', 'scaler-executor', 'k8s-sync', 'scheduler']
 })

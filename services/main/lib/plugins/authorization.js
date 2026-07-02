@@ -27,23 +27,14 @@ async function getWhitelistedPaths () {
     ['/traffic-inspector/requests', ['POST']],
     ['/traffic-inspector/requests/hash', ['POST']],
     ['/risk-service/v1/traces', ['POST']],
-    ['/cron/watt-jobs', ['PUT']]
+    ['/cron/watt-jobs', ['PUT']],
+    ['/scaler/applications/seed', ['POST']]
   ]
 
   // add OpenaAPI spec route for each internal service
   const svcs = await getICCServices()
   for (const svc of svcs) {
     routes.push([`/${svc}/documentation/json`, 'GET'])
-  }
-
-  if (process.env.PLT_SCALER_DASHBOARD_API_ENABLED === 'true') {
-    // Debug dashboard surface (off by default). Allows the reactive-scaling-algorithm
-    // dev dashboard to read scaler state and resolve application names without auth.
-    routes.push(['/scaler/api/v2/', ['GET']])
-    routes.push(['/scaler/scaleEvents', ['GET']])
-    routes.push(['/scaler/metricSnapshots', ['GET']])
-    routes.push(['/scaler/countSnapshots', ['GET']])
-    routes.push(['/control-plane/applications', ['GET']])
   }
 
   if (process.env.PLT_DEV === 'true') {

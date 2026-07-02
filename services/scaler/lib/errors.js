@@ -37,5 +37,32 @@ module.exports = {
   ),
   FLAMEGRAPH_NOT_FOUND: createError(
     `${ERROR_PREFIX}_FLAMEGRAPH_NOT_FOUND`, 'Flamegraph not found: "%s"', 404
+  ),
+  SCHEDULE_INVALID_RRULE: createError(
+    `${ERROR_PREFIX}_SCHEDULE_INVALID_RRULE`, 'Invalid schedule RRULE: %s', 400
+  ),
+  SCHEDULE_INVALID_LIMITS: createError(
+    `${ERROR_PREFIX}_SCHEDULE_INVALID_LIMITS`, 'Invalid schedule limits: %s', 400
+  ),
+  SCHEDULE_INVALID_TIMEZONE: createError(
+    `${ERROR_PREFIX}_SCHEDULE_INVALID_TIMEZONE`, 'Invalid schedule timezone: %s', 400
+  ),
+  SCHEDULE_INVALID_TICK_INTERVAL: createError(
+    `${ERROR_PREFIX}_SCHEDULE_INVALID_TICK_INTERVAL`,
+    'PLT_SCALER_SCHEDULER_TICK_MINUTES must be an integer that divides 60 evenly (1,2,3,4,5,6,10,12,15,20,30,60); got %s'
+  ),
+  SCHEDULE_NOT_FOUND: createError(
+    `${ERROR_PREFIX}_SCHEDULE_NOT_FOUND`, 'Schedule not found: "%s"', 404
+  ),
+  INVALID_TIME_SLOT: createError(
+    `${ERROR_PREFIX}_INVALID_TIME_SLOT`,
+    'PLT_SCALER_TIME_SLOT_MINUTES must be an integer that divides 60 evenly (1,2,3,4,5,6,10,12,15,20,30,60); got %s'
+  ),
+  INVALID_TIME_SLOT_TIMEZONE: createError(
+    `${ERROR_PREFIX}_INVALID_TIME_SLOT_TIMEZONE`, 'Invalid time slot timezone: %s'
+  ),
+  INVALID_TIME_WINDOW: createError(
+    `${ERROR_PREFIX}_INVALID_TIME_WINDOW`,
+    'PLT_SCALER_TIME_WINDOW_MINUTES must be an integer > PLT_SCALER_TIME_SLOT_MINUTES, a multiple of it, and a divisor of 1440; got %s'
   )
 }

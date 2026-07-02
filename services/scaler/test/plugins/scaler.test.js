@@ -5,7 +5,6 @@ const { buildServer, buildServerWithPlugins, createExecutor } = require('../help
 const assert = require('node:assert')
 const { setTimeout: sleep } = require('node:timers/promises')
 const scalerPlugin = require('../../plugins/scaler')
-const predictionSchedulerPlugin = require('../../plugins/prediction-scheduler')
 const envPlugin = require('../../plugins/env')
 const storePlugin = require('../../plugins/store')
 const leaderPlugin = require('../../plugins/leader')
@@ -13,16 +12,17 @@ const machinistPlugin = require('../../plugins/machinist')
 const k8sSyncPlugin = require('../../plugins/k8s-sync')
 const scaleConfigsPlugin = require('../../plugins/scale-configs')
 const activitiesPlugin = require('../../plugins/activities')
+const schedulerPlugin = require('../../plugins/scheduler')
 
 const getPlugins = (executor) => [
   envPlugin,
   createExecutor(executor),
   storePlugin,
-  predictionSchedulerPlugin,
   machinistPlugin,
   scaleConfigsPlugin,
   activitiesPlugin,
   k8sSyncPlugin,
+  schedulerPlugin,
   leaderPlugin,
   scalerPlugin
 ]
@@ -129,25 +129,6 @@ test('if one instance is shut down, the other is elected', async (t) => {
   assert.ok(server1.isScalerLeader(), 'Server 1 should be the leader after server 2 is closed')
 })
 
-test('should stop prediction scheduling when losing leadership', async (t) => {
-  const server = await buildServer(t, {
-    PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6000).toString(),
-    PLT_SCALER_LEADER_POLL: '100',
-    PLT_SCALER_PERIODIC_TRIGGER: '1'
-  })
-
-  server.stopPredictionScheduling = async () => {}
-
-  t.after(async () => {
-    await server.close()
-  })
-
-  await sleep(200)
-  await server.close()
-
-  assert.strictEqual(typeof server.stopPredictionScheduling, 'function')
-})
-
 test('should handle periodic trigger already running scenario', async (t) => {
   const server = await buildServer(t, {
     PLT_SCALER_LOCK: (Math.floor(Math.random() * 1000) + 6100).toString(),
@@ -242,8 +223,6 @@ test('should trigger leadership change and stop periodic trigger when losing lea
     PLT_SCALER_LEADER_POLL: '100',
     PLT_SCALER_PERIODIC_TRIGGER: '1'
   })
-
-  server1.stopPredictionScheduling = async () => {}
 
   await sleep(200)
   assert.ok(server1.isScalerLeader(), 'Server 1 should be the leader')

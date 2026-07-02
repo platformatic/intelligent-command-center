@@ -5,7 +5,8 @@ const PERF_HISTORY_PREFIX = `${PREFIX}perf-history:`
 const CLUSTERS_PREFIX = `${PREFIX}clusters:`
 const LAST_SCALING_PREFIX = `${PREFIX}last-scaling:`
 const ALERTS_PREFIX = `${PREFIX}alerts:`
-const PREDICTIONS_PREFIX = `${PREFIX}predictions:`
+const SOFT_LIMITS_PREFIX = `${PREFIX}soft-limits:`
+const BUCKET_PREFIX = `${PREFIX}bucket:`
 
 module.exports = {
   PREFIX,
@@ -13,5 +14,6 @@ module.exports = {
   CLUSTERS_PREFIX,
   LAST_SCALING_PREFIX,
   ALERTS_PREFIX,
-  PREDICTIONS_PREFIX
+  SOFT_LIMITS_PREFIX,
+  BUCKET_PREFIX
 }

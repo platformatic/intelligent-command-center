@@ -34,7 +34,7 @@ class ScalerExecutor {
 
   async getScaleConfig (applicationId) {
     try {
-      const scaleConfig = await this.app.getScaleConfig(applicationId)
+      const scaleConfig = await this.app.getScalingLimits(applicationId)
       if (scaleConfig) {
         const { minPods, maxPods } = scaleConfig
         this.app.log.info({ applicationId, minPods, maxPods }, 'Retrieved scale config')

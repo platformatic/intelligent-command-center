@@ -2,18 +2,20 @@
   "version": "3.6.0",
   "scripts": {
     "start": "platformatic start",
-    "test": "npm run lint && DOTENV_CONFIG_QUIET=true borp --concurrency 1 --timeout=60000",
-    "test:coverage": "npm run lint && DOTENV_CONFIG_QUIET=true borp --concurrency 1 --timeout=60000 --coverage",
+    "test": "npm run lint && DOTENV_CONFIG_QUIET=true borp --concurrency 1 --timeout=60000 --ignore 'test/pattern-predictor/**'",
+    "test:coverage": "npm run lint && DOTENV_CONFIG_QUIET=true borp --concurrency 1 --timeout=60000 --ignore 'test/pattern-predictor/**' --coverage",
+    "test:patterns": "npm run test:patterns:unit && npm run test:patterns:complex && npm run test:patterns:schedule",
+    "test:patterns:unit": "node --test test/pattern-predictor/*.test.js",
+    "test:patterns:complex": "node test/pattern-predictor/complex/runner.mjs",
+    "test:patterns:schedule": "node test/pattern-predictor/schedule/runner.mjs",
     "simulate": "node simulations/server.js",
     "lint": "standard ."
   },
   "devDependencies": {
-    "@breejs/later": "^4.2.0",
     "@fastify/static": "^9.0.0",
     "@fastify/websocket": "^11.1.0",
     "borp": "^1.0.0",
     "fastify": "^5.4.0",
-    "node-cron": "^4.2.1",
     "pg": "^8.16.3",
     "platformatic": "^3.54.0",
     "snazzy": "^9.0.0",
@@ -27,7 +29,9 @@
     "@platformatic/db": "^3.54.0",
     "fastify-plugin": "^5.0.1",
     "iovalkey": "^0.3.1",
+    "luxon": "^3.7.2",
     "mqemitter-redis": "^7.1.0",
+    "rrule": "^2.8.1",
     "undici": "^7.8.0",
     "massimo": "^1.2.0"
   }

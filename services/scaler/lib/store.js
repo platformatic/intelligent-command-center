@@ -7,7 +7,8 @@ const {
   PERF_HISTORY_PREFIX,
   CLUSTERS_PREFIX,
   LAST_SCALING_PREFIX,
-  PREDICTIONS_PREFIX
+  SOFT_LIMITS_PREFIX,
+  BUCKET_PREFIX
 } = require('./store-constants')
 
 class Store {
@@ -196,70 +197,99 @@ class Store {
     }
   }
 
-  async savePredictions (predictions) {
+  async saveSoftLimits (applicationId, limits, ttlSeconds) {
     try {
-      const key = `${PREDICTIONS_PREFIX}all`
-      const sortedPredictions = [...predictions]
-        .filter(p => p.applicationId)
-        .sort((a, b) => a.absoluteTime - b.absoluteTime)
-      await this.valkey.set(key, JSON.stringify(sortedPredictions))
-    } catch (err) {
-      this.log.error({ err }, 'Failed to save predictions')
-    }
-  }
-
-  async getPredictions () {
-    try {
-      const key = `${PREDICTIONS_PREFIX}all`
-      const predictionsStr = await this.valkey.get(key)
-      if (!predictionsStr) {
-        return []
+      const key = `${SOFT_LIMITS_PREFIX}${applicationId}`
+      const payload = JSON.stringify({ ...limits, computedAt: Date.now() })
+      if (ttlSeconds && ttlSeconds > 0) {
+        await this.valkey.set(key, payload, 'EX', Math.ceil(ttlSeconds))
+      } else {
+        await this.valkey.set(key, payload)
       }
-      return JSON.parse(predictionsStr)
     } catch (err) {
-      this.log.error({ err }, 'Failed to get predictions')
-      return []
+      this.log.error({ err, applicationId }, 'Failed to save soft limits')
     }
   }
 
-  async getApplicationPredictions (applicationId) {
-    const allPredictions = await this.getPredictions()
-    return allPredictions.filter(p => p.applicationId === applicationId)
-  }
-
-  async getNextPrediction () {
-    const predictions = await this.getPredictions()
-    return predictions.length > 0 ? predictions[0] : null
-  }
-
-  async removePrediction (predictionToRemove) {
+  async getSoftLimits (applicationId) {
     try {
-      const predictions = await this.getPredictions()
-      const filteredPredictions = predictions.filter(p =>
-        !(p.applicationId === predictionToRemove.applicationId &&
-          p.absoluteTime === predictionToRemove.absoluteTime &&
-          p.action === predictionToRemove.action &&
-          p.pods === predictionToRemove.pods)
-      )
-      await this.savePredictions(filteredPredictions)
-      return filteredPredictions
+      const key = `${SOFT_LIMITS_PREFIX}${applicationId}`
+      const str = await this.valkey.get(key)
+      return str ? JSON.parse(str) : null
     } catch (err) {
-      this.log.error({ err, predictionToRemove }, 'Failed to remove prediction')
-      return []
+      this.log.error({ err, applicationId }, 'Failed to get soft limits')
+      return null
     }
   }
 
-  async replaceApplicationPredictions (applicationId, newPredictions) {
+  async clearSoftLimits (applicationId) {
     try {
-      const allPredictions = await this.getPredictions()
-      const otherPredictions = allPredictions.filter(p => p.applicationId !== applicationId)
-      const predictionsWithAppId = newPredictions.map(p => ({ ...p, applicationId }))
-      const combined = [...otherPredictions, ...predictionsWithAppId]
-      await this.savePredictions(combined)
-      return combined
+      await this.valkey.del(`${SOFT_LIMITS_PREFIX}${applicationId}`)
     } catch (err) {
-      this.log.error({ err, applicationId }, 'Failed to replace application predictions')
-      return []
+      this.log.error({ err, applicationId }, 'Failed to clear soft limits')
+    }
+  }
+
+  #bucketKeys (applicationId) {
+    return {
+      pointer: `${BUCKET_PREFIX}${applicationId}`,
+      targets: `${BUCKET_PREFIX}${applicationId}:targets`
+    }
+  }
+
+  async readBucket (applicationId) {
+    try {
+      const { pointer, targets } = this.#bucketKeys(applicationId)
+      const pointerStr = await this.valkey.get(pointer)
+      if (!pointerStr) return null
+      const { slotStart, isFirst } = JSON.parse(pointerStr)
+      const raw = await this.valkey.lrange(targets, 0, -1)
+      const parsed = raw.map((s) => {
+        const i = s.indexOf(':')
+        return { ts: Number(s.slice(0, i)), value: Number(s.slice(i + 1)) }
+      })
+      return { slotStart, isFirst, targets: parsed }
+    } catch (err) {
+      this.log.error({ err, applicationId }, 'Failed to read bucket')
+      return null
+    }
+  }
+
+  async openBucket ({ applicationId, slotStart, isFirst, seed, ttlSeconds }) {
+    try {
+      const { pointer, targets } = this.#bucketKeys(applicationId)
+      const pipeline = this.valkey.pipeline()
+      pipeline.set(pointer, JSON.stringify({ slotStart, isFirst }), 'EX', ttlSeconds)
+      pipeline.del(targets)
+      if (seed) {
+        pipeline.rpush(targets, `${seed.ts}:${seed.value}`)
+        pipeline.expire(targets, ttlSeconds)
+      }
+      await pipeline.exec()
+    } catch (err) {
+      this.log.error({ err, applicationId }, 'Failed to open bucket')
+    }
+  }
+
+  async appendBucketTarget ({ applicationId, ts, value, ttlSeconds }) {
+    try {
+      const { pointer, targets } = this.#bucketKeys(applicationId)
+      const pipeline = this.valkey.pipeline()
+      pipeline.rpush(targets, `${ts}:${value}`)
+      pipeline.expire(targets, ttlSeconds)
+      pipeline.expire(pointer, ttlSeconds)
+      await pipeline.exec()
+    } catch (err) {
+      this.log.error({ err, applicationId }, 'Failed to append bucket target')
+    }
+  }
+
+  async clearBucket (applicationId) {
+    try {
+      const { pointer, targets } = this.#bucketKeys(applicationId)
+      await this.valkey.del(pointer, targets)
+    } catch (err) {
+      this.log.error({ err, applicationId }, 'Failed to clear bucket')
     }
   }
 }

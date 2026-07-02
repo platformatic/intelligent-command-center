@@ -16,6 +16,41 @@ module.exports = fp(async function (app) {
     return scaleConfigs.length > 0 ? scaleConfigs[0] : null
   })
 
+  function clamp (value, lo, hi) {
+    if (lo != null && value < lo) value = lo
+    if (hi != null && value > hi) value = hi
+    return value
+  }
+
+  app.decorate('getScalingLimits', async (applicationId) => {
+    const [hard, soft] = await Promise.all([
+      app.getScaleConfig(applicationId),
+      app.store.getSoftLimits(applicationId)
+    ])
+
+    if (hard === null && soft === null) return null
+
+    const hardMin = hard?.minPods ?? null
+    const hardMax = hard?.maxPods ?? null
+
+    let minPods = hardMin
+    let maxPods = hardMax
+
+    if (soft) {
+      if (soft.min != null) {
+        minPods = clamp(soft.min, hardMin, hardMax)
+      }
+      if (soft.max != null) {
+        maxPods = clamp(soft.max, hardMin, hardMax)
+      }
+    }
+
+    if (minPods != null && maxPods != null && minPods > maxPods) {
+      minPods = maxPods
+    }
+    return { minPods, maxPods }
+  })
+
   app.decorate('saveScaleConfig', async (applicationId, config) => {
     const controller = await app.getApplicationController(applicationId)
     /* c8 ignore next 3 */
@@ -63,5 +98,5 @@ module.exports = fp(async function (app) {
   })
 }, {
   name: 'scale-config',
-  dependencies: ['env']
+  dependencies: ['env', 'store']
 })

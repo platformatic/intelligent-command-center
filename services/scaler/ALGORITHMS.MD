@@ -1,94 +1,75 @@
 # Autoscaling Algorithms Documentation
 
-This document describes the intelligent autoscaling algorithms implemented in the scaler service, comparing the reference implementation with the actual production implementation.
+The scaler service supports two autoscaling algorithms, selected per deployment via the
+`PLT_SCALER_ALGORITHM_VERSION` environment variable (`v1` | `v2`):
 
-## Overview
+1. **Reactive Scaling Algorithm (v1)** — responds in real time to ELU/HEAP performance
+   signals. Documented below.
+2. **Signal Scaler / Load Predictor (v2)** — a predictive load forecaster over per-worker
+   signal streams. See `SIGNAL_SCALER_ALGORITHM.md`.
 
-The system implements a dual-algorithm framework for intelligent autoscaling:
+This document describes the **reactive** algorithm.
 
-1. **Reactive Scaling Algorithm** - Responds in real-time to performance signals (ELU > 90%)
-2. **Trends Learning Algorithm** - Analyzes historical patterns to predict future scaling needs
+## Reactive Scaling Algorithm (v1)
 
-## Algorithm Specifications
+### Key parameters
 
-### Mathematical Foundation
-
-The algorithms are based on the whitepaper "Intelligent Autoscaling for Node.js Applications with Reactive and Predictive Scaling" (June 9, 2025), which provides detailed mathematical formulations for both algorithms.
-
-Key parameters from the specification:
-- **ELU Threshold (τ_e)**: 0.9 (90%)
-- **HEAP Threshold (τ_h)**: 0.85 (85%)
-- **3-day half-life decay (λ)**: ln(2)/259200 ≈ 2.674 × 10^-6
+- **ELU threshold (τ_e)**: 0.9 (90%)
+- **HEAP threshold (τ_h)**: 0.85 (85%)
 - **Cooldown period (C)**: 300 seconds
 - **Post-scaling window (T_post)**: 300 seconds
-- **Maximum history events (K_max)**: 1000
+- **Maximum history events (K_max)**: 10
 - **Maximum clusters (C_max)**: 5
-- **Prediction window (W_pred)**: ±30 seconds
-- **Confidence threshold (π_thresh)**: 0.8
+- **Minimum pods (default)**: 1
+- **Maximum pods (default)**: 10
 
-## Production Implementation Architecture
+These are the algorithm defaults. The executor and environment can override them — for
+example `PLT_SCALER_ELU_THRESHOLD`, `PLT_SCALER_HEAP_THRESHOLD`, `PLT_SCALER_COOLDOWN`,
+`PLT_SCALER_MAX_HISTORY`, `PLT_SCALER_MIN_PODS_DEFAULT`, `PLT_SCALER_MAX_PODS_DEFAULT`.
 
-### Key Differences from Reference Implementation
+### Architecture
 
-#### 1. **Modular Architecture**
-- **Reference**: Single-file implementation with classes in one Node.js file
-- **Production**: Modular design with separated concerns:
-  - `reactive-scaling-algorithm.js` - Core reactive scaling logic
-  - `trends-learning-algorithm.js` - Predictive scaling logic
-  - `performance-history.js` - History management and evaluation
-  - `scaling-algorithm-utils.js` - Shared utility functions
+Modular design with separated concerns:
 
-#### 2. **Data Persistence**
-- **Reference**: In-memory storage for history and predictions
-- **Production**: PostgreSQL database integration with proper schema:
-  - Performance history stored in `performance_history` table
-  - Clusters stored per application
-  - Last scaling time tracked in database
+- `lib/reactive-scaling-algorithm.js` — core reactive scaling logic
+- `lib/performance-history.js` — history management and post-scaling evaluation
+- `lib/scaling-algorithm-utils.js` — shared utility functions
 
-#### 3. **Integration with Kubernetes**
-- **Reference**: Simulated pod management with Set data structure
-- **Production**: Full integration with Kubernetes API through control-plane service
-  - Real pod metrics from Prometheus
-  - Actual deployment scaling operations
-  - Health status monitoring
+### Data persistence
 
-#### 4. **Metrics Collection**
-- **Reference**: Simulated metrics with random data
-- **Production**: Real metrics from multiple sources:
-  - Prometheus time-series data
-  - Alert-based metrics from health monitoring
-  - Historical health data integration
+- Performance history is kept in a Valkey ring buffer (last `K_max` events) per application.
+- Clusters are stored per application in Valkey.
+- The last scaling time is tracked in Valkey and used to enforce cooldowns.
 
-#### 5. **API Design**
-- **Reference**: Basic Fastify endpoints for testing
-- **Production**: Comprehensive API with:
-  - Structured request/response models
-  - Database entity management
-  - Error handling and validation
-  - Integration with other microservices
+### Integration with Kubernetes
 
-## Algorithm Implementation Details
+- Real pod metrics from Prometheus time-series data.
+- Alert-based metrics from health monitoring.
+- Actual deployment scaling operations through the machinist service.
 
-### Reactive Scaling Algorithm
+### Core workflow
 
-#### Core Workflow (Both Implementations)
-1. Signal collection when ELU > 90%
-2. Performance history collection
-3. Cluster maintenance (5 clusters max)
-4. Signal evaluation and pod metrics analysis
-5. Prediction integration
-6. Replicaset comparison
-7. Scaling decision with cooldown
-8. Pod management
+1. Signal collection when ELU/HEAP cross thresholds.
+2. Performance history collection.
+3. Cluster maintenance (up to 5 clusters).
+4. Signal evaluation and pod metrics analysis.
+5. Replica comparison.
+6. Scaling decision with cooldown.
+7. Pod management via machinist.
 
-#### Major Enhancements in Production
+### Scale-up
 
-##### 1. **Scale-Down Functionality** (NOT in mathematical specification)
-The production implementation adds comprehensive scale-down logic that is completely absent from the mathematical specification:
+The decision returns `nfinal` — the total desired pod count after scaling. The base amount
+scales with the fraction of pods that triggered, and is amplified when the
+performance-weighted ELU/HEAP score is high, then capped to the maximum pod count.
+
+### Scale-down
+
+Scale-down logic removes capacity when utilization is low:
 
 ```javascript
-// Production implementation adds scale-down when utilization is low
-if ((avgElu < this.eluThreshold * 0.5 || avgHeap < this.heapThreshold * 0.5) && 
+// Scale down when utilization is well below thresholds
+if ((avgElu < this.eluThreshold * 0.5 || avgHeap < this.heapThreshold * 0.5) &&
     currentPodCount > minPodsValue) {
     // Calculate scale-down based on utilization ratio
     const utilizationRatio = Math.max(avgElu / this.eluThreshold, avgHeap / this.heapThreshold)
@@ -98,122 +79,62 @@ if ((avgElu < this.eluThreshold * 0.5 || avgHeap < this.heapThreshold * 0.5) &&
 }
 ```
 
-**Rationale**: Production environments require both scale-up and scale-down to optimize resource utilization and costs.
+Scale-down only happens on periodic (alert-free) checks; alert-triggered evaluations never
+scale down.
 
-##### 2. **Alert Integration**
-Production implementation merges alert data with Prometheus metrics:
-- Current ELU/heap values from alerts
-- Historical health data from alerts (last 20 entries)
-- Priority given to recent data points
+### Alert integration
 
-##### 3. **API Clarity Enhancement**
-- **Reference**: Returns number of pods to add/remove
-- **Production**: Returns `nfinal` - the total desired pod count after scaling
-- This improves API clarity and reduces confusion
+Alert data is merged with Prometheus metrics:
 
-##### 4. **Minimum Pod Enforcement**
-Production explicitly enforces minimum pod count, which the mathematical spec mentions but doesn't implement.
+- Current ELU/heap values from alerts.
+- Historical health data from alerts (last 20 entries).
+- Priority given to recent data points.
 
-### Trends Learning Algorithm
+### Minimum / maximum pod enforcement
 
-#### Core Workflow (Both Implementations)
-1. Historical data extraction (30-day history)
-2. Time-slot analysis with 3-day decay weighting
-3. Sequence modeling for scale-down patterns
-4. Prediction validation
-5. Prediction generation with embedded reasons
+The minimum pod count is enforced explicitly: if the current count is below the configured
+minimum, the algorithm scales up to the minimum regardless of utilization. Scale-up is
+likewise capped to the configured maximum.
 
-#### Key Implementation Differences
+### Immediate triggers
 
-##### 1. **Data Source**
-- **Reference**: In-memory array of events
-- **Production**: Database queries with proper filtering and ordering
+ELU ≥ 95% or normalized HEAP ≥ 90% trigger scaling immediately, bypassing the gradual
+score-based path.
 
-##### 2. **Time Handling**
-- **Reference**: Uses seconds for all calculations
-- **Production**: Uses milliseconds internally, converts as needed
+### Post-scaling evaluation
 
-##### 3. **Integration Method**
-- **Reference**: Stores predictions in memory, queried via endpoint
-- **Production**: On-demand prediction generation with `getCurrentPrediction()` method
+After `T_post` (300 seconds) a post-scaling evaluation runs:
 
-##### 4. **Scheduling**
-- **Reference**: Uses node-cron for hourly execution
-- **Production**: Integrated with cron service using leader election
+- Fetches current metrics and computes ELU/HEAP deltas and variability versus the
+  pre-scaling snapshot.
+- Updates clusters with the observed event (performance-weighted, Euclidean distance for
+  similarity).
+- Signal-sourced events score 1.0.
 
 ## Performance History Management
 
-### Production Enhancements
-
-1. **Database Persistence**
-   - Upsert logic to prevent duplicates
-   - Proper timestamp handling
-   - Transaction support
-
-2. **Post-Scaling Evaluation**
-   - Scheduled evaluation after 300 seconds
-   - Success score calculation based on:
-     - Responsiveness (70%): ELU/HEAP below thresholds
-     - Resource optimization (30%): Optimal pod utilization
-
-3. **Cluster Updates**
-   - Dynamic cluster creation and updates
-   - Performance-weighted cluster management
-   - Euclidean distance for similarity
+- Valkey ring buffer capped at `K_max` events per application.
+- Post-scaling evaluation updates the stored event and the per-application clusters.
+- Clustering uses Euclidean distance over (ELU mean, HEAP mean, ELU trend, HEAP trend) with
+  performance-weighted incremental updates and a maximum of `C_max` clusters.
 
 ## Utility Functions
 
-Both implementations share similar utility functions:
-- Linear regression for trend calculation
-- Standard deviation for variability
-- Euclidean distance for clustering
-- Performance scoring based on historical similarity
-
-Production adds:
-- Normalization of heap values (assumes 8GB max)
-- Immediate triggers for ELU ≥ 95% or HEAP ≥ 90%
-- Modular cluster update logic
+- Linear regression for trend calculation.
+- Standard deviation for variability.
+- Euclidean distance for clustering.
+- Performance scoring based on similarity to historically successful clusters.
+- Normalization of heap values (assumes an 8 GB maximum).
 
 ## Configuration Parameters
 
-### Production Default Values
 ```javascript
-// Reactive Scaling
-maxHistoryEvents: 10       // Reduced from 1000 in spec
-maxClusters: 5            // Same as spec
-eluThreshold: 0.9         // Same as spec
-heapThreshold: 0.85       // Same as spec
-postScalingWindow: 300    // Same as spec
-cooldownPeriod: 300       // Same as spec
-minPodsDefault: 1         // Production addition
-maxPodsDefault: 10        // Production addition
-
-// Trends Learning
-lambda: Math.log(2) / 259200  // Same as spec
-maxHistoryEvents: 1000        // Same as spec
-timeSlotWindow: 1800          // Same as spec
-predictionWindow: 30          // Same as spec
-confidenceThreshold: 0.8      // Same as spec
-sequenceWindow: 600           // Same as spec
+maxHistoryEvents: 10       // Valkey ring buffer size
+maxClusters: 5
+eluThreshold: 0.9
+heapThreshold: 0.85
+postScalingWindow: 300     // seconds
+cooldownPeriod: 300        // seconds (see PLT_SCALER_COOLDOWN)
+minPodsDefault: 1
+maxPodsDefault: 10
 ```
-
-## Key Improvements in Production
-
-1. **Reliability**: Database persistence ensures history survives restarts
-2. **Scalability**: Modular design allows independent scaling of components
-3. **Observability**: Integration with metrics and logging infrastructure
-4. **Flexibility**: Configurable parameters per application
-5. **Production-Ready**: Proper error handling, validation, and recovery
-6. **Resource Efficiency**: Scale-down capability prevents over-provisioning
-
-## Summary
-
-The production implementation faithfully implements the mathematical specifications while adding crucial production features:
-- Database persistence instead of in-memory storage
-- Real metrics integration instead of simulated data
-- Scale-down functionality (major addition not in spec)
-- Modular architecture for maintainability
-- Production-grade error handling and logging
-- Integration with Kubernetes and monitoring systems
-
-The core algorithms remain true to the mathematical formulations while the implementation adapts them for real-world production use.
