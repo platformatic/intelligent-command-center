@@ -39,7 +39,7 @@ const schema = {
     PLT_SCALER_SCHEDULER_TICK_MINUTES: { type: 'number', default: 1 },
     PLT_SCALER_TIME_SLOT_MINUTES: { type: 'number', default: 5 },
     PLT_SCALER_TIME_SLOT_TIMEZONE: { type: 'string', default: 'UTC' },
-    PLT_SCALER_TIME_WINDOW_MINUTES: { type: 'number', default: 15 },
+    PLT_SCALER_TIME_WINDOW_MINUTES: { type: 'number', default: 60 },
     PLT_SCALER_PATTERN_PERCENTILE: { type: 'string', default: 'p50', enum: ['min', 'max', 'p50', 'p75', 'p90', 'p95', 'p99'] },
     PLT_SCALER_PATTERN_PREDICTION_DAYS: { type: 'number', default: 60 },
     PLT_SCALER_WINDOW_CATEGORIES: { type: 'number', default: 5 },

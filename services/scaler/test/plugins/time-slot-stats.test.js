@@ -88,7 +88,7 @@ test('recordTarget is idempotent on re-emit of the same slot', async (t) => {
 })
 
 test('a closed window persists one averaged time_window_stats row', async (t) => {
-  const server = await buildServer(t)
+  const server = await buildServer(t, { PLT_SCALER_TIME_WINDOW_MINUTES: '15' })
   t.after(() => server.close())
   const appId = randomUUID()
   const base = Date.UTC(2026, 0, 1, 0, 10, 0) // start at 00:10 so 00:15-20 is non-first
@@ -111,7 +111,7 @@ test('a closed window persists one averaged time_window_stats row', async (t) =>
 })
 
 test('an unclosed window produces no time_window_stats row', async (t) => {
-  const server = await buildServer(t)
+  const server = await buildServer(t, { PLT_SCALER_TIME_WINDOW_MINUTES: '15' })
   t.after(() => server.close())
   const appId = randomUUID()
   const base = Date.UTC(2026, 0, 1, 0, 10, 0)
@@ -125,7 +125,7 @@ test('an unclosed window produces no time_window_stats row', async (t) => {
 })
 
 test('a partial window averages only the present base slots', async (t) => {
-  const server = await buildServer(t)
+  const server = await buildServer(t, { PLT_SCALER_TIME_WINDOW_MINUTES: '15' })
   t.after(() => server.close())
   const appId = randomUUID()
   const base = Date.UTC(2026, 0, 1, 0, 15, 0) // start on the window boundary → 00:15-20 is the first bucket (skipped)
