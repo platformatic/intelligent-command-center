@@ -1,0 +1,23 @@
+.row {
+  @apply flex gap-2 h-[18px];
+}
+
+.cell {
+  @apply w-[29px] h-[18px] shrink-0 flex items-center justify-center rounded-sm box-border transition-opacity duration-100 cursor-pointer;
+}
+
+.cellEmpty {
+  @apply w-[29px] h-[18px] shrink-0 transition-opacity duration-100 cursor-pointer;
+}
+
+.cellDimmed {
+  @apply opacity-20;
+}
+
+.cellNum {
+  @apply text-[10px] leading-none text-white font-medium;
+}
+
+.cellNumDim {
+  @apply text-[10px] leading-none text-white/50 font-medium;
+}

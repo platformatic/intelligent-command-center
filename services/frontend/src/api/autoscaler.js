@@ -126,6 +126,36 @@ export async function getPodSignals (applicationId, podId) {
   }
 }
 
+export async function getPlannerHistory (appId, from, to) {
+  try {
+    const query = new URLSearchParams()
+    query.set('where.applicationId.eq', appId)
+    query.set('where.slotStart.gte', from)
+    query.set('where.slotStart.lte', to)
+    query.set('limit', 1000)
+    const result = await callApi('scaler', `/timeWindowStats?${query.toString()}`)
+    return Array.isArray(result) ? result : []
+  } catch {
+    return []
+  }
+}
+
+export async function getPlannerPredictions (appId, from, to) {
+  try {
+    const query = new URLSearchParams()
+    query.set('where.applicationId.eq', appId)
+    query.set('where.slotStart.gte', from)
+    query.set('where.slotStart.lte', to)
+    // p50 (median) — predictions include multiple percentiles per slot
+    query.set('where.percentile.eq', 'p50')
+    query.set('limit', 1000)
+    const result = await callApi('scaler', `/timeWindowPredictions?${query.toString()}`)
+    return Array.isArray(result) ? result : []
+  } catch {
+    return []
+  }
+}
+
 export async function getAutoscalerV2Config (applicationId) {
   return callApi('scaler', `/applications/${applicationId}/autoscaler-v2-config`, 'GET')
 }

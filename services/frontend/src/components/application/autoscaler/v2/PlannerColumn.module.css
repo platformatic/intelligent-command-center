@@ -1,0 +1,42 @@
+/* 7 cells × 29px + 6 gaps × 8px (gap-2) = 251px */
+.column {
+  @apply w-[251px] shrink-0 flex flex-col;
+}
+
+/* --col-header-h is defined on the .grid root in PlannerTab.module.css and cascades here */
+.header {
+  @apply flex flex-col bg-[#00050B] pt-2 pb-1 gap-1 shrink-0;
+  height: var(--col-header-h);
+}
+
+.monthLabel {
+  @apply text-center w-full text-white/70 text-[12px] leading-tight font-medium tracking-widest uppercase;
+}
+
+.dayHeaders {
+  @apply flex gap-2;
+}
+
+.dayHeader {
+  @apply w-[29px] shrink-0 flex flex-col items-center justify-center gap-0.5 rounded py-0.5 cursor-pointer;
+}
+
+.dayHeaderToday {
+  @apply bg-[#1A1E23];
+}
+
+.dayHeaderEmpty {
+  @apply opacity-0 pointer-events-none;
+}
+
+.dayName {
+  @apply uppercase text-[9px] leading-none tracking-wide;
+}
+
+.dateNum {
+  @apply text-[9px] leading-none font-medium;
+}
+
+.body {
+  @apply flex flex-col gap-2 mt-2;
+}

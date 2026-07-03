@@ -13,6 +13,7 @@ import LiveStatsPanel from './LiveStatsPanel'
 import HistoryTab from './HistoryTab'
 import ServicesTab from './ServicesTab'
 import PodsTab from './PodsTab'
+import PlannerTab from './PlannerTab'
 import styles from './AutoscalerV2.module.css'
 import { unitPluralCap } from './unitLabel'
 
@@ -20,7 +21,8 @@ const TABS = [
   { key: 'live', label: 'Live' },
   { key: 'pods', label: unitPluralCap },
   { key: 'applications', label: 'Applications' },
-  { key: 'history', label: 'History' }
+  { key: 'history', label: 'History' },
+  { key: 'planner', label: 'Planner' }
 ]
 
 const POLL_INTERVAL = 5000
@@ -76,7 +78,7 @@ function LiveTabContent ({ appId, onViewHistory }) {
 
 export default function AutoscalerV2 () {
   const { application } = useRouteLoaderData('appRoot')
-  const [selectedTab, setSelectedTab] = useState('live')
+  const [selectedTab, setSelectedTab] = useState('planner')
   const [showSettingsPane, setShowSettingsPane] = useState(false)
   const [settingsSections, setSettingsSections] = useState([])
   const [collapsedSections, setCollapsedSections] = useState({})
@@ -158,6 +160,13 @@ export default function AutoscalerV2 () {
         return (
           <div className={styles.tabContent}>
             <ServicesTab appId={application?.id} />
+          </div>
+        )
+      }
+      if (tab.key === 'planner') {
+        return (
+          <div className={styles.tabContent}>
+            <PlannerTab appId={application?.id} />
           </div>
         )
       }

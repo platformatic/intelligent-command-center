@@ -1,0 +1,68 @@
+.container {
+  @apply flex flex-col gap-3 flex-1 min-h-0 bg-[#090E17] rounded;
+}
+
+/* ── Header bar ── */
+.header {
+  @apply flex items-start justify-between gap-4 shrink-0 py-2;
+}
+
+.headerLeft {
+  @apply flex flex-col gap-2;
+}
+
+.headerRight {
+  @apply flex items-center gap-2 shrink-0;
+}
+
+.btnOutlined {
+  @apply flex items-center gap-1.5 px-3 py-[5px] rounded border border-[#B2B4B6]/60 bg-transparent text-white/80 cursor-pointer transition-colors duration-[120ms];
+}
+
+.btnOutlined:hover {
+  @apply border-[#B2B4B6] text-white;
+}
+
+.btnIcon {
+  @apply shrink-0;
+}
+
+.btnFilled {
+  @apply flex items-center px-3 py-[5px] rounded bg-[#FAFAFA] text-[#090E17] cursor-pointer font-semibold transition-opacity duration-[120ms];
+}
+
+.btnFilled:hover {
+  @apply opacity-90;
+}
+
+/* ── Calendar grid ──
+   --col-header-h controls the height of both PlannerColumn headers
+   and the hour-label spacer so they always stay in sync. */
+.grid {
+  --col-header-h: 56px;
+  @apply flex flex-1 min-h-0 overflow-y-auto;
+  scrollbar-gutter: stable;
+}
+
+/* Hour-label sidebar */
+.hourLabels {
+  @apply flex flex-col shrink-0 w-12 gap-2;
+}
+
+.hourLabelSpacer {
+  @apply shrink-0;
+  height: var(--col-header-h);
+}
+
+.hourLabel {
+  @apply h-[18px] flex items-center justify-end pr-2 shrink-0;
+}
+
+.hourLabelText {
+  @apply text-[12px] text-white/70 leading-none tracking-widest;
+}
+
+/* Week columns area */
+.columns {
+  @apply flex flex-1 gap-6 ml-6;
+}

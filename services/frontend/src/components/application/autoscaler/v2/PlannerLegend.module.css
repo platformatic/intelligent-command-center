@@ -1,0 +1,33 @@
+.legend {
+  @apply flex items-center gap-3 flex-wrap;
+}
+
+.legendTitle {
+  @apply text-[10px] uppercase tracking-[0.2rem];
+}
+
+.legendItem {
+  @apply flex items-center gap-1.5 uppercase tracking-[0.2rem] text-white/70;
+}
+
+/* Pod-range items: colored cell with text inside, mirrors actual calendar cells */
+.legendCell {
+  @apply h-[18px] px-2 flex items-center justify-center rounded-sm shrink-0;
+}
+
+.legendCellText {
+  @apply text-[10px] leading-none text-white font-medium whitespace-nowrap;
+}
+
+.legendSwatch {
+  @apply w-4 h-3 rounded-sm shrink-0;
+}
+
+.legendSwatchOutline {
+  @apply bg-transparent rounded-sm shrink-0;
+  border: 1px solid #B2B4B6;
+}
+
+.legendDivider {
+  @apply w-px h-3 bg-white/20 shrink-0;
+}
