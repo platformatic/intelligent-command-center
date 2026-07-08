@@ -9,8 +9,12 @@ const { buildServerWithPlugins } = require('../helper')
 
 const envPlugin = require('../../plugins/env')
 const storePlugin = require('../../plugins/store')
+const patternConfigPlugin = require('../../plugins/pattern-config')
+const windowCategoryPlugin = require('../../plugins/window-category')
 const patternPredictorPlugin = require('../../plugins/pattern-predictor')
 const predictionsRoutes = require('../../routes/predictions')
+
+const WINDOW_CATEGORIES = 5 // default PLT_SCALER_WINDOW_CATEGORIES
 
 const SLOTS_PER_DAY = 48 // the schedule scenarios are 48 half-hour slots
 const WINDOW_MINUTES = 30 // 1440 / 48
@@ -39,7 +43,7 @@ test('updatePredictions: learns a schedule scenario and writes per-window foreca
     PLT_SCALER_TIME_WINDOW_MINUTES: String(WINDOW_MINUTES),
     PLT_SCALER_PATTERN_PERCENTILE: PERCENTILE,
     PLT_SCALER_PATTERN_PREDICTION_DAYS: String(PREDICTION_DAYS)
-  }, [envPlugin, storePlugin, patternPredictorPlugin, predictionsRoutes])
+  }, [envPlugin, storePlugin, patternConfigPlugin, windowCategoryPlugin, patternPredictorPlugin, predictionsRoutes])
 
   const { entities, db, sql } = server.platformatic
   const appId = randomUUID()
@@ -109,6 +113,39 @@ test('updatePredictions: learns a schedule scenario and writes per-window foreca
     forecastBySlot[peak] > forecastBySlot[trough],
     `busiest slot ${peak + 1} (${forecastBySlot[peak]}) should forecast higher than quietest slot ${trough + 1} (${forecastBySlot[trough]})`
   )
+
+  // Every forecast is colored on the same history-derived bands: category set, bounded 1..N, and
+  // non-decreasing in the forecast pod count (the same rule that colors the history).
+  for (const r of rows) {
+    assert.ok(r.category >= 1 && r.category <= WINDOW_CATEGORIES, `category ${r.category} in range`)
+  }
+  const sortedByPods = rows.slice().sort((a, b) => a.predictedPods - b.predictedPods)
+  let prevCat = 0
+  for (const r of sortedByPods) {
+    assert.ok(r.category >= prevCat, `category dropped at ${r.predictedPods} pods`)
+    prevCat = r.category
+  }
+
+  // A forecast is colored exactly as a historical window of the same pod count would be: seed one
+  // known history value, recategorize, and check a prediction with that value matches.
+  const probe = sortedByPods[Math.floor(sortedByPods.length / 2)].predictedPods
+  // In the past (so it doesn't move the forecast anchor / lastSlotEnd), within the 1-year
+  // categorize scope, and before the 112-day seeded range so it collides with nothing.
+  const probeSlot = todayMidnight - 200 * MS_PER_DAY
+  await entities.timeWindowStat.insert({
+    inputs: [{
+      applicationId: appId,
+      slotStart: new Date(probeSlot),
+      slotEnd: new Date(probeSlot + WINDOW_MS),
+      slotOfDay: 1,
+      localSlotOfDay: 1,
+      pods: probe
+    }]
+  })
+  await server.updateWindowCategories(appId)
+  const historyProbe = await entities.timeWindowStat.find({ where: { applicationId: { eq: appId }, pods: { eq: probe } }, limit: 1 })
+  const predictionProbe = await entities.timeWindowPrediction.find({ where: { applicationId: { eq: appId }, predictedPods: { eq: probe } }, limit: 1 })
+  assert.equal(predictionProbe[0].category, historyProbe[0].category, 'forecast and history of the same pod count share a category')
 
   // Re-run upserts on (application_id, slot_start): same grid, no duplicates.
   const res2 = await server.inject({ method: 'POST', url: `/applications/${appId}/predictions` })

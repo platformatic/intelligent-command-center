@@ -44,6 +44,13 @@ module.exports = fp(async function (app) {
   const minPods = app.env.PLT_SCALER_WINDOW_MIN_PODS
   const minFraction = app.env.PLT_SCALER_WINDOW_MIN_FRACTION
 
+  // The guarded category CASE over the thresholds, for a given pod-count column, so both the
+  // history (time_window_stats.pods) and the forecast (time_window_predictions.predicted_pods)
+  // are colored on the exact same bands. Guarded so only rows that actually change are rewritten.
+  const categoryCase = (thresholds, column) => sql`(CASE ${sql.join(
+    thresholds.map((t, i) => sql`WHEN ${sql.ident(column)} < ${t}::numeric THEN ${i + 1}`), sql` `
+  )} ELSE ${categoriesCount} END)::smallint`
+
   app.decorate('updateWindowCategories', async (applicationId) => {
     const scope = sql`application_id = ${applicationId} AND slot_start >= now() - interval '1 year'`
 
@@ -65,13 +72,21 @@ module.exports = fp(async function (app) {
       { categoriesCount, minPods, minFraction }
     )
 
-    // A CASE over the thresholds, guarded so only rows that actually change category are rewritten.
-    const categoryExpr = sql`(CASE ${sql.join(thresholds.map((t, i) => sql`WHEN pods < ${t}::numeric THEN ${i + 1}`), sql` `)} ELSE ${categoriesCount} END)::smallint`
-
+    const statsCategory = categoryCase(thresholds, 'pods')
     await db.query(sql`
       UPDATE time_window_stats
-      SET category = ${categoryExpr}
-      WHERE ${scope} AND category IS DISTINCT FROM ${categoryExpr}
+      SET category = ${statsCategory}
+      WHERE ${scope} AND category IS DISTINCT FROM ${statsCategory}
+    `)
+
+    // Color the forecast on the same history-derived bands. Predictions are future rows for this
+    // app; the same thresholds apply, so a forecast of N pods gets the same category a historical
+    // window of N pods would.
+    const predictionCategory = categoryCase(thresholds, 'predicted_pods')
+    await db.query(sql`
+      UPDATE time_window_predictions
+      SET category = ${predictionCategory}
+      WHERE application_id = ${applicationId} AND category IS DISTINCT FROM ${predictionCategory}
     `)
 
     // Persist the fresh thresholds on the app's pattern-config blob so the UI can render the

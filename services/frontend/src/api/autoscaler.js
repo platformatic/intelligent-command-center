@@ -218,6 +218,17 @@ export async function getPodsHealth (appId) {
   }
 }
 
+export async function getApplicationPatternConfigs (appId) {
+  try {
+    const query = new URLSearchParams()
+    query.set('where.applicationId.eq', appId)
+    const result = await callApi('scaler', `/applicationPatternConfigs?${query.toString()}`)
+    return Array.isArray(result) ? result[0] : null
+  } catch {
+    return null
+  }
+}
+
 export async function getScalingEvents (appId) {
   try {
     const query = new URLSearchParams()

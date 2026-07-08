@@ -6,6 +6,8 @@ const { randomUUID } = require('node:crypto')
 const { buildServerWithPlugins } = require('../helper')
 
 const envPlugin = require('../../plugins/env')
+const patternConfigPlugin = require('../../plugins/pattern-config')
+const windowCategoryPlugin = require('../../plugins/window-category')
 const patternPredictorPlugin = require('../../plugins/pattern-predictor')
 
 // A coarse grid keeps the test fast: 8-hour windows → 3 windows/day, over 3 days = 9 windows.
@@ -36,7 +38,7 @@ test('every historical window (past the first per-slot occurrence) keeps its fro
   const server = await buildServerWithPlugins(t, {
     PLT_SCALER_TIME_WINDOW_MINUTES: String(WINDOW_MINUTES),
     PLT_SCALER_PATTERN_PREDICTION_DAYS: '2'
-  }, [envPlugin, patternPredictorPlugin])
+  }, [envPlugin, patternConfigPlugin, windowCategoryPlugin, patternPredictorPlugin])
 
   const { entities, db, sql } = server.platformatic
   const appId = randomUUID()

@@ -11,7 +11,6 @@ const CATEGORIES = [
   { category: 5, color: '#5C0E0E', label: 'High' }
 ]
 export const SCHEDULED_COLOR = '#89109C'
-const PREDICTED_BORDER = '#B2B4B6'
 
 export { CATEGORIES }
 
@@ -20,7 +19,7 @@ function categoryColor (category) {
 }
 
 // cells: array of { entry, isFuture } | null  (one slot per day, null = day outside range)
-export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverState }) {
+export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverState, categoryConfig }) {
   const isOverlayActive = hoverState !== null
 
   return (
@@ -58,14 +57,18 @@ export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverStat
           )
         }
         if (isFuture && predicted) {
+          const color = categoryColor(category)
           return (
             <div
               key={i}
               className={`${styles.cell} ${dimClass}`}
-              style={{ border: `1px solid ${PREDICTED_BORDER}` }}
+              style={{
+                border: `1px dashed ${color}`,
+                background: `${color}4D`
+              }}
               onMouseEnter={enterHandler}
             >
-              <span className={styles.cellNumDim}>{count}</span>
+              <span className={styles.cellNum}>{count}</span>
             </div>
           )
         }

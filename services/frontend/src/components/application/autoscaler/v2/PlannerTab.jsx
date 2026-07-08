@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import typographyStyles from '~/styles/Typography.module.css'
-import { getPlannerHistory, getPlannerPredictions } from '~/api/autoscaler'
+import { getPlannerHistory, getPlannerPredictions, getApplicationPatternConfigs } from '~/api/autoscaler'
 import PlannerLegend from './PlannerLegend'
 import PlannerColumn from './PlannerColumn'
 import PlannerSidebar from './PlannerSidebar'
@@ -11,6 +11,7 @@ export default function PlannerTab ({ appId }) {
   const [data, setData] = useState([])
   const [hoverState, setHoverState] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [categoryConfig, setCategoryConfig] = useState(null)
 
   const today = useMemo(() => {
     const d = new Date()
@@ -29,9 +30,11 @@ export default function PlannerTab ({ appId }) {
 
     Promise.all([
       getPlannerHistory(appId, twoWeeksAgo.toISOString(), now.toISOString()),
-      getPlannerPredictions(appId, now.toISOString(), rangeEnd.toISOString())
-    ]).then(([history, predictions]) => {
+      getPlannerPredictions(appId, now.toISOString(), rangeEnd.toISOString()),
+      getApplicationPatternConfigs(appId)
+    ]).then(([history, predictions, config]) => {
       setData(groupTimeWindowStats([...history, ...predictions]))
+      setCategoryConfig(config)
     })
   }, [appId, rangeEnd])
 
@@ -52,7 +55,7 @@ export default function PlannerTab ({ appId }) {
             <span className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>
               Planner
             </span>
-            <PlannerLegend />
+            <PlannerLegend categoryConfig={categoryConfig} />
           </div>
           <div className={styles.headerRight}>
             <button
@@ -99,6 +102,7 @@ export default function PlannerTab ({ appId }) {
                   today={today}
                   hoverState={hoverState}
                   setHoverState={setHoverState}
+                  categoryConfig={categoryConfig}
                 />
               ))}
             </div>

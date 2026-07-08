@@ -72,6 +72,10 @@ module.exports = fp(async function (app) {
       written += predictions.length
     }
 
+    // Color the freshly written forecasts on the same history-derived bands as the time windows,
+    // so a predicted N pods gets the same category a historical N-pod window would.
+    if (written > 0) await app.updateWindowCategories(applicationId)
+
     await storeSuggestions(applicationId, byDay)
     return written
   })
@@ -166,5 +170,5 @@ module.exports = fp(async function (app) {
   }
 }, {
   name: 'pattern-predictor',
-  dependencies: ['env']
+  dependencies: ['env', 'window-category']
 })
