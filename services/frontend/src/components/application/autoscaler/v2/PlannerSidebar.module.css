@@ -1,0 +1,115 @@
+.sidebar {
+  @apply w-[600px] bg-[#090E17] border-l border-white border-opacity-10 flex flex-col shrink-0 overflow-hidden;
+}
+
+.sidebarHeader {
+  @apply flex items-center justify-between p-4 border-b border-white border-opacity-10 shrink-0;
+}
+
+.closeButton {
+  @apply p-2 hover:bg-white hover:bg-opacity-10 rounded transition-colors;
+}
+
+.tabs {
+  @apply flex shrink-0 px-4;
+}
+
+.tab {
+  @apply flex-1 py-3 px-4 text-white text-opacity-70 text-xs font-normal tracking-wider transition-colors border-b-2 border-b-transparent border-b-white/30 ;
+}
+
+.activeTab {
+  @apply text-white text-opacity-100 font-semibold;
+}
+
+.tabContent {
+  @apply flex-1 overflow-y-auto;
+}
+
+.suggestionsContainer {
+  @apply p-4 space-y-4;
+}
+
+.loadingSpinner {
+  @apply flex items-center justify-center h-full;
+}
+
+.suggestionCard {
+  @apply bg-rich-black rounded border border-white/30 p-4 space-y-3;
+}
+
+.suggestionTitleRow {
+  @apply flex items-start justify-between gap-4;
+}
+
+.suggestionTitleWithBar {
+  @apply flex gap-2 flex-1;
+}
+
+.suggestionTitle {
+  @apply flex items-center gap-2;
+}
+
+.suggestionIndicator {
+  @apply w-1 h-6 rounded-full flex-shrink-0;
+}
+
+.suggestionTitleText {
+  @apply text-white font-semibold text-[14px] leading-tight;
+}
+
+.confidenceBar {
+  @apply flex items-center;
+}
+
+.acceptButton {
+  @apply px-4 py-2 border border-white border-opacity-30 text-white text-xs font-medium rounded hover:bg-white hover:bg-opacity-10 transition-colors flex-shrink-0;
+}
+
+.suggestionDetails {
+  @apply space-y-2;
+}
+
+.detailRow {
+  @apply flex gap-2 text-[12px] items-start;
+}
+
+.detailLabel {
+  @apply text-white text-opacity-70 min-w-fit;
+}
+
+.detailValue {
+  @apply text-white;
+}
+
+.showContextButton {
+  @apply flex items-center gap-1 text-white text-opacity-70 hover:text-opacity-100 transition-colors text-[12px] mt-1;
+}
+
+.showContextText {
+  @apply text-white text-opacity-70;
+}
+
+.emptyState {
+  @apply text-white text-opacity-70 text-center py-8;
+}
+
+.acceptedState {
+  @apply flex flex-col items-center justify-center gap-1 p-2;
+}
+
+.checkmarkIcon {
+  @apply text-main-green flex items-center justify-center;
+}
+
+.acceptedTitle {
+  @apply text-white font-semibold text-base text-center;
+}
+
+.acceptedSummary {
+  @apply text-white text-opacity-70 text-sm text-center;
+}
+
+.scheduledContainer {
+  @apply p-4;
+}

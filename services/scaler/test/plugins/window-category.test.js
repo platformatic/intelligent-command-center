@@ -6,6 +6,7 @@ const { randomUUID } = require('node:crypto')
 const { buildServerWithPlugins } = require('../helper')
 
 const envPlugin = require('../../plugins/env')
+const patternConfigPlugin = require('../../plugins/pattern-config')
 const windowCategoryPlugin = require('../../plugins/window-category')
 
 const WINDOW_MS = 15 * 60 * 1000 // default PLT_SCALER_TIME_WINDOW_MINUTES
@@ -37,7 +38,7 @@ const rowsByPods = (entities, appId) =>
   entities.timeWindowStat.find({ where: { applicationId: { eq: appId } }, limit: 10000, orderBy: [{ field: 'pods', direction: 'asc' }] })
 
 test('window-category — black box through updateWindowCategories (N=5, minPods=3)', async (t) => {
-  const server = await buildServerWithPlugins(t, {}, [envPlugin, windowCategoryPlugin])
+  const server = await buildServerWithPlugins(t, {}, [envPlugin, patternConfigPlugin, windowCategoryPlugin])
   const { entities, db, sql } = server.platformatic
   const BASELINE = 3
   const apps = []
@@ -105,21 +106,59 @@ test('window-category — black box through updateWindowCategories (N=5, minPods
     assert.equal(await categoryOf(entities, appId, 40), before)
   })
 
-  for (const id of apps) await db.query(sql`DELETE FROM time_window_stats WHERE application_id = ${id}`)
+  await t.test('thresholds and timeWindowMinutes are persisted on the pattern-config blob', async () => {
+    const appId = fresh()
+    await seed(entities, appId, [...Array(100).fill(10), ...Array(30).fill(40), ...Array(20).fill(2)])
+    const returned = await server.updateWindowCategories(appId)
+
+    const cfg = (await entities.applicationPatternConfig.find({ where: { applicationId: { eq: appId } }, limit: 1 }))[0].config
+    assert.equal(cfg.timeWindowMinutes, 60, 'seeded from env default')
+    assert.deepEqual(cfg.categoryThresholds.values, returned, 'stored values match what updateWindowCategories returned')
+    assert.ok(cfg.categoryThresholds.values.every(Number.isInteger), 'thresholds are integers (ceil-rounded)')
+    assert.equal(cfg.categoryThresholds.categoriesCount, 5)
+    assert.ok(!Number.isNaN(Date.parse(cfg.categoryThresholds.updatedAt)))
+
+    // Re-running refreshes thresholds without clobbering timeWindowMinutes even if the user has
+    // customized it — simulate that customization by patching in a different value.
+    await server.updatePatternConfig(appId, { timeWindowMinutes: 30 })
+    await server.updateWindowCategories(appId)
+    const cfg2 = (await entities.applicationPatternConfig.find({ where: { applicationId: { eq: appId } }, limit: 1 }))[0].config
+    assert.equal(cfg2.timeWindowMinutes, 30, 'customization survives threshold refresh')
+    assert.deepEqual(cfg2.categoryThresholds.values, returned)
+
+    // Deep merge: a partial patch targeting one nested key preserves its siblings.
+    await server.updatePatternConfig(appId, { categoryThresholds: { updatedAt: '2020-01-01T00:00:00.000Z' } })
+    const cfg3 = (await entities.applicationPatternConfig.find({ where: { applicationId: { eq: appId } }, limit: 1 }))[0].config
+    assert.equal(cfg3.categoryThresholds.updatedAt, '2020-01-01T00:00:00.000Z', 'nested key updated')
+    assert.deepEqual(cfg3.categoryThresholds.values, returned, 'sibling values preserved')
+    assert.equal(cfg3.categoryThresholds.categoriesCount, 5, 'sibling categoriesCount preserved')
+    assert.equal(cfg3.timeWindowMinutes, 30, 'top-level sibling preserved')
+
+    // Arrays replace wholesale, not element-merge.
+    await server.updatePatternConfig(appId, { categoryThresholds: { values: [1, 2, 3, 4] } })
+    const cfg4 = (await entities.applicationPatternConfig.find({ where: { applicationId: { eq: appId } }, limit: 1 }))[0].config
+    assert.deepEqual(cfg4.categoryThresholds.values, [1, 2, 3, 4], 'array replaced, not merged')
+  })
+
+  for (const id of apps) {
+    await db.query(sql`DELETE FROM time_window_stats WHERE application_id = ${id}`)
+    await db.query(sql`DELETE FROM application_pattern_configs WHERE application_id = ${id}`)
+  }
 })
 
 test('window-category — a bigger minPods keeps a modest-variance app all baseline', async (t) => {
-  const server = await buildServerWithPlugins(t, { PLT_SCALER_WINDOW_MIN_PODS: '10' }, [envPlugin, windowCategoryPlugin])
+  const server = await buildServerWithPlugins(t, { PLT_SCALER_WINDOW_MIN_PODS: '10' }, [envPlugin, patternConfigPlugin, windowCategoryPlugin])
   const { entities, db, sql } = server.platformatic
   const appId = randomUUID()
   await seed(entities, appId, [...Array(50).fill(8), ...Array(50).fill(14)]) // range 6 < minStep 10 → all baseline
   await server.updateWindowCategories(appId)
   for (const r of await rowsByPods(entities, appId)) assert.equal(r.category, 3)
   await db.query(sql`DELETE FROM time_window_stats WHERE application_id = ${appId}`)
+  await db.query(sql`DELETE FROM application_pattern_configs WHERE application_id = ${appId}`)
 })
 
 test('window-category — works with N = 3 (baseline = 2)', async (t) => {
-  const server = await buildServerWithPlugins(t, { PLT_SCALER_WINDOW_CATEGORIES: '3' }, [envPlugin, windowCategoryPlugin])
+  const server = await buildServerWithPlugins(t, { PLT_SCALER_WINDOW_CATEGORIES: '3' }, [envPlugin, patternConfigPlugin, windowCategoryPlugin])
   const { entities, db, sql } = server.platformatic
   const appId = randomUUID()
   await seed(entities, appId, [...Array(100).fill(10), ...Array(30).fill(40), ...Array(20).fill(2)])
@@ -128,4 +167,5 @@ test('window-category — works with N = 3 (baseline = 2)', async (t) => {
   assert.ok((await categoryOf(entities, appId, 40)) > 2)
   assert.ok((await categoryOf(entities, appId, 2)) < 2)
   await db.query(sql`DELETE FROM time_window_stats WHERE application_id = ${appId}`)
+  await db.query(sql`DELETE FROM application_pattern_configs WHERE application_id = ${appId}`)
 })

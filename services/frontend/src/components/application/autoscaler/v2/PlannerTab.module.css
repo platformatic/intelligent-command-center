@@ -1,10 +1,14 @@
 .container {
-  @apply flex flex-col gap-3 flex-1 min-h-0 bg-[#090E17] rounded;
+  @apply flex flex-row flex-1 min-h-0 bg-rich-black rounded gap-4;
+}
+
+.leftContent {
+  @apply flex flex-col flex-1 min-h-0 gap-3 bg-black-russian p-4;
 }
 
 /* ── Header bar ── */
 .header {
-  @apply flex items-start justify-between gap-4 shrink-0 py-2;
+  @apply flex items-start justify-between gap-4 shrink-0;
 }
 
 .headerLeft {
@@ -13,6 +17,10 @@
 
 .headerRight {
   @apply flex items-center gap-2 shrink-0;
+}
+
+.content {
+  @apply flex flex-1 min-h-0;
 }
 
 .btnOutlined {

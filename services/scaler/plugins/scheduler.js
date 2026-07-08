@@ -32,6 +32,7 @@ module.exports = fp(async function (app) {
         timezone: input.timezone ?? 'UTC',
         minPods: input.minPods ?? null,
         maxPods: input.maxPods ?? null,
+        priority: input.priority ?? 0,
         enabled: input.enabled ?? true
       }
     })
@@ -61,6 +62,7 @@ module.exports = fp(async function (app) {
         timezone: merged.timezone ?? 'UTC',
         minPods: merged.minPods ?? null,
         maxPods: merged.maxPods ?? null,
+        priority: merged.priority ?? 0,
         enabled: merged.enabled ?? true,
         updatedAt: new Date()
       }

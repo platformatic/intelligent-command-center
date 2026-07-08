@@ -25,6 +25,15 @@ async function windowRows (server, appId) {
   return res.rows || res || []
 }
 
+async function predictionRows (server, appId) {
+  const { db, sql } = server.platformatic
+  const res = await db.query(sql`
+    SELECT slot_start, slot_of_day, predicted_pods
+    FROM time_window_predictions WHERE application_id = ${appId} ORDER BY slot_start
+  `)
+  return res.rows || res || []
+}
+
 test('first slot is skipped; the next full slot persists with time-weighted percentiles', async (t) => {
   const server = await buildServer(t)
   t.after(() => server.close())
@@ -139,4 +148,33 @@ test('a partial window averages only the present base slots', async (t) => {
   assert.equal(wr.length, 1)
   // only 00:20-25 (4) and 00:25-30 (10) exist; 00:15-20 was skipped → avg(4,10) = 7
   assert.equal(wr[0].pods, 7)
+})
+
+test('closing a window regenerates the forecast (auto-trigger on window save)', async (t) => {
+  const server = await buildServer(t, { PLT_SCALER_TIME_WINDOW_MINUTES: '15' })
+  t.after(() => server.close())
+  const appId = randomUUID()
+  const base = Date.UTC(2026, 0, 1, 0, 10, 0)
+  const windowStart = Date.UTC(2026, 0, 1, 0, 15, 0) // window [00:15,00:30)
+  const windowEnd = Date.UTC(2026, 0, 1, 0, 30, 0)
+
+  await server.recordTarget(appId, 4, base) // 00:10 → first bucket (skipped)
+  await server.recordTarget(appId, 4, base + SLOT) // 00:15
+  await server.recordTarget(appId, 8, base + 2 * SLOT) // 00:20 (persists 00:15-20)
+  await server.recordTarget(appId, 12, base + 3 * SLOT) // 00:25 (window not closed yet)
+
+  // No window has closed → nothing to forecast from.
+  assert.equal((await predictionRows(server, appId)).length, 0)
+
+  await server.recordTarget(appId, 5, base + 4 * SLOT) // 00:30 → closes [00:15,00:30), fires updatePredictions
+
+  const preds = await predictionRows(server, appId)
+  assert.ok(preds.length > 0, 'closing a window regenerated the forecast')
+  // The forecast is strictly future: the just-closed window is now history (starts at lastSlotEnd),
+  // so nothing overlaps its own slot_start — that window is the first occurrence of its slot-of-day.
+  for (const p of preds) {
+    assert.ok(new Date(p.slot_start).getTime() >= windowEnd, 'predictions lie at or after the closed window')
+  }
+  assert.ok(!preds.some((p) => new Date(p.slot_start).getTime() === windowStart),
+    'the just-closed window (first of its slot-of-day) has no prediction')
 })

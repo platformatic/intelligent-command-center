@@ -28,7 +28,11 @@ async function getWhitelistedPaths () {
     ['/traffic-inspector/requests/hash', ['POST']],
     ['/risk-service/v1/traces', ['POST']],
     ['/cron/watt-jobs', ['PUT']],
-    ['/scaler/applications/seed', ['POST']]
+    ['/scaler/applications/seed', ['POST']],
+    // Read-only pattern suggestions + a pattern's time windows (an :applicationId / :patternId sit
+    // mid-path, so a RegExp — a plain prefix would whitelist all of /scaler/applications).
+    // Matches: /scaler/applications/<id>/suggestions  and  .../suggestions/<patternId>/windows
+    [/^\/scaler\/applications\/[^/]+\/suggestions(\/[^/]+\/windows)?$/, ['GET']]
   ]
 
   // add OpenaAPI spec route for each internal service

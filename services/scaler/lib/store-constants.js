@@ -7,6 +7,8 @@ const LAST_SCALING_PREFIX = `${PREFIX}last-scaling:`
 const ALERTS_PREFIX = `${PREFIX}alerts:`
 const SOFT_LIMITS_PREFIX = `${PREFIX}soft-limits:`
 const BUCKET_PREFIX = `${PREFIX}bucket:`
+const SUGGESTIONS_PREFIX = `${PREFIX}suggestions:`
+const SUGGESTION_WINDOWS_PREFIX = `${PREFIX}suggestion-windows:`
 
 module.exports = {
   PREFIX,
@@ -15,5 +17,7 @@ module.exports = {
   LAST_SCALING_PREFIX,
   ALERTS_PREFIX,
   SOFT_LIMITS_PREFIX,
-  BUCKET_PREFIX
+  BUCKET_PREFIX,
+  SUGGESTIONS_PREFIX,
+  SUGGESTION_WINDOWS_PREFIX
 }

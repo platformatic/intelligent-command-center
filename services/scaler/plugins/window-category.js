@@ -16,6 +16,11 @@ const fp = require('fastify-plugin')
 // any scale (a 5-pod bump is a big deal at 5 pods, noise at 100). A near-flat app just has every
 // window fall in the baseline band. Below/above widths are asymmetric — a load range usually has
 // more room above the resting level than below.
+//
+// Thresholds are rounded UP to integers so the persisted values match what the UI shows and the
+// SQL applies. The SQL uses `pods < threshold` with integer pods; `ceil` is the only rounding
+// direction that preserves the categorization exactly — `pods < 5.5` and `pods < 6` accept the
+// same integers, while floor or round shift the boundary and reassign pods=5 to a different band.
 function categoryThresholds ({ median, p5, p95 }, { categoriesCount, minPods, minFraction }) {
   const half = (categoriesCount - 1) / 2
   const minStep = Math.max(minPods, minFraction * median)
@@ -24,10 +29,10 @@ function categoryThresholds ({ median, p5, p95 }, { categoriesCount, minPods, mi
 
   const thresholds = []
   for (let i = half - 1; i >= 0; i--) {
-    thresholds.push(median - (i + 0.5) * belowWidth)
+    thresholds.push(Math.ceil(median - (i + 0.5) * belowWidth))
   }
   for (let i = 0; i < half; i++) {
-    thresholds.push(median + (i + 0.5) * aboveWidth)
+    thresholds.push(Math.ceil(median + (i + 0.5) * aboveWidth))
   }
   return thresholds
 }
@@ -68,9 +73,21 @@ module.exports = fp(async function (app) {
       SET category = ${categoryExpr}
       WHERE ${scope} AND category IS DISTINCT FROM ${categoryExpr}
     `)
+
+    // Persist the fresh thresholds on the app's pattern-config blob so the UI can render the
+    // load-view legend without re-deriving them. categoriesCount is emitted alongside the values
+    // so consumers don't have to infer band count from `values.length + 1`.
+    await app.updatePatternConfig(applicationId, {
+      categoryThresholds: {
+        values: thresholds,
+        categoriesCount,
+        updatedAt: new Date().toISOString()
+      }
+    })
+
     return thresholds
   })
 }, {
   name: 'window-category',
-  dependencies: ['env']
+  dependencies: ['env', 'pattern-config']
 })

@@ -3,8 +3,8 @@
 // Seed demo time-window history for one application (by name) and trigger categorization +
 // prediction — all through a single ICC endpoint.
 //
-// Generates per-window pod history with a realistic load shape (quiet nights, busy weekday business
-// hours, lower weekends, slow growth, occasional spikes) and POSTs it to:
+// Generates per-window pod history with a clear pattern shape (day 10, night 3, a rising evening
+// ramp 17:00–21:00, and an extra Friday-evening bump) and POSTs it to:
 //   POST {ICC}/scaler/applications/seed   { applicationName, windows }
 // The endpoint resolves the app id via control-plane, replaces its window history, then recomputes
 // categories and predictions.
@@ -35,24 +35,25 @@ function cliValue (flag) {
   return i !== -1 ? process.argv[i + 1] : undefined
 }
 
-// Realistic per-window pod count: quiet overnight, ramp up morning, busy 09–17, decline evening;
-// weekends lower; a slow upward trend across the whole range; light noise; the odd spike.
-function podsFor (slotStartMs, dayIndex) {
+// Per-window pod count with a clear pattern structure for the demo:
+//   day (06:00–17:00)     → 10
+//   evening (17:00–21:00) → a rising ramp: 13, 16, 19, 22 (one step per hour)
+//   night (21:00–06:00)   → 3
+//   Friday evening        → +8 on top of the ramp (a calendar effect over the baseline)
+// Plus light ±1 noise so the predictor sees a real (not perfectly flat) series.
+function podsFor (slotStartMs) {
   const d = new Date(slotStartMs)
   const hour = d.getUTCHours()
-  const weekend = d.getUTCDay() === 0 || d.getUTCDay() === 6
+  const dow = d.getUTCDay()
 
-  let shape
-  if (hour >= 9 && hour <= 17) shape = 1.0
-  else if (hour >= 7 && hour < 9) shape = 0.6
-  else if (hour > 17 && hour <= 21) shape = 0.45
-  else shape = 0.1
+  let value
+  if (hour >= 21 || hour < 6) value = 3 // night
+  else if (hour >= 17 && hour <= 20) { // evening ramp
+    value = 13 + 3 * (hour - 17)
+    if (dow === 5) value += 8 // Friday evening extra
+  } else value = 10 // day
 
-  const floor = 5
-  const peak = 40 + dayIndex * 0.15 // grows ~+13 pods over ~3 months
-  let value = floor + (peak - floor) * shape * (weekend ? 0.4 : 1)
-  value += (Math.random() - 0.5) * 4 // noise
-  if (Math.random() < 0.01) value *= 1.8 // rare spike
+  value += (Math.random() - 0.5) * 2 // ±1 noise
   return Math.max(1, Math.round(value))
 }
 
@@ -64,14 +65,13 @@ function buildWindows () {
   const windows = []
   for (let i = 0; i < total; i++) {
     const slotStart = firstStart + i * WINDOW_MS
-    const dayIndex = Math.floor((slotStart - firstStart) / DAY_MS)
     const intoDay = ((slotStart % DAY_MS) + DAY_MS) % DAY_MS
     const slotOfDay = Math.floor(intoDay / WINDOW_MS) + 1 // 1-based, matches lib/time-slot-stats
     windows.push({
       slotStart: new Date(slotStart).toISOString(),
       slotEnd: new Date(slotStart + WINDOW_MS).toISOString(),
       slotOfDay,
-      pods: podsFor(slotStart, dayIndex)
+      pods: podsFor(slotStart)
     })
   }
   return windows

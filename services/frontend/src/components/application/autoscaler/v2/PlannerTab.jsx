@@ -3,12 +3,14 @@ import typographyStyles from '~/styles/Typography.module.css'
 import { getPlannerHistory, getPlannerPredictions } from '~/api/autoscaler'
 import PlannerLegend from './PlannerLegend'
 import PlannerColumn from './PlannerColumn'
+import PlannerSidebar from './PlannerSidebar'
 import { HOURS, addDays, isoWeekStart, buildWeeks, groupTimeWindowStats } from './plannerUtils'
 import styles from './PlannerTab.module.css'
 
 export default function PlannerTab ({ appId }) {
   const [data, setData] = useState([])
   const [hoverState, setHoverState] = useState(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const today = useMemo(() => {
     const d = new Date()
@@ -42,62 +44,72 @@ export default function PlannerTab ({ appId }) {
 
   return (
     <div className={styles.container}>
-      {/* ── Top bar ── */}
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <span className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>
-            Planner
-          </span>
-          <PlannerLegend />
+      {/* ── Left side: Header and Calendar ── */}
+      <div className={styles.leftContent}>
+        {/* ── Top bar ── */}
+        <div className={styles.header}>
+          <div className={styles.headerLeft}>
+            <span className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>
+              Planner
+            </span>
+            <PlannerLegend />
+          </div>
+          <div className={styles.headerRight}>
+            <button
+              type='button'
+              className={styles.btnOutlined}
+              onClick={() => setSidebarOpen(true)}
+            >
+              <svg width='14' height='14' viewBox='0 0 14 14' fill='none' className={styles.btnIcon}>
+                <circle cx='7' cy='7' r='5.5' stroke='currentColor' strokeWidth='1.2' />
+                <path d='M7 4.5v3l1.5 1.5' stroke='currentColor' strokeWidth='1.2' strokeLinecap='round' strokeLinejoin='round' />
+              </svg>
+              <span className={typographyStyles.desktopBodySmall}>Suggestions & Scheduled Events</span>
+            </button>
+            <button
+              type='button'
+              className={styles.btnFilled}
+              onClick={() => window.alert('Schedule Events')}
+            >
+              <span className={typographyStyles.desktopBodySmall}>Schedule Events</span>
+            </button>
+          </div>
         </div>
-        <div className={styles.headerRight}>
-          <button
-            type='button'
-            className={styles.btnOutlined}
-            onClick={() => window.alert('Suggestions & Scheduled Events')}
-          >
-            <svg width='14' height='14' viewBox='0 0 14 14' fill='none' className={styles.btnIcon}>
-              <circle cx='7' cy='7' r='5.5' stroke='currentColor' strokeWidth='1.2' />
-              <path d='M7 4.5v3l1.5 1.5' stroke='currentColor' strokeWidth='1.2' strokeLinecap='round' strokeLinejoin='round' />
-            </svg>
-            <span className={typographyStyles.desktopBodySmall}>Suggestions & Scheduled Events</span>
-          </button>
-          <button
-            type='button'
-            className={styles.btnFilled}
-            onClick={() => window.alert('Schedule Events')}
-          >
-            <span className={typographyStyles.desktopBodySmall}>Schedule Events</span>
-          </button>
-        </div>
-      </div>
 
-      {/* ── Calendar ──
-          --col-header-h is a CSS variable consumed by PlannerColumn.module.css
-          to keep the column header height and the hour-label spacer in sync. */}
-      <div className={styles.grid}>
-        <div className={styles.hourLabels}>
-          <div className={styles.hourLabelSpacer} />
-          {HOURS.map(h => (
-            <div key={h} className={styles.hourLabel}>
-              <span className={`${styles.hourLabelText} ${typographyStyles.textWhite70}`}>{h}</span>
+        {/* ── Calendar ──
+            --col-header-h is a CSS variable consumed by PlannerColumn.module.css
+            to keep the column header height and the hour-label spacer in sync. */}
+        <div className={styles.content}>
+          <div className={styles.grid}>
+            <div className={styles.hourLabels}>
+              <div className={styles.hourLabelSpacer} />
+              {HOURS.map(h => (
+                <div key={h} className={styles.hourLabel}>
+                  <span className={`${styles.hourLabelText} ${typographyStyles.textWhite70}`}>{h}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className={styles.columns} onMouseLeave={() => setHoverState(null)}>
-          {weeks.map((days, wi) => (
-            <PlannerColumn
-              key={wi}
-              days={days}
-              dataByDate={dataByDate}
-              today={today}
-              hoverState={hoverState}
-              setHoverState={setHoverState}
-            />
-          ))}
+            <div className={styles.columns} onMouseLeave={() => setHoverState(null)}>
+              {weeks.map((days, wi) => (
+                <PlannerColumn
+                  key={wi}
+                  days={days}
+                  dataByDate={dataByDate}
+                  today={today}
+                  hoverState={hoverState}
+                  setHoverState={setHoverState}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* ── Right side: Sidebar ── */}
+      {sidebarOpen && (
+        <PlannerSidebar appId={appId} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      )}
     </div>
   )
 }

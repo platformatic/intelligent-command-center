@@ -93,6 +93,18 @@ module.exports = fp(async function (app) {
     } catch (err) {
       app.log.error({ err, applicationId }, '[time-slot-stats] failed to categorize windows')
     }
+
+    // The window we just persisted is now the newest observed row, so regenerating here refreshes
+    // the future forecast grid AND freezes this window's own prediction in place: the next run will
+    // start its horizon after this window, never touching its slot_start again. Running on every
+    // window close is what gives each historical window a 1:1 prediction (the last one made before
+    // it became current). Guarded + swallowed: the predictor is optional and must never break
+    // ingestion. `POST /predictions` remains as the manual trigger.
+    try {
+      if (app.updatePredictions) await app.updatePredictions(applicationId)
+    } catch (err) {
+      app.log.error({ err, applicationId }, '[time-slot-stats] failed to regenerate predictions')
+    }
   }
 
   async function ingestTarget (applicationId, value, now) {

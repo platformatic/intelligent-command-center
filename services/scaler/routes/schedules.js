@@ -13,6 +13,7 @@ const scheduleBody = {
     timezone: { type: 'string' },
     minPods: { type: ['integer', 'null'] },
     maxPods: { type: ['integer', 'null'] },
+    priority: { type: 'integer' },
     enabled: { type: 'boolean' }
   }
 }

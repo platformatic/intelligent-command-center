@@ -5,10 +5,13 @@ const { validateRrule, validateTimezone } = require('./occurrences')
 
 // Pure validation of schedule input. Throws SCHEDULE_* errors on invalid input.
 function validateScheduleInput (input) {
-  const { dtstart, dtend, rrule, timezone = 'UTC', minPods, maxPods } = input
+  const { dtstart, dtend, rrule, timezone = 'UTC', minPods, maxPods, priority } = input
 
   if (minPods == null && maxPods == null) {
     throw new errors.SCHEDULE_INVALID_LIMITS('at least one of minPods/maxPods is required')
+  }
+  if (priority != null && !Number.isInteger(priority)) {
+    throw new errors.SCHEDULE_INVALID_LIMITS('priority must be an integer')
   }
   if (minPods != null && minPods < 1) {
     throw new errors.SCHEDULE_INVALID_LIMITS('minPods must be >= 1')
