@@ -105,6 +105,10 @@ const NodeJSMetricChart = ({
           .attr('class', `${styles.line} ${colorStyles[`color-${i}`]}`)
           .datum(latestData)
           .attr('d', d3.line()
+            // A series can be missing a value at a given timestamp (e.g. CPU has
+            // no point yet during cold start while ELU already does). Skip those
+            // so the line shows a gap instead of dipping to y(0).
+            .defined(p => p.values[i] != null)
             .x(p => {
               return x(p.time)
             })

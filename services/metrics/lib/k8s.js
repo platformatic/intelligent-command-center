@@ -30,6 +30,20 @@ const totalMemQuery =
 const instanceFilter = (instance) =>
   instance ? `, label_app_kubernetes_io_instance="${instance}"` : ''
 
+// The CPU queries return one series per pod (they are not aggregated in PromQL,
+// unlike the memory queries). Reading result[0] would report only the first
+// pod -- and 0 whenever that pod is cold or absent (e.g. right after a scale
+// event, when a fresh pod has no rate[1m] yet). Sum every pod's value into one
+// app-level number instead; summing keeps App + Other == All, so the panel's
+// App/Other/Remaining split stays coherent, matching the memory queries.
+const sumResult = (res) => {
+  let total = 0
+  for (const row of res?.data?.result ?? []) {
+    total += parseFloat(row?.value?.[1]) || 0
+  }
+  return total
+}
+
 const getAppCPUMetrics = async (applicationId, instance) => {
   const vf = instanceFilter(instance)
   const cpuAppQuery = `
@@ -96,10 +110,9 @@ const getAppCPUMetrics = async (applicationId, instance) => {
     queryPrometheus(cpuAllAppsButAppQuery)
   ])
 
-  const cpuApp = parseFloat(cpuAppRes?.data?.result[0]?.value[1]) || 0
-  const cpuAllApps = parseFloat(cpuAllAppsRes?.data?.result[0]?.value[1]) || 0
-  const cpuButApp =
-    parseFloat(cpuButAppSecondsRes?.data?.result[0]?.value[1]) || 0
+  const cpuApp = sumResult(cpuAppRes)
+  const cpuAllApps = sumResult(cpuAllAppsRes)
+  const cpuButApp = sumResult(cpuButAppSecondsRes)
 
   return {
     cpuAppUsage: cpuApp,

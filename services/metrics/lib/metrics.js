@@ -58,16 +58,33 @@ const getCpuEventMetrics = async ({ appId, timeWindow, instance }) => {
     queryRangePrometheus(cpuQuery, start, end, step),
     queryRangePrometheus(eventLoopQuery, start, end, step)
   ])
-  const numberOfPoints = cpuRes?.data?.result[0]?.values.length
+
+  // CPU and ELU come from different scrape targets: CPU is cAdvisor
+  // `rate(container_cpu_usage[1m])` joined with kube-state-metrics (three targets,
+  // and rate[1m] needs ~1m of history), while ELU is the app's own gauge, present
+  // from the moment the runtime boots. So at cold start their range results differ
+  // in both length and start time. Two consequences we must handle:
+  //   1. Index-aligning the arrays would plot ELU against CPU timestamps. Merge on
+  //      the shared timestamp instead so each metric keeps its own time axis.
+  //   2. Gating the whole panel on the CPU series length shows "No Data" until CPU
+  //      warms up, even though ELU is ready. Emit a row whenever EITHER has a value
+  //      (missing metric -> null, rendered as a gap by the chart).
+  const cpuByTs = new Map()
+  for (const [ts, v] of cpuRes?.data?.result[0]?.values ?? []) {
+    cpuByTs.set(ts, parseFloat(v)) // CPU is already a percentage of the pod's CPU limit
+  }
+  const eluByTs = new Map()
+  for (const [ts, v] of eventLoopRes?.data?.result[0]?.values ?? []) {
+    eluByTs.set(ts, parseFloat(v) * 100) // ELU is a [0,1] fraction
+  }
+
+  const timestamps = [...new Set([...cpuByTs.keys(), ...eluByTs.keys()])].sort((a, b) => a - b)
   const data = []
-  for (let i = 0; i < numberOfPoints; i++) {
-    const date = cpuRes?.data?.result[0]?.values[i][0]
-    const cpu = parseFloat(cpuRes?.data?.result[0]?.values[i][1]) // CPU is in [0,100] perc
-    const eventLoop = parseFloat(eventLoopRes?.data?.result[0]?.values[i][1]) * 100 // ELU is in [0,1]
+  for (const ts of timestamps) {
     data.push({
-      date: new Date(date * 1000),
-      cpu,
-      eventLoop
+      date: new Date(ts * 1000),
+      cpu: cpuByTs.has(ts) ? cpuByTs.get(ts) : null,
+      eventLoop: eluByTs.has(ts) ? eluByTs.get(ts) : null
     })
   }
   return data
