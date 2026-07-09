@@ -1,6 +1,7 @@
 'use strict'
 
 const { getAppK8SMetrics, getAppRPSMetrics, getInfraK8SMetrics, getVersionRPSMetrics } = require('../lib/k8s')
+const { getVersionInstance } = require('../lib/control-plane')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = async function (app) {
@@ -8,8 +9,11 @@ module.exports = async function (app) {
     handler: async (req) => {
       const { appId } = req.params
       const { versionLabel } = req.query
-      app.log.info({ appId, versionLabel }, 'Getting K8s metrics')
-      return getAppK8SMetrics(appId, versionLabel)
+      // Resolve the version id to its workload instance (app.kubernetes.io/instance);
+      // null -> whole-app metrics.
+      const instance = await getVersionInstance(req.controlPlane, appId, versionLabel, app.log)
+      app.log.info({ appId, versionLabel, instance }, 'Getting K8s metrics')
+      return getAppK8SMetrics(appId, instance)
     }
   })
 
@@ -21,15 +25,17 @@ module.exports = async function (app) {
     }
   })
 
-  app.get('/kubernetes/versions/:appLabel/:versionLabel/rps', {
+  // RPS for one version, keyed by its workload instance (app.kubernetes.io/instance
+  // = the registry controllerName), which is globally unique per version and, unlike
+  // plt.dev/version, is exposed by kube-state-metrics and present on every pod.
+  app.get('/kubernetes/instances/:instance/rps', {
     schema: {
       params: {
         type: 'object',
         properties: {
-          appLabel: { type: 'string' },
-          versionLabel: { type: 'string' }
+          instance: { type: 'string' }
         },
-        required: ['appLabel', 'versionLabel']
+        required: ['instance']
       },
       querystring: {
         type: 'object',
@@ -50,9 +56,9 @@ module.exports = async function (app) {
       }
     },
     handler: async (req) => {
-      const { appLabel, versionLabel } = req.params
+      const { instance } = req.params
       const { window: timeWindow } = req.query
-      const rps = await getVersionRPSMetrics(appLabel, versionLabel, timeWindow)
+      const rps = await getVersionRPSMetrics(instance, timeWindow)
       return { rps }
     }
   })

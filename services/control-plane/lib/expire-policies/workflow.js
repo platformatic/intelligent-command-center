@@ -9,7 +9,7 @@ async function shouldExpire (version, { getVersionRPS, log, workflowUrl }) {
     return false
   }
 
-  const rps = await getVersionRPS(version.appLabel, version.versionLabel)
+  const rps = await getVersionRPS(version.controllerName)
   if (rps === null) {
     log.info({ appLabel: version.appLabel, versionLabel: version.versionLabel }, 'RPS query returned null — skipping')
     return false

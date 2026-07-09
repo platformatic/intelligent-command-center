@@ -205,7 +205,9 @@ module.exports = async function (app) {
       const rps = await Promise.all(live.map(async (v) => ({
         versionLabel: v.versionLabel,
         status: v.status,
-        rps: app.getVersionRPS ? await app.getVersionRPS(v.appLabel, v.versionLabel) : null
+        // RPS is keyed by the version's workload instance (controllerName), the
+        // label kube-state-metrics exposes; the version id is not on the pods.
+        rps: app.getVersionRPS ? await app.getVersionRPS(v.controllerName) : null
       })))
 
       return { rps }

@@ -82,11 +82,11 @@ test('requests per second per application', async (t) => {
 })
 
 test('request per second for a specific app version', async (t) => {
-  await startPrometheusVersionRPS(t, 'my-app', 'v1', 42.5)
+  await startPrometheusVersionRPS(t, 'my-app-v1', 42.5)
   const server = await startMetrics(t)
   const res = await server.inject({
     method: 'GET',
-    url: '/kubernetes/versions/my-app/v1/rps?window=30m'
+    url: '/kubernetes/instances/my-app-v1/rps?window=30m'
   })
   assert.equal(res.statusCode, 200)
   const metrics = res.json()
@@ -94,11 +94,11 @@ test('request per second for a specific app version', async (t) => {
 })
 
 test('request per second for a version with no traffic', async (t) => {
-  await startPrometheusVersionRPS(t, 'my-app', 'v1', 0)
+  await startPrometheusVersionRPS(t, 'my-app-v1', 0)
   const server = await startMetrics(t)
   const res = await server.inject({
     method: 'GET',
-    url: '/kubernetes/versions/my-app/v1/rps?window=30m'
+    url: '/kubernetes/instances/my-app-v1/rps?window=30m'
   })
   assert.equal(res.statusCode, 200)
   const metrics = res.json()
@@ -106,11 +106,11 @@ test('request per second for a version with no traffic', async (t) => {
 })
 
 test('request per second for a version with custom window', async (t) => {
-  await startPrometheusVersionRPS(t, 'my-app', 'v2', 10.5)
+  await startPrometheusVersionRPS(t, 'my-app-v2', 10.5)
   const server = await startMetrics(t)
   const res = await server.inject({
     method: 'GET',
-    url: '/kubernetes/versions/my-app/v2/rps?window=24h'
+    url: '/kubernetes/instances/my-app-v2/rps?window=24h'
   })
   assert.equal(res.statusCode, 200)
   const metrics = res.json()

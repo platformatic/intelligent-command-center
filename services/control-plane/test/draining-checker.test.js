@@ -15,12 +15,11 @@ const drainingCheckerPlugin = require('../plugins/draining-checker')
 function createMockMetricsServer (rpsMap) {
   const server = createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost')
-    const match = url.pathname.match(/^\/kubernetes\/versions\/([^/]+)\/([^/]+)\/rps$/)
+    // RPS is keyed by the version's workload instance (controllerName).
+    const match = url.pathname.match(/^\/kubernetes\/instances\/([^/]+)\/rps$/)
     if (match) {
-      const appLabel = decodeURIComponent(match[1])
-      const versionLabel = decodeURIComponent(match[2])
-      const key = `${appLabel}:${versionLabel}`
-      const rps = rpsMap[key] ?? 0
+      const instance = decodeURIComponent(match[1])
+      const rps = rpsMap[instance] ?? 0
       res.writeHead(200, { 'content-type': 'application/json' })
       res.end(JSON.stringify({ rps }))
     } else {
@@ -222,7 +221,7 @@ const baseOpts = {
 }
 
 test('should expire draining versions with zero RPS from metrics', async (t) => {
-  const rpsMap = { 'my-app:v1': 0 }
+  const rpsMap = { 'my-app-v1': 0 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
@@ -256,7 +255,7 @@ test('should expire draining versions with zero RPS from metrics', async (t) => 
 })
 
 test('advise mode: recommends instead of expiring a zero-traffic draining version', async (t) => {
-  const rpsMap = { 'my-app:v1': 0 }
+  const rpsMap = { 'my-app-v1': 0 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
@@ -306,7 +305,7 @@ test('advise mode: recommends instead of expiring a zero-traffic draining versio
 })
 
 test('should NOT expire version within grace period even if RPS=0', async (t) => {
-  const rpsMap = { 'my-app:v1': 0 }
+  const rpsMap = { 'my-app-v1': 0 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
@@ -336,7 +335,7 @@ test('should NOT expire version within grace period even if RPS=0', async (t) =>
 })
 
 test('should force expire version past max alive regardless of traffic', async (t) => {
-  const rpsMap = { 'my-app:v1': 100 }
+  const rpsMap = { 'my-app-v1': 100 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
@@ -368,7 +367,7 @@ test('should force expire version past max alive regardless of traffic', async (
 })
 
 test('should expire version past grace period when RPS=0', async (t) => {
-  const rpsMap = { 'my-app:v1': 0 }
+  const rpsMap = { 'my-app-v1': 0 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
@@ -402,7 +401,7 @@ test('should expire version past grace period when RPS=0', async (t) => {
 })
 
 test('should NOT expire version past grace period when RPS > 0', async (t) => {
-  const rpsMap = { 'my-app:v1': 42.5 }
+  const rpsMap = { 'my-app-v1': 42.5 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
@@ -434,7 +433,7 @@ test('should NOT expire version past grace period when RPS > 0', async (t) => {
 })
 
 test('should not expire draining versions that still have traffic', async (t) => {
-  const rpsMap = { 'my-app:v1': 42.5 }
+  const rpsMap = { 'my-app-v1': 42.5 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
@@ -487,8 +486,8 @@ test('should never touch active versions', async (t) => {
 
 test('should handle multiple apps independently', async (t) => {
   const rpsMap = {
-    'my-app:v1': 0,
-    'other-app:v1': 25
+    'my-app-v1': 0,
+    'other-app-v1': 25
   }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
@@ -539,7 +538,7 @@ test('should handle multiple apps independently', async (t) => {
 })
 
 test('should not run checker when not leader', async (t) => {
-  const rpsMap = { 'my-app:v1': 0 }
+  const rpsMap = { 'my-app-v1': 0 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
@@ -569,7 +568,7 @@ test('should not run checker when not leader', async (t) => {
 })
 
 test('should stop checker when leadership is lost', async (t) => {
-  const rpsMap = { 'my-app:v1': 0 }
+  const rpsMap = { 'my-app-v1': 0 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
@@ -603,7 +602,7 @@ test('should stop checker when leadership is lost', async (t) => {
 })
 
 test('should use per-app max alive instead of global', async (t) => {
-  const rpsMap = { 'my-app:v1': 100 }
+  const rpsMap = { 'my-app-v1': 100 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 
@@ -650,7 +649,7 @@ test('should use per-app max alive instead of global', async (t) => {
 })
 
 test('workflow versions use separate grace period and max alive', async (t) => {
-  const rpsMap = { 'my-app:v1': 0 }
+  const rpsMap = { 'my-app-v1': 0 }
   const { server, url } = await startMockMetrics(rpsMap)
   t.after(() => server.close())
 

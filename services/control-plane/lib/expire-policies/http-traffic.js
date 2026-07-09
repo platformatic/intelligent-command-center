@@ -15,7 +15,7 @@ const zeroStreaks = new Map()
 
 async function shouldExpire (version, { getVersionRPS }) {
   const key = `${version.appLabel}:${version.versionLabel}`
-  const rps = await getVersionRPS(version.appLabel, version.versionLabel)
+  const rps = await getVersionRPS(version.controllerName)
 
   // Query failed (null) or there is still traffic: not idle, reset the streak.
   if (rps === null || rps > 0) {

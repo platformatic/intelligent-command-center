@@ -34,7 +34,7 @@ async function startMetrics (t, controlPlane, env) {
   return server
 }
 
-async function startPrometheusVersionRPS (t, appLabel, versionLabel, rpsValue, urlPrefix = '/') {
+async function startPrometheusVersionRPS (t, instance, rpsValue, urlPrefix = '/') {
   const prometheus = fastify({ keepAliveTimeout: 1 })
   prometheus.register(formBody)
   t.after(() => prometheus.close())
@@ -44,8 +44,7 @@ async function startPrometheusVersionRPS (t, appLabel, versionLabel, rpsValue, u
       const { query } = req.body
       const sanitized = sanitizePromQuery(query)
 
-      if (sanitized.includes(`label_app_kubernetes_io_name="${appLabel}"`) &&
-          sanitized.includes(`label_plt_dev_version="${versionLabel}"`)) {
+      if (sanitized.includes(`label_app_kubernetes_io_instance="${instance}"`)) {
         return {
           status: 'success',
           data: {

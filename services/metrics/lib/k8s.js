@@ -27,11 +27,11 @@ const totalMemQuery =
   'sum(kube_node_status_allocatable{resource="memory",unit="byte"})'
 // const podsAllQuery = 'count(kube_pod_labels{label_app_kubernetes_io_name="wattpro"})'
 
-const versionLabelFilter = (versionLabel) =>
-  versionLabel ? `, label_plt_dev_version="${versionLabel}"` : ''
+const instanceFilter = (instance) =>
+  instance ? `, label_app_kubernetes_io_instance="${instance}"` : ''
 
-const getAppCPUMetrics = async (applicationId, versionLabel) => {
-  const vf = versionLabelFilter(versionLabel)
+const getAppCPUMetrics = async (applicationId, instance) => {
+  const vf = instanceFilter(instance)
   const cpuAppQuery = `
     sum(rate(container_cpu_usage_seconds_total{pod=~".*", container!="POD"}[1m])) by (pod) 
     * on(pod) group_left() 
@@ -108,8 +108,8 @@ const getAppCPUMetrics = async (applicationId, versionLabel) => {
   }
 }
 
-const getAppMemMetrics = async (applicationId, versionLabel) => {
-  const vf = versionLabelFilter(versionLabel)
+const getAppMemMetrics = async (applicationId, instance) => {
+  const vf = instanceFilter(instance)
   const sumMemAppQuery = `
     sum(
       container_memory_working_set_bytes{container!=""}
@@ -166,8 +166,8 @@ const getAppMemMetrics = async (applicationId, versionLabel) => {
   }
 }
 
-const getAppPodsMetrics = async (applicationId, versionLabel) => {
-  const vf = versionLabelFilter(versionLabel)
+const getAppPodsMetrics = async (applicationId, instance) => {
+  const vf = instanceFilter(instance)
   const podsAppQuery = `count(kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"${vf}})`
   const podsAllQuery =
     'count(kube_pod_labels{label_platformatic_dev_monitor="prometheus"})'
@@ -194,10 +194,10 @@ const getAppRequestMetrics = async (applicationId) => {
   return { latency }
 }
 
-const getAppEventLoopUtilization = async (applicationId, versionLabel) => {
+const getAppEventLoopUtilization = async (applicationId, instance) => {
   const baseMetric = `nodejs_eventloop_utilization{applicationId="${applicationId}"}`
-  const filtered = versionLabel
-    ? `(${baseMetric} * on(instanceId) group_left() label_replace(kube_pod_labels{label_plt_dev_version="${versionLabel}"}, "instanceId", "$1", "pod", "(.*)"))`
+  const filtered = instance
+    ? `(${baseMetric} * on(instanceId) group_left() label_replace(kube_pod_labels{label_app_kubernetes_io_instance="${instance}"}, "instanceId", "$1", "pod", "(.*)"))`
     : baseMetric
   const query = `avg(max by(instanceId) (${filtered}))`
   const eluAppRes = await queryPrometheus(query)
@@ -207,12 +207,12 @@ const getAppEventLoopUtilization = async (applicationId, versionLabel) => {
   }
 }
 
-const getAppK8SMetrics = async (applicationId, versionLabel) => {
-  const cpu = await getAppCPUMetrics(applicationId, versionLabel)
-  const memory = await getAppMemMetrics(applicationId, versionLabel)
-  const pods = await getAppPodsMetrics(applicationId, versionLabel)
+const getAppK8SMetrics = async (applicationId, instance) => {
+  const cpu = await getAppCPUMetrics(applicationId, instance)
+  const memory = await getAppMemMetrics(applicationId, instance)
+  const pods = await getAppPodsMetrics(applicationId, instance)
   const requests = await getAppRequestMetrics(applicationId)
-  const elu = await getAppEventLoopUtilization(applicationId, versionLabel)
+  const elu = await getAppEventLoopUtilization(applicationId, instance)
 
   const res = {
     cpu,
@@ -252,8 +252,8 @@ const getAppRPSMetrics = async (applicationId) => {
   return rps
 }
 
-const getVersionRPSMetrics = async (appLabel, versionLabel, timeWindow) => {
-  const query = createVersionRPSQuery({ appLabel, versionLabel, timeWindow })
+const getVersionRPSMetrics = async (instance, timeWindow) => {
+  const query = createVersionRPSQuery({ instance, timeWindow })
   const rpsRes = await queryPrometheus(query)
   const rps = parseFloat(rpsRes?.data?.result[0]?.value[1]) || 0
   return rps

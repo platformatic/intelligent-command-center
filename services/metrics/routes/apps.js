@@ -13,7 +13,7 @@ const {
   getPodLatencyMetrics
 } = require('../lib/pods-metrics')
 
-const { getEntrypoint } = require('../lib/control-plane')
+const { getEntrypoint, getVersionInstance } = require('../lib/control-plane')
 
 const { getServiceThreadMetrics, getThreadCountByPod } = require('../lib/services')
 
@@ -26,8 +26,11 @@ module.exports = async function (app) {
     handler: async (req) => {
       const { appId } = req.params
       const { versionLabel } = req.query
-      app.log.info({ appId, versionLabel }, 'Getting application memory metrics')
-      return getMemMetrics({ appId, timeWindow: applicationTimeWindow, versionLabel })
+      // Resolve the version id to its workload instance (app.kubernetes.io/instance),
+      // the label metrics filter on; null -> whole-app.
+      const instance = await getVersionInstance(req.controlPlane, appId, versionLabel, app.log)
+      app.log.info({ appId, versionLabel, instance }, 'Getting application memory metrics')
+      return getMemMetrics({ appId, timeWindow: applicationTimeWindow, instance })
     }
   })
 
@@ -35,8 +38,9 @@ module.exports = async function (app) {
     handler: async (req) => {
       const { appId } = req.params
       const { versionLabel } = req.query
-      app.log.info({ appId, versionLabel }, 'Getting application cpu metrics')
-      return getCpuEventMetrics({ appId, timeWindow: applicationTimeWindow, versionLabel })
+      const instance = await getVersionInstance(req.controlPlane, appId, versionLabel, app.log)
+      app.log.info({ appId, versionLabel, instance }, 'Getting application cpu metrics')
+      return getCpuEventMetrics({ appId, timeWindow: applicationTimeWindow, instance })
     }
   })
 
@@ -44,10 +48,11 @@ module.exports = async function (app) {
     handler: async (req) => {
       const { appId } = req.params
       const { versionLabel } = req.query
-      app.log.info({ appId, versionLabel }, 'Getting application latency metrics')
       const { controlPlane } = req
+      const instance = await getVersionInstance(controlPlane, appId, versionLabel, app.log)
+      app.log.info({ appId, versionLabel, instance }, 'Getting application latency metrics')
       const entrypoint = await getEntrypoint(controlPlane, appId, app.log)
-      return getLatencyMetrics({ appId, entrypoint, timeWindow: applicationTimeWindow, versionLabel })
+      return getLatencyMetrics({ appId, entrypoint, timeWindow: applicationTimeWindow, instance })
     }
   })
 

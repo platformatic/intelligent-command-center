@@ -82,9 +82,9 @@ function buildApp (opts = {}) {
       })
     }
 
-    if (opts.rpsByVersion) {
-      app.decorate('getVersionRPS', async (appLabel, versionLabel) => {
-        return opts.rpsByVersion[versionLabel] ?? null
+    if (opts.rpsByInstance) {
+      app.decorate('getVersionRPS', async (instance) => {
+        return opts.rpsByInstance[instance] ?? null
       })
     }
 
@@ -236,7 +236,7 @@ test('GET /applications/:id/versions/rps reports active, draining and staged; sk
   const { app } = buildApp({
     applications: { [APP_ID]: { id: APP_ID, name: 'my-app' } },
     versions,
-    rpsByVersion: { v1: 2.5, v2: 97.5, v3: 0.3, v0: 5 }
+    rpsByInstance: { 'my-app-v1': 2.5, 'my-app-v2': 97.5, 'my-app-v3': 0.3, 'my-app-v0': 5 }
   })
   await app.ready()
   t.after(() => app.close())
@@ -268,7 +268,7 @@ test('GET /applications/:id/versions/rps returns null rps when the metric reader
   const { app } = buildApp({
     applications: { [APP_ID]: { id: APP_ID, name: 'my-app' } },
     versions
-    // no rpsByVersion -> app.getVersionRPS is not decorated (skew metric off)
+    // no rpsByInstance -> app.getVersionRPS is not decorated (skew metric off)
   })
   await app.ready()
   t.after(() => app.close())
