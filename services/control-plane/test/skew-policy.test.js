@@ -5,6 +5,7 @@ const { test } = require('node:test')
 const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const skewPolicyPlugin = require('../plugins/skew-policy')
+const actuationPolicyPlugin = require('../plugins/actuation-policy')
 
 function buildApp (opts = {}) {
   const app = fastify({ logger: false })
@@ -54,6 +55,9 @@ function buildApp (opts = {}) {
     })
   }, { name: 'platformatic-db' }))
 
+  // The actuation mode is resolved by the skew-independent actuation-policy
+  // plugin, which skew-policy depends on. Register it (always on) first.
+  app.register(actuationPolicyPlugin)
   app.register(skewPolicyPlugin)
 
   return { app, store }
@@ -101,7 +105,10 @@ test('clusterSkewDefaults should expose env values', async (t) => {
     maxAgeS: 100,
     maxVersions: null,
     cookieName: '__plt_dpl',
-    autoCleanup: true
+    autoCleanup: true,
+    enabled: true,
+    mode: 'observe',
+    requiresApproval: false
   })
 })
 
@@ -148,6 +155,25 @@ test('resolveSkewPolicy should return overrides when set', async (t) => {
   assert.strictEqual(policy.maxVersions, 3)
   assert.strictEqual(policy.cookieName, 'my_cookie')
   assert.strictEqual(policy.autoCleanup, true)
+})
+
+test('resolveSkewPolicy forces requiresApproval off in advise mode', async (t) => {
+  const { app } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  // Even with requiresApproval explicitly set, advise mode cannot enforce the
+  // approval route-flip, so the resolved policy must report it off.
+  await app.saveSkewPolicy('app-1', { mode: 'advise', requiresApproval: true })
+  const advise = await app.resolveSkewPolicy('app-1')
+  assert.strictEqual(advise.mode, 'advise')
+  assert.strictEqual(advise.requiresApproval, false)
+
+  // manage keeps the setting as-is.
+  await app.saveSkewPolicy('app-1', { mode: 'manage', requiresApproval: true })
+  const manage = await app.resolveSkewPolicy('app-1')
+  assert.strictEqual(manage.mode, 'manage')
+  assert.strictEqual(manage.requiresApproval, true)
 })
 
 test('resolveSkewPolicy should merge partial overrides with defaults', async (t) => {
@@ -213,4 +239,66 @@ test('saveSkewPolicy should update existing row', async (t) => {
   assert.strictEqual(store.length, 1)
   assert.strictEqual(store[0].maxVersions, 5)
   assert.strictEqual(store[0].cookieName, 'new_cookie')
+})
+
+// ── Per-app versioning config (enabled / mode / requiresApproval) ──
+
+test('resolveSkewPolicy returns per-app config defaults', async (t) => {
+  const { app } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  const policy = await app.resolveSkewPolicy('app-1')
+  assert.strictEqual(policy.enabled, true)
+  assert.strictEqual(policy.mode, 'observe')
+  assert.strictEqual(policy.requiresApproval, false)
+})
+
+test('resolveSkewPolicy returns per-app config overrides', async (t) => {
+  const { app } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.saveSkewPolicy('app-1', { enabled: false, mode: 'manage', requiresApproval: true })
+
+  const policy = await app.resolveSkewPolicy('app-1')
+  assert.strictEqual(policy.enabled, false)
+  assert.strictEqual(policy.mode, 'manage')
+  assert.strictEqual(policy.requiresApproval, true)
+})
+
+test('saveSkewPolicy persists per-app config fields', async (t) => {
+  const { app, store } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.saveSkewPolicy('app-1', { enabled: false, mode: 'advise', requiresApproval: true })
+
+  assert.strictEqual(store[0].enabled, false)
+  assert.strictEqual(store[0].mode, 'advise')
+  assert.strictEqual(store[0].requiresApproval, true)
+})
+
+test('saveSkewPolicy rejects an invalid mode', async (t) => {
+  const { app } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await assert.rejects(
+    () => app.saveSkewPolicy('app-1', { mode: 'bogus' }),
+    err => err.code === 'PLT_CONTROL_PLANE_INVALID_VERSIONING_MODE' && err.statusCode === 400
+  )
+})
+
+test('unset per-app config inherits cluster defaults', async (t) => {
+  const { app } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.saveSkewPolicy('app-1', { httpGracePeriodMs: 1000 })
+
+  const policy = await app.resolveSkewPolicy('app-1')
+  assert.strictEqual(policy.enabled, true)
+  assert.strictEqual(policy.mode, 'observe')
+  assert.strictEqual(policy.requiresApproval, false)
 })

@@ -86,7 +86,7 @@ test('should build HTTPRoute with one draining version', async () => {
   assert.strictEqual(cookieRule.matches[0].headers[0].type, 'RegularExpression')
   assert.strictEqual(
     cookieRule.matches[0].headers[0].value,
-    '(.*;\\s*)?__plt_dpl=v1.0.0-old(\\s*;.*)?'
+    '(.*;\\s*)?__plt_dpl=v1\\.0\\.0-old(\\s*;.*)?'
   )
   assert.deepStrictEqual(cookieRule.filters, [URL_REWRITE_FILTER])
   assert.deepStrictEqual(cookieRule.backendRefs, [{
@@ -138,7 +138,7 @@ test('should build HTTPRoute with multiple draining versions', async () => {
   // First draining version cookie rule
   assert.strictEqual(
     route.spec.rules[0].matches[0].headers[0].value,
-    '(.*;\\s*)?__plt_dpl=v1.0.0-aaa(\\s*;.*)?'
+    '(.*;\\s*)?__plt_dpl=v1\\.0\\.0-aaa(\\s*;.*)?'
   )
   assert.strictEqual(route.spec.rules[0].backendRefs[0].name, 'myapp-v1.0.0')
 
@@ -149,7 +149,7 @@ test('should build HTTPRoute with multiple draining versions', async () => {
   // Second draining version cookie rule
   assert.strictEqual(
     route.spec.rules[2].matches[0].headers[0].value,
-    '(.*;\\s*)?__plt_dpl=v1.5.0-bbb(\\s*;.*)?'
+    '(.*;\\s*)?__plt_dpl=v1\\.5\\.0-bbb(\\s*;.*)?'
   )
   assert.strictEqual(route.spec.rules[2].backendRefs[0].name, 'myapp-v1.5.0')
 
@@ -214,6 +214,10 @@ test('should produce correct cookie regex pattern', async () => {
   assert.ok(!re.test('__plt_dpl=v9.9.9-zzz'))
   // Should not match partial
   assert.ok(!re.test('__plt_dpl=v1.2.3-abc123extra'))
+  // The dots in the label are matched LITERALLY (escaped): a value with other
+  // characters in the dot positions must not match. Without escaping, `.` would
+  // match any character and over-match this -- the routing bug the escape fixes.
+  assert.ok(!re.test('__plt_dpl=v1X2X3-abc123'))
 })
 
 test('should set correct Set-Cookie attributes on production rule', async () => {
@@ -266,7 +270,7 @@ test('should use custom cookieName in cookie regex and Set-Cookie header', async
   const cookieRule = route.spec.rules[0]
   assert.strictEqual(
     cookieRule.matches[0].headers[0].value,
-    '(.*;\\s*)?my_cookie=v1.0.0-old(\\s*;.*)?'
+    '(.*;\\s*)?my_cookie=v1\\.0\\.0-old(\\s*;.*)?'
   )
 
   // Set-Cookie header should use custom cookie name
@@ -291,6 +295,75 @@ test('should use default cookieName __plt_dpl when not specified', async () => {
   const defaultRule = route.spec.rules[2]
   const setCookie = defaultRule.filters[1].responseHeaderModifier.add[0]
   assert.ok(setCookie.value.startsWith('__plt_dpl='))
+})
+
+test('staged version gets a cookie rule + header rule, but no default rule change', async () => {
+  const route = buildHTTPRoute({
+    ...defaultParams,
+    stagedVersions: [{
+      versionId: 'v3.0.0-staged',
+      serviceName: 'myapp-v3.0.0',
+      port: 3042
+    }]
+  })
+
+  // 2 rules for the staged version (cookie + header) + 1 default rule
+  assert.strictEqual(route.spec.rules.length, 3)
+
+  // Staged cookie rule comes first: browser-pinnable via the __plt_dpl cookie a
+  // tester sets by hand. This is what makes a staged version testable in a plain
+  // browser (a header rule alone cannot be — a browser can't set a header on a
+  // navigation).
+  const cookieRule = route.spec.rules[0]
+  assert.strictEqual(cookieRule.matches[0].headers[0].name, 'Cookie')
+  assert.strictEqual(cookieRule.matches[0].headers[0].type, 'RegularExpression')
+  assert.strictEqual(
+    cookieRule.matches[0].headers[0].value,
+    '(.*;\\s*)?__plt_dpl=v3\\.0\\.0-staged(\\s*;.*)?'
+  )
+  assert.deepStrictEqual(cookieRule.backendRefs, [{ name: 'myapp-v3.0.0', port: 3042 }])
+  assert.deepStrictEqual(cookieRule.filters, [URL_REWRITE_FILTER])
+
+  // Staged header rule second: x-deployment-id preview header.
+  const previewRule = route.spec.rules[1]
+  assert.strictEqual(previewRule.matches[0].headers[0].name, 'x-deployment-id')
+  assert.strictEqual(previewRule.matches[0].headers[0].type, 'Exact')
+  assert.strictEqual(previewRule.matches[0].headers[0].value, 'v3.0.0-staged')
+  assert.deepStrictEqual(previewRule.backendRefs, [{ name: 'myapp-v3.0.0', port: 3042 }])
+
+  // The staged version must NOT have a default rule — no ordinary client (which
+  // never holds a staged cookie) can reach it; only an explicit opt-in does.
+  const defaultRule = route.spec.rules[2]
+  assert.deepStrictEqual(defaultRule.matches, [{ path: { type: 'PathPrefix', value: '/myapp' } }])
+  assert.strictEqual(defaultRule.backendRefs[0].name, 'myapp-v2.0.0')
+})
+
+test('staged rules precede draining rules and the default rule', async () => {
+  const route = buildHTTPRoute({
+    ...defaultParams,
+    drainingVersions: [{ versionId: 'v1.0.0-old', serviceName: 'myapp-v1.0.0', port: 3042 }],
+    stagedVersions: [{ versionId: 'v3.0.0-staged', serviceName: 'myapp-v3.0.0', port: 3042 }]
+  })
+
+  // 2 staged (cookie + header) + 2 draining (cookie + header) + 1 default = 5
+  assert.strictEqual(route.spec.rules.length, 5)
+
+  // Staged cookie + header first
+  assert.strictEqual(route.spec.rules[0].matches[0].headers[0].name, 'Cookie')
+  assert.strictEqual(
+    route.spec.rules[0].matches[0].headers[0].value,
+    '(.*;\\s*)?__plt_dpl=v3\\.0\\.0-staged(\\s*;.*)?'
+  )
+  assert.strictEqual(route.spec.rules[1].matches[0].headers[0].name, 'x-deployment-id')
+  assert.strictEqual(route.spec.rules[1].matches[0].headers[0].value, 'v3.0.0-staged')
+
+  // Then draining cookie + header rules
+  assert.strictEqual(route.spec.rules[2].matches[0].headers[0].name, 'Cookie')
+  assert.strictEqual(route.spec.rules[3].matches[0].headers[0].name, 'x-deployment-id')
+  assert.strictEqual(route.spec.rules[3].matches[0].headers[0].value, 'v1.0.0-old')
+
+  // Default rule last
+  assert.strictEqual(route.spec.rules[4].backendRefs[0].name, 'myapp-v2.0.0')
 })
 
 test('should use custom pathPrefix on all rules', async () => {

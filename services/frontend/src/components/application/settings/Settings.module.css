@@ -5,10 +5,12 @@
   @apply flex gap-x-4 w-full;
 }
 .leftPane {
-  @apply p-4 flex flex-col gap-y-4;
+  @apply p-4 flex flex-col gap-y-4 shrink-0;
 }
+/* min-w-0 so long content in the panel wraps within it instead of stealing
+   width from the nav column (which would wrap the nav labels). */
 .rightPane {
-  @apply grow rounded-lg;
+  @apply grow rounded-lg min-w-0;
 }
 
 .sections {

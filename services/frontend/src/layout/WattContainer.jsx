@@ -65,6 +65,14 @@ function WattContainer ({ children }) {
             iconName: 'DeploymentHistoryIcon',
             disabled: (application?.deployments?.length ?? 0) === 0
           },
+          ...(config['skew-protection']
+            ? [{
+                link: generatePath('versions', { applicationId: application.id }),
+                label: 'Version Manager',
+                iconName: 'VersionManagerIcon',
+                disabled: (application?.deployments?.length ?? 0) === 0
+              }]
+            : []),
           {
             link: generatePath(isScalerV2 ? 'autoscaler-v2' : 'autoscaler', { applicationId: application.id }),
             label: 'Autoscaler',

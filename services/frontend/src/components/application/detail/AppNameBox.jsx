@@ -42,7 +42,10 @@ function AppNameBox ({
     '@platformatic/runtime'
   )
 
-  const shouldShowWarning = semver.compare(application.pltVersion, latestCompatibleVersion) < 0 && latestCompatibleVersion
+  // Guard first: latestCompatibleVersion is null when packageVersions has not loaded
+  // (e.g. right after a restart). semver.compare(x, null) throws because typeof null
+  // is 'object', so short-circuit before comparing.
+  const shouldShowWarning = !!latestCompatibleVersion && semver.compare(application.pltVersion, latestCompatibleVersion) < 0
 
   return (
     <BorderedBox classes={`${styles.borderexBoxContainer} ${gridClassName}`} backgroundColor={BLACK_RUSSIAN} color={TRANSPARENT}>

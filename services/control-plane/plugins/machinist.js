@@ -1,7 +1,7 @@
 'use strict'
 
 const querystring = require('node:querystring')
-const { request, getGlobalDispatcher, interceptors } = require('undici')
+const { request, Agent, interceptors } = require('undici')
 const fp = require('fastify-plugin')
 const errors = require('./errors')
 
@@ -13,7 +13,7 @@ class Machinist {
     this.url = machinistUrl
     this.#prefix = `/${provider}`
 
-    this.#dispatcher = getGlobalDispatcher()
+    this.#dispatcher = new Agent()
       .compose(interceptors.retry({
         maxRetries: 3,
         maxTimeout: 30000,
@@ -118,6 +118,46 @@ class Machinist {
     return body.json()
   }
 
+  async applyDeployment (namespace, deployment, ctx) {
+    ctx.logger.info('Applying Deployment')
+
+    const url = this.url + this.#prefix + `/controllers/${namespace}`
+    const { statusCode, body } = await request(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(deployment),
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error({ error, namespace }, 'Failed to apply Deployment')
+      throw new errors.FailedToApplyDeployment(error)
+    }
+
+    return body.json()
+  }
+
+  async applyService (namespace, service, ctx) {
+    ctx.logger.info('Applying Service')
+
+    const url = this.url + this.#prefix + `/services/${namespace}`
+    const { statusCode, body } = await request(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(service),
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error({ error, namespace }, 'Failed to apply Service')
+      throw new errors.FailedToApplyService(error)
+    }
+
+    return body.json()
+  }
+
   async getHTTPRoute (namespace, name, ctx) {
     ctx.logger.info('Getting HTTPRoute')
 
@@ -125,6 +165,13 @@ class Machinist {
     const { statusCode, body } = await request(url, {
       dispatcher: this.#dispatcher
     })
+
+    // Route not found is a normal state (e.g. advise before the external actor
+    // applies): return null so the caller degrades quietly instead of erroring.
+    if (statusCode === 404) {
+      body.dump()
+      return null
+    }
 
     if (statusCode !== 200) {
       const error = await body.text()

@@ -6,6 +6,8 @@ const { request } = require('undici')
 const fp = require('fastify-plugin')
 const errors = require('./errors')
 const { getK8sToken, k8sAuthHeaders } = require('../lib/k8s-auth')
+const { resolveActuation } = require('../lib/actuation')
+const { deriveVersion } = require('../lib/version')
 
 async function registerWorkflowApp (appName, namespace, { workflowUrl, log, machineId, deploymentVersion, serviceName, servicePort }) {
   if (!workflowUrl || !getK8sToken()) return
@@ -102,6 +104,11 @@ module.exports = fp(async function (app) {
   ) => {
     let application = null
     let deployment = null
+    // The deployment version ICC resolves (the plt.dev/version label, else a plt_ id
+    // derived from the image -- see lib/version.js). Returned to the pod
+    // so the runtime (e.g. Platformatic World) stamps queue messages with the same
+    // version ICC registers handlers under. 'local' means no skew.
+    let deploymentVersion = 'local'
 
     ctx.logger.debug({ machineId }, 'Getting application instance')
 
@@ -129,6 +136,8 @@ module.exports = fp(async function (app) {
         ctx
       )
       const { image: imageId } = machineDetails
+      deploymentVersion = machineDetails.labels?.['plt.dev/version'] ||
+        deriveVersion(imageId) || 'local'
 
       if (imageId !== deployment.imageId) {
         throw new errors.MachineAssignedToDifferentImage(
@@ -147,10 +156,12 @@ module.exports = fp(async function (app) {
       )
       const { image: imageId } = machineDetails
 
-      // Skew protection: detect version metadata from K8s labels
+      // Detect version metadata from K8s labels. Skew-independent: the version
+      // record is kept whether or not skew protection (routing) is enabled; the
+      // HTTPRoute is applied separately below, only when the gateway actuator
+      // exists (skew on).
       let versionMeta = null
-      const skewProtectionEnabled = app.env.PLT_FEATURE_SKEW_PROTECTION
-      if (skewProtectionEnabled) {
+      {
         const appLabel = machineDetails.labels?.['app.kubernetes.io/name']
         const versionLabel = machineDetails.labels?.['plt.dev/version']
         const hostnameLabel = machineDetails.labels?.['plt.dev/hostname']
@@ -161,16 +172,20 @@ module.exports = fp(async function (app) {
           : machineDetails.labels?.['plt.dev/expire-policy']
 
         if (appLabel) {
-          // For non-versioned deploys, derive version from the image tag
-          const effectiveVersionLabel = versionLabel || (imageId?.includes(':') ? imageId.split(':').pop() : null)
+          // For non-versioned deploys, mint the version id from the image (lib/version.js)
+          const effectiveVersionLabel = versionLabel || deriveVersion(imageId)
 
           if (effectiveVersionLabel) {
             const controllerName = machineDetails.controller?.name
-            // When looking up the K8s Service, only filter by version label
-            // if the machine actually has one (non-versioned machines have a Service
-            // without the plt.dev/version label).
+            // Resolve THIS workload's Service by the instance label (unique per
+            // version) so coexisting versions each map to their own Service.
+            // Filtering by app name alone returns every version's Service, and
+            // services[0] would be arbitrary. Fall back to the version label, then
+            // app name, for older/non-labeled workloads.
+            const instanceLabel = machineDetails.labels?.['app.kubernetes.io/instance']
             const svcLabels = { 'app.kubernetes.io/name': appLabel }
-            if (versionLabel) svcLabels['plt.dev/version'] = versionLabel
+            if (instanceLabel) svcLabels['app.kubernetes.io/instance'] = instanceLabel
+            else if (versionLabel) svcLabels['plt.dev/version'] = versionLabel
             const services = await app.machinist.getServicesByLabels(
               namespace,
               svcLabels,
@@ -204,6 +219,12 @@ module.exports = fp(async function (app) {
           }
         }
       }
+
+      // Resolve the deployment version once (label, else a derived plt_ id) for the response
+      // to the pod and the workflow handler registration below.
+      deploymentVersion = versionMeta?.versionLabel ||
+        machineDetails.labels?.['plt.dev/version'] ||
+        deriveVersion(imageId) || 'local'
 
       // Skew protection: use appLabel as ICC application name so versioned
       // and non-versioned deploys share the same ICC application record.
@@ -257,11 +278,9 @@ module.exports = fp(async function (app) {
         // For versioned deploys use version metadata; for non-versioned look up service directly
         let svcName = versionMeta?.serviceName
         let svcPort = versionMeta?.servicePort
-        // Use version label when available; for non-versioned machines derive from
-        // the image tag (matching the auto-version logic in initApplicationInstance)
-        // so that workflow runs are tagged with the same version ICC will use.
-        const imageTag = (imageId || '').includes(':') ? imageId.split(':').pop() : null
-        const depVersion = versionMeta?.versionLabel || machineDetails.labels?.['plt.dev/version'] || imageTag || 'local'
+        // Same version ICC returns to the pod (see deploymentVersion above), so the
+        // workflow run and the pod's queue stamps share one value.
+        const depVersion = deploymentVersion
 
         if (!svcName || !svcPort) {
           const appLabel = machineDetails.labels?.['app.kubernetes.io/name']
@@ -352,7 +371,7 @@ module.exports = fp(async function (app) {
           if (nonVersionedMachines.length > 0) {
             const oldMachine = nonVersionedMachines[0]
             const oldImage = oldMachine.image || ''
-            const oldVersionLabel = oldImage.includes(':') ? oldImage.split(':').pop() : oldImage
+            const oldVersionLabel = deriveVersion(oldImage)
 
             // Check if this non-versioned deployment already has a version entry
             const alreadyRegistered = existingVersions.some(v => v.versionLabel === oldVersionLabel)
@@ -413,7 +432,7 @@ module.exports = fp(async function (app) {
           ctx.logger.error({ err }, 'Failed to auto-create version for non-versioned deployment')
         }
 
-        const { activeVersion, drainingVersions } = await app.registerVersion({
+        const { activeVersion, drainingVersions, stagedVersions } = await app.registerVersion({
           applicationId: result.application.id,
           deploymentId: result.deployment.id,
           appLabel,
@@ -427,7 +446,15 @@ module.exports = fp(async function (app) {
           expirePolicy
         }, ctx)
 
-        if (activeVersion && app.applyHTTPRoute) {
+        // Apply the route whenever there is an active version to anchor the
+        // default rule. A staged registration leaves the prior active serving
+        // and adds the new version as a preview-only (x-deployment-id) rule.
+        // In advise mode ICC actuates no routing, so the reactive apply is
+        // skipped; the route is managed externally.
+        const mode = app.resolveSkewPolicy
+          ? (await app.resolveSkewPolicy(result.application.id)).mode
+          : null
+        if (activeVersion && app.applyHTTPRoute && resolveActuation(mode).routing === 'apply') {
           await app.applyHTTPRoute({
             appName: appLabel,
             namespace,
@@ -435,6 +462,7 @@ module.exports = fp(async function (app) {
             hostname,
             productionVersion: activeVersion,
             drainingVersions,
+            stagedVersions,
             applicationId: result.application.id
           }, ctx).catch(err => {
             ctx.logger.error({ err }, 'Failed to apply HTTPRoute')
@@ -464,6 +492,7 @@ module.exports = fp(async function (app) {
 
     return {
       application,
+      deploymentVersion,
       config,
       scaler,
       httpCache,

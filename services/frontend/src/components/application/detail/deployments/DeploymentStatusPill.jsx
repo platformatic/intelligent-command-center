@@ -21,8 +21,12 @@ function getLabelForStatus (status) {
       return 'Expired'
     case 'started':
       return 'Latest'
+    case 'starting':
+      return 'Starting'
     case 'stopped':
       return 'Stopped'
+    case 'failed':
+      return 'Failed'
     default:
       return status ?? 'Unknown'
   }
@@ -32,10 +36,12 @@ function getColorsForStatus (status) {
     case 'active':
       return { bg: '#061C13', accent: '#21FA90' }
     case 'draining':
+    case 'starting':
       return { bg: '#2a1f00', accent: '#ffb020' }
     case 'expired':
-      return { bg: '#2a0f0f', accent: '#ff6b6b' }
     case 'stopped':
+      return { bg: '#2a1f1f', accent: '#a0a0a0' }
+    case 'failed':
       return { bg: '#2a0f0f', accent: '#ff6b6b' }
     default:
       return { bg: '#061C13', accent: '#21FA90' }

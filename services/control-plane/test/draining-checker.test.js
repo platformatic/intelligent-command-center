@@ -9,6 +9,7 @@ const fp = require('fastify-plugin')
 const versionRegistryPlugin = require('../plugins/version-registry')
 const versionCleanupPlugin = require('../plugins/version-cleanup')
 const skewPolicyPlugin = require('../plugins/skew-policy')
+const actuationPolicyPlugin = require('../plugins/actuation-policy')
 const drainingCheckerPlugin = require('../plugins/draining-checker')
 
 function createMockMetricsServer (rpsMap) {
@@ -169,6 +170,7 @@ function buildApp (opts = {}) {
     })
   }, { name: 'gateway', dependencies: ['env', 'machinist'] }))
 
+  app.register(actuationPolicyPlugin)
   app.register(skewPolicyPlugin)
   app.register(versionRegistryPlugin)
   app.register(versionCleanupPlugin)
@@ -251,6 +253,56 @@ test('should expire draining versions with zero RPS from metrics', async (t) => 
 
   assert.strictEqual(store[0].status, 'expired')
   assert.ok(calls.updateControllerReplicas.length > 0)
+})
+
+test('advise mode: recommends instead of expiring a zero-traffic draining version', async (t) => {
+  const rpsMap = { 'my-app:v1': 0 }
+  const { server, url } = await startMockMetrics(rpsMap)
+  t.after(() => server.close())
+
+  const policyStore = []
+  const { app, store, calls, triggerLeader } = buildApp({
+    checkIntervalMs: 30,
+    metricsUrl: url,
+    policyStore
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  // Register under observe so v1 actually drains, then switch the app to advise.
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    controllerName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+  assert.strictEqual(store[0].status, 'draining')
+
+  store[0].drainedAt = new Date(Date.now() - 2000000).toISOString()
+  policyStore.push({
+    id: 'adv-app-1',
+    applicationId: 'app-1',
+    enabled: true,
+    mode: 'advise',
+    requiresApproval: false,
+    httpGracePeriodMs: null,
+    httpMaxAliveMs: null,
+    workflowGracePeriodMs: null,
+    workflowMaxAliveMs: null,
+    maxAgeS: null,
+    maxVersions: null,
+    cookieName: null,
+    autoCleanup: null
+  })
+
+  await triggerLeader()
+  await setTimeout(150)
+
+  // Advise mode: the checker advises, it does not scale the pod down.
+  assert.strictEqual(store[0].status, 'draining')
+  assert.strictEqual(calls.updateControllerReplicas.length, 0)
 })
 
 test('should NOT expire version within grace period even if RPS=0', async (t) => {

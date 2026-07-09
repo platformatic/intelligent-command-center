@@ -1,6 +1,7 @@
 'use strict'
 
 const fp = require('fastify-plugin')
+const { resolveActuation } = require('../lib/actuation')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
@@ -16,12 +17,12 @@ module.exports = fp(async function (app) {
 
     const versions = await entities.versionRegistry.find({
       where: {
-        status: { in: ['active', 'draining'] }
+        status: { in: ['active', 'draining', 'staged'] }
       }
     })
 
     if (versions.length === 0) {
-      app.log.info('httproute reconciler: no active or draining versions found')
+      app.log.info('httproute reconciler: no active, draining, or staged versions found')
       return
     }
 
@@ -41,20 +42,20 @@ module.exports = fp(async function (app) {
       try {
         let productionVersion = null
         const drainingVersions = []
+        const stagedVersions = []
 
         for (const v of appVersions) {
+          const versionRef = {
+            versionId: v.versionLabel,
+            serviceName: v.serviceName,
+            port: v.servicePort
+          }
           if (v.status === 'active') {
-            productionVersion = {
-              versionId: v.versionLabel,
-              serviceName: v.serviceName,
-              port: v.servicePort
-            }
+            productionVersion = versionRef
+          } else if (v.status === 'staged') {
+            stagedVersions.push(versionRef)
           } else {
-            drainingVersions.push({
-              versionId: v.versionLabel,
-              serviceName: v.serviceName,
-              port: v.servicePort
-            })
+            drainingVersions.push(versionRef)
           }
         }
 
@@ -65,6 +66,18 @@ module.exports = fp(async function (app) {
         }
 
         const ref = appVersions[0]
+
+        // Advise mode: ICC actuates no routing, so it must not rebuild the route
+        // on failover. The external actor owns cluster routing state.
+        if (app.resolveSkewPolicy) {
+          const { mode } = await app.resolveSkewPolicy(ref.applicationId)
+          if (resolveActuation(mode).routing !== 'apply') {
+            app.log.info({ appLabel }, 'httproute reconciler: advise mode, skipping route rebuild')
+            skipped++
+            continue
+          }
+        }
+
         await app.applyHTTPRoute({
           appName: appLabel,
           namespace: ref.namespace,
@@ -72,6 +85,7 @@ module.exports = fp(async function (app) {
           hostname: ref.hostname || null,
           productionVersion,
           drainingVersions,
+          stagedVersions,
           applicationId: ref.applicationId
         }, { logger: app.log })
 

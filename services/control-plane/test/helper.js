@@ -134,6 +134,8 @@ async function startControlPlane (t, entities = {}, env = {}) {
 
   const { db, sql } = app.platformatic
 
+  await db.query(sql`DELETE FROM "deploy_tokens"`)
+  await db.query(sql`DELETE FROM "version_audit"`)
   await db.query(sql`DELETE FROM "skew_protection_policies"`)
   await db.query(sql`DELETE FROM "version_registry"`)
   await db.query(sql`DELETE FROM "generations_deployments"`)

@@ -149,6 +149,41 @@ module.exports = {
     'Version "%s" is not draining (current status: %s)',
     400
   ),
+  VersionNotExpirable: createError(
+    `${ERROR_PREFIX}_VERSION_NOT_EXPIRABLE`,
+    'Version "%s" cannot be expired from its current status: %s',
+    400
+  ),
+  VersionNotStaged: createError(
+    `${ERROR_PREFIX}_VERSION_NOT_STAGED`,
+    'Version "%s" is not staged (current status: %s)',
+    400
+  ),
+  VersionCannotPromote: createError(
+    `${ERROR_PREFIX}_VERSION_CANNOT_PROMOTE`,
+    'Version "%s" cannot be promoted (current status: %s): %s',
+    400
+  ),
+  CannotExpireActiveVersion: createError(
+    `${ERROR_PREFIX}_CANNOT_EXPIRE_ACTIVE_VERSION`,
+    'Version "%s" is active and cannot be expired; promote another version first',
+    400
+  ),
+  IllegalVersionTransition: createError(
+    `${ERROR_PREFIX}_ILLEGAL_VERSION_TRANSITION`,
+    'Illegal version state transition: "%s" -> "%s"',
+    400
+  ),
+  InvalidVersioningMode: createError(
+    `${ERROR_PREFIX}_INVALID_VERSIONING_MODE`,
+    'Invalid versioning mode "%s" (expected observe, manage or advise)',
+    400
+  ),
+  DeployTokenNotFound: createError(
+    `${ERROR_PREFIX}_DEPLOY_TOKEN_NOT_FOUND`,
+    'Deploy token "%s" not found for application "%s"',
+    404
+  ),
   FailedToUpdateController: createError(
     `${ERROR_PREFIX}_FAILED_TO_UPDATE_CONTROLLER`,
     'Failed to update controller: %s'
@@ -160,5 +195,30 @@ module.exports = {
   FailedToDeleteService: createError(
     `${ERROR_PREFIX}_FAILED_TO_DELETE_SERVICE`,
     'Failed to delete Service: %s'
+  ),
+  FailedToApplyDeployment: createError(
+    `${ERROR_PREFIX}_FAILED_TO_APPLY_DEPLOYMENT`,
+    'Failed to apply Deployment: %s'
+  ),
+  FailedToApplyService: createError(
+    `${ERROR_PREFIX}_FAILED_TO_APPLY_SERVICE`,
+    'Failed to apply Service: %s'
+  ),
+  DeployNotAllowedInMode: createError(
+    `${ERROR_PREFIX}_DEPLOY_NOT_ALLOWED_IN_MODE`,
+    'ICC-owned deploy requires manage or advise mode; app is in %s mode',
+    400
+  ),
+  // Placeholder: manage-mode actuation is parked while the ICC-owned deploy path is
+  // reworked. Remove once the new implementation lands.
+  ManageModeUnavailable: createError(
+    `${ERROR_PREFIX}_MANAGE_MODE_UNAVAILABLE`,
+    'Manage mode is being reworked and is temporarily unavailable; use observe or advise',
+    503
+  ),
+  DeployTokenScopeRequired: createError(
+    `${ERROR_PREFIX}_DEPLOY_TOKEN_SCOPE_REQUIRED`,
+    'This route resolves the application from a deploy token; call it with a deploy token',
+    400
   )
 }

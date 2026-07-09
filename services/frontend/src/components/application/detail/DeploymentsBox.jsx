@@ -1,18 +1,32 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { WHITE, TRANSPARENT, MEDIUM, BLACK_RUSSIAN, ERROR_RED } from '@platformatic/ui-components/src/components/constants'
+import { WHITE, TRANSPARENT, MEDIUM, BLACK_RUSSIAN } from '@platformatic/ui-components/src/components/constants'
 import styles from './DeploymentsBox.module.css'
 import typographyStyles from '~/styles/Typography.module.css'
 import commonStyles from '~/styles/CommonStyles.module.css'
 import loadingSpinnerStyles from '~/styles/LoadingSpinnerStyles.module.css'
 import NoDataAvailable from '~/components/ui/NoDataAvailable'
 import { BorderedBox, Button, LoadingSpinnerV2 } from '@platformatic/ui-components'
+import useICCStore from '~/useICCStore'
 import { getFormattedTimeAndDate } from '~/utilities/dates'
 import Icons from '@platformatic/ui-components/src/components/icons'
-import { getVersionRegistryByApplicationId, expireApplicationVersion } from '~/api'
+import { getVersionRegistryByApplicationId } from '~/api'
 import { NavLink } from 'react-router-dom'
 import DeploymentStatusPill from './deployments/DeploymentStatusPill'
 import { truncateLabel } from '~/utilities/truncate'
 import useSubscribeToUpdates from '~/hooks/useSubscribeToUpdates'
+
+// Build a copy-pasteable, runnable plan: the stored `command` is
+// `kubectl apply -f -` (reads the manifest from stdin), so embed each manifest as
+// a heredoc -- otherwise a copied command has nothing to apply.
+function buildPlanScript (steps) {
+  return steps.map((s) => {
+    const base = String(s.command || '').split('#')[0].trim() || 'kubectl apply -f -'
+    const manifest = s.manifest ? JSON.stringify(s.manifest, null, 2) : ''
+    return manifest
+      ? `# ${s.kind}/${s.action}\n${base} <<'EOF'\n${manifest}\nEOF`
+      : `# ${s.kind}/${s.action}\n${s.command || ''}`
+  }).join('\n\n')
+}
 
 function DeploymentsBox ({
   gridClassName = '',
@@ -86,7 +100,6 @@ function DeploymentsBox ({
         key={version.id}
         version={version}
         applicationId={application.id}
-        onExpired={() => loadVersions()}
         isSelected={selectedVersion?.id === version.id}
         onSelect={() => onVersionSelect?.(version)}
       />
@@ -134,8 +147,20 @@ const selectedClassByStatus = {
   draining: styles.selectedDraining
 }
 
-function DeploymentItem ({ version, applicationId, onExpired, isSelected, onSelect }) {
-  const [expiring, setExpiring] = useState(false)
+function DeploymentItem ({ version, applicationId, isSelected, onSelect }) {
+  const { showSplashScreen } = useICCStore()
+  const planSteps = version.plan?.steps ?? []
+
+  function copyPlan (e) {
+    e.stopPropagation()
+    navigator.clipboard?.writeText(buildPlanScript(planSteps))
+    showSplashScreen({
+      title: 'Plan copied to clipboard',
+      content: 'Paste and run it against your cluster; ICC confirms the version once its pods register.',
+      type: 'success',
+      timeout: 3000
+    })
+  }
   const isExpired = version.status === 'expired'
   const statusClass = isSelected
     ? (selectedClassByStatus[version.status] ?? styles.selectedActive)
@@ -143,37 +168,25 @@ function DeploymentItem ({ version, applicationId, onExpired, isSelected, onSele
   const versionLabel = version.versionLabel ?? version.version_label ?? version.id ?? ''
   const autoscalerUrl = `/watts/${applicationId}/autoscaler${versionLabel ? `?versionLabel=${encodeURIComponent(versionLabel)}` : ''}`
 
-  async function handleExpire () {
-    const label = version.versionLabel
-    if (!label) return
-    setExpiring(true)
-    try {
-      await expireApplicationVersion(applicationId, label)
-      onExpired?.()
-    } catch (err) {
-      console.error('expireApplicationVersion', err)
-    } finally {
-      setExpiring(false)
-    }
-  }
-
+  // Lifecycle actions (expire, etc.) live in the Version Manager. This box is a
+  // read-only deployment list; draining versions only offer a details link.
   function renderRightSide () {
-    if (version.status === 'active') {
+    // Advise (skew off): no live workload to view; always offer the plan.
+    if (version.status === 'pending-apply' && planSteps.length > 0) {
+      return (
+        <button type='button' className={styles.viewDetailsButton} onClick={copyPlan}>
+          Copy Plan
+        </button>
+      )
+    }
+    // "Currently Viewing" marks the SELECTED row (the version the metrics below
+    // reflect), not the active one -- clicking another row moves it.
+    if (isSelected) {
       return <div className={styles.currentlyViewing}>Currently Viewing</div>
     }
     if (version.status === 'draining') {
       return (
         <div className={styles.actionsRow}>
-          <Button
-            type='button'
-            label='Expire'
-            color={WHITE}
-            backgroundColor={ERROR_RED}
-            paddingClass={commonStyles.smallButtonPadding}
-            textClass={typographyStyles.desktopButtonSmall}
-            disabled={expiring}
-            onClick={handleExpire}
-          />
           <NavLink to={autoscalerUrl} className={styles.viewDetailsButton}>
             View Details <Icons.ArrowLongRightIcon color={WHITE} size={MEDIUM} />
           </NavLink>

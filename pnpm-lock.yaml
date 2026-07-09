@@ -329,8 +329,8 @@ importers:
         version: 0.5.21
     devDependencies:
       '@platformatic/ui-components':
-        specifier: ^0.20.0
-        version: 0.20.0
+        specifier: ^0.21.0
+        version: 0.21.0
       '@types/react':
         specifier: ^19.0.1
         version: 19.2.17
@@ -2076,8 +2076,8 @@ packages:
     resolution: {integrity: sha512-e3jK2J7n/i9uy8gt/j8MGt4QeQLFZ+pq8U+fLGYFdJNOWUqIWclcfRJz2Nr1pQoohOBk5O0VDjAKPRlbUC9Gcg==}
     engines: {node: '>=22.19.0'}
 
-  '@platformatic/ui-components@0.20.0':
-    resolution: {integrity: sha512-X+hgvyrYltN0ZquwYFjVaHianvMcGMgxH/Rzf9hfAljm1eIK9C3nA/P00UZqJZgGEoNkJ1xlQvSYTLtVWhRtBA==}
+  '@platformatic/ui-components@0.21.0':
+    resolution: {integrity: sha512-cJXdYbbUtvvKU+ub/Jlu+38UiLRQWDjxgq9eNydHXv70X/+GbCJ6hciYQcWPvhRNCih6jKQslW3ti7X72WtXGw==}
 
   '@platformatic/undici-cache-memory@0.9.0':
     resolution: {integrity: sha512-ub1oMcewDpZD5PLFyfXeZYVe3aQBZXVwZ3wUssjvErdavBex+aptvps9UGDDD0k6L1KNlCCJZE74WrxRNGiewg==}
@@ -8238,7 +8238,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@platformatic/ui-components@0.20.0':
+  '@platformatic/ui-components@0.21.0':
     dependencies:
       autoprefixer: 10.5.2(postcss@8.5.16)
       d3: 7.9.0

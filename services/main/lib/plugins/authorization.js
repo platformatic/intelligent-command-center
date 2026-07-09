@@ -11,6 +11,7 @@ const {
 } = require('../errors')
 
 const PLT_USER_MANAGER_URL = 'http://user-manager.plt.local'
+const PLT_CONTROL_PLANE_URL = 'http://control-plane.plt.local'
 
 async function getWhitelistedPaths () {
   const routes = [
@@ -141,6 +142,43 @@ async function authorizeRouteWithCookie (req) {
     throw new UnknownResponseFromAuthorizeError(JSON.stringify(payload))
   }
 }
+
+// A CI authenticates with a scoped deploy token: `Authorization: Bearer
+// plt_deploy_...`. The gateway hands it to control-plane for verification
+// (hash lookup + scope/app check) and, on success, injects the resolved
+// principal as the `x-user` header that internal services already trust.
+function isDeployTokenRequest (req) {
+  const auth = req.headers.authorization
+  return typeof auth === 'string' && auth.startsWith('Bearer plt_deploy_')
+}
+
+async function authorizeWithDeployToken (req) {
+  const token = req.headers.authorization.slice('Bearer '.length)
+
+  const res = await request(`${PLT_CONTROL_PLANE_URL}/deploy-tokens/verify`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-plt-icc-session-secret': process.env.PLT_ICC_SESSION_SECRET
+    },
+    body: JSON.stringify({ token, method: req.method, path: req.url })
+  })
+
+  if (res.statusCode !== 200) {
+    const body = await res.body.text()
+    throw new UnknownResponseFromAuthorizeError(`deploy token verify failed: ${res.statusCode} ${body}`)
+  }
+
+  const payload = await res.body.json()
+  if (payload.authorized !== true) {
+    throw new UnauthorizedRouteError(req.method, req.url)
+  }
+
+  req.user = payload.principal
+  req.headers['x-user'] = JSON.stringify(payload.principal)
+  return true
+}
+
 async function plugin (app) {
   async function authorizeRoute (req) {
   // We distinguish between API calls that are supposed to be done from
@@ -156,6 +194,9 @@ async function plugin (app) {
     }
     if (isMachineAuthAllowedUrl(req)) {
       return app.machineAuth(req)
+    }
+    if (isDeployTokenRequest(req)) {
+      return authorizeWithDeployToken(req)
     }
     return authorizeRouteWithCookie(req)
   }

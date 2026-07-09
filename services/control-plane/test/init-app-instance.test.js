@@ -4,6 +4,7 @@
 process.env.PLT_K8S_TOKEN = 'test-k8s-token'
 
 const assert = require('node:assert/strict')
+const { deriveVersion } = require('../lib/version')
 const { test } = require('node:test')
 const { randomUUID } = require('node:crypto')
 const fastify = require('fastify')
@@ -1779,7 +1780,7 @@ test('should handle duplicate machine registration for the same version', async 
   assert.strictEqual(appliedHTTPRoutes[1].httpRoute.spec.rules.length, 1)
 })
 
-test('should skip version detection when skew protection is disabled', async (t) => {
+test('should run version detection even when skew protection is disabled', async (t) => {
   const applicationName = 'test-app-no-skew'
   const machineId = randomUUID()
   const imageId = randomUUID()
@@ -1823,7 +1824,12 @@ test('should skip version detection when skew protection is disabled', async (t)
   })
 
   assert.strictEqual(statusCode, 200, body)
-  assert.strictEqual(servicesByLabelsRequests.length, 0)
+  // Version detection now runs regardless of skew (versions are recorded even
+  // without routing), so the service lookup happens with skew off too.
+  assert.strictEqual(servicesByLabelsRequests.length, 1)
+  // ICC returns the resolved version so the pod (Platformatic World) stamps queue
+  // messages without reading the cluster itself.
+  assert.strictEqual(JSON.parse(body).deploymentVersion, 'v1.0.0')
 })
 
 test('should handle missing version labels gracefully when skew protection is enabled', async (t) => {
@@ -2353,7 +2359,7 @@ test('should auto-create version for pre-existing non-versioned deployment', asy
   })
   assert.strictEqual(versions.length, 2)
 
-  const oldVersion = versions.find(v => v.versionLabel === oldImageTag)
+  const oldVersion = versions.find(v => v.versionLabel === deriveVersion(oldImage))
   assert.ok(oldVersion, 'should have auto-created version for old deployment')
   assert.strictEqual(oldVersion.status, 'draining')
   assert.strictEqual(oldVersion.controllerName, appLabel)
@@ -2496,7 +2502,7 @@ test('should auto-create version for non-versioned deployment even when other ve
     where: { appLabel: { eq: appLabel } }
   })
 
-  const autoCreated = versions.find(v => v.versionLabel === oldImageTag)
+  const autoCreated = versions.find(v => v.versionLabel === deriveVersion(oldImage))
   assert.ok(autoCreated, 'should auto-create version even when other versions exist')
   assert.strictEqual(autoCreated.status, 'draining')
 
@@ -2712,8 +2718,8 @@ test('plt.dev/workflow label without version still registers app and binding', a
   assert.strictEqual(calls.apps.length, 1)
   assert.strictEqual(calls.bindings.length, 1)
 
-  // Handler registered with image tag as deployment version (no plt.dev/version label)
+  // Handler registered with the derived plt_ id as deployment version (no plt.dev/version label)
   assert.strictEqual(calls.handlers.length, 1)
-  assert.strictEqual(calls.handlers[0].deploymentVersion, imageTag)
+  assert.strictEqual(calls.handlers[0].deploymentVersion, deriveVersion(imageId))
   assert.ok(calls.handlers[0].endpoints.workflow.includes(`${applicationName}.platformatic.svc.cluster.local:3042`))
 })

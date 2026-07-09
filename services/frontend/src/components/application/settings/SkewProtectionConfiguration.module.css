@@ -1,0 +1,38 @@
+.row {
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Two settings share a row (Enabled | Requires Approval), split by a divider. */
+.half {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.divider {
+  align-self: stretch;
+  width: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mode: a "Mode" label followed by a segmented control of equal-width options,
+   each with a caption under its button. */
+.modeLabel {
+  min-width: 120px;
+  padding-top: 6px;
+}
+
+.modeOptions {
+  @apply flex flex-row gap-x-3 grow;
+}
+
+.modeOption {
+  @apply flex flex-col gap-y-1;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Text of a disabled control reads as disabled, matching its toggle/buttons. */
+.dimmed {
+  opacity: 0.4;
+}

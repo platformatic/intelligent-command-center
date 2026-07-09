@@ -62,6 +62,7 @@ module.exports = fp(async function (app) {
           properties: {
             applicationId: { type: 'string' },
             applicationName: { type: 'string' },
+            deploymentVersion: { type: 'string' },
             config: { $ref: 'applicationInstanceConfig' },
             enableOpenTelemetry: { type: 'boolean' },
             enableSlicerInterceptor: { type: 'boolean' },

@@ -8,10 +8,13 @@ export interface SkewProtectionPolicy {
   autoCleanup?: boolean | null;
   cookieName?: string | null;
   createdAt?: string | null;
+  enabled?: boolean | null;
   httpGracePeriodMs?: number | null;
   httpMaxAliveMs?: number | null;
   maxAgeS?: number | null;
   maxVersions?: number | null;
+  mode?: string | null;
+  requiresApproval?: boolean | null;
   updatedAt?: string | null;
   workflowGracePeriodMs?: number | null;
   workflowMaxAliveMs?: number | null;

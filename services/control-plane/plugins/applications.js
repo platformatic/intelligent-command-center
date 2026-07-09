@@ -70,14 +70,27 @@ module.exports = fp(async function (app) {
 
     const machines = await app.machinist.getMachines(namespace, labels, ctx)
 
+    // Resolve each pod's version by its workload (app.kubernetes.io/instance = the
+    // Deployment/Service name) via the version registry, which records controllerName
+    // per version. Authoritative and image-format independent, and it works for
+    // non-versioned pods (which carry no plt.dev/version label) -- otherwise the
+    // version-filtered pods view (autoscaler) drops every pod and shows 0.
+    const versions = await app.listVersions(application.id)
+    const versionByController = new Map()
+    for (const v of versions) {
+      if (v.controllerName) versionByController.set(v.controllerName, v.versionLabel)
+      if (v.serviceName) versionByController.set(v.serviceName, v.versionLabel)
+    }
+
     const pods = []
     for (const machine of machines) {
+      const instance = machine.labels?.['app.kubernetes.io/instance']
       pods.push({
         id: machine.id,
         status: machine.status,
         startTime: machine.startTime,
         resources: machine.resources,
-        versionLabel: machine.labels?.['plt.dev/version']
+        versionLabel: machine.labels?.['plt.dev/version'] || versionByController.get(instance)
       })
     }
 

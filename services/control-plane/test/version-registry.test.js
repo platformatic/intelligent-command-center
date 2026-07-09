@@ -6,6 +6,7 @@ const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const versionRegistryPlugin = require('../plugins/version-registry')
 const skewPolicyPlugin = require('../plugins/skew-policy')
+const actuationPolicyPlugin = require('../plugins/actuation-policy')
 
 function buildApp (opts = {}) {
   const enabled = opts.enabled !== false
@@ -96,6 +97,7 @@ function buildApp (opts = {}) {
     })
   }, { name: 'platformatic-db' }))
 
+  app.register(actuationPolicyPlugin)
   app.register(skewPolicyPlugin)
   app.register(versionRegistryPlugin)
 
@@ -535,27 +537,107 @@ test('listVersions accepts status param when skew disabled, still returns empty'
   assert.deepStrictEqual(versions, [])
 })
 
-test('registerVersion throws "feature not enabled" when skew protection is disabled', async (t) => {
+test('registerVersion records a version as active when skew protection is disabled (records only, no routing)', async (t) => {
   const { app } = buildApp({ enabled: false })
   await app.ready()
   t.after(() => app.close())
 
-  assert.strictEqual(typeof app.registerVersion, 'function')
-  await assert.rejects(
-    () => app.registerVersion({
-      applicationId: 'app-1',
-      deploymentId: 'dep-1',
-      appLabel: 'my-app',
-      versionLabel: 'v1',
-      controllerName: 'my-app-v1',
-      serviceName: 'my-app-v1',
-      servicePort: 3042,
-      namespace: 'platformatic',
-      pathPrefix: '/my-app',
-      hostname: null
-    }, mockCtx),
-    err => err.code === 'PLT_CONTROL_PLANE_SKEW_PROTECTION_DISABLED' && err.statusCode === 501
-  )
+  const first = await app.registerVersion({
+    applicationId: 'app-1',
+    deploymentId: 'dep-1',
+    appLabel: 'my-app',
+    versionLabel: 'v1',
+    controllerName: 'my-app-v1',
+    serviceName: 'my-app-v1',
+    servicePort: 3042,
+    namespace: 'platformatic',
+    pathPrefix: '/my-app',
+    hostname: null
+  }, mockCtx)
+  assert.strictEqual(first.isNew, true)
+
+  let active = await app.listVersions('app-1', 'active')
+  assert.strictEqual(active.length, 1)
+  assert.strictEqual(active[0].versionLabel, 'v1')
+  assert.strictEqual(active[0].status, 'active')
+
+  // A second deploy supersedes the first: no drain window without routing, the
+  // previous active collapses straight to expired.
+  await app.registerVersion({
+    applicationId: 'app-1',
+    deploymentId: 'dep-2',
+    appLabel: 'my-app',
+    versionLabel: 'v2',
+    controllerName: 'my-app-v2',
+    serviceName: 'my-app-v2',
+    servicePort: 3042,
+    namespace: 'platformatic',
+    pathPrefix: '/my-app',
+    hostname: null
+  }, mockCtx)
+
+  active = await app.listVersions('app-1', 'active')
+  assert.strictEqual(active.length, 1)
+  assert.strictEqual(active[0].versionLabel, 'v2')
+  const draining = await app.listVersions('app-1', 'draining')
+  assert.strictEqual(draining.length, 0, 'no draining without routing')
+  const all = await app.listVersions('app-1')
+  assert.strictEqual(all.find(v => v.versionLabel === 'v1').status, 'expired')
+})
+
+test('recordAdviseVersion records a pending-apply version carrying the plan (skew off)', async (t) => {
+  const { app } = buildApp({ enabled: false })
+  await app.ready()
+  t.after(() => app.close())
+
+  const plan = [{ kind: 'Deployment', action: 'apply', command: 'kubectl apply' }]
+  const opts = {
+    applicationId: 'app-1',
+    appLabel: 'my-app',
+    versionLabel: 'v9',
+    controllerName: 'my-app-v9',
+    serviceName: 'my-app-v9',
+    servicePort: 3042,
+    namespace: 'platformatic',
+    pathPrefix: '/my-app',
+    hostname: null,
+    expirePolicy: 'http-traffic',
+    plan
+  }
+  await app.recordAdviseVersion(opts, mockCtx)
+
+  const v = await app.getVersion('app-1', 'v9')
+  assert.strictEqual(v.status, 'pending-apply')
+  assert.strictEqual(v.mode, 'advise')
+  assert.deepStrictEqual(v.plan.steps, plan)
+  assert.strictEqual(v.deploymentId, null)
+})
+
+test('a pod registering for an advise pending-apply version confirms it active (skew off)', async (t) => {
+  const { app } = buildApp({ enabled: false })
+  await app.ready()
+  t.after(() => app.close())
+
+  const base = {
+    applicationId: 'app-1',
+    appLabel: 'my-app',
+    versionLabel: 'v9',
+    controllerName: 'my-app-v9',
+    serviceName: 'my-app-v9',
+    servicePort: 3042,
+    namespace: 'platformatic',
+    pathPrefix: '/my-app',
+    hostname: null
+  }
+  await app.recordAdviseVersion({ ...base, plan: [] }, mockCtx)
+
+  // external actor applies the plan; the pod boots and registers
+  const r = await app.registerVersion({ ...base, deploymentId: 'dep-9' }, mockCtx)
+
+  assert.strictEqual(r.isNew, false)
+  const v = await app.getVersion('app-1', 'v9')
+  assert.strictEqual(v.status, 'active')
+  assert.strictEqual(v.deploymentId, 'dep-9')
 })
 
 test('expireVersion throws "feature not enabled" when skew protection is disabled', async (t) => {
@@ -568,4 +650,330 @@ test('expireVersion throws "feature not enabled" when skew protection is disable
     () => app.expireVersion('my-app', 'v1', mockCtx),
     err => err.code === 'PLT_CONTROL_PLANE_SKEW_PROTECTION_DISABLED' && err.statusCode === 501
   )
+})
+
+// ── Version state machine ──
+
+const { STATES, isLegalTransition } = versionRegistryPlugin
+
+test('state machine: pending-apply is the single funnel into active', () => {
+  // Legal funnel transitions
+  assert.ok(isLegalTransition('staged', 'pending-apply'))
+  assert.ok(isLegalTransition('draining', 'pending-apply'))
+  assert.ok(isLegalTransition('expired', 'pending-apply'))
+  assert.ok(isLegalTransition('pending-apply', 'active'))
+  assert.ok(isLegalTransition('active', 'draining'))
+  assert.ok(isLegalTransition('staged', 'expired'))
+  assert.ok(isLegalTransition('draining', 'expired'))
+
+  // Nothing reaches active except through pending-apply
+  assert.ok(!isLegalTransition('staged', 'active'))
+  assert.ok(!isLegalTransition('draining', 'active'))
+  assert.ok(!isLegalTransition('expired', 'active'))
+
+  // The active version cannot be expired directly
+  assert.ok(!isLegalTransition('active', 'expired'))
+  assert.ok(!isLegalTransition('expired', 'draining'))
+
+  assert.strictEqual(STATES.PENDING_APPLY, 'pending-apply')
+  assert.strictEqual(STATES.STAGED, 'staged')
+})
+
+// ── Approval-gated registration and the staged state ──
+
+function approvalPolicyStore (requiresApproval = true) {
+  return [{
+    id: 'p1',
+    applicationId: 'app-1',
+    httpGracePeriodMs: null,
+    httpMaxAliveMs: null,
+    workflowGracePeriodMs: null,
+    workflowMaxAliveMs: null,
+    maxAgeS: null,
+    maxVersions: null,
+    cookieName: null,
+    autoCleanup: null,
+    requiresApproval
+  }]
+}
+
+test('registers a new version as staged when approval is required', async (t) => {
+  const { app, store } = buildApp({ policyStore: approvalPolicyStore() })
+  await app.ready()
+  t.after(() => app.close())
+
+  const result = await app.registerVersion(baseOpts, mockCtx)
+
+  assert.strictEqual(result.isNew, true)
+  assert.strictEqual(result.staged, true)
+  assert.strictEqual(store.length, 1)
+  assert.strictEqual(store[0].status, 'staged')
+  assert.strictEqual(result.activeVersion, null)
+  assert.strictEqual(result.drainingVersions.length, 0)
+})
+
+test('staged registration does not demote the current active version', async (t) => {
+  const policyStore = approvalPolicyStore(false)
+  const { app, store } = buildApp({ policyStore })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx) // v1 active, no approval
+  policyStore[0].requiresApproval = true
+
+  const result = await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    controllerName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  assert.strictEqual(result.staged, true)
+  assert.strictEqual(store[0].status, 'active') // v1 keeps serving
+  assert.strictEqual(store[1].status, 'staged') // v2 awaits approval
+  assert.deepStrictEqual(result.activeVersion, {
+    versionId: 'v1',
+    serviceName: 'my-app-v1-svc',
+    port: 3042
+  })
+})
+
+test('approveVersion promotes a staged version to active', async (t) => {
+  const { app, store } = buildApp({ policyStore: approvalPolicyStore() })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  assert.strictEqual(store[0].status, 'staged')
+
+  const result = await app.approveVersion('my-app', 'v1', mockCtx)
+
+  assert.strictEqual(result.approved, true)
+  assert.strictEqual(store[0].status, 'active')
+  assert.deepStrictEqual(result.activeVersion, {
+    versionId: 'v1',
+    serviceName: 'my-app-v1-svc',
+    port: 3042
+  })
+})
+
+test('approveVersion demotes the previous active version', async (t) => {
+  const policyStore = approvalPolicyStore(false)
+  const { app, store } = buildApp({ policyStore })
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx) // v1 active
+  policyStore[0].requiresApproval = true
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    controllerName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx) // v2 staged
+
+  const result = await app.approveVersion('my-app', 'v2', mockCtx)
+
+  assert.strictEqual(result.approved, true)
+  assert.strictEqual(store[0].status, 'draining') // v1 demoted
+  assert.strictEqual(store[1].status, 'active') // v2 promoted
+})
+
+test('approveVersion refuses a non-staged version', async (t) => {
+  const { app } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx) // active, no approval
+
+  await assert.rejects(
+    () => app.approveVersion('my-app', 'v1', mockCtx),
+    err => err.code === 'PLT_CONTROL_PLANE_VERSION_NOT_STAGED' && err.statusCode === 400
+  )
+})
+
+test('rejectVersion expires a staged version and stops its deployment', async (t) => {
+  const { app, store, deploymentStore } = buildApp({ policyStore: approvalPolicyStore() })
+  await app.ready()
+  t.after(() => app.close())
+
+  deploymentStore.push({ id: 'dep-1', status: 'started' })
+
+  await app.registerVersion(baseOpts, mockCtx) // staged
+  const result = await app.rejectVersion('my-app', 'v1', mockCtx)
+
+  assert.strictEqual(result.rejected, true)
+  assert.strictEqual(store[0].status, 'expired')
+  assert.ok(store[0].expiredAt)
+  assert.strictEqual(deploymentStore[0].status, 'stopped')
+})
+
+test('rejectVersion refuses a non-staged version', async (t) => {
+  const { app } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx) // active
+
+  await assert.rejects(
+    () => app.rejectVersion('my-app', 'v1', mockCtx),
+    err => err.code === 'PLT_CONTROL_PLANE_VERSION_NOT_STAGED'
+  )
+})
+
+// ── Promote / mark as latest ──
+
+test('promoteVersion makes a draining version active again', async (t) => {
+  const { app, store } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    controllerName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+  assert.strictEqual(store[0].status, 'draining')
+
+  const result = await app.promoteVersion('my-app', 'v1', mockCtx)
+
+  assert.strictEqual(result.promoted, true)
+  assert.strictEqual(store[0].status, 'active') // v1 promoted
+  assert.strictEqual(store[1].status, 'draining') // v2 demoted
+  assert.deepStrictEqual(result.activeVersion, {
+    versionId: 'v1',
+    serviceName: 'my-app-v1-svc',
+    port: 3042
+  })
+})
+
+test('promoteVersion refuses an expired version in observe mode', async (t) => {
+  const { app } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    controllerName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+  await app.expireVersion('my-app', 'v1', mockCtx)
+
+  await assert.rejects(
+    () => app.promoteVersion('my-app', 'v1', mockCtx),
+    err => err.code === 'PLT_CONTROL_PLANE_VERSION_CANNOT_PROMOTE' && err.statusCode === 400
+  )
+})
+
+test('promoteVersion is a no-op for the already-active version', async (t) => {
+  const { app, store } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  const result = await app.promoteVersion('my-app', 'v1', mockCtx)
+
+  assert.strictEqual(result.promoted, false)
+  assert.strictEqual(store[0].status, 'active')
+})
+
+// ── Read models: getVersion / planVersion ──
+
+test('getVersion returns the row or null', async (t) => {
+  const { app } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+
+  const found = await app.getVersion('app-1', 'v1')
+  assert.strictEqual(found.versionLabel, 'v1')
+  assert.strictEqual(found.status, 'active')
+
+  const missing = await app.getVersion('app-1', 'nope')
+  assert.strictEqual(missing, null)
+})
+
+test('planVersion returns routing steps for a draining version and null for unknown', async (t) => {
+  const { app } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    controllerName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  const plan = await app.planVersion('app-1', 'v1')
+  assert.ok(Array.isArray(plan.steps))
+  assert.ok(plan.steps.some(s => s.kind === 'HTTPRoute'))
+
+  const missing = await app.planVersion('app-1', 'nope')
+  assert.strictEqual(missing, null)
+})
+
+test('planVersion returns no steps for the already-active version', async (t) => {
+  const { app } = buildApp()
+  await app.ready()
+  t.after(() => app.close())
+
+  await app.registerVersion(baseOpts, mockCtx)
+  const plan = await app.planVersion('app-1', 'v1')
+  assert.deepStrictEqual(plan.steps, [])
+})
+
+// ── Per-app versioning disabled: collapse to a single active backend ──
+
+test('disabled versioning collapses to a single active version (no draining)', async (t) => {
+  const policyStore = approvalPolicyStore(false)
+  policyStore[0].enabled = false
+  const { app, store, deploymentStore } = buildApp({ policyStore })
+  await app.ready()
+  t.after(() => app.close())
+
+  deploymentStore.push({ id: 'dep-1', status: 'started' })
+
+  await app.registerVersion(baseOpts, mockCtx) // v1 active
+  const result = await app.registerVersion({
+    ...baseOpts,
+    versionLabel: 'v2',
+    deploymentId: 'dep-2',
+    controllerName: 'my-app-v2',
+    serviceName: 'my-app-v2-svc'
+  }, mockCtx)
+
+  assert.strictEqual(store[0].status, 'expired') // v1 collapsed, not draining
+  assert.strictEqual(store[1].status, 'active') // v2 active
+  assert.strictEqual(result.drainingVersions.length, 0)
+  assert.deepStrictEqual(result.activeVersion, {
+    versionId: 'v2',
+    serviceName: 'my-app-v2-svc',
+    port: 3042
+  })
+  assert.strictEqual(deploymentStore[0].status, 'stopped')
+})
+
+test('disabled versioning ignores requiresApproval (no staged)', async (t) => {
+  const policyStore = approvalPolicyStore(true)
+  policyStore[0].enabled = false
+  const { app, store } = buildApp({ policyStore })
+  await app.ready()
+  t.after(() => app.close())
+
+  const result = await app.registerVersion(baseOpts, mockCtx)
+
+  assert.notStrictEqual(result.staged, true)
+  assert.strictEqual(store[0].status, 'active')
 })

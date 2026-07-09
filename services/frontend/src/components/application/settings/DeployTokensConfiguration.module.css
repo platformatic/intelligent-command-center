@@ -1,0 +1,51 @@
+.expirySelect {
+  min-width: 140px;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 6px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  vertical-align: middle;
+}
+
+.caretAsc {
+  border-bottom: 5px solid currentColor;
+}
+
+.caretDesc {
+  border-top: 5px solid currentColor;
+}
+
+.reveal {
+  @apply rounded px-4 py-3;
+  background-color: rgba(255, 176, 32, 0.1);
+  border: 1px solid rgba(255, 176, 32, 0.4);
+}
+
+.tokenValue {
+  word-break: break-all;
+}
+
+.notice {
+  @apply rounded px-4 py-2;
+}
+
+.noticeSuccess {
+  background-color: rgba(33, 250, 144, 0.12);
+  border: 1px solid rgba(33, 250, 144, 0.4);
+}
+
+.noticeError {
+  background-color: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.4);
+}

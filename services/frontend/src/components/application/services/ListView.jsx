@@ -32,7 +32,9 @@ function ListView () {
   const navigate = useNavigate()
   const { application } = useRouteLoaderData('appRoot')
   const { applicationThreads } = useLoaderData()
-  const wattApplications = application.state.services
+  // Defensive default: application.state.services can be null before/if the app
+  // state has not loaded, and the effects below read .length / spread it.
+  const wattApplications = application.state?.services ?? []
   const [innerLoading, setInnerLoading] = useState(true)
   const [showNoResult, setShowNoResult] = useState(false)
   const [filteredServices, setFilteredServices] = useState([])

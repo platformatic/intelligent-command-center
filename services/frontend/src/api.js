@@ -869,6 +869,11 @@ export const downloadSynchZip = async (fileName) => {
   })
 }
 
+// Deployments list order: active first, then the pending/in-flight states, then
+// expired last. Within a status, newest first.
+const VERSION_STATUS_RANK = { active: 0, 'pending-apply': 1, staged: 2, draining: 3, 'pending-expire': 4, expired: 6 }
+const versionStatusRank = (status) => VERSION_STATUS_RANK[status] ?? 5
+
 export const getVersionRegistryByApplicationId = async (applicationId, options = {}) => {
   const searchParams = new URLSearchParams()
   if (options.status) {
@@ -894,6 +899,8 @@ export const getVersionRegistryByApplicationId = async (applicationId, options =
     versionLabel: v.versionLabel ?? v.version_label ?? ''
   }))
   list.sort((a, b) => {
+    const rankDiff = versionStatusRank(a.status) - versionStatusRank(b.status)
+    if (rankDiff !== 0) return rankDiff
     const aAt = a.createdAt ? new Date(a.createdAt).getTime() : 0
     const bAt = b.createdAt ? new Date(b.createdAt).getTime() : 0
     return bAt - aAt
@@ -901,8 +908,57 @@ export const getVersionRegistryByApplicationId = async (applicationId, options =
   return list
 }
 
-export const expireApplicationVersion = async (applicationId, versionLabel) => {
-  const url = `${baseUrl}/control-plane/applications/${applicationId}/versions/${encodeURIComponent(versionLabel)}/expire`
+export const getApplicationVersionsPage = async (applicationId, { page = 0, limit = 10, status } = {}) => {
+  const searchParams = new URLSearchParams()
+  searchParams.set('limit', String(limit))
+  searchParams.set('offset', String(page * limit))
+  if (status) {
+    searchParams.set('status', status)
+  }
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/versions?${searchParams.toString()}`
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: getHeaders(),
+    credentials: 'include'
+  })
+
+  if (!response.ok) {
+    return { versions: [], totalCount: 0 }
+  }
+
+  const data = await response.json()
+  // Server returns rows already ordered newest-first; do not re-sort here.
+  const versions = (data.versions ?? []).map((v) => ({
+    ...v,
+    versionLabel: v.versionLabel ?? v.version_label ?? ''
+  }))
+  return { versions, totalCount: data.totalCount ?? versions.length }
+}
+
+export const getApplicationVersionsRPS = async (applicationId) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/versions/rps`
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: getHeaders(),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    return {}
+  }
+  const { rps } = await response.json()
+  // Map versionLabel -> rps for easy per-row lookup; drop null (metric absent).
+  const byVersion = {}
+  for (const entry of rps ?? []) {
+    if (entry.rps !== null && entry.rps !== undefined) {
+      byVersion[entry.versionLabel] = entry.rps
+    }
+  }
+  return byVersion
+}
+
+const versionLifecycleAction = async (applicationId, versionLabel, action) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/versions/${encodeURIComponent(versionLabel)}/${action}`
   const response = await fetch(url, {
     method: 'POST',
     headers: getHeaders(),
@@ -911,7 +967,168 @@ export const expireApplicationVersion = async (applicationId, versionLabel) => {
   })
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))
-    throw new Error(err.message ?? `Failed to expire version ${versionLabel}`)
+    throw new Error(err.message ?? `Failed to ${action} version ${versionLabel}`)
+  }
+  return response.json()
+}
+
+export const expireApplicationVersion = (applicationId, versionLabel) =>
+  versionLifecycleAction(applicationId, versionLabel, 'expire')
+
+export const promoteApplicationVersion = (applicationId, versionLabel) =>
+  versionLifecycleAction(applicationId, versionLabel, 'promote')
+
+export const approveApplicationVersion = (applicationId, versionLabel) =>
+  versionLifecycleAction(applicationId, versionLabel, 'approve')
+
+export const rejectApplicationVersion = (applicationId, versionLabel) =>
+  versionLifecycleAction(applicationId, versionLabel, 'reject')
+
+export const getVersionActuationPlan = async (applicationId, versionLabel) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/versions/${encodeURIComponent(versionLabel)}/actuation-plan`
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: getHeaders(),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.message ?? `Failed to load plan for ${versionLabel}`)
+  }
+  return response.json()
+}
+
+export const getApplicationVersionAudit = async (applicationId, versionLabel) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/versions/${encodeURIComponent(versionLabel)}/audit`
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: getHeaders(),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    return []
+  }
+  const { audit } = await response.json()
+  return audit ?? []
+}
+
+export const getSkewProtectionPolicy = async (applicationId) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/skew-protection/policy`
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: getHeaders(),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    return null
+  }
+  return response.json()
+}
+
+export const deployApplicationVersion = async (applicationId, body) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/deploy`
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(body),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.message ?? 'Failed to deploy version')
+  }
+  return response.json()
+}
+
+export const putSkewProtectionPolicy = async (applicationId, overrides) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/skew-protection/policy`
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify(overrides),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.message ?? 'Failed to update skew protection policy')
+  }
+  return response.json()
+}
+
+export const getActuationMode = async (applicationId) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/actuation-mode`
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: getHeaders(),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    return null
+  }
+  return response.json()
+}
+
+export const putActuationMode = async (applicationId, mode) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/actuation-mode`
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify({ mode }),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.message ?? 'Failed to update deployment mode')
+  }
+  return response.json()
+}
+
+export const getDeployTokens = async (applicationId, { page = 0, limit = 10, sort = 'createdAt', order = 'desc' } = {}) => {
+  const searchParams = new URLSearchParams()
+  searchParams.set('limit', String(limit))
+  searchParams.set('offset', String(page * limit))
+  searchParams.set('sort', sort)
+  searchParams.set('order', order)
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/deploy-tokens?${searchParams.toString()}`
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: getHeaders(),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    return { deployTokens: [], totalCount: 0 }
+  }
+  const data = await response.json()
+  return { deployTokens: data.deployTokens ?? [], totalCount: data.totalCount ?? 0 }
+}
+
+export const createDeployToken = async (applicationId, { name, expiresAt }) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/deploy-tokens`
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ name, expiresAt: expiresAt ?? null }),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.message ?? 'Failed to create deploy token')
+  }
+  return response.json()
+}
+
+export const revokeDeployToken = async (applicationId, tokenId) => {
+  const url = `${baseUrl}/control-plane/applications/${applicationId}/deploy-tokens/${tokenId}`
+  // No content-type: this DELETE has no body, and Fastify's JSON parser rejects an
+  // empty body when content-type is application/json.
+  const response = await fetch(url, {
+    method: 'DELETE',
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.message ?? 'Failed to revoke deploy token')
   }
   return response.json()
 }

@@ -117,14 +117,23 @@ const promWindowToSeconds = (timeWindow) => {
 // then average across the pods that actually served traffic (the > 0 filter).
 const createRequestPerSecondQuery = ({ applicationId, timeWindow }) =>
   `avg(
-    (sum_over_time(http_request_all_summary_seconds_count[${timeWindow}]) / ${promWindowToSeconds(timeWindow)})
+    (sum_over_time(http_request_all_summary_seconds_count{callerTelemetryId=""}[${timeWindow}]) / ${promWindowToSeconds(timeWindow)})
     * on(pod) group_left(label_platformatic_dev_application_id)
     kube_pod_labels{label_platformatic_dev_application_id="${applicationId}"} > 0
   )`
 
 // Request per second for a specific app version, filtered by K8s pod labels.
 // Used by the draining lifecycle checker to detect whether a draining version
-// still has traffic. A value of 0 over the window means no traffic.
+// still has traffic, and by the version manager's traffic-split view. A value of
+// 0 over the window means no traffic.
+//
+// `callerTelemetryId=""` keeps only ingress requests. A Watt app is a mesh of
+// internal services (composer -> next -> fastify -> node, ...); one external
+// request fans out across them and each hop increments the summary, tagged with
+// the caller's telemetry id. Without this filter the rate is inflated by the
+// internal fan-out (~1.4x for a 4-service app, more for deeper meshes). The
+// entrypoint's external requests carry no callerTelemetryId, so the empty match
+// isolates real ingress.
 //
 // NOTE: http_request_all_summary_seconds_count is a prom-client summary whose
 // observation window is reset on every scrape (`collect: () => this.reset()`),
@@ -137,7 +146,7 @@ const createRequestPerSecondQuery = ({ applicationId, timeWindow }) =>
 // average requests per second.
 const createVersionRPSQuery = ({ appLabel, versionLabel, timeWindow }) =>
   `sum(
-    sum_over_time(http_request_all_summary_seconds_count[${timeWindow}])
+    sum_over_time(http_request_all_summary_seconds_count{callerTelemetryId=""}[${timeWindow}])
     * on(pod) group_left()
     kube_pod_labels{label_app_kubernetes_io_name="${appLabel}", label_plt_dev_version="${versionLabel}"}
   ) / ${promWindowToSeconds(timeWindow)}`

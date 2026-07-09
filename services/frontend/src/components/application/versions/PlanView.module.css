@@ -1,0 +1,25 @@
+.plan {
+  @apply rounded px-4 py-3;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.planStep {
+  @apply py-2;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.planCommand {
+  word-break: break-all;
+  opacity: 0.85;
+}
+
+.planManifest {
+  @apply rounded px-3 py-2;
+  margin: 0;
+  max-height: 18rem;
+  overflow: auto;
+  white-space: pre;
+  background-color: rgba(0, 0, 0, 0.35);
+  opacity: 0.9;
+}

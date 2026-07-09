@@ -2,6 +2,7 @@
 
 const fp = require('fastify-plugin')
 const { buildHTTPRoute } = require('../lib/httproute-builder')
+const { planStep } = require('../lib/actuation')
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = fp(async function (app) {
@@ -45,9 +46,13 @@ module.exports = fp(async function (app) {
    * @param {string} [opts.hostname] - optional hostname for the HTTPRoute
    * @param {object} opts.productionVersion - { versionId, serviceName, port }
    * @param {Array}  opts.drainingVersions - [{ versionId, serviceName, port }]
+   * @param {Array}  [opts.stagedVersions] - [{ versionId, serviceName, port }] reachable by __plt_dpl cookie or preview header (no default route)
    * @param {object} ctx - Fastify request context with logger
    */
-  app.decorate('applyHTTPRoute', async (opts, ctx) => {
+  // Build the desired HTTPRoute for an app without applying it. Gateway
+  // discovery is a read, so it is safe in advise mode. Returns null when no
+  // Gateway exists in the namespace.
+  async function buildRoute (opts, ctx) {
     const gw = await discoverGateway(opts.namespace, ctx)
     if (!gw) return null
 
@@ -59,7 +64,7 @@ module.exports = fp(async function (app) {
       cookieName = policy.cookieName
     }
 
-    const httpRoute = buildHTTPRoute({
+    return buildHTTPRoute({
       appName: opts.appName,
       namespace: opts.namespace,
       pathPrefix: opts.pathPrefix,
@@ -67,9 +72,15 @@ module.exports = fp(async function (app) {
       gateway: gw,
       productionVersion: opts.productionVersion,
       drainingVersions: opts.drainingVersions || [],
+      stagedVersions: opts.stagedVersions || [],
       cookieMaxAge,
       cookieName
     })
+  }
+
+  app.decorate('applyHTTPRoute', async (opts, ctx) => {
+    const httpRoute = await buildRoute(opts, ctx)
+    if (!httpRoute) return null
 
     ctx.logger.info({
       routeName: httpRoute.metadata.name,
@@ -84,6 +95,21 @@ module.exports = fp(async function (app) {
     )
 
     return applied
+  })
+
+  // Advise-mode routing actuator: compute the HTTPRoute the app would need and
+  // return it as a plan step (manifest + command) instead of applying it.
+  app.decorate('planHTTPRoute', async (opts, ctx) => {
+    const httpRoute = await buildRoute(opts, ctx)
+    if (!httpRoute) return null
+
+    return planStep('HTTPRoute', 'apply', {
+      manifest: httpRoute,
+      command: `kubectl apply -n ${opts.namespace} -f - # HTTPRoute/${httpRoute.metadata.name}`,
+      description: opts.productionVersion
+        ? `route default traffic to ${opts.productionVersion.versionId}`
+        : 'apply gateway route'
+    })
   })
 
   app.decorate('deleteHTTPRoute', async (appName, namespace, ctx) => {

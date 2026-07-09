@@ -146,3 +146,56 @@ test('should NOT whitelist OpenaAPI spec for an unknown service', async (t) => {
     statusCode: 401
   })
 })
+
+function mockDeployTokenVerify (decision) {
+  agent
+    .get('http://control-plane.plt.local')
+    .intercept({ method: 'POST', path: '/deploy-tokens/verify' })
+    .reply(200, decision)
+}
+
+test('deploy token: an authorized bearer reaches the route with x-user injected', async (t) => {
+  const server = await createMinimalFastifyInstance(t)
+  mockDeployTokenVerify({
+    authorized: true,
+    principal: { type: 'deploy-token', id: 't1', name: 'gha-prod', applicationId: 'app-1' }
+  })
+
+  let seenXUser = null
+  server.post('/control-plane/applications/app-1/versions', async (req) => {
+    seenXUser = req.headers['x-user']
+    return { ok: true }
+  })
+  await server.listen({ port: 0 })
+
+  const res = await server.inject({
+    method: 'POST',
+    path: '/control-plane/applications/app-1/versions',
+    headers: { authorization: 'Bearer plt_deploy_abc123' }
+  })
+
+  assert.equal(res.statusCode, 200)
+  const principal = JSON.parse(seenXUser)
+  assert.equal(principal.type, 'deploy-token')
+  assert.equal(principal.name, 'gha-prod')
+})
+
+test('deploy token: an unauthorized bearer is rejected', async (t) => {
+  const server = await createMinimalFastifyInstance(t)
+  mockDeployTokenVerify({ authorized: false, reason: 'route-not-allowed' })
+
+  server.post('/control-plane/applications/app-1/versions', async () => {
+    assert.fail('handler should not be reached')
+  })
+  await server.listen({ port: 0 })
+
+  const res = await server.inject({
+    method: 'POST',
+    path: '/control-plane/applications/app-1/versions',
+    headers: { authorization: 'Bearer plt_deploy_abc123' }
+  })
+
+  // 403: the bearer is present but not authorized (and a uniform 403 avoids
+  // leaking whether the token exists).
+  assert.equal(res.statusCode, 403)
+})

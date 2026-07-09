@@ -1,7 +1,7 @@
 import React from 'react'
 import typographyStyles from '~/styles/Typography.module.css'
 import { getFormattedTimeAndDate } from '~/utilities/dates'
-import StatusPill from '../../common/StatusPill'
+import DeploymentStatusPill from '../detail/deployments/DeploymentStatusPill'
 function TableDeployments ({
   deployments = [],
   withApplicationName = false
@@ -43,7 +43,10 @@ function TableDeployments ({
       case 'versionLabel':
         return <td key={column.key}>{deployment[column.key] || '-'}</td>
       case 'status':
-        return <td key={column.key}><StatusPill status={deployment[column.key]} /></td>
+        // Prefer the version's skew lifecycle status (active/draining/expired) when
+        // the deployment is tied to a registered version: a drained version's pods are
+        // scaled to zero, which the raw deployment status reports as 'failed'.
+        return <td key={column.key}><DeploymentStatusPill status={deployment.displayStatus ?? deployment[column.key]} /></td>
       case 'createdAt':
         return <td key={column.key}>{getFormattedTimeAndDate(deployment[column.key])}</td>
       default:

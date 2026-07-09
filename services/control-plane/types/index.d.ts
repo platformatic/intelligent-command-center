@@ -6,6 +6,7 @@ import { type Application } from './application.ts'
 import { type ApplicationsConfig } from './applicationsConfig.ts'
 import { type ApplicationState } from './applicationState.ts'
 import { type Deployment } from './deployment.ts'
+import { type DeployToken } from './deployToken.ts'
 import { type Generation } from './generation.ts'
 import { type GenerationsApplicationsConfig } from './generationsApplicationsConfig.ts'
 import { type GenerationsDeployment } from './generationsDeployment.ts'
@@ -13,12 +14,14 @@ import { type Graph } from './graph.ts'
 import { type Instance } from './instance.ts'
 import { type SkewProtectionPolicy } from './skewProtectionPolicy.ts'
 import { type ValkeyUser } from './valkeyUser.ts'
+import { type VersionAudit } from './versionAudit.ts'
 import { type VersionRegistry } from './versionRegistry.ts'
 
 export { type Application } from './application.ts'
 export { type ApplicationsConfig } from './applicationsConfig.ts'
 export { type ApplicationState } from './applicationState.ts'
 export { type Deployment } from './deployment.ts'
+export { type DeployToken } from './deployToken.ts'
 export { type Generation } from './generation.ts'
 export { type GenerationsApplicationsConfig } from './generationsApplicationsConfig.ts'
 export { type GenerationsDeployment } from './generationsDeployment.ts'
@@ -26,6 +29,7 @@ export { type Graph } from './graph.ts'
 export { type Instance } from './instance.ts'
 export { type SkewProtectionPolicy } from './skewProtectionPolicy.ts'
 export { type ValkeyUser } from './valkeyUser.ts'
+export { type VersionAudit } from './versionAudit.ts'
 export { type VersionRegistry } from './versionRegistry.ts'
 
 export interface Entities extends DatabaseEntities {
@@ -33,6 +37,7 @@ export interface Entities extends DatabaseEntities {
   applicationsConfig: Entity<ApplicationsConfig>
   applicationState: Entity<ApplicationState>
   deployment: Entity<Deployment>
+  deployToken: Entity<DeployToken>
   generation: Entity<Generation>
   generationsApplicationsConfig: Entity<GenerationsApplicationsConfig>
   generationsDeployment: Entity<GenerationsDeployment>
@@ -40,6 +45,7 @@ export interface Entities extends DatabaseEntities {
   instance: Entity<Instance>
   skewProtectionPolicy: Entity<SkewProtectionPolicy>
   valkeyUser: Entity<ValkeyUser>
+  versionAudit: Entity<VersionAudit>
   versionRegistry: Entity<VersionRegistry>
 }
 
@@ -48,6 +54,7 @@ export interface EntityTypes {
   applicationsConfig: ApplicationsConfig
   applicationState: ApplicationState
   deployment: Deployment
+  deployToken: DeployToken
   generation: Generation
   generationsApplicationsConfig: GenerationsApplicationsConfig
   generationsDeployment: GenerationsDeployment
@@ -55,6 +62,7 @@ export interface EntityTypes {
   instance: Instance
   skewProtectionPolicy: SkewProtectionPolicy
   valkeyUser: ValkeyUser
+  versionAudit: VersionAudit
   versionRegistry: VersionRegistry
 }
 
@@ -63,6 +71,7 @@ export interface EntitiesHooks {
   addEntityHooks(entityName: 'applicationsConfig', hooks: EntityHooks<ApplicationsConfig>): any
   addEntityHooks(entityName: 'applicationState', hooks: EntityHooks<ApplicationState>): any
   addEntityHooks(entityName: 'deployment', hooks: EntityHooks<Deployment>): any
+  addEntityHooks(entityName: 'deployToken', hooks: EntityHooks<DeployToken>): any
   addEntityHooks(entityName: 'generation', hooks: EntityHooks<Generation>): any
   addEntityHooks(entityName: 'generationsApplicationsConfig', hooks: EntityHooks<GenerationsApplicationsConfig>): any
   addEntityHooks(entityName: 'generationsDeployment', hooks: EntityHooks<GenerationsDeployment>): any
@@ -70,6 +79,7 @@ export interface EntitiesHooks {
   addEntityHooks(entityName: 'instance', hooks: EntityHooks<Instance>): any
   addEntityHooks(entityName: 'skewProtectionPolicy', hooks: EntityHooks<SkewProtectionPolicy>): any
   addEntityHooks(entityName: 'valkeyUser', hooks: EntityHooks<ValkeyUser>): any
+  addEntityHooks(entityName: 'versionAudit', hooks: EntityHooks<VersionAudit>): any
   addEntityHooks(entityName: 'versionRegistry', hooks: EntityHooks<VersionRegistry>): any
 }
 
@@ -107,6 +117,15 @@ getSchema(schemaId: 'deployment'): {
     description: string,
     type: string,
     properties: { [x in keyof Deployment]: { type: string, nullable?: boolean } },
+    required: string[]
+  }
+
+getSchema(schemaId: 'deployToken'): {
+    '$id': string,
+    title: string,
+    description: string,
+    type: string,
+    properties: { [x in keyof DeployToken]: { type: string, nullable?: boolean } },
     required: string[]
   }
 
@@ -170,6 +189,15 @@ getSchema(schemaId: 'valkeyUser'): {
     description: string,
     type: string,
     properties: { [x in keyof ValkeyUser]: { type: string, nullable?: boolean } },
+    required: string[]
+  }
+
+getSchema(schemaId: 'versionAudit'): {
+    '$id': string,
+    title: string,
+    description: string,
+    type: string,
+    properties: { [x in keyof VersionAudit]: { type: string, nullable?: boolean } },
     required: string[]
   }
 

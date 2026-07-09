@@ -7,6 +7,7 @@ const fp = require('fastify-plugin')
 const gatewayPlugin = require('../plugins/gateway')
 
 const skewPolicyPlugin = require('../plugins/skew-policy')
+const actuationPolicyPlugin = require('../plugins/actuation-policy')
 
 function buildApp (env, machinistMock, opts = {}) {
   const app = fastify({ logger: false })
@@ -50,6 +51,7 @@ function buildApp (env, machinistMock, opts = {}) {
         }
       })
     }, { name: 'platformatic-db' }))
+    app.register(actuationPolicyPlugin)
     app.register(skewPolicyPlugin)
   } else {
     app.register(fp(async () => {}, { name: 'skew-policy', dependencies: ['env'] }))

@@ -14,6 +14,7 @@ import callApi from './api/common'
 
 import Activities from '~/components/application/activities/Activities'
 import DeploymentHistory from '~/components/application/deployment_history/DeploymentHistory'
+import VersionManager from '~/components/application/versions/VersionManager'
 import AppDetails from '~/components/application/detail/AppDetails'
 import WattContainer from '~/layout/WattContainer'
 import AutoscalerPodDetailContainer from '~/layout/AutoscalerPodDetailContainer'
@@ -246,16 +247,29 @@ export function getRouter () {
             ])
             const { totalCount, deployments } = response
             const versionsByDeploymentId = new Map(
-              (versionsData.versions || []).map(v => [v.deploymentId, v.versionLabel])
+              (versionsData.versions || []).map(v => [v.deploymentId, v])
             )
-            const enrichedDeployments = deployments.map(d => ({
-              ...d,
-              versionLabel: versionsByDeploymentId.get(d.id) || null
-            }))
+            const enrichedDeployments = deployments.map(d => {
+              const version = versionsByDeploymentId.get(d.id)
+              return {
+                ...d,
+                versionLabel: version?.versionLabel || null,
+                // When a deployment is tied to a skew-managed version, that version's
+                // lifecycle (active/draining/expired) is the meaningful status: a drained
+                // version has its pods scaled to zero, which raw deployment status reports
+                // as 'failed'.
+                displayStatus: version?.status || d.status
+              }
+            })
 
             return { totalCount, deployments: enrichedDeployments }
           },
           element: <DeploymentHistory />
+        },
+        {
+          path: 'versions',
+          id: 'watt/versions',
+          element: <VersionManager />
         },
         {
           id: 'watt/applications',

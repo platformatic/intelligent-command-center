@@ -59,6 +59,7 @@ const schema = {
     PLT_SKEW_WORKFLOW_GRACE_PERIOD_MS: { type: 'number', default: 3600000 },
     PLT_SKEW_WORKFLOW_MAX_ALIVE_MS: { type: 'number', default: 259200000 },
     PLT_SKEW_CHECK_INTERVAL_MS: { type: 'number', default: 60000 },
+    PLT_SKEW_CONFIRM_INTERVAL_MS: { type: 'number', default: 30000 },
     PLT_SKEW_TRAFFIC_WINDOW_MS: { type: 'number', default: 1800000 },
     PLT_SKEW_COOKIE_MAX_AGE: { type: 'number', default: 43200 },
     PLT_SKEW_AUTO_CLEANUP: { type: 'boolean', default: false },
