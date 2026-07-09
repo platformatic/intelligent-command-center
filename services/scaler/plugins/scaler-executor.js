@@ -292,14 +292,31 @@ class ScalerExecutor {
 
       const results = []
 
+      // Only applications with a registered controller are scalable. Fetch the
+      // controllers once and index by applicationId; the metrics query is
+      // unscoped and also returns non-app runtimes (ICC's own services, the
+      // World `workflow` service) whose applicationId is a service name -- they
+      // have no controller, so they are skipped without a per-key DB lookup
+      // (which would trip the uuid `applicationId` column with a name string).
+      const controllersByApp = new Map()
+      for (const controller of await this.app.getAllControllers()) {
+        const list = controllersByApp.get(controller.applicationId) ?? []
+        list.push(controller)
+        controllersByApp.set(controller.applicationId, list)
+      }
+
       for (const applicationId of Object.keys(allApplicationsMetrics)) {
         try {
           if (applicationId === 'unknown') {
             continue
           }
 
+          const controllers = controllersByApp.get(applicationId)
+          if (!controllers) {
+            continue
+          }
+
           const podsMetrics = allApplicationsMetrics[applicationId]
-          const controllers = await this.app.getApplicationControllers(applicationId)
 
           for (const ctrl of controllers) {
             try {

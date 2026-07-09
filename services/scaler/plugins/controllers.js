@@ -23,6 +23,12 @@ module.exports = fp(async function (app) {
     })
   })
 
+  app.decorate('getAllControllers', async () => {
+    return app.platformatic.entities.controller.find({
+      orderBy: [{ field: 'createdAt', direction: 'desc' }]
+    })
+  })
+
   app.decorate('getControllerById', async (applicationId, controllerId) => {
     const controllers = await app.platformatic.entities.controller.find({
       where: {

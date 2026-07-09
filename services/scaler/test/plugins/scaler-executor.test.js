@@ -503,15 +503,10 @@ test('checkScalingOnMetrics should handle no application metrics', async (t) => 
 test('checkScalingOnMetrics should process applications and handle errors', async (t) => {
   const server = await buildServer(t)
 
-  server.getApplicationController = async (appId) => {
-    if (appId === 'app-1') return { replicas: 2 }
-    throw new Error('Controller not found')
-  }
-
-  server.getApplicationControllers = async (appId) => {
-    if (appId === 'app-1') return [{ replicas: 2, controllerId: 'ctrl-1' }]
-    throw new Error('Controller not found')
-  }
+  server.getAllControllers = async () => [
+    { applicationId: 'app-1', replicas: 2, controllerId: 'ctrl-1' },
+    { applicationId: 'app-2', replicas: 2, controllerId: 'ctrl-2' }
+  ]
 
   server.getScaleConfig = async () => ({ minPods: 1, maxPods: 10 })
   server.updateControllerReplicas = async () => ({ success: true })
@@ -523,10 +518,11 @@ test('checkScalingOnMetrics should process applications and handle errors', asyn
     })
   }
 
-  server.scalerExecutor.scalingAlgorithm.calculateScalingDecision = async () => ({
-    nfinal: 3,
-    reason: 'Test scaling'
-  })
+  // app-2 fails while computing its scaling decision -> its result carries an error
+  server.scalerExecutor.scalingAlgorithm.calculateScalingDecision = async (appId) => {
+    if (appId === 'app-2') throw new Error('scaling decision failed')
+    return { nfinal: 3, reason: 'Test scaling' }
+  }
 
   const result = await server.scalerExecutor.checkScalingOnMetrics()
 
@@ -556,8 +552,7 @@ test('checkScalingOnMetrics should skip unknown applications', async (t) => {
     })
   }
 
-  server.getApplicationController = async () => ({ replicas: 1 })
-  server.getApplicationControllers = async () => [{ replicas: 1, controllerId: 'ctrl-1' }]
+  server.getAllControllers = async () => [{ applicationId: 'app-1', replicas: 1, controllerId: 'ctrl-1' }]
   server.getScaleConfig = async () => ({ minPods: 1, maxPods: 10 })
   server.updateControllerReplicas = async () => ({ success: true })
 
@@ -571,6 +566,39 @@ test('checkScalingOnMetrics should skip unknown applications', async (t) => {
   assert.strictEqual(result.success, true)
   assert.strictEqual(result.results.length, 1)
   assert.strictEqual(result.results[0].applicationId, 'app-1')
+})
+
+test('checkScalingOnMetrics should skip applications without a controller (non-app runtimes)', async (t) => {
+  const server = await buildServer(t)
+
+  // Only 'app-1' has a controller. 'workflow' is a non-app runtime (a service
+  // name, not a scalable application): it must be skipped, and never looked up
+  // per-key (which would trip the uuid applicationId column).
+  server.getAllControllers = async () => [{ applicationId: 'app-1', replicas: 1, controllerId: 'ctrl-1' }]
+  let perKeyLookups = 0
+  server.getApplicationControllers = async () => { perKeyLookups++; return [] }
+  server.getScaleConfig = async () => ({ minPods: 1, maxPods: 10 })
+  server.updateControllerReplicas = async () => ({ success: true })
+
+  server.scalerMetrics = {
+    getAllApplicationsMetrics: async () => ({
+      workflow: { 'pod-1': { heapSize: [], eventLoopUtilization: [] } },
+      'app-1': { 'pod-2': { heapSize: [], eventLoopUtilization: [] } }
+    })
+  }
+
+  server.scalerExecutor.scalingAlgorithm.calculateScalingDecision = async () => ({
+    nfinal: 1,
+    reason: 'No change'
+  })
+
+  const result = await server.scalerExecutor.checkScalingOnMetrics()
+
+  assert.strictEqual(result.success, true)
+  assert.strictEqual(result.results.length, 1)
+  assert.strictEqual(result.results[0].applicationId, 'app-1')
+  assert.ok(!result.results.some(r => r.applicationId === 'workflow'))
+  assert.strictEqual(perKeyLookups, 0)
 })
 
 test('checkScalingOnMetrics should handle getAllApplicationsMetrics errors', async (t) => {
@@ -598,9 +626,9 @@ test('checkScalingOnMetrics should scale multiple controllers independently', as
     return { scaleEvent: { direction: 'up', createdAt: new Date().toISOString() } }
   }
 
-  server.getApplicationControllers = async () => [
-    { id: '1', controllerId: 'ctrl-v2', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 1 },
-    { id: '2', controllerId: 'ctrl-v1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2 }
+  server.getAllControllers = async () => [
+    { id: '1', applicationId: 'app-1', controllerId: 'ctrl-v2', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 1 },
+    { id: '2', applicationId: 'app-1', controllerId: 'ctrl-v1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2 }
   ]
 
   server.machinist = {
@@ -655,8 +683,8 @@ test('checkScalingOnMetrics should scale multiple controllers independently', as
 test('checkScalingOnMetrics with single controller always passes controller', async (t) => {
   const server = await buildServer(t)
 
-  server.getApplicationControllers = async () => [
-    { id: '1', controllerId: 'ctrl-1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2 }
+  server.getAllControllers = async () => [
+    { id: '1', applicationId: 'app-1', controllerId: 'ctrl-1', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2 }
   ]
 
   server.getScaleConfig = async () => ({ minPods: 1, maxPods: 10 })
@@ -774,9 +802,9 @@ test('checkScalingOnMetrics should skip controllers with scalingDisabled', async
     return { nfinal: currentPodCount, reason: 'No change' }
   }
 
-  server.getApplicationControllers = async () => [
-    { id: '1', controllerId: 'ctrl-active', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2, scalingDisabled: false },
-    { id: '2', controllerId: 'ctrl-expired', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 0, scalingDisabled: true }
+  server.getAllControllers = async () => [
+    { id: '1', applicationId: 'app-1', controllerId: 'ctrl-active', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 2, scalingDisabled: false },
+    { id: '2', applicationId: 'app-1', controllerId: 'ctrl-expired', namespace: 'default', apiVersion: 'apps/v1', kind: 'Deployment', replicas: 0, scalingDisabled: true }
   ]
 
   server.getScaleConfig = async () => ({ minPods: 1, maxPods: 10 })
