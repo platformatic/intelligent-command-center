@@ -35,7 +35,12 @@ const defaultEnv = {
 
   PLT_CONTROL_PLANE_DB_LOCK_MIN_TIMEOUT: 300,
   PLT_ICC_SESSION_SECRET: 'session-secret',
-  PLT_FEATURE_CACHE: true
+  PLT_FEATURE_CACHE: true,
+
+  // Version derivation waits (retries) for the kubelet-resolved image digest;
+  // the k8s/machinist mocks here never populate it over time, so disable the
+  // wait to keep registration synchronous (see resolveMachineVersion).
+  PLT_DIGEST_RETRY_ATTEMPTS: 0
 }
 
 function setUpEnvironment (env = {}) {

@@ -15,7 +15,7 @@ function base62 (buf) {
 }
 
 // The single place ICC mints a deployment version when a deploy carries no
-// explicit one (no `version` in the body, no `plt.dev/version` label). Vercel-shaped
+// explicit one (no `version` in the body, no `plt.dev/version` label).
 // -- `plt_` + 24 base62 chars -- derived deterministically from the image reference,
 // so every call site agrees without coordination and repeated pods of the same image
 // resolve to the same version. Returns null when the image is absent or is not a real
@@ -28,4 +28,34 @@ function deriveVersion (image) {
   return 'plt_' + base62(hash).slice(0, 24)
 }
 
-module.exports = { deriveVersion }
+// Extract the `sha256:...` digest portion from an image reference. Accepts a
+// digest ref (`repo@sha256:...` -> `sha256:...`) or a bare digest (`sha256:...`).
+function digestOf (ref) {
+  const s = String(ref)
+  const at = s.indexOf('@')
+  if (at >= 0) return s.slice(at + 1)
+  if (s.startsWith('sha256:')) return s
+  return null
+}
+
+// The reference to mint a version from: a canonical `repo:tag@sha256:...` so the
+// version changes if EITHER the tag or the resolved content digest changes. This
+// gives per-rollout identity for unique tags AND detects content changes under a
+// mutable tag like `:latest`.
+//   - `image` (the pod spec ref) already carries a digest -> use it verbatim; it
+//     is already content-addressed, so there is no race.
+//   - a tag ref plus a resolved `imageDigest` -> combine into `tag@digest`.
+//   - a tag ref but no digest yet (kubelet has not written status.imageID) ->
+//     return null so the caller RETRIES rather than minting a tag-only id that a
+//     later digest-bearing registration would supersede (that is the version
+//     churn we are eliminating).
+function combineImageRef (image, imageDigest) {
+  if (!image) return null
+  if (String(image).includes('@sha256:')) return String(image)
+  if (!imageDigest) return null
+  const digest = digestOf(imageDigest)
+  if (!digest) return null
+  return `${image}@${digest}`
+}
+
+module.exports = { deriveVersion, combineImageRef }

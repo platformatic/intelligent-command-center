@@ -2,12 +2,45 @@
 
 'use strict'
 
+const { setTimeout: sleep } = require('node:timers/promises')
 const { request } = require('undici')
 const fp = require('fastify-plugin')
 const errors = require('./errors')
 const { getK8sToken, k8sAuthHeaders } = require('../lib/k8s-auth')
 const { resolveActuation } = require('../lib/actuation')
-const { deriveVersion } = require('../lib/version')
+const { deriveVersion, combineImageRef } = require('../lib/version')
+
+// Mint the deployment version for a machine from its combined `tag@digest` ref
+// (see lib/version.js: changes iff the tag or the content digest changes). Every
+// version-mint site funnels through here so they all resolve the SAME digest and
+// cannot disagree -- deriving the tag on one path and the digest on another is
+// what produced the version churn.
+//
+// The content digest (status.imageID) is written by kubelet shortly after the
+// container starts, which can be AFTER the pod self-registers, so it is often
+// absent on the first read; `refetch` re-reads the machine while we wait (the
+// pod is already running, so kubelet fills it in within seconds, ~0.5s
+// observed). Retry counts are env-tunable, chiefly so tests -- whose static
+// mocks never populate a digest over time -- set PLT_DIGEST_RETRY_ATTEMPTS=0 to
+// skip the wait. Versioning by the tag alone is a logged last resort.
+async function resolveMachineVersion (machine, refetch, logger) {
+  const attempts = Number(process.env.PLT_DIGEST_RETRY_ATTEMPTS ?? 10)
+  const delayMs = Number(process.env.PLT_DIGEST_RETRY_DELAY_MS ?? 300)
+  let current = machine
+  let ref = combineImageRef(current?.image, current?.imageDigest)
+  if (refetch) {
+    for (let attempt = 0; ref === null && attempt < attempts; attempt++) {
+      await sleep(delayMs)
+      current = await refetch().catch(() => current)
+      ref = combineImageRef(current?.image, current?.imageDigest)
+    }
+  }
+  if (ref === null) {
+    logger?.warn({ image: machine?.image }, 'image digest unavailable after retries; versioning by tag only')
+    ref = machine?.image
+  }
+  return deriveVersion(ref)
+}
 
 async function registerWorkflowApp (appName, namespace, { workflowUrl, log, machineId, deploymentVersion, serviceName, servicePort }) {
   if (!workflowUrl || !getK8sToken()) return
@@ -137,7 +170,8 @@ module.exports = fp(async function (app) {
       )
       const { image: imageId } = machineDetails
       deploymentVersion = machineDetails.labels?.['plt.dev/version'] ||
-        deriveVersion(imageId) || 'local'
+        await resolveMachineVersion(machineDetails, () => app.machinist.getMachine(namespace, machineId, ctx), ctx.logger) ||
+        'local'
 
       if (imageId !== deployment.imageId) {
         throw new errors.MachineAssignedToDifferentImage(
@@ -173,7 +207,8 @@ module.exports = fp(async function (app) {
 
         if (appLabel) {
           // For non-versioned deploys, mint the version id from the image (lib/version.js)
-          const effectiveVersionLabel = versionLabel || deriveVersion(imageId)
+          const effectiveVersionLabel = versionLabel ||
+            await resolveMachineVersion(machineDetails, () => app.machinist.getMachine(namespace, machineId, ctx), ctx.logger)
 
           if (effectiveVersionLabel) {
             const controllerName = machineDetails.controller?.name
@@ -224,7 +259,8 @@ module.exports = fp(async function (app) {
       // to the pod and the workflow handler registration below.
       deploymentVersion = versionMeta?.versionLabel ||
         machineDetails.labels?.['plt.dev/version'] ||
-        deriveVersion(imageId) || 'local'
+        await resolveMachineVersion(machineDetails, () => app.machinist.getMachine(namespace, machineId, ctx), ctx.logger) ||
+        'local'
 
       // Skew protection: use appLabel as ICC application name so versioned
       // and non-versioned deploys share the same ICC application record.
@@ -370,8 +406,7 @@ module.exports = fp(async function (app) {
 
           if (nonVersionedMachines.length > 0) {
             const oldMachine = nonVersionedMachines[0]
-            const oldImage = oldMachine.image || ''
-            const oldVersionLabel = deriveVersion(oldImage)
+            const oldVersionLabel = await resolveMachineVersion(oldMachine, () => app.machinist.getMachine(namespace, oldMachine.id, ctx), ctx.logger)
 
             // Check if this non-versioned deployment already has a version entry
             const alreadyRegistered = existingVersions.some(v => v.versionLabel === oldVersionLabel)
