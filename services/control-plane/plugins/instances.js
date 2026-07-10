@@ -478,7 +478,10 @@ module.exports = fp(async function (app) {
           namespace,
           pathPrefix,
           hostname,
-          expirePolicy
+          expirePolicy,
+          // Gate the route cutover on readiness: a pod registers before it is
+          // Ready, so activating now would 500 until its Service has endpoints.
+          ready: machineDetails.ready
         }, ctx)
 
         // Apply the route whenever there is an active version to anchor the

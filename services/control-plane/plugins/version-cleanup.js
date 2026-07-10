@@ -339,24 +339,35 @@ module.exports = fp(async function (app) {
    * PLT_SKEW_CONFIRM_INTERVAL_MS until both sides are live.
    */
   app.decorate('confirmPendingApply', async (version, ctx) => {
+    // advise: wait until the external actor's pods exist and its route is live.
+    // observe/manage: ICC owns the route, so gate only on a pod being Ready, then
+    // apply the cutover (avoids flipping the gateway to a not-ready Service).
+    const policy = app.resolveSkewPolicy ? await app.resolveSkewPolicy(version.applicationId) : null
+    const isAdvise = resolveActuation(policy?.mode).routing !== 'apply'
+
     let podsReady = false
     try {
-      const machines = await app.machinist.getMachines(version.namespace, {
-        'app.kubernetes.io/name': version.appLabel,
-        'plt.dev/version': version.versionLabel
-      }, ctx)
+      // Image-derived versions have no plt.dev/version label; use the instance
+      // label (controllerName), which every pod of the workload carries.
+      const labels = isAdvise
+        ? { 'app.kubernetes.io/name': version.appLabel, 'plt.dev/version': version.versionLabel }
+        : { 'app.kubernetes.io/instance': version.controllerName }
+      const machines = await app.machinist.getMachines(version.namespace, labels, ctx)
       const list = Array.isArray(machines) ? machines : (machines?.machines || [])
-      podsReady = list.length > 0
+      podsReady = isAdvise ? list.length > 0 : list.some(m => m.ready)
     } catch (err) {
       ctx.logger.error({ err }, 'confirm: failed to read pods')
     }
 
-    let routeReady = false
-    try {
-      const route = await app.machinist.getHTTPRoute(version.namespace, version.appLabel, ctx)
-      routeReady = routeServesVersion(route, version) && routeAccepted(route)
-    } catch (err) {
-      ctx.logger.error({ err }, 'confirm: failed to read live HTTPRoute')
+    let routeReady = true
+    if (isAdvise) {
+      routeReady = false
+      try {
+        const route = await app.machinist.getHTTPRoute(version.namespace, version.appLabel, ctx)
+        routeReady = routeServesVersion(route, version) && routeAccepted(route)
+      } catch (err) {
+        ctx.logger.error({ err }, 'confirm: failed to read live HTTPRoute')
+      }
     }
 
     if (!podsReady || !routeReady) {
@@ -367,6 +378,7 @@ module.exports = fp(async function (app) {
     }
 
     const result = await app.confirmActivation(version.appLabel, version.versionLabel, ctx)
+    if (result.confirmed && !isAdvise) await applyActivationRoute(result, ctx)
     return { ...result, podsReady, routeReady }
   })
 

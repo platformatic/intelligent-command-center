@@ -79,7 +79,11 @@ module.exports = fp(async function (app) {
     // pending-apply is transient and we confirm active immediately.
     const policy = app.resolveSkewPolicy ? await app.resolveSkewPolicy(version.applicationId) : null
     const { routing } = resolveActuation(policy?.mode)
-    const deferred = routing !== 'apply' && !opts.confirm
+    // Stop at pending-apply when the route must not flip yet: advise mode (nothing
+    // actuated) or observe/manage with the new pods not Ready (flipping would 500
+    // until the Service has endpoints). opts.confirm (the checker) forces through.
+    const deferred = !opts.confirm && (routing !== 'apply' || opts.ready === false)
+    const deferReason = routing !== 'apply' ? 'advise-plan' : 'awaiting-readiness'
 
     // staged|draining|expired -> pending-apply (record intent). A row inserted
     // straight as pending-apply skips this write.
@@ -96,8 +100,8 @@ module.exports = fp(async function (app) {
       })
     }
 
-    // Advise mode: stop at pending-apply. ICC has not actuated, so flipping to
-    // active (and demoting the current active) would lie about cluster state.
+    // Deferred: keep the current active serving; the checker flips this version
+    // active once its side is live (external route for advise, readiness for observe).
     if (deferred) {
       if (activation) {
         await audit({
@@ -106,7 +110,7 @@ module.exports = fp(async function (app) {
           event: activation.event,
           fromState: activation.fromState ?? null,
           toState: STATES.PENDING_APPLY,
-          reason: activation.reason ?? 'advise-plan'
+          reason: activation.reason ?? deferReason
         }, ctx, tx)
       }
       if (app.sendVersionRegistryActivity && ctx.req?.activities) {
@@ -115,8 +119,11 @@ module.exports = fp(async function (app) {
       }
       ctx.logger.info({
         appLabel: version.appLabel,
-        versionLabel: version.versionLabel
-      }, 'version is pending-apply — advise mode, awaiting external apply')
+        versionLabel: version.versionLabel,
+        reason: deferReason
+      }, deferReason === 'awaiting-readiness'
+        ? 'version is pending-apply — awaiting pod readiness before route cutover'
+        : 'version is pending-apply — advise mode, awaiting external apply')
       await app.emitUpdate('icc', {
         topic: 'ui-updates/deployments',
         type: 'version-status-changed',
@@ -374,7 +381,7 @@ module.exports = fp(async function (app) {
           controllerName: opts.controllerName,
           serviceName: opts.serviceName,
           servicePort: opts.servicePort
-        }, { event: 'registered', fromState: STATES.EXPIRED, reason: 'redeploy' })
+        }, { event: 'registered', fromState: STATES.EXPIRED, reason: 'redeploy' }, { ready: opts.ready })
 
         if (!versioningEnabled) await collapseToSingleActive(opts.appLabel, ctx, tx)
 
@@ -452,7 +459,7 @@ module.exports = fp(async function (app) {
         tx
       })
 
-      const { activated } = await funnelToActive(inserted, ctx, tx, {}, { event: 'registered', fromState: null })
+      const { activated } = await funnelToActive(inserted, ctx, tx, {}, { event: 'registered', fromState: null }, { ready: opts.ready })
 
       if (!versioningEnabled) await collapseToSingleActive(opts.appLabel, ctx, tx)
 
@@ -460,7 +467,7 @@ module.exports = fp(async function (app) {
         appLabel: opts.appLabel,
         versionLabel: opts.versionLabel,
         activated
-      }, activated ? 'registered new version as active' : 'registered new version as pending-apply (advise)')
+      }, activated ? 'registered new version as active' : 'registered new version as pending-apply')
 
       return {
         isNew: true,

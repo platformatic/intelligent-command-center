@@ -125,6 +125,12 @@ function acceptedRoute (serviceName) {
   }
 }
 
+// The checker confirms via the live route only in advise mode; observe/manage
+// gate on pod readiness instead. These tests exercise the advise path.
+function advisePolicy (applicationId) {
+  return { id: `adv-${applicationId}`, applicationId, enabled: true, mode: 'advise', requiresApproval: false }
+}
+
 test('confirms a pending-apply version once pods + accepted route are live', async (t) => {
   const store = [
     version({ id: '1', versionLabel: 'v1', status: 'active' }),
@@ -132,6 +138,7 @@ test('confirms a pending-apply version once pods + accepted route are live', asy
   ]
   const { app, triggerLeader } = buildApp({
     store,
+    policyStore: [advisePolicy('app-1')],
     machines: [{ id: 'm1' }],
     liveRoute: acceptedRoute('my-app-v2-svc')
   })
@@ -154,7 +161,7 @@ test('leaves pending-apply untouched while the route is not yet Accepted', async
     spec: { rules: [{ matches: [{ path: {} }], backendRefs: [{ name: 'my-app-v2-svc', port: 3042 }] }] },
     status: { parents: [{ conditions: [{ type: 'Accepted', status: 'False' }] }] }
   }
-  const { app, store: s, calls, triggerLeader } = buildApp({ store, machines: [{ id: 'm1' }], liveRoute: notAccepted })
+  const { app, store: s, calls, triggerLeader } = buildApp({ store, policyStore: [advisePolicy('app-1')], machines: [{ id: 'm1' }], liveRoute: notAccepted })
   await app.ready()
   t.after(() => app.close())
 
@@ -164,6 +171,40 @@ test('leaves pending-apply untouched while the route is not yet Accepted', async
   assert.strictEqual(s[1].status, 'pending-apply') // still waiting
   assert.strictEqual(s[0].status, 'active') // v1 unchanged
   assert.ok(calls.getHTTPRoute > 0, 'polled the gateway route')
+})
+
+test('observe mode: confirms a pending-apply version once its pods are Ready', async (t) => {
+  const store = [
+    version({ id: '1', versionLabel: 'v1', status: 'active' }),
+    version({ id: '2', versionLabel: 'v2', controllerName: 'my-app-v2', serviceName: 'my-app-v2-svc', status: 'pending-apply' })
+  ]
+  // observe: no advise policy, so gate on pod readiness, not the live route
+  const { app, calls, triggerLeader } = buildApp({ store, machines: [{ id: 'm1', ready: true }] })
+  await app.ready()
+  t.after(() => app.close())
+
+  await triggerLeader()
+  await setTimeout(120)
+
+  assert.strictEqual(store[1].status, 'active') // v2 confirmed on readiness
+  assert.strictEqual(store[0].status, 'draining') // v1 demoted
+  assert.strictEqual(calls.getHTTPRoute, 0) // observe never polls the route
+})
+
+test('observe mode: leaves pending-apply while its pods are not Ready', async (t) => {
+  const store = [
+    version({ id: '1', versionLabel: 'v1', status: 'active' }),
+    version({ id: '2', versionLabel: 'v2', controllerName: 'my-app-v2', serviceName: 'my-app-v2-svc', status: 'pending-apply' })
+  ]
+  const { app, triggerLeader } = buildApp({ store, machines: [{ id: 'm1', ready: false }] })
+  await app.ready()
+  t.after(() => app.close())
+
+  await triggerLeader()
+  await setTimeout(120)
+
+  assert.strictEqual(store[1].status, 'pending-apply') // still waiting for readiness
+  assert.strictEqual(store[0].status, 'active') // v1 unchanged
 })
 
 test('does nothing when there are no pending-apply versions', async (t) => {
