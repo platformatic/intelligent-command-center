@@ -8,7 +8,7 @@ import RecommendationsHistory from './components/recommendations/RecommendationH
 import Settings from './components/settings/Settings'
 import Profile from './components/profile/Profile'
 
-import { getApiDeploymentsHistory, getApiApplication, getApplicationsRaw, getApiPod, getKubernetesResources } from './api'
+import { getApiDeploymentsHistory, getApiApplication, getApplicationsRaw, getApiPod, getKubernetesResources, enrichDeploymentsWithVersions } from './api'
 import { getPodSignals } from './api/autoscaler'
 import callApi from './api/common'
 
@@ -183,9 +183,10 @@ export function getRouter () {
               offset: page * LIMIT
             })
             const { totalCount, deployments } = response
-            const d = deployments.map(deployment => {
+            const enriched = await enrichDeploymentsWithVersions(deployments)
+            const d = enriched.map(deployment => {
               const application = applications.find(application => application.id === deployment.applicationId)
-              return { ...deployment, applicationName: application.name }
+              return { ...deployment, applicationName: application?.name ?? '' }
             })
             return { totalCount, deployments: d, applications }
           },
@@ -237,31 +238,12 @@ export function getRouter () {
             const url = new URL(request.url)
             const page = parseInt(url.searchParams.get('page') || '0')
             const LIMIT = 10
-            const [response, versionsData] = await Promise.all([
-              getApiDeploymentsHistory({
-                filterDeploymentsByApplicationId: params.applicationId,
-                limit: LIMIT,
-                offset: page * LIMIT
-              }),
-              callApi('control-plane', `/applications/${params.applicationId}/versions`)
-            ])
-            const { totalCount, deployments } = response
-            const versionsByDeploymentId = new Map(
-              (versionsData.versions || []).map(v => [v.deploymentId, v])
-            )
-            const enrichedDeployments = deployments.map(d => {
-              const version = versionsByDeploymentId.get(d.id)
-              return {
-                ...d,
-                versionLabel: version?.versionLabel || null,
-                // When a deployment is tied to a skew-managed version, that version's
-                // lifecycle (active/draining/expired) is the meaningful status: a drained
-                // version has its pods scaled to zero, which raw deployment status reports
-                // as 'failed'.
-                displayStatus: version?.status || d.status
-              }
+            const { totalCount, deployments } = await getApiDeploymentsHistory({
+              filterDeploymentsByApplicationId: params.applicationId,
+              limit: LIMIT,
+              offset: page * LIMIT
             })
-
+            const enrichedDeployments = await enrichDeploymentsWithVersions(deployments)
             return { totalCount, deployments: enrichedDeployments }
           },
           element: <DeploymentHistory />

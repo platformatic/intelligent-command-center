@@ -52,9 +52,33 @@ function buildLabels ({ appName, instance, version, isWorkflow, minReplicas, max
   return labels
 }
 
+// Per-version pull-secret name; referenced by the Deployment's imagePullSecrets.
+function pullSecretName (appName, version, image) {
+  return `${resourceName(appName, version, image)}-pull`
+}
+
+// A kubernetes.io/dockerconfigjson Secret for pulling a private image. Returns
+// null when no credentials were supplied (public image). ICC builds the
+// dockerconfigjson from the structured { registry, username, password } so the
+// caller never has to assemble it.
+function buildPullSecret ({ appName, version, image, pullSecret }) {
+  if (!pullSecret) return null
+  const { registry, username, password } = pullSecret
+  const auth = Buffer.from(`${username}:${password}`).toString('base64')
+  const dockerconfig = { auths: { [registry]: { username, password, auth } } }
+  return {
+    apiVersion: 'v1',
+    kind: 'Secret',
+    metadata: { name: pullSecretName(appName, version, image) },
+    type: 'kubernetes.io/dockerconfigjson',
+    data: { '.dockerconfigjson': Buffer.from(JSON.stringify(dockerconfig)).toString('base64') }
+  }
+}
+
 function buildDeployment ({
   appName, image, version, hostname = null, port = APP_PORT,
-  envVars = {}, isWorkflow = false, minReplicas = null, maxReplicas = null
+  envVars = {}, isWorkflow = false, minReplicas = null, maxReplicas = null,
+  pullSecret = null
 }) {
   const name = resourceName(appName, version, image)
   const labels = buildLabels({ appName, instance: name, version, isWorkflow, minReplicas, maxReplicas })
@@ -90,6 +114,7 @@ function buildDeployment ({
       template: {
         metadata: { labels: podLabels },
         spec: {
+          ...(pullSecret ? { imagePullSecrets: [{ name: pullSecretName(appName, version, image) }] } : {}),
           containers: [
             {
               name,
@@ -148,4 +173,4 @@ function buildService ({ appName, version, image, port = APP_PORT, isWorkflow = 
   }
 }
 
-module.exports = { buildDeployment, buildService, resourceName, resourceVersion, DEFAULT_RESOURCES, APP_PORT }
+module.exports = { buildDeployment, buildService, buildPullSecret, pullSecretName, resourceName, resourceVersion, DEFAULT_RESOURCES, APP_PORT }

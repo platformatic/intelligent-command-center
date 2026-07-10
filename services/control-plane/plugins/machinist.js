@@ -158,6 +158,26 @@ class Machinist {
     return body.json()
   }
 
+  async applySecret (namespace, secret, ctx) {
+    ctx.logger.info('Applying Secret')
+
+    const url = this.url + this.#prefix + `/secrets/${namespace}`
+    const { statusCode, body } = await request(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(secret),
+      dispatcher: this.#dispatcher
+    })
+
+    if (statusCode !== 200) {
+      const error = await body.text()
+      ctx.logger.error({ error, namespace }, 'Failed to apply Secret')
+      throw new errors.FailedToApplySecret(error)
+    }
+
+    return body.json()
+  }
+
   async getHTTPRoute (namespace, name, ctx) {
     ctx.logger.info('Getting HTTPRoute')
 

@@ -17,6 +17,12 @@ module.exports = {
   ApplicationNotFound: createError(
     `${ERROR_PREFIX}_APPLICATION_NOT_FOUND`, 'Application with id "%s" not found', 404
   ),
+  ApplicationAlreadyExists: createError(
+    `${ERROR_PREFIX}_APPLICATION_ALREADY_EXISTS`, 'Application with name "%s" already exists', 409
+  ),
+  InvalidApplicationName: createError(
+    `${ERROR_PREFIX}_INVALID_APPLICATION_NAME`, 'Application name must not be empty', 400
+  ),
   SkewProtectionDisabled: createError(
     `${ERROR_PREFIX}_SKEW_PROTECTION_DISABLED`,
     'Skew protection feature is not enabled (PLT_FEATURE_SKEW_PROTECTION)',
@@ -204,17 +210,9 @@ module.exports = {
     `${ERROR_PREFIX}_FAILED_TO_APPLY_SERVICE`,
     'Failed to apply Service: %s'
   ),
-  DeployNotAllowedInMode: createError(
-    `${ERROR_PREFIX}_DEPLOY_NOT_ALLOWED_IN_MODE`,
-    'ICC-owned deploy requires manage or advise mode; app is in %s mode',
-    400
-  ),
-  // Placeholder: manage-mode actuation is parked while the ICC-owned deploy path is
-  // reworked. Remove once the new implementation lands.
-  ManageModeUnavailable: createError(
-    `${ERROR_PREFIX}_MANAGE_MODE_UNAVAILABLE`,
-    'Manage mode is being reworked and is temporarily unavailable; use observe or advise',
-    503
+  FailedToApplySecret: createError(
+    `${ERROR_PREFIX}_FAILED_TO_APPLY_SECRET`,
+    'Failed to apply Secret: %s'
   ),
   DeployTokenScopeRequired: createError(
     `${ERROR_PREFIX}_DEPLOY_TOKEN_SCOPE_REQUIRED`,

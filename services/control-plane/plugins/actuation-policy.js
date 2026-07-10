@@ -3,19 +3,18 @@
 const fp = require('fastify-plugin')
 const errors = require('./errors')
 
-// The actuation mode decides *who owns the workload*, which is orthogonal to
-// version routing (skew protection). It is a per-application setting that
-// resolves regardless of PLT_FEATURE_SKEW_PROTECTION:
+// The actuation mode governs how ICC handles version *routing* (the gateway
+// HTTPRoute), independently of PLT_FEATURE_SKEW_PROTECTION. The deploy API always
+// creates the workload; the mode does not gate it -- after a deploy the pod
+// registers and ICC observes it, then routes per the mode:
 //
-//   - observe (default): ICC creates nothing; the customer owns the workload.
-//                         A token-deploy is rejected (DeployNotAllowedInMode).
-//   - manage           : ICC creates/updates the workload.
-//   - advise           : ICC returns the manifests as a plan and mutates nothing.
+//   - observe (default): ICC applies the route itself once a version is live.
+//   - advise           : ICC returns the route as a plan; the customer applies it.
 //
 // The mode is stored in `skew_protection_policies.mode`, but that table (and its
 // row) exist independently of the skew feature flag -- only the skew *plugins*
 // are gated. This plugin exposes the mode as a skew-independent setting so the
-// deploy route and the (skew-gated) skew policy read it from one place.
+// routing layer and the (skew-gated) skew policy read it from one place.
 const MODES = ['observe', 'manage', 'advise']
 const DEFAULT_MODE = 'observe'
 

@@ -2,7 +2,7 @@
 
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
-const { buildDeployment, buildService, resourceName } = require('../lib/deployment-builder')
+const { buildDeployment, buildService, buildPullSecret, resourceName } = require('../lib/deployment-builder')
 const { deriveVersion } = require('../lib/version')
 
 test('resourceName uses an explicit version, else a k8s-safe segment from the image tag', () => {
@@ -93,4 +93,37 @@ test('app port defaults to 3042 but is overridable; metrics port stays fixed', (
   const svc = buildService({ appName: 'api', version: 'v1', port: 8080 })
   assert.deepStrictEqual(svc.spec.ports.map(p => p.port), [8080, 9090])
   assert.deepStrictEqual(svc.spec.ports.map(p => p.targetPort), ['app', 'metrics'])
+})
+
+test('buildDeployment adds imagePullSecrets only when credentials are supplied', () => {
+  const bare = buildDeployment({ appName: 'leads-demo', image: 'reg/leads-demo:abc', version: 'v3' })
+  assert.strictEqual(bare.spec.template.spec.imagePullSecrets, undefined)
+
+  const withSecret = buildDeployment({
+    appName: 'leads-demo',
+    image: 'reg/leads-demo:abc',
+    version: 'v3',
+    pullSecret: { registry: 'reg.example.com', username: 'u', password: 'p' }
+  })
+  assert.deepStrictEqual(withSecret.spec.template.spec.imagePullSecrets, [{ name: 'leads-demo-v3-pull' }])
+})
+
+test('buildPullSecret returns null without creds, else a dockerconfigjson Secret', () => {
+  assert.strictEqual(buildPullSecret({ appName: 'leads-demo', image: 'reg/x:1', version: 'v3', pullSecret: null }), null)
+
+  const secret = buildPullSecret({
+    appName: 'leads-demo',
+    image: 'reg/leads-demo:abc',
+    version: 'v3',
+    pullSecret: { registry: 'reg.example.com', username: 'alice', password: 's3cret' }
+  })
+  assert.strictEqual(secret.kind, 'Secret')
+  assert.strictEqual(secret.type, 'kubernetes.io/dockerconfigjson')
+  assert.strictEqual(secret.metadata.name, 'leads-demo-v3-pull')
+
+  const decoded = JSON.parse(Buffer.from(secret.data['.dockerconfigjson'], 'base64').toString())
+  const entry = decoded.auths['reg.example.com']
+  assert.strictEqual(entry.username, 'alice')
+  assert.strictEqual(entry.password, 's3cret')
+  assert.strictEqual(Buffer.from(entry.auth, 'base64').toString(), 'alice:s3cret')
 })

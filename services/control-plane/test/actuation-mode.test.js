@@ -122,7 +122,7 @@ function buildSkewOffApp () {
   return { app, calls }
 }
 
-test('skew off: default observe rejects the deploy; manage is placeholdered while reworked', async (t) => {
+test('skew off: the deploy API creates the workload (mode does not gate it)', async (t) => {
   const { app, calls } = buildSkewOffApp()
   await app.ready()
   t.after(() => app.close())
@@ -130,19 +130,13 @@ test('skew off: default observe rejects the deploy; manage is placeholdered whil
   const token = { 'x-user': JSON.stringify({ type: 'deploy-token', applicationId: APP_ID }) }
   const body = { image: 'reg/leads-demo:abc', version: 'v3' }
 
-  // Default observe: the token-deploy is rejected, the customer owns the workload.
-  const rejected = await app.inject({ method: 'POST', url: '/deploy', headers: token, payload: body })
-  assert.strictEqual(rejected.statusCode, 400)
-  assert.strictEqual(calls.applyWorkload.length, 0)
-
-  // Flip to manage via the (cookie) dashboard route -- setting the mode still works.
-  const put = await app.inject({ method: 'PUT', url: `/applications/${APP_ID}/actuation-mode`, payload: { mode: 'manage' } })
-  assert.strictEqual(put.statusCode, 200)
-
-  // But manage-mode actuation is parked behind a placeholder while reworked: the
-  // token-deploy is rejected and nothing is created.
+  // Default observe: the token-deploy creates the workload; ICC observes the pod.
   const deployed = await app.inject({ method: 'POST', url: '/deploy', headers: token, payload: body })
-  assert.strictEqual(deployed.statusCode, 503)
-  assert.strictEqual(JSON.parse(deployed.body).code, 'PLT_CONTROL_PLANE_MANAGE_MODE_UNAVAILABLE')
-  assert.strictEqual(calls.applyWorkload.length, 0)
+  assert.strictEqual(deployed.statusCode, 200)
+  assert.strictEqual(JSON.parse(deployed.body).deployed, true)
+  assert.strictEqual(calls.applyWorkload.length, 1)
+
+  // Setting the mode still works (it governs routing, not the deploy).
+  const put = await app.inject({ method: 'PUT', url: `/applications/${APP_ID}/actuation-mode`, payload: { mode: 'advise' } })
+  assert.strictEqual(put.statusCode, 200)
 })

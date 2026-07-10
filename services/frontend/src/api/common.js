@@ -40,6 +40,12 @@ export default async function callApi (service, url, method, body, headers) {
     return output
   }
 
+  // A 200 with a JSON null/undefined body (e.g. no scale-config for a not-yet
+  // deployed app): pass it through instead of dereferencing .length on null.
+  if (output === null || output === undefined) {
+    return output
+  }
+
   if (output.length === 0) {
     return true
   }

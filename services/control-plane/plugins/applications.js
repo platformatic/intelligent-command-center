@@ -57,6 +57,24 @@ module.exports = fp(async function (app) {
     return application
   })
 
+  // Create an application (plus its default config) with no deployment yet.
+  // saveApplication needs the generation lock, so acquire it here.
+  app.decorate('createApplicationWithoutDeployment', async (name, ctx) => {
+    const application = await app.getGenerationLockTx(async (tx) => {
+      return app.saveApplication(name, { ...ctx, tx })
+    }, ctx)
+
+    await app.emitUpdate('icc', {
+      topic: 'ui-updates/applications',
+      type: 'application-created',
+      data: { applicationId: application.id, applicationName: application.name }
+    }).catch((err) => {
+      ctx.logger.error({ err }, 'Failed to send notification to ui')
+    })
+
+    return application
+  })
+
   app.decorate('getApplicationK8sState', async (application, ctx) => {
     const deployment = await app.getLatestDeployment(application.id, ctx)
     if (deployment === null) {

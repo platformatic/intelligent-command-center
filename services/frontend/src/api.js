@@ -90,12 +90,17 @@ export const getLastStartedGeneration = async () => {
 export const getApplicationsWithMetadata = async () => {
   const { body: applications } = await getApplications({})
   if (applications.length === 0) return []
+  // One bulk fetch to know which apps have at least one deployment; apps created
+  // without a deployment render the "not deployed yet" card. Newest first so the
+  // 1000-row cap keeps recently active apps covered.
+  const { body: allDeployments } = await getDeployments({ 'orderby.createdAt': DESC, limit: 1000 })
+  const deployedAppIds = new Set(allDeployments.map(deployment => deployment.applicationId))
   const applicationsWithMetadata = applications.map(
     application => ({
       ...application,
       state: {},
       url: null,
-      isDeployed: true
+      isDeployed: deployedAppIds.has(application.id)
     })
   )
   for (let i = 0; i < applications.length; i++) {
@@ -132,6 +137,15 @@ export const getApiApplication = async (id) => {
     pltVersion = arrayState[0].pltVersion
     state = arrayState[0]?.state ?? {}
   }
+
+  // Real per-app deployment presence: gates the "not deployed yet" detail view
+  // and the deployment-only sidebar items. Kept separate from the demo replica
+  // list below, which other detail widgets still consume.
+  const { body: appDeployments } = await getDeployments({
+    'where.applicationId.eq': id,
+    limit: 1
+  })
+  const isDeployed = appDeployments.length > 0
 
   let { body: deployments } = await getDeployments({
     'orderby.createdAt': DESC
@@ -175,6 +189,7 @@ export const getApiApplication = async (id) => {
     ...application,
     pltVersion,
     state,
+    isDeployed,
     deployments,
     latestDeployment,
     lastStarted,
@@ -295,6 +310,31 @@ export const getApiActivitiesUsers = async () => {
 }
 
 /* DEPLOYMENTS */
+
+// Join deployments to their skew version (by deploymentId) so the UI can show the
+// version label and its lifecycle status. A drained/expired version has its pods
+// scaled to zero, which the raw deployment status reports as 'failed'; the version
+// status (active/draining/expired) is the meaningful one. Fetches versions once
+// per distinct application present in the list.
+export const enrichDeploymentsWithVersions = async (deployments) => {
+  const applicationIds = [...new Set(deployments.map(deployment => deployment.applicationId))]
+  const versionsByDeploymentId = new Map()
+  await Promise.all(applicationIds.map(async (applicationId) => {
+    const data = await callApi('control-plane', `/applications/${applicationId}/versions`).catch(() => ({ versions: [] }))
+    for (const version of (data?.versions ?? [])) {
+      versionsByDeploymentId.set(version.deploymentId, version)
+    }
+  }))
+  return deployments.map(deployment => {
+    const version = versionsByDeploymentId.get(deployment.id)
+    return {
+      ...deployment,
+      versionLabel: version?.versionLabel || null,
+      displayStatus: version?.status || deployment.status
+    }
+  })
+}
+
 export const getApiDeploymentsHistory = async (payload) => {
   const queryObject = {
     'orderby.createdAt': DESC,
@@ -1079,6 +1119,23 @@ export const putActuationMode = async (applicationId, mode) => {
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))
     throw new Error(err.message ?? 'Failed to update deployment mode')
+  }
+  return response.json()
+}
+
+// Create a Watt with no deployment yet. The backend also issues its first deploy
+// token; the plaintext token is returned once here and never again.
+export const createApplication = async (name) => {
+  const url = `${baseUrl}/control-plane/applications/create`
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ name }),
+    credentials: 'include'
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.message ?? 'Failed to create Watt')
   }
   return response.json()
 }

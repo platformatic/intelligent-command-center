@@ -3,7 +3,6 @@
 'use strict'
 
 const errors = require('../plugins/errors')
-const { resolveActuation } = require('../lib/actuation')
 const { resourceName, APP_PORT } = require('../lib/deployment-builder')
 const { deriveVersion } = require('../lib/version')
 
@@ -26,7 +25,20 @@ module.exports = async function (app) {
       port: { type: ['integer', 'null'], minimum: 1, maximum: 65535 },
       minReplicas: { type: ['integer', 'null'], minimum: 1 },
       maxReplicas: { type: ['integer', 'null'], minimum: 1 },
-      env: { type: 'object', additionalProperties: { type: 'string' } }
+      env: { type: 'object', additionalProperties: { type: 'string' } },
+      // Registry credentials for a private image. ICC builds a dockerconfigjson
+      // Secret from these and references it via the pod's imagePullSecrets; the
+      // caller (CI) needs no cluster access. Sent per deploy, never persisted.
+      pullSecret: {
+        type: ['object', 'null'],
+        properties: {
+          registry: { type: 'string', minLength: 1 },
+          username: { type: 'string', minLength: 1 },
+          password: { type: 'string', minLength: 1 }
+        },
+        required: ['registry', 'username', 'password'],
+        additionalProperties: false
+      }
     },
     required: ['image'],
     additionalProperties: false
@@ -55,7 +67,8 @@ module.exports = async function (app) {
       isWorkflow: body.expirePolicy === 'workflow',
       minReplicas: body.minReplicas ?? null,
       maxReplicas: body.maxReplicas ?? null,
-      envVars: body.env ?? {}
+      envVars: body.env ?? {},
+      pullSecret: body.pullSecret ?? null
     }
   }
 
@@ -121,50 +134,23 @@ module.exports = async function (app) {
     return { intent: 'deploy', mode, plan }
   }
 
-  // Core of the deploy: manage creates the workload now; advise returns the
-  // manifests as a plan; observe rejects (the caller owns workload creation).
+  // The deploy API is the deploy mechanism: it creates the workload (Deployment +
+  // Service, plus the image-pull Secret when credentials were sent). The booting
+  // pod then self-registers via /pods/:podId/instance and ICC learns the running
+  // state by observing it; the reactive path drives routing, so we do not apply
+  // the HTTPRoute here. Read-only manifests are available via /deploy/plan.
   async function deploy (req) {
     const { applicationId, application } = await resolveApplication(req)
     const logger = req.log.child({ applicationId })
     const ctx = { req, logger }
 
-    const { mode } = await app.resolveActuationMode(applicationId)
-    const { workload } = resolveActuation(mode)
-
-    if (workload === 'noop') {
-      throw new errors.DeployNotAllowedInMode(mode || 'observe')
-    }
-
     const opts = await resolveOpts(application, req.body, ctx)
-
-    if (workload === 'plan') {
-      const plan = await buildDeployPlan(opts, applicationId, ctx)
-      // Skew off: persist the advise version + plan so the dashboard can show it
-      // (with skew on, the version registers reactively and the Version Manager
-      // already surfaces the plan). Best-effort: the plan is returned regardless.
-      if (!app.resolveSkewPolicy && app.recordAdviseVersion) {
-        await app.recordAdviseVersion({
-          applicationId,
-          appLabel: opts.appName,
-          versionLabel: opts.version,
-          controllerName: resourceName(opts.appName, opts.version, opts.image),
-          serviceName: resourceName(opts.appName, opts.version, opts.image),
-          servicePort: opts.port,
-          namespace: opts.namespace,
-          pathPrefix: opts.pathPrefix,
-          hostname: opts.hostname,
-          expirePolicy: opts.expirePolicy,
-          plan
-        }, ctx).catch(err => logger.error({ err }, 'failed to record advise version'))
-      }
-      return { deployed: false, pendingApply: true, mode, plan }
+    const result = await app.applyWorkload(opts, ctx)
+    return {
+      deployed: true,
+      controllerName: result.controllerName,
+      serviceName: result.serviceName
     }
-
-    // Placeholder: manage-mode workload creation (workload === 'apply') is parked
-    // while the ICC-owned deploy path is reworked. Restore the app.applyWorkload
-    // call once the new implementation lands. Observe (noop) and advise (plan) are
-    // unaffected.
-    throw new errors.ManageModeUnavailable()
   }
 
   const planResponse = {
@@ -185,13 +171,10 @@ module.exports = async function (app) {
       type: 'object',
       properties: {
         deployed: { type: 'boolean' },
-        pendingApply: { type: 'boolean' },
-        mode: { type: 'string' },
         controllerName: { type: ['string', 'null'] },
-        serviceName: { type: ['string', 'null'] },
-        plan: planArraySchema
+        serviceName: { type: ['string', 'null'] }
       },
-      required: ['deployed', 'mode'],
+      required: ['deployed'],
       additionalProperties: false
     }
   }

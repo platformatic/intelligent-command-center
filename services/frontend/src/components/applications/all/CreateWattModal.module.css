@@ -1,0 +1,44 @@
+/* Give the two-step content more vertical room than the preset's 85vh so the
+   deploy steps rarely scroll. Raw !important (not @apply) reliably wins. */
+.modal {
+  @apply flex flex-col gap-y-2;
+  max-height: 95vh !important;
+}
+.titleContainer {
+  @apply flex flex-col grow;
+}
+.stepBody {
+  @apply flex flex-col gap-y-4 w-full pt-2;
+}
+.actions {
+  @apply flex flex-row justify-end w-full;
+}
+.error {
+  @apply text-error-red;
+}
+.tokenRow {
+  @apply rounded-md px-3 py-2 border border-solid border-white/30 bg-rich-black;
+}
+.tokenValue {
+  @apply break-all;
+}
+.copied {
+  @apply text-main-green;
+}
+.codeBlock {
+  @apply mt-1 rounded-md px-3 py-2 border border-solid border-white/30 bg-rich-black items-start;
+}
+.code {
+  @apply grow overflow-x-auto whitespace-pre text-[0.7rem] leading-5;
+}
+.steps {
+  @apply flex flex-col gap-y-3 w-full;
+}
+.step {
+  @apply flex flex-row gap-x-3 items-start w-full;
+}
+.stepNumber {
+  @apply flex items-center justify-center shrink-0 rounded-full text-white text-[0.75rem] border border-solid border-white/30;
+  width: 1.5rem;
+  height: 1.5rem;
+}

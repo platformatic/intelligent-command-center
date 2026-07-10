@@ -42,7 +42,8 @@ function WattContainer ({ children }) {
             link: generatePath('/'),
             label: 'All Watts',
             iconName: 'AllAppsIcon',
-            disabled: (application?.deployments?.length ?? 0) === 0
+            // Back-navigation to the list stays enabled even with no deployment.
+            disabled: false
           },
           {
             separator: true
@@ -51,62 +52,64 @@ function WattContainer ({ children }) {
             link: generatePath('', { applicationId: application.id }),
             label: 'Watt Details',
             iconName: 'AppDetailsIcon',
-            disabled: (application?.deployments?.length ?? 0) === 0
+            disabled: !application?.isDeployed
           },
           {
             link: generatePath('applications', { applicationId: application.id }),
             label: 'Applications',
             iconName: 'PlatformaticServiceIcon',
-            disabled: (application?.deployments?.length ?? 0) === 0
+            disabled: !application?.isDeployed
           },
           {
             link: generatePath('deployment-history', { applicationId: application.id }),
             label: 'Deployment History',
             iconName: 'DeploymentHistoryIcon',
-            disabled: (application?.deployments?.length ?? 0) === 0
+            disabled: !application?.isDeployed
           },
           ...(config['skew-protection']
             ? [{
                 link: generatePath('versions', { applicationId: application.id }),
                 label: 'Version Manager',
                 iconName: 'VersionManagerIcon',
-                disabled: (application?.deployments?.length ?? 0) === 0
+                disabled: !application?.isDeployed
               }]
             : []),
           {
             link: generatePath(isScalerV2 ? 'autoscaler-v2' : 'autoscaler', { applicationId: application.id }),
             label: 'Autoscaler',
             iconName: 'HorizontalPodAutoscalerIcon',
-            disabled: (application?.deployments?.length ?? 0) === 0
+            disabled: !application?.isDeployed
           }, {
             link: generatePath('flamegraphs', { applicationId: application.id }),
             label: 'Flamegraphs',
             iconName: 'FlamegraphsIcon',
-            disabled: (application?.deployments?.length ?? 0) === 0
+            disabled: !application?.isDeployed
           }, {
             link: generatePath('activities', { applicationId: application.id }),
             label: 'Activities',
             iconName: 'CheckListIcon',
-            disabled: (application?.deployments?.length ?? 0) === 0
+            disabled: !application?.isDeployed
           }, {
             link: generatePath('scheduled-jobs', { applicationId: application.id }),
             label: 'Scheduled Jobs',
             iconName: 'ScheduledJobsIcon',
-            disabled: (application?.deployments?.length ?? 0) === 0
+            disabled: !application?.isDeployed
           },
           ...(config.workflow
             ? [{
                 link: generatePath('workflows', { applicationId: application.id }),
                 label: 'Workflows',
                 iconName: 'WorkflowIcon',
-                disabled: (application?.deployments?.length ?? 0) === 0
+                disabled: !application?.isDeployed
               }]
             : [])]}
         bottomItems={[{
           link: generatePath('settings', { applicationId: application.id }),
           label: 'Settings',
           iconName: 'AppSettingsIcon',
-          disabled: (application?.deployments?.length ?? 0) === 0
+          // Settings stays reachable with no deployment: it hosts the deploy
+          // tokens needed to bring the Watt online.
+          disabled: false
         }]}
       />
       <Outlet />
