@@ -420,7 +420,7 @@ importers:
         version: 5.0.4
       '@fastify/cookie':
         specifier: ^11.0.0
-        version: 11.0.2
+        version: 11.1.1
       '@fastify/env':
         specifier: ^5.0.1
         version: 5.0.3
@@ -735,7 +735,7 @@ importers:
     dependencies:
       '@fastify/cookie':
         specifier: ^11.0.0
-        version: 11.0.2
+        version: 11.1.1
       '@fastify/env':
         specifier: ^5.0.1
         version: 5.0.3
@@ -1223,8 +1223,8 @@ packages:
   '@fastify/basic-auth@6.2.0':
     resolution: {integrity: sha512-Ao9Jf8TyW8v7p3CPy++c+E3qcCDeWfAlSIfFo0CsKrfvm81i0OCpnobIMwaSSkg/At0rzsLzbJPDWrgNru0G1w==}
 
-  '@fastify/cookie@11.0.2':
-    resolution: {integrity: sha512-GWdwdGlgJxyvNv+QcKiGNevSspMQXncjMZ1J8IvuDQk0jvkzgWWZFNC2En3s+nHndZBGV8IbLwOI/sxCZw/mzA==}
+  '@fastify/cookie@11.1.1':
+    resolution: {integrity: sha512-sJ0NXzGVYjUB4OynPZRsIcQ1mKSP4rW45xLCN0aelRq5Vl37xVVbz5kJ6Y0a9m2T0mCUjYCuvlUA9QlTafrZWw==}
 
   '@fastify/cors@11.2.0':
     resolution: {integrity: sha512-LbLHBuSAdGdSFZYTLVA3+Ch2t+sA6nq3Ejc6XLAKiQ6ViS2qFnvicpj0htsx03FyYeLs04HfRNBsz/a8SvbcUw==}
@@ -3210,6 +3210,10 @@ packages:
   cookie@1.1.1:
     resolution: {integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==}
     engines: {node: '>=18'}
+
+  cookie@2.0.1:
+    resolution: {integrity: sha512-yuToqVvRrj6pfDXREyQAAv8SkAEk/8GS3jQRTiUMm66TVtBYmqQeoEjL2Lmq8Rpo6271vH76InTChTitEAm65w==}
+    engines: {node: '>=22'}
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
@@ -6942,10 +6946,10 @@ snapshots:
       '@fastify/error': 4.2.0
       fastify-plugin: 5.1.0
 
-  '@fastify/cookie@11.0.2':
+  '@fastify/cookie@11.1.1':
     dependencies:
-      cookie: 1.1.1
-      fastify-plugin: 5.1.0
+      cookie: 2.0.1
+      fastify-plugin: 6.0.0
 
   '@fastify/cors@11.2.0':
     dependencies:
@@ -7018,7 +7022,7 @@ snapshots:
 
   '@fastify/oauth2@8.2.0':
     dependencies:
-      '@fastify/cookie': 11.0.2
+      '@fastify/cookie': 11.1.1
       fastify-plugin: 5.1.0
       simple-oauth2: 5.1.0
     transitivePeerDependencies:
@@ -7048,7 +7052,7 @@ snapshots:
 
   '@fastify/secure-session@8.3.0(bare-events@2.9.1)(bare-url@2.4.5)':
     dependencies:
-      '@fastify/cookie': 11.0.2
+      '@fastify/cookie': 11.1.1
       fastify-plugin: 5.1.0
       sodium-native: 5.1.0(bare-events@2.9.1)(bare-url@2.4.5)
     transitivePeerDependencies:
@@ -9514,6 +9518,8 @@ snapshots:
   convert-source-map@2.0.0: {}
 
   cookie@1.1.1: {}
+
+  cookie@2.0.1: {}
 
   core-util-is@1.0.3: {}
 
