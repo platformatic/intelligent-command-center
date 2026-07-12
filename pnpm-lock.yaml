@@ -438,7 +438,7 @@ importers:
         version: 11.3.0
       '@platformatic/gateway':
         specifier: ^3.54.0
-        version: 3.59.0(chokidar@3.6.0)(typescript@5.9.3)
+        version: 3.61.1(chokidar@3.6.0)(typescript@5.9.3)
       fastify-plugin:
         specifier: ^5.0.1
         version: 5.1.0
@@ -1220,6 +1220,9 @@ packages:
   '@fastify/autoload@6.3.1':
     resolution: {integrity: sha512-0fsG+lO3m5yEZVjXKpltCe+2eHhM6rfAPQhvlGUgLUFTw/N2wA9WqPTObMtrF3oUCUrxbSDv60HlUIoh+aFM1A==}
 
+  '@fastify/autoload@6.4.0':
+    resolution: {integrity: sha512-aUuu8Owoye+cypaveiOrizbKgQEx125kbLgHtPdiOMpJdhNVGG0hkytj0eDvlqp0MKx8dkIAqNqzOi8oSj22jw==}
+
   '@fastify/basic-auth@6.2.0':
     resolution: {integrity: sha512-Ao9Jf8TyW8v7p3CPy++c+E3qcCDeWfAlSIfFo0CsKrfvm81i0OCpnobIMwaSSkg/At0rzsLzbJPDWrgNru0G1w==}
 
@@ -1228,6 +1231,9 @@ packages:
 
   '@fastify/cors@11.2.0':
     resolution: {integrity: sha512-LbLHBuSAdGdSFZYTLVA3+Ch2t+sA6nq3Ejc6XLAKiQ6ViS2qFnvicpj0htsx03FyYeLs04HfRNBsz/a8SvbcUw==}
+
+  '@fastify/cors@11.3.0':
+    resolution: {integrity: sha512-ggQGua+xHv1MvePbPr0v//xLYEsCXbWspquXCJS9Ot5YoRXq8J8ZWzHnxDBVnbtXosvistXo6LtNzOJswf64Fw==}
 
   '@fastify/deepmerge@1.3.0':
     resolution: {integrity: sha512-J8TOSBq3SoZbDhM9+R/u77hP93gz/rajSA+K2kGyijPpORPWUXHUpTaleoj+92As0S9uPRP7Oi8IqMf0u+ro6A==}
@@ -1243,6 +1249,9 @@ packages:
 
   '@fastify/fast-json-stringify-compiler@5.0.3':
     resolution: {integrity: sha512-uik7yYHkLr6fxd8hJSZ8c+xF4WafPK+XzneQDPU+D10r5X19GW8lJcom2YijX2+qtFF1ENJlHXKFM9ouXNJYgQ==}
+
+  '@fastify/fast-json-stringify-compiler@5.1.0':
+    resolution: {integrity: sha512-PxcYtKLbQ8Z+yApiqjK8FwxIwvEj38k2OiLc17u8dkJSlmfi2wHHPaSnaoqBPQqtvF8YVsDgDpP2snDCfFrpfw==}
 
   '@fastify/formbody@8.0.2':
     resolution: {integrity: sha512-84v5J2KrkXzjgBpYnaNRPqwgMsmY7ZDjuj0YVuMR3NXCJRCgKEZy/taSP1wUYGn0onfxJpLyRGDLa+NMaDJtnA==}
@@ -1296,8 +1305,14 @@ packages:
   '@fastify/swagger@9.7.0':
     resolution: {integrity: sha512-Vp1SC1GC2Hrkd3faFILv86BzUNyFz5N4/xdExqtCgkGASOzn/x+eMe4qXIGq7cdT6wif/P/oa6r1Ruqx19paZA==}
 
+  '@fastify/swagger@9.8.0':
+    resolution: {integrity: sha512-GdRkUboXu++nChrmWM22SNDkabB529TL7cQ4RDsPDP76ro1kSW1cLIEZ9S8ZUbJKYUciHgLAgiX8SHzCnqZdnQ==}
+
   '@fastify/under-pressure@9.0.3':
     resolution: {integrity: sha512-uWzyFn9ThgGgynxyoX/kqgLtPtNBXXvQgN3U8fSRPNBS1y5mEZC/uCBRx03hXm9PDsQwTGN7qt83ItsHVQ0L4A==}
+
+  '@fastify/under-pressure@9.1.0':
+    resolution: {integrity: sha512-RTVuCM78MZiTWUJA+0CkN5AHUnLjmY2PKFEm5mVjjmwE8ev/Mk30GvjHyfBYCu65geAJvXnz5DauGm0Tpyl0LA==}
 
   '@fastify/view@12.0.0':
     resolution: {integrity: sha512-Prcoim4yTwG6vPnIyGrWViDx6FFnchV0GQWeBgAgywlL1JflGhTLDhIsyd7EkOreYHyqALqxnmhhJhD4NrJTWw==}
@@ -1965,6 +1980,10 @@ packages:
     resolution: {integrity: sha512-hQWukbcOi1SBSMlz4hr6Zah6E1urS+sYpeiHy4kQ9jczT6E+R6VE0PgsOhdv4SZuyPxgfvrEAdDrfcrWrUFT+w==}
     engines: {node: '>=22.19.0'}
 
+  '@platformatic/basic@3.61.1':
+    resolution: {integrity: sha512-oA17mU1ACJxZfR8Ou2lgaxXLMdFojDaFk3aB/Ghv1h9Ic5a+fjlasxpVEQBGTIU65y79XxhT5O151G4Puh5giw==}
+    engines: {node: '>=22.19.0'}
+
   '@platformatic/control@3.59.0':
     resolution: {integrity: sha512-Lj5sTUo0qZEFH2IJBL0fwaDV8OqJEuygM3l2ncMtsl4uq53jTx+xcdGl1M2ItqNrJq4eyX0pXHZFgPxTxe9DDQ==}
     engines: {node: '>=22.19.0'}
@@ -1992,16 +2011,28 @@ packages:
     resolution: {integrity: sha512-AuGyJrVXppf447jJOaSDiLfWr3dd/KzD2CKamQtsNZqR4fL5OJUwf7KllxxIeov4usY4Xb+gFRcfW1tkQogl6Q==}
     engines: {node: '>=22.19.0'}
 
-  '@platformatic/gateway@3.59.0':
-    resolution: {integrity: sha512-/tb1Hem4jx8XywQcQzTv0AyJcWx27kKmqFIM5RgA/RXy90FQflyiE4WNcVvzCkzFP5nbnO0wk+LrT1VubACf/g==}
+  '@platformatic/foundation@3.61.1':
+    resolution: {integrity: sha512-xzEsR4Nlnsr9PxzXFTRa/e95Fk5EMKJUK0b0ouyAVUKNmUssWVazWa8mVk2TlwBYOKvYFDcI1XtscQ75PVrQzg==}
+    engines: {node: '>=22.19.0'}
+
+  '@platformatic/gateway@3.61.1':
+    resolution: {integrity: sha512-/VmGp2v8WD6KsgWpuE7cniC3/bwYBYFJFTAK71dxFQw3PW/D5vVB1u7NkHuvIsWEcQ35WBD+Gorzh8L6V8vTCg==}
     engines: {node: '>=22.19.0'}
 
   '@platformatic/generators@3.59.0':
     resolution: {integrity: sha512-Eiqt7L3B9+Kgx8+F2sosCgmAeYsg4jnKWd/FXAR/xAtU+PcEvGvhkCXdVadH61wuILpgQZuCTc1p15GjNd35IQ==}
     engines: {node: '>=22.19.0'}
 
+  '@platformatic/generators@3.61.1':
+    resolution: {integrity: sha512-K+BC0oktzHaw0F8A4qxZqX746CZkFOyUO/raj9aPSEEfWwEkGuoTQOTYdvGOmDR7bVGqbwC9qKkpEdhluCNIVg==}
+    engines: {node: '>=22.19.0'}
+
   '@platformatic/globals@3.59.0':
     resolution: {integrity: sha512-RjkmWTx4YFMPo8hxe+5m9BdA87584qBt0qCh4FJoit9GxQfZK9wNiWUaSVmWGeDcsbnMRCLx3SSWJAY6MzMxug==}
+    engines: {node: '>=22.19.0'}
+
+  '@platformatic/globals@3.61.1':
+    resolution: {integrity: sha512-pgUrDlCjbSLn54xFG4dCixzqBE+ZfidOT7Wb8F+jg2ds9IEU2mdubQPADKFkOfnbDvTApSPeRqPWE8/N2n0Zzw==}
     engines: {node: '>=22.19.0'}
 
   '@platformatic/graphql-composer@0.11.0':
@@ -2018,12 +2049,20 @@ packages:
     resolution: {integrity: sha512-Fo4wCpKOxibDJpU1ovzkI5LqVl+ewLcKGx0lwCzUGJlQYF1jy2wXpqTaN8ej77R4Pe4WOJL2lRCgR5LcKYkVHQ==}
     engines: {node: '>=22.19.0'}
 
+  '@platformatic/itc@3.61.1':
+    resolution: {integrity: sha512-BZOT/3aapYcgZi8ejGfTGgq38h79cFeYLySMdw4uodUV7XfZW5LpR3p0T4toaH9VPip5JTXrSQaClhLV7oVAOQ==}
+    engines: {node: '>=22.19.0'}
+
   '@platformatic/job-queue@0.4.1':
     resolution: {integrity: sha512-oFXAi7DDRVGHqPzfkpcs8i3TKx3ppz4YQ1KIkNEkJWYpzglJv6Xkc/aF4tgUZBaUptEGLorwE4SsEFVGspgh0A==}
     engines: {node: '>=22.19.0'}
 
   '@platformatic/metrics@3.59.0':
     resolution: {integrity: sha512-0GOjqO1HTzRroaWjtkbZ4Sd3dgAV2DXPHwKzlPtUmaxjsIPD7A1WNglMJXgp4QURzsfF5OWQsekpTIDQfz1nVA==}
+    engines: {node: '>=22.19.0'}
+
+  '@platformatic/metrics@3.61.1':
+    resolution: {integrity: sha512-dHAjPidleuuQTn/q4V+wKtLwzmnkW49yHi3SroJ2skHzjHQoFulloydYKHNqethFXuHsBOTSfJC2Qn2xBlOkGw==}
     engines: {node: '>=22.19.0'}
 
   '@platformatic/next@3.59.0':
@@ -2054,8 +2093,16 @@ packages:
     resolution: {integrity: sha512-bUXsfHQrkLm8wieOz+rHNkz2QnSqx99q1q16Zc1ieGwGU7ORdACOyoNu1Zn9kCN+0KmZS87Guq6OxiblfsVXvg==}
     engines: {node: '>=22.19.0'}
 
+  '@platformatic/scalar-theme@3.61.1':
+    resolution: {integrity: sha512-pFV0U6kVn5Qg1QETNn0GogqN/7ufKydo4uOq2CC4xI4uyAWsOG+gD5LvX9xJlq+cYpF/SnMYxtJ7y/MP24Cf8w==}
+    engines: {node: '>=22.19.0'}
+
   '@platformatic/service@3.59.0':
     resolution: {integrity: sha512-VcoLVYYEqugboigJLPUYUcPslibCE6kzbXqPlPi2qDAIRpWYIc4l+IFDKbKMB81gEA6HpEMeXaZ4Y+gzGKDvww==}
+    engines: {node: '>=22.19.0'}
+
+  '@platformatic/service@3.61.1':
+    resolution: {integrity: sha512-xMtmCrd1J4CU9RCns4WOilTEe+CJZPRzlVVgiV3OKIYd5i5wOo2s4TSSAIekILPnH5cyXdzJNX/e9vvTw3v/Bw==}
     engines: {node: '>=22.19.0'}
 
   '@platformatic/sql-events@3.59.0':
@@ -2083,6 +2130,10 @@ packages:
 
   '@platformatic/telemetry@3.59.0':
     resolution: {integrity: sha512-e3jK2J7n/i9uy8gt/j8MGt4QeQLFZ+pq8U+fLGYFdJNOWUqIWclcfRJz2Nr1pQoohOBk5O0VDjAKPRlbUC9Gcg==}
+    engines: {node: '>=22.19.0'}
+
+  '@platformatic/telemetry@3.61.1':
+    resolution: {integrity: sha512-7eClFMkU+/TpSVQObbqkEZTDe8OPo/72efNCt8xxBllgrTAEdhHcCsycg5uzNTmKFHGHxxVn4DKdhFvXZcPY6Q==}
     engines: {node: '>=22.19.0'}
 
   '@platformatic/ui-components@0.21.0':
@@ -2495,6 +2546,9 @@ packages:
 
   '@types/node@22.20.0':
     resolution: {integrity: sha512-QWlFW2wf3nTjC13/DqRnBpR4ZO36VJH/JVBkA/vcnmbTBNQIlnObqyqZE1tUR7+Ni23Lda8R1BxMfbXRpCUx5g==}
+
+  '@types/node@22.20.1':
+    resolution: {integrity: sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==}
 
   '@types/node@24.13.2':
     resolution: {integrity: sha512-fRa09kZTgu8o71KFcDjUFuc7F+dEbZYZmkI0mg5YBTRs0yMKjYHsq/c0urDKeDb+D5qVgXOdFcuu+DZPKOITwA==}
@@ -3870,6 +3924,9 @@ packages:
   fast-json-stringify@6.4.0:
     resolution: {integrity: sha512-ibRCQ0GZKJIQ+P3Et1h0LhPgp3PMTYk0MH8O+kW3lNYsvmaQww5Nn3f1jf73Q0jR1Yz3a1CDP4/NZD3vOajWJQ==}
 
+  fast-json-stringify@7.0.1:
+    resolution: {integrity: sha512-eRSayARSbbwlBjpP4vnTTIRD5QPcIrmihPxDeN1DtKnHPg66UuJLx+8hlK1kaFdjvzyQ/dzALoi4vwAQ+T+iZA==}
+
   fast-jwt@5.0.6:
     resolution: {integrity: sha512-LPE7OCGUl11q3ZgW681cEU2d0d2JZ37hhJAmetCgNyW8waVaJVZXhyFF6U2so1Iim58Yc7pfxJe2P7MNetQH2g==}
     engines: {node: '>=20'}
@@ -3892,6 +3949,9 @@ packages:
 
   fast-uri@3.1.3:
     resolution: {integrity: sha512-i70LwGWUduXqzicKXWshooq+sWL1K3WUU5rKZNG/0i3a1OSoX3HqhH5WbWwTmqWfor4urUakGPiRQcleRZTwOg==}
+
+  fast-uri@4.1.0:
+    resolution: {integrity: sha512-ZodJ2cRiLVWGi9IgPb3mbgSqM4CD3LexCHkuv0FfBXHJI1ADfucTD06m6clO2Cy5RZYsw/SiCVl/dyrFI/SYWA==}
 
   fast-write-atomic@0.4.0:
     resolution: {integrity: sha512-O0AGqOsuOgsVXFiF/vIm7c+NHRZB6c6IDMBVPWc8rLGWVW7FYaBBfzhqxKlKyGKVF5tPR4drUOxE02lDiWjbSg==}
@@ -3925,6 +3985,9 @@ packages:
 
   fastify-user@1.4.0:
     resolution: {integrity: sha512-VqGa60xX3nFCz2gIJHfdVjDlJIsdJ9bwigDdazaKlZ/lSxsyeXOnxsyxtZ9XeMht2drc6WLUtJ0MMeo1BSvXCg==}
+
+  fastify@5.10.0:
+    resolution: {integrity: sha512-A9L0ziuWGQHgEEVgF3davQ9vbD93IuX+lo2IsxapQmu5b/Y/ynn9m9K5JHt9dvyJXOFc5iN0Zk5GHEOqnzhWjg==}
 
   fastify@5.9.0:
     resolution: {integrity: sha512-VMS5lE0zj+MZlJpQa3Qv5iGjfun0H2N7VRgoBwpcTNQ2bdIQpv7fDpb+HGteGbicBsGkzGS+X+hdx9mmrfWuHQ==}
@@ -5948,6 +6011,10 @@ packages:
     resolution: {integrity: sha512-5DXWzE4Vz7xNHsv+xQ+MGfJYyC78Aok3tEr0MNwHoRf7vZnga1mQXZ4/Nsodld4VR6Wd+VhfmqnNrsRJyYPfrQ==}
     engines: {node: '>=20'}
 
+  toad-cache@3.7.4:
+    resolution: {integrity: sha512-m1TdR/rvT7kgGJZhspNtXdsdYk0fddFpJJFlG5s+UkPFo6lkLoZ3YLOaovPYjq1R75NP5JfeTlSHaOsE09peCg==}
+    engines: {node: '>=20'}
+
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
@@ -6944,6 +7011,8 @@ snapshots:
 
   '@fastify/autoload@6.3.1': {}
 
+  '@fastify/autoload@6.4.0': {}
+
   '@fastify/basic-auth@6.2.0':
     dependencies:
       '@fastify/error': 4.2.0
@@ -6959,6 +7028,11 @@ snapshots:
       fastify-plugin: 5.1.0
       toad-cache: 3.7.1
 
+  '@fastify/cors@11.3.0':
+    dependencies:
+      fastify-plugin: 6.0.0
+      toad-cache: 3.7.4
+
   '@fastify/deepmerge@1.3.0': {}
 
   '@fastify/deepmerge@3.2.1': {}
@@ -6973,6 +7047,10 @@ snapshots:
   '@fastify/fast-json-stringify-compiler@5.0.3':
     dependencies:
       fast-json-stringify: 6.4.0
+
+  '@fastify/fast-json-stringify-compiler@5.1.0':
+    dependencies:
+      fast-json-stringify: 7.0.1
 
   '@fastify/formbody@8.0.2':
     dependencies:
@@ -7050,7 +7128,7 @@ snapshots:
       fast-content-type-parse: 3.0.0
       fast-querystring: 1.1.2
       fastify-plugin: 5.1.0
-      toad-cache: 3.7.1
+      toad-cache: 3.7.4
       undici: 7.28.0
 
   '@fastify/secure-session@8.3.0(bare-events@2.9.1)(bare-url@2.4.5)':
@@ -7101,15 +7179,30 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@fastify/swagger@9.8.0':
+    dependencies:
+      fastify-plugin: 6.0.0
+      json-schema-resolver: 3.0.0
+      openapi-types: 12.1.3
+      rfdc: 1.4.1
+      yaml: 2.9.0
+    transitivePeerDependencies:
+      - supports-color
+
   '@fastify/under-pressure@9.0.3':
     dependencies:
       '@fastify/error': 4.2.0
       fastify-plugin: 5.1.0
 
+  '@fastify/under-pressure@9.1.0':
+    dependencies:
+      '@fastify/error': 4.2.0
+      fastify-plugin: 6.0.0
+
   '@fastify/view@12.0.0':
     dependencies:
       fastify-plugin: 5.1.0
-      toad-cache: 3.7.1
+      toad-cache: 3.7.4
 
   '@fastify/websocket@11.2.0':
     dependencies:
@@ -7816,6 +7909,27 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@platformatic/basic@3.61.1':
+    dependencies:
+      '@fastify/error': 4.2.0
+      '@platformatic/foundation': 3.61.1
+      '@platformatic/globals': 3.61.1
+      '@platformatic/itc': 3.61.1
+      '@platformatic/metrics': 3.61.1
+      '@platformatic/telemetry': 3.61.1
+      execa: 9.6.1
+      fast-json-patch: 3.1.1
+      pino: 9.14.0
+      pino-abstract-transport: 2.0.0
+      semver: 7.8.5
+      split2: 4.2.0
+      undici: 7.28.0
+      ws: 8.21.0
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   '@platformatic/control@3.59.0':
     dependencies:
       '@fastify/error': 4.2.0
@@ -7933,29 +8047,50 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@platformatic/gateway@3.59.0(chokidar@3.6.0)(typescript@5.9.3)':
+  '@platformatic/foundation@3.61.1':
+    dependencies:
+      '@fastify/deepmerge': 3.2.1
+      '@fastify/error': 4.2.0
+      '@iarna/toml': 2.2.5
+      '@watchable/unpromise': 1.0.2
+      ajv: 8.20.0
+      boring-name-generator: 1.0.3
+      colorette: 2.0.20
+      debug: 4.4.3
+      fast-json-patch: 3.1.1
+      json5: 2.2.3
+      leven: 3.1.0
+      pino: 9.14.0
+      pino-pretty: 13.1.3
+      semver: 7.8.5
+      undici: 7.28.0
+      yaml: 2.9.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@platformatic/gateway@3.61.1(chokidar@3.6.0)(typescript@5.9.3)':
     dependencies:
       '@fastify/error': 4.2.0
       '@fastify/http-proxy': 11.5.0
       '@fastify/reply-from': 12.6.2
-      '@fastify/static': 9.1.3
-      '@fastify/swagger': 9.7.0
+      '@fastify/static': 9.3.0
+      '@fastify/swagger': 9.8.0
       '@fastify/view': 12.0.0
-      '@platformatic/basic': 3.59.0
+      '@platformatic/basic': 3.61.1
       '@platformatic/dynamic-buffer': 0.4.0
       '@platformatic/fastify-openapi-glue': 5.1.0
-      '@platformatic/foundation': 3.59.0
-      '@platformatic/globals': 3.59.0
+      '@platformatic/foundation': 3.61.1
+      '@platformatic/globals': 3.61.1
       '@platformatic/graphql-composer': 0.11.0
-      '@platformatic/scalar-theme': 3.59.0
-      '@platformatic/service': 3.59.0(typescript@5.9.3)
-      '@platformatic/telemetry': 3.59.0
+      '@platformatic/scalar-theme': 3.61.1
+      '@platformatic/service': 3.61.1(typescript@5.9.3)
+      '@platformatic/telemetry': 3.61.1
       '@scalar/fastify-api-reference': 1.34.6(typescript@5.9.3)
       ajv: 8.20.0
       console-table-printer: 2.16.1
       execa: 9.6.1
       fast-deep-equal: 3.1.3
-      fastify: 5.9.0
+      fastify: 5.10.0
       fastify-plugin: 5.1.0
       find-my-way: 9.6.0
       graphql: 16.14.2
@@ -7993,7 +8128,25 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@platformatic/generators@3.61.1':
+    dependencies:
+      '@fastify/error': 4.2.0
+      '@platformatic/foundation': 3.61.1
+      change-case-all: 2.1.0
+      execa: 9.6.1
+      fastify: 5.10.0
+      pino: 9.14.0
+      undici: 7.28.0
+    transitivePeerDependencies:
+      - supports-color
+
   '@platformatic/globals@3.59.0':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@platformatic/prom-client': 1.0.0
+      pino: 9.14.0
+
+  '@platformatic/globals@3.61.1':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@platformatic/prom-client': 1.0.0
@@ -8002,7 +8155,7 @@ snapshots:
   '@platformatic/graphql-composer@0.11.0':
     dependencies:
       abstract-logger: 0.2.5
-      fastify: 5.9.0
+      fastify: 5.10.0
       graphql: 16.14.2
       mercurius: 16.9.0(graphql@16.14.2)
       metaline: 1.1.0
@@ -8035,6 +8188,13 @@ snapshots:
       '@platformatic/globals': 3.59.0
       '@watchable/unpromise': 1.0.2
 
+  '@platformatic/itc@3.61.1':
+    dependencies:
+      '@fastify/error': 4.2.0
+      '@opentelemetry/api': 1.9.1
+      '@platformatic/globals': 3.61.1
+      '@watchable/unpromise': 1.0.2
+
   '@platformatic/job-queue@0.4.1':
     dependencies:
       pino: 10.3.1
@@ -8047,6 +8207,13 @@ snapshots:
 
   '@platformatic/metrics@3.59.0':
     dependencies:
+      '@platformatic/http-metrics': 0.3.0
+      '@platformatic/prom-client': 1.0.0
+      '@platformatic/promotel': 0.2.2
+
+  '@platformatic/metrics@3.61.1':
+    dependencies:
+      '@platformatic/globals': 3.61.1
       '@platformatic/http-metrics': 0.3.0
       '@platformatic/prom-client': 1.0.0
       '@platformatic/promotel': 0.2.2
@@ -8146,6 +8313,8 @@ snapshots:
 
   '@platformatic/scalar-theme@3.59.0': {}
 
+  '@platformatic/scalar-theme@3.61.1': {}
+
   '@platformatic/service@3.59.0(typescript@5.9.3)':
     dependencies:
       '@fastify/accepts': 5.0.4
@@ -8176,6 +8345,54 @@ snapshots:
       execa: 9.6.1
       fast-json-patch: 3.1.1
       fastify: 5.9.0
+      fastify-plugin: 5.1.0
+      graphql: 16.14.2
+      help-me: 5.0.0
+      mercurius: 16.9.0(graphql@16.14.2)
+      minimist: 1.2.8
+      my-ua-parser: 2.0.4
+      ora: 6.3.1
+      pino: 9.14.0
+      pino-pretty: 13.1.3
+      rfdc: 1.4.1
+      semgrator: 0.3.0
+      undici: 7.28.0
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - typescript
+      - utf-8-validate
+
+  '@platformatic/service@3.61.1(typescript@5.9.3)':
+    dependencies:
+      '@fastify/accepts': 5.0.4
+      '@fastify/autoload': 6.4.0
+      '@fastify/cors': 11.3.0
+      '@fastify/deepmerge': 3.2.1
+      '@fastify/error': 4.2.0
+      '@fastify/static': 9.3.0
+      '@fastify/swagger': 9.8.0
+      '@fastify/under-pressure': 9.1.0
+      '@platformatic/basic': 3.61.1
+      '@platformatic/foundation': 3.61.1
+      '@platformatic/generators': 3.61.1
+      '@platformatic/globals': 3.61.1
+      '@platformatic/metrics': 3.61.1
+      '@platformatic/scalar-theme': 3.61.1
+      '@platformatic/telemetry': 3.61.1
+      '@scalar/fastify-api-reference': 1.34.6(typescript@5.9.3)
+      '@types/node': 22.20.1
+      '@types/ws': 8.18.1
+      ajv: 8.20.0
+      cli-progress: 3.12.0
+      close-with-grace: 2.5.0
+      code-block-writer: 13.0.3
+      colorette: 2.0.20
+      console-table-printer: 2.16.1
+      env-schema: 7.0.0
+      execa: 9.6.1
+      fast-json-patch: 3.1.1
+      fastify: 5.10.0
       fastify-plugin: 5.1.0
       graphql: 16.14.2
       help-me: 5.0.0
@@ -8286,6 +8503,28 @@ snapshots:
       '@opentelemetry/semantic-conventions': 1.41.1
       '@platformatic/foundation': 3.59.0
       '@platformatic/globals': 3.59.0
+      fast-uri: 3.1.3
+      fastify-plugin: 5.1.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@platformatic/telemetry@3.61.1':
+    dependencies:
+      '@fastify/swagger': 9.8.0
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/exporter-trace-otlp-grpc': 0.219.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/exporter-trace-otlp-proto': 0.219.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/exporter-zipkin': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/instrumentation': 0.219.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/instrumentation-http': 0.219.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/instrumentation-undici': 0.29.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-node': 0.219.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-base': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions': 1.41.1
+      '@platformatic/foundation': 3.61.1
+      '@platformatic/globals': 3.61.1
       fast-uri: 3.1.3
       fastify-plugin: 5.1.0
     transitivePeerDependencies:
@@ -8558,7 +8797,7 @@ snapshots:
 
   '@types/better-sqlite3@7.6.13':
     dependencies:
-      '@types/node': 24.13.2
+      '@types/node': 24.13.3
 
   '@types/chai@5.2.3':
     dependencies:
@@ -8701,6 +8940,10 @@ snapshots:
   '@types/luxon@3.7.2': {}
 
   '@types/node@22.20.0':
+    dependencies:
+      undici-types: 6.21.0
+
+  '@types/node@22.20.1':
     dependencies:
       undici-types: 6.21.0
 
@@ -10392,6 +10635,15 @@ snapshots:
       json-schema-ref-resolver: 3.0.0
       rfdc: 1.4.1
 
+  fast-json-stringify@7.0.1:
+    dependencies:
+      '@fastify/merge-json-schemas': 0.2.1
+      ajv: 8.20.0
+      ajv-formats: 3.0.1(ajv@8.20.0)
+      fast-uri: 4.1.0
+      json-schema-ref-resolver: 3.0.0
+      rfdc: 1.4.1
+
   fast-jwt@5.0.6:
     dependencies:
       '@lukeed/ms': 2.0.2
@@ -10418,6 +10670,8 @@ snapshots:
   fast-uri@2.4.0: {}
 
   fast-uri@3.1.3: {}
+
+  fast-uri@4.1.0: {}
 
   fast-write-atomic@0.4.0:
     optional: true
@@ -10454,6 +10708,24 @@ snapshots:
       fastify: 5.9.0
       fastify-plugin: 5.1.0
       get-jwks: 11.0.3
+
+  fastify@5.10.0:
+    dependencies:
+      '@fastify/ajv-compiler': 4.0.5
+      '@fastify/error': 4.2.0
+      '@fastify/fast-json-stringify-compiler': 5.1.0
+      '@fastify/proxy-addr': 5.1.0
+      abstract-logging: 2.0.1
+      avvio: 9.2.0
+      fast-json-stringify: 7.0.1
+      find-my-way: 9.6.0
+      light-my-request: 6.6.0
+      pino: 10.3.1
+      process-warning: 5.0.0
+      rfdc: 1.4.1
+      secure-json-parse: 4.1.0
+      semver: 7.8.5
+      toad-cache: 3.7.4
 
   fastify@5.9.0:
     dependencies:
@@ -12772,6 +13044,8 @@ snapshots:
       is-number: 7.0.0
 
   toad-cache@3.7.1: {}
+
+  toad-cache@3.7.4: {}
 
   toidentifier@1.0.1: {}
 
