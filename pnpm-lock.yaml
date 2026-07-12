@@ -435,7 +435,7 @@ importers:
         version: 8.2.0
       '@fastify/websocket':
         specifier: ^11.0.2
-        version: 11.2.0
+        version: 11.3.0
       '@platformatic/gateway':
         specifier: ^3.54.0
         version: 3.59.0(chokidar@3.6.0)(typescript@5.9.3)
@@ -683,7 +683,7 @@ importers:
         version: 9.3.0
       '@fastify/websocket':
         specifier: ^11.1.0
-        version: 11.2.0
+        version: 11.3.0
       borp:
         specifier: ^1.0.0
         version: 1.0.0
@@ -1304,6 +1304,9 @@ packages:
 
   '@fastify/websocket@11.2.0':
     resolution: {integrity: sha512-3HrDPbAG1CzUCqnslgJxppvzaAZffieOVbLp1DAy1huCSynUWPifSvfdEDUR8HlJLp3sp1A36uOM2tJogADS8w==}
+
+  '@fastify/websocket@11.3.0':
+    resolution: {integrity: sha512-g89ag4BCcD9YP5wBZXixzoLnuf5j89p/sXFcfpCiv2pdEkYYukBEoK3heVzqsp0EAtszVDc2BBZG0KZqeAShIA==}
 
   '@graphql-typed-document-node/core@3.2.0':
     resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
@@ -7112,6 +7115,15 @@ snapshots:
     dependencies:
       duplexify: 4.1.3
       fastify-plugin: 5.1.0
+      ws: 8.21.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@fastify/websocket@11.3.0':
+    dependencies:
+      duplexify: 4.1.3
+      fastify-plugin: 6.0.0
       ws: 8.21.0
     transitivePeerDependencies:
       - bufferutil
