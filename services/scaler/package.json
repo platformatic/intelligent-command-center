@@ -2,8 +2,8 @@
   "version": "3.8.0",
   "scripts": {
     "start": "platformatic start",
-    "test": "npm run lint && DOTENV_CONFIG_QUIET=true borp --concurrency 1 --timeout=60000 --ignore 'test/pattern-predictor/**'",
-    "test:coverage": "npm run lint && DOTENV_CONFIG_QUIET=true borp --concurrency 1 --timeout=60000 --ignore 'test/pattern-predictor/**' --coverage",
+    "test": "npm run lint && DOTENV_CONFIG_QUIET=true borp --concurrency 1 --timeout=60000 --ignore 'test/pattern-predictor/*.test.js' --ignore 'test/pattern-predictor/complex/**' --ignore 'test/pattern-predictor/schedule/**'",
+    "test:coverage": "npm run lint && DOTENV_CONFIG_QUIET=true borp --concurrency 1 --timeout=60000 --ignore 'test/pattern-predictor/*.test.js' --ignore 'test/pattern-predictor/complex/**' --ignore 'test/pattern-predictor/schedule/**' --coverage",
     "test:patterns": "npm run test:patterns:unit && npm run test:patterns:complex && npm run test:patterns:schedule",
     "test:patterns:unit": "node --test test/pattern-predictor/*.test.js",
     "test:patterns:complex": "node test/pattern-predictor/complex/runner.mjs",

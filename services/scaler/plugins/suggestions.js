@@ -1,7 +1,6 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const { prepare, resolveDay } = require('../lib/scheduler/suggestion-resolver')
 const errors = require('../lib/errors')
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000
@@ -11,6 +10,24 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000
 // Accept/cancel mutate the table and rebuild the resolved horizon; the scheduler tick reads the
 // live "now" floor via `resolveSuggestionNow`. Enforcement resolves live — the table is UI-only.
 module.exports = fp(async function (app) {
+  const algorithmVersion = app.env.PLT_SCALER_ALGORITHM_VERSION
+  if (algorithmVersion === 'v1') {
+    app.log.info({ algorithmVersion }, '[Suggestions] Skipped - algorithm version is v1')
+    return
+  }
+
+  // suggestion-resolver reaches into the pattern-predictor's scope matching, so it is only
+  // requirable in the commercial build.
+  let prepare, resolveDay
+  try {
+    ;({ prepare, resolveDay } = require('../lib/scheduler/suggestion-resolver'))
+  } catch {
+    throw new Error(
+      'The pattern scaling algorithm is not available in the OSS version of ICC. ' +
+      'Please set PLT_SCALER_ALGORITHM_VERSION to "v1" or upgrade to the commercial version.'
+    )
+  }
+
   const sql = app.platformatic.sql
   const db = app.platformatic.db
   const windowMs = Number(app.env.PLT_SCALER_TIME_WINDOW_MINUTES) * 60 * 1000

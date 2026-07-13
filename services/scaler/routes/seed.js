@@ -28,6 +28,8 @@ const bodySchema = {
 }
 
 module.exports = fp(async function (app) {
+  if (app.env.PLT_SCALER_ALGORITHM_VERSION === 'v1') return
+
   const { entities, db, sql } = app.platformatic
   const controlPlaneUrl = (process.env.PLT_CONTROL_PLANE_URL || 'http://control-plane.plt.local').replace(/\/+$/, '')
 

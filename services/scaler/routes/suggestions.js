@@ -19,6 +19,8 @@ const acceptedShape = {
 }
 
 module.exports = fp(async function (app) {
+  if (app.env.PLT_SCALER_ALGORITHM_VERSION === 'v1') return
+
   // Accept the current candidate for (slotOfDay, scopeKeys); freezes its value and creates/refreshes
   // the one active accepted suggestion for that identity.
   app.post('/applications/:applicationId/suggestions/accept', {

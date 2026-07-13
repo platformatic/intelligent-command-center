@@ -1,8 +1,6 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const { buildModel, predict } = require('../lib/pattern-predictor/model')
-const { buildWindowSuggestions } = require('../lib/pattern-predictor/suggestions')
 
 const MINUTES_PER_DAY = 24 * 60
 const MS_PER_DAY = MINUTES_PER_DAY * 60 * 1000
@@ -14,6 +12,23 @@ const MS_PER_DAY = MINUTES_PER_DAY * 60 * 1000
 const HISTORY_DAYS = 365
 
 module.exports = fp(async function (app) {
+  const algorithmVersion = app.env.PLT_SCALER_ALGORITHM_VERSION
+  if (algorithmVersion === 'v1') {
+    app.log.info({ algorithmVersion }, '[Pattern Predictor] Skipped - algorithm version is v1')
+    return
+  }
+
+  let buildModel, predict, buildWindowSuggestions
+  try {
+    ;({ buildModel, predict } = require('../lib/pattern-predictor/model'))
+    ;({ buildWindowSuggestions } = require('../lib/pattern-predictor/suggestions'))
+  } catch {
+    throw new Error(
+      'The pattern scaling algorithm is not available in the OSS version of ICC. ' +
+      'Please set PLT_SCALER_ALGORITHM_VERSION to "v1" or upgrade to the commercial version.'
+    )
+  }
+
   const sql = app.platformatic.sql
   const windowMs = Number(app.env.PLT_SCALER_TIME_WINDOW_MINUTES) * 60 * 1000
   const windowsPerDay = MS_PER_DAY / windowMs

@@ -66,6 +66,8 @@ const suggestion = {
 }
 
 module.exports = fp(async function (app) {
+  if (app.env.PLT_SCALER_ALGORITHM_VERSION === 'v1') return
+
   // Generate and persist the pattern-predicted schedule for one application (the next
   // PLT_SCALER_PATTERN_PREDICTION_DAYS days, per time window, upserted into time_window_predictions).
   // Returns the number of prediction rows written.
