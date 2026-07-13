@@ -19,7 +19,7 @@ function generateThresholdLabels (thresholds) {
   return labels
 }
 
-export default function PlannerLegend ({ categoryConfig }) {
+export default function PlannerLegend ({ categoryConfig, showDualValues, onToggleDualValues }) {
   const thresholdLabels = useMemo(() => {
     if (!categoryConfig?.config?.categoryThresholds?.values) {
       return CATEGORIES.map(c => c.label)
@@ -35,22 +35,34 @@ export default function PlannerLegend ({ categoryConfig }) {
   }, [thresholdLabels])
 
   return (
-    <div className={styles.legend}>
-      <span className={styles.legendTitle}>Load Level:</span>
-      {displayCategories.map(cat => (
-        <div key={cat.label} className={styles.legendCell} style={{ background: cat.color }}>
-          <span className={styles.legendCellText}>{cat.label}</span>
+    <div className={styles.container}>
+      <div className={styles.legend}>
+        <span className={styles.legendTitle}>Pod Numbers:</span>
+        {displayCategories.map(cat => (
+          <div key={cat.label} className={styles.legendCell} style={{ background: cat.color }}>
+            <span className={styles.legendCellText}>{cat.label}</span>
+          </div>
+        ))}
+        <div className={styles.legendDivider} />
+        <div className={styles.legendItem}>
+          <span className={styles.legendTitle}>Scheduled:</span>
+          <div className={styles.legendSwatch} style={{ background: SCHEDULED_COLOR }} />
         </div>
-      ))}
-      <div className={styles.legendDivider} />
-      <div className={styles.legendItem}>
-        <span className={styles.legendTitle}>Scheduled:</span>
-        <div className={styles.legendSwatch} style={{ background: SCHEDULED_COLOR }} />
+        <div className={styles.legendItem}>
+          <span className={styles.legendTitle}>Forecasted:</span>
+          <div className={`${styles.legendSwatch} ${styles.legendSwatchOutline}`} />
+        </div>
       </div>
-      <div className={styles.legendItem}>
-        <span className={styles.legendTitle}>Predicted:</span>
-        <div className={`${styles.legendSwatch} ${styles.legendSwatchOutline}`} />
-      </div>
+      <label className={styles.toggleLabel}>
+        <input
+          type='checkbox'
+          checked={showDualValues}
+          onChange={(e) => onToggleDualValues(e.target.checked)}
+          className={styles.toggleInput}
+        />
+        <span className={styles.toggleSwitch} />
+        <span className={styles.toggleText}>Show Previous Forecasted</span>
+      </label>
     </div>
   )
 }

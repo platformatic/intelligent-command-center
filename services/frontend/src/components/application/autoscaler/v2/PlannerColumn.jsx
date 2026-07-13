@@ -15,7 +15,7 @@ function weekMonthLabel (days) {
 // days: array of 7 Date|null values (null = day outside the visible range)
 // dataByDate: { 'MM-DD-YYYY': DayEntry }
 // today: Date (midnight)
-export default function PlannerColumn ({ days, dataByDate, today, hoverState, setHoverState, categoryConfig, selectedSuggestion }) {
+export default function PlannerColumn ({ days, dataByDate, today, hoverState, setHoverState, categoryConfig, selectedSuggestion, showDualValues }) {
   const visibleDays = days.filter(Boolean)
 
   return (
@@ -73,6 +73,7 @@ export default function PlannerColumn ({ days, dataByDate, today, hoverState, se
               setHoverState={setHoverState}
               categoryConfig={categoryConfig}
               selectedSuggestion={selectedSuggestion}
+              showDualValues={showDualValues}
             />
           )
         })}

@@ -28,7 +28,7 @@ function darkenColor (hexColor, factor = 0.6) {
 }
 
 // cells: array of { entry, isFuture } | null  (one slot per day, null = day outside range)
-export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverState, categoryConfig, selectedSuggestion }) {
+export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverState, categoryConfig, selectedSuggestion, showDualValues }) {
   const isHoverActive = hoverState !== null
   const isSelectionActive = selectedSuggestion !== null
 
@@ -53,7 +53,10 @@ export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverStat
           hoverState.dayOfWeek === i &&
           (hoverState.hour === null || hoverState.hour === hourIndex)
 
-        const selectionIsHighlighted = isSelectionActive && cell?.entry?.id && matchingIds.has(cell.entry.id)
+        const selectionIsHighlighted = isSelectionActive && (
+          (cell?.entry?.history?.id && matchingIds.has(cell.entry.history.id)) ||
+          (cell?.entry?.predictions?.id && matchingIds.has(cell.entry.predictions.id))
+        )
 
         const isHighlighted = hoverIsHighlighted || selectionIsHighlighted
         const dimClass = (isHoverActive || isSelectionActive) && !isHighlighted ? styles.cellDimmed : ''
@@ -87,7 +90,7 @@ export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverStat
           )
         }
 
-        if (hasDualValues && !isFuture) {
+        if (showDualValues && hasDualValues && !isFuture) {
           const historyColor = categoryColor(history.category)
           const predictionsColor = darkenColor(categoryColor(predictions.category))
 

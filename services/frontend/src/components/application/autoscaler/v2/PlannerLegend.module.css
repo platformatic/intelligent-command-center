@@ -1,3 +1,7 @@
+.container {
+  @apply flex flex-col gap-4;
+}
+
 .legend {
   @apply flex items-center gap-3 flex-wrap;
 }
@@ -30,4 +34,33 @@
 
 .legendDivider {
   @apply w-px h-3 bg-white/20 shrink-0;
+}
+
+.toggleLabel {
+  @apply flex items-center gap-3 cursor-pointer;
+}
+
+.toggleInput {
+  @apply hidden;
+}
+
+.toggleSwitch {
+  @apply w-12 h-6 rounded-full bg-white/20 transition-colors relative shrink-0;
+}
+
+.toggleInput:checked + .toggleSwitch {
+  @apply bg-[#2ecc71];
+}
+
+.toggleSwitch::after {
+  content: '';
+  @apply absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform;
+}
+
+.toggleInput:checked + .toggleSwitch::after {
+  @apply translate-x-6;
+}
+
+.toggleText {
+  @apply text-sm font-medium text-white;
 }

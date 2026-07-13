@@ -13,6 +13,7 @@ export default function PlannerTab ({ appId }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [categoryConfig, setCategoryConfig] = useState(null)
   const [selectedSuggestion, setSelectedSuggestion] = useState(null)
+  const [showDualValues, setShowDualValues] = useState(false)
 
   const today = useMemo(() => {
     const d = new Date()
@@ -56,7 +57,7 @@ export default function PlannerTab ({ appId }) {
             <span className={`${typographyStyles.desktopBodyLargeSemibold} ${typographyStyles.textWhite}`}>
               Planner
             </span>
-            <PlannerLegend categoryConfig={categoryConfig} />
+            <PlannerLegend categoryConfig={categoryConfig} showDualValues={showDualValues} onToggleDualValues={setShowDualValues} />
           </div>
           <div className={styles.headerRight}>
             <button
@@ -105,6 +106,7 @@ export default function PlannerTab ({ appId }) {
                   setHoverState={setHoverState}
                   categoryConfig={categoryConfig}
                   selectedSuggestion={selectedSuggestion}
+                  showDualValues={showDualValues}
                 />
               ))}
             </div>
