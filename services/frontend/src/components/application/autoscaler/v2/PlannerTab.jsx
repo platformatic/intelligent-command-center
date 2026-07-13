@@ -31,7 +31,7 @@ export default function PlannerTab ({ appId }) {
 
     Promise.all([
       getPlannerHistory(appId, twoWeeksAgo.toISOString(), now.toISOString()),
-      getPlannerPredictions(appId, now.toISOString(), rangeEnd.toISOString()),
+      getPlannerPredictions(appId, twoWeeksAgo.toISOString(), rangeEnd.toISOString()),
       getApplicationPatternConfigs(appId)
     ]).then(([history, predictions, config]) => {
       setData(groupTimeWindowStats([...history, ...predictions]))

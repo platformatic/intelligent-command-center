@@ -18,6 +18,15 @@ function categoryColor (category) {
   return CATEGORIES[category - 1]?.color ?? CATEGORIES[2].color
 }
 
+function darkenColor (hexColor, factor = 0.6) {
+  const color = hexColor.replace('#', '')
+  const num = parseInt(color, 16)
+  const r = Math.floor((num >> 16) * factor)
+  const g = Math.floor(((num >> 8) & 0x00FF) * factor)
+  const b = Math.floor((num & 0x0000FF) * factor)
+  return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`
+}
+
 // cells: array of { entry, isFuture } | null  (one slot per day, null = day outside range)
 export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverState, categoryConfig, selectedSuggestion }) {
   const isHoverActive = hoverState !== null
@@ -39,7 +48,7 @@ export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverStat
 
   return (
     <div className={styles.row}>
-      {cells.map((cell, i) => {
+      {cells?.map((cell, i) => {
         const hoverIsHighlighted = isHoverActive &&
           hoverState.dayOfWeek === i &&
           (hoverState.hour === null || hoverState.hour === hourIndex)
@@ -61,7 +70,9 @@ export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverStat
         }
 
         const { entry, isFuture } = cell
-        const { instances: count, category, scheduled, predicted } = entry
+        const { instances: count, scheduled, history, predictions } = entry
+
+        const hasDualValues = history && predictions
 
         if (isFuture && scheduled) {
           return (
@@ -75,8 +86,35 @@ export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverStat
             </div>
           )
         }
-        if (isFuture && predicted) {
-          const color = categoryColor(category)
+
+        if (hasDualValues && !isFuture) {
+          const historyColor = categoryColor(history.category)
+          const predictionsColor = darkenColor(categoryColor(predictions.category))
+
+          return (
+            <div
+              key={i}
+              className={`${styles.cellDual} ${dimClass}`}
+              onMouseEnter={enterHandler}
+            >
+              <div
+                className={styles.cellDualTop}
+                style={{ background: historyColor }}
+              >
+                <span className={styles.cellNum}>{history.pods}</span>
+              </div>
+              <div
+                className={styles.cellDualBottom}
+                style={{ background: predictionsColor }}
+              >
+                <span className={styles.cellNum}>{predictions.pods}</span>
+              </div>
+            </div>
+          )
+        }
+
+        if (isFuture && predictions) {
+          const color = categoryColor(predictions.category)
           return (
             <div
               key={i}
@@ -91,11 +129,13 @@ export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverStat
             </div>
           )
         }
+
+        const categoryForCell = history?.category || predictions?.category || 3
         return (
           <div
             key={i}
             className={`${styles.cell} ${dimClass}`}
-            style={{ background: categoryColor(category) }}
+            style={{ background: categoryColor(categoryForCell) }}
             onMouseEnter={enterHandler}
           >
             <span className={styles.cellNum}>{count}</span>

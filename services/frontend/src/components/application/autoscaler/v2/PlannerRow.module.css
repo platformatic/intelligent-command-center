@@ -10,6 +10,23 @@
   @apply w-[29px] h-[18px] shrink-0 transition-opacity duration-100 cursor-pointer;
 }
 
+.cellDual {
+  @apply w-[29px] h-[18px] shrink-0 relative rounded-sm box-border transition-opacity duration-100 cursor-pointer overflow-hidden;
+}
+
+.cellDualTop {
+  @apply absolute top-0 left-0 w-full h-full flex items-start justify-start;
+  /* clip-path: polygon(0 0, 100% 0, 100% 100%); */
+  padding: 1px;
+}
+
+/** Predictions part */
+.cellDualBottom {
+  @apply absolute top-0 left-0 w-full h-full flex items-end justify-end opacity-50 bg-[red];
+  clip-path: polygon(0 100%, 100% 0, 100% 100%);
+  padding: 1px;
+}
+
 .cellDimmed {
   @apply opacity-20;
 }
