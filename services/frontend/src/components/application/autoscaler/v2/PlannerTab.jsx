@@ -12,6 +12,7 @@ export default function PlannerTab ({ appId }) {
   const [hoverState, setHoverState] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [categoryConfig, setCategoryConfig] = useState(null)
+  const [selectedSuggestion, setSelectedSuggestion] = useState(null)
 
   const today = useMemo(() => {
     const d = new Date()
@@ -103,6 +104,7 @@ export default function PlannerTab ({ appId }) {
                   hoverState={hoverState}
                   setHoverState={setHoverState}
                   categoryConfig={categoryConfig}
+                  selectedSuggestion={selectedSuggestion}
                 />
               ))}
             </div>
@@ -112,7 +114,13 @@ export default function PlannerTab ({ appId }) {
 
       {/* ── Right side: Sidebar ── */}
       {sidebarOpen && (
-        <PlannerSidebar appId={appId} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <PlannerSidebar
+          appId={appId}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          selectedSuggestion={selectedSuggestion}
+          onSelectSuggestion={setSelectedSuggestion}
+        />
       )}
     </div>
   )

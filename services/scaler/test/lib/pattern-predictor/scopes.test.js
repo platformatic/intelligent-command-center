@@ -40,6 +40,28 @@ test('every scope carries a precomputed key of feature|value', () => {
   }
 })
 
+test('biweekly_dow/p14 parity is anchored to the epoch, not the series start (ignores dayIndex)', () => {
+  const fri = dayOf('2025-01-03') // a Friday
+  // Same calendar day, but pretend a different series start by shifting the (now-irrelevant) dayIndex.
+  const friOtherStart = { ...fri, dayIndex: fri.dayIndex + 7 }
+
+  for (const value of [10, 11]) { // biweekly Friday, both parities
+    const s = scopeOf('biweekly_dow', value)
+    assert.equal(s.matches(fri), s.matches(friOtherStart), `biweekly ${value} is series-independent`)
+  }
+  for (let value = 0; value < 14; value++) {
+    const s = scopeOf('p14', value)
+    assert.equal(s.matches(fri), s.matches(friOtherStart), `p14 ${value} is series-independent`)
+  }
+
+  // The parity is a real alternation: exactly one parity owns that Friday; the next Friday is the
+  // other week; two weeks later is the same week again.
+  const owner = [10, 11].filter((v) => scopeOf('biweekly_dow', v).matches(fri))
+  assert.equal(owner.length, 1)
+  assert.ok(!scopeOf('biweekly_dow', owner[0]).matches(dayOf('2025-01-10')), 'next Friday = other week')
+  assert.ok(scopeOf('biweekly_dow', owner[0]).matches(dayOf('2025-01-17')), 'two weeks later = same week')
+})
+
 test('the catalogue is emitted in pick order: anchors before generated aliases', () => {
   // discover sweeps the catalogue in this order directly (no runtime sort), so the emission
   // order is the contract: dow, eom, dom, then biweekly_dow, p14 (eom claims before generic dom).

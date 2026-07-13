@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import typographyStyles from '~/styles/Typography.module.css'
 import { PlatformaticIcon, LoadingSpinnerV2 } from '@platformatic/ui-components'
-import { MAIN_GREEN, MEDIUM, SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
+import { SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
 import callApi from '~/api/common'
-import ConfidenceBar from './ConfidenceBar'
+import SuggestionCard from './SuggestionCard'
 import styles from './PlannerSidebar.module.css'
 
-function SuggestionsTab ({ appId, suggestionsCount }) {
+const getSuggestionKey = (suggestion) => {
+  const scopeKeysStr = suggestion.scopeKeys?.join(',') || ''
+  return `${suggestion.slotOfDay}|${scopeKeysStr}`
+}
+
+function SuggestionsTab ({ appId, suggestionsCount, selectedSuggestion, onSelectSuggestion }) {
   const [suggestions, setSuggestions] = useState([])
   const [loading, setLoading] = useState(false)
   const [acceptedSuggestions, setAcceptedSuggestions] = useState(new Set())
@@ -15,8 +20,8 @@ function SuggestionsTab ({ appId, suggestionsCount }) {
     setLoading(true)
     callApi('scaler', `/applications/${appId}/suggestions`)
       .then(result => {
-        const groups = result?.groups || []
-        setSuggestions(Array.isArray(groups) ? groups : [])
+        const suggestions = result?.suggestions || []
+        setSuggestions(Array.isArray(suggestions) ? suggestions : [])
         setLoading(false)
       })
       .catch(() => {
@@ -43,103 +48,32 @@ function SuggestionsTab ({ appId, suggestionsCount }) {
     )
   }
 
-  const handleAcceptSuggestion = (suggestionId, index) => {
-    setAcceptedSuggestions(prev => new Set(prev).add(suggestionId || index))
-  }
-
-  const renderCardContent = (suggestion, index) => {
-    const isAccepted = acceptedSuggestions.has(suggestion.id || index)
-
-    if (isAccepted) {
-      return (
-        <div className={styles.acceptedState}>
-          <div className={styles.checkmarkIcon}>
-            <PlatformaticIcon iconName='CircleCheckMarkIcon' color={MAIN_GREEN} size={MEDIUM} />
-          </div>
-          <h3 className={styles.acceptedTitle}>Suggestion Accepted</h3>
-          <p className={styles.acceptedSummary}>
-            {suggestion.pods} pods will be set {suggestion.when || 'as scheduled'}
-          </p>
-        </div>
-      )
-    }
-
-    return (
-      <>
-        <div className={styles.suggestionTitleRow}>
-          <div className={styles.suggestionTitleWithBar}>
-            <div className={styles.suggestionTitle}>
-              <div className={styles.suggestionIndicator} style={{ backgroundColor: suggestion.color || '#1FD47D' }} />
-              <span className={styles.suggestionTitleText}>
-                #{index + 1} {suggestion.title || 'New Suggestion'}
-              </span>
-            </div>
-            {suggestion.confidence && (
-              <div className={styles.confidenceBar}>
-                <ConfidenceBar confidence={suggestion.confidence} />
-              </div>
-            )}
-          </div>
-          <button
-            type='button'
-            className={styles.acceptButton}
-            onClick={() => handleAcceptSuggestion(suggestion.id, index)}
-          >
-            Accept
-          </button>
-        </div>
-
-        <div className={styles.suggestionDetails}>
-          {suggestion.pods && (
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Action:</span>
-              <span className={styles.detailValue}>
-                set to {suggestion.pods} pods
-              </span>
-            </div>
-          )}
-
-          {suggestion.action && (
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Action:</span>
-              <span className={styles.detailValue}>
-                {suggestion.action}
-              </span>
-            </div>
-          )}
-
-          {suggestion.when && (
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>When:</span>
-              <span className={styles.detailValue}>
-                {suggestion.when}
-              </span>
-            </div>
-          )}
-
-          {(suggestion.action || suggestion.when) && (
-            <button
-              type='button'
-              className={styles.showContextButton}
-            >
-              <span className={styles.showContextText}>
-                Show Context
-              </span>
-              <PlatformaticIcon iconName='ArrowDownIcon' color={WHITE} size={SMALL} />
-            </button>
-          )}
-        </div>
-      </>
-    )
+  const handleAcceptSuggestion = (suggestion) => {
+    const key = getSuggestionKey(suggestion)
+    setAcceptedSuggestions(prev => new Set(prev).add(key))
   }
 
   return (
     <div className={styles.suggestionsContainer}>
-      {suggestions.map((suggestion, index) => (
-        <div key={suggestion.id || index} className={styles.suggestionCard}>
-          {renderCardContent(suggestion, index)}
-        </div>
-      ))}
+      {suggestions.map((suggestion, index) => {
+        const key = getSuggestionKey(suggestion)
+        const suggestionWithAccepted = {
+          ...suggestion,
+          accepted: acceptedSuggestions.has(key)
+        }
+        const isSelected = selectedSuggestion && getSuggestionKey(selectedSuggestion) === key
+
+        return (
+          <SuggestionCard
+            key={key || index}
+            suggestion={suggestionWithAccepted}
+            index={index}
+            isSelected={isSelected}
+            onSelect={onSelectSuggestion}
+            onAccept={handleAcceptSuggestion}
+          />
+        )
+      })}
       {!loading && suggestions.length === 0 && (
         <p className={styles.emptyState}>No suggestions available</p>
       )}
@@ -157,7 +91,7 @@ function ScheduledTab () {
   )
 }
 
-export default function PlannerSidebar ({ appId, isOpen, onClose }) {
+export default function PlannerSidebar ({ appId, isOpen, onClose, selectedSuggestion, onSelectSuggestion }) {
   const [activeTab, setActiveTab] = useState('suggestions')
   const [suggestionsCount, setSuggestionsCount] = useState(0)
 
@@ -165,8 +99,8 @@ export default function PlannerSidebar ({ appId, isOpen, onClose }) {
     if (!appId || !isOpen) return
     callApi('scaler', `/applications/${appId}/suggestions`)
       .then(result => {
-        const groups = result?.groups || []
-        setSuggestionsCount(Array.isArray(groups) ? groups.length : 0)
+        const suggestions = result?.suggestions || []
+        setSuggestionsCount(Array.isArray(suggestions) ? suggestions.length : 0)
       })
       .catch(() => setSuggestionsCount(0))
   }, [appId, isOpen])
@@ -214,7 +148,14 @@ export default function PlannerSidebar ({ appId, isOpen, onClose }) {
 
       {/* Tab content */}
       <div className={styles.tabContent}>
-        {activeTab === 'suggestions' && <SuggestionsTab appId={appId} suggestionsCount={suggestionsCount} />}
+        {activeTab === 'suggestions' && (
+          <SuggestionsTab
+            appId={appId}
+            suggestionsCount={suggestionsCount}
+            selectedSuggestion={selectedSuggestion}
+            onSelectSuggestion={onSelectSuggestion}
+          />
+        )}
         {activeTab === 'scheduled' && <ScheduledTab />}
       </div>
     </div>

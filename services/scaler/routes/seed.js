@@ -19,7 +19,8 @@ const bodySchema = {
           slotEnd: { type: 'string' },
           slotOfDay: { type: 'integer' },
           localSlotOfDay: { type: 'integer' },
-          pods: { type: 'integer' }
+          pods: { type: 'integer' },
+          prediction: { type: ['integer', 'null'] } // the day-by-day replayed frozen forecast, if any
         }
       }
     }
@@ -53,9 +54,10 @@ module.exports = fp(async function (app) {
       }
       const applicationId = apps[0].id
 
-      // replace the window history
+      // replace the window history (stats + the frozen predictions that go with it)
       if (replace) {
         await db.query(sql`DELETE FROM time_window_stats WHERE application_id = ${applicationId}`)
+        await db.query(sql`DELETE FROM time_window_predictions WHERE application_id = ${applicationId}`)
       }
       const inputs = windows.map((w) => ({
         applicationId,
@@ -69,11 +71,30 @@ module.exports = fp(async function (app) {
         await entities.timeWindowStat.insert({ inputs: inputs.slice(i, i + 500) })
       }
 
-      // colors + forecasts
+      // Seed the day-by-day replayed frozen predictions for the past windows, so the suggestion
+      // columns carry a real predicted-vs-actual history from the first run. updatePredictions below
+      // only writes FUTURE forecasts (slot_start ≥ now), so these past rows survive untouched.
+      const percentile = app.env.PLT_SCALER_PATTERN_PERCENTILE
+      const predInputs = windows
+        .filter((w) => w.prediction != null)
+        .map((w) => ({
+          applicationId,
+          slotStart: new Date(w.slotStart),
+          slotEnd: new Date(w.slotEnd),
+          slotOfDay: w.slotOfDay,
+          percentile,
+          predictedPods: w.prediction
+        }))
+      for (let i = 0; i < predInputs.length; i += 500) {
+        await entities.timeWindowPrediction.insert({ inputs: predInputs.slice(i, i + 500) })
+      }
+
+      // colors + forecasts (updatePredictions also refreshes the cached suggestions, whose columns
+      // now read the seeded past predictions above)
       const thresholds = await app.updateWindowCategories(applicationId)
       const predictionsWritten = await app.updatePredictions(applicationId)
 
-      return { applicationId, inserted: inputs.length, thresholds, predictionsWritten }
+      return { applicationId, inserted: inputs.length, predictionsSeeded: predInputs.length, thresholds, predictionsWritten }
     }
   })
 }, { name: 'seed-routes', dependencies: ['window-category', 'pattern-predictor'] })

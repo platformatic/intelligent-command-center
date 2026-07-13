@@ -27,7 +27,7 @@ export function isoWeekStart (date) {
 }
 
 // Groups raw timeWindowStats/timeWindowPredictions records into the DayEntry
-// shape the calendar expects: { date: 'MM-DD-YYYY', instances: [{ time, instances, scheduled }] }
+// shape the calendar expects: { date: 'MM-DD-YYYY', instances: [{ time, instances, scheduled, id }] }
 // slotStart is UTC, and PlannerColumn already treats hour keys as UTC hours.
 // timeWindowStats slots are hourly (pods); timeWindowPredictions slots are
 // 15-minute (predictedPods) — only the on-the-hour slot is kept so both line
@@ -45,7 +45,7 @@ export function groupTimeWindowStats (stats) {
     const pods = stat.pods ?? stat.predictedPods
 
     if (!byDate.has(date)) byDate.set(date, [])
-    byDate.get(date).push({ time, instances: pods, category: stat.category, scheduled: false })
+    byDate.get(date).push({ time, instances: pods, category: stat.category, scheduled: false, id: stat.id })
   }
   return Array.from(byDate, ([date, instances]) => ({ date, instances }))
 }

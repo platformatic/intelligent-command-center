@@ -54,6 +54,13 @@ module.exports = {
   SCHEDULE_NOT_FOUND: createError(
     `${ERROR_PREFIX}_SCHEDULE_NOT_FOUND`, 'Schedule not found: "%s"', 404
   ),
+  SUGGESTION_NOT_FOUND: createError(
+    `${ERROR_PREFIX}_SUGGESTION_NOT_FOUND`, 'Suggestion not found: "%s"', 404
+  ),
+  SUGGESTION_CANDIDATE_NOT_FOUND: createError(
+    `${ERROR_PREFIX}_SUGGESTION_CANDIDATE_NOT_FOUND`,
+    'No current suggestion for slot %s with the given scopes', 404
+  ),
   INVALID_TIME_SLOT: createError(
     `${ERROR_PREFIX}_INVALID_TIME_SLOT`,
     'PLT_SCALER_TIME_SLOT_MINUTES must be an integer that divides 60 evenly (1,2,3,4,5,6,10,12,15,20,30,60); got %s'

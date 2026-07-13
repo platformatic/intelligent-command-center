@@ -19,16 +19,35 @@ function categoryColor (category) {
 }
 
 // cells: array of { entry, isFuture } | null  (one slot per day, null = day outside range)
-export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverState, categoryConfig }) {
-  const isOverlayActive = hoverState !== null
+export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverState, categoryConfig, selectedSuggestion }) {
+  const isHoverActive = hoverState !== null
+  const isSelectionActive = selectedSuggestion !== null
+
+  const getMatchingIds = () => {
+    if (!selectedSuggestion) return new Set()
+    const ids = new Set()
+    if (selectedSuggestion.history) {
+      selectedSuggestion.history.forEach(h => ids.add(h.id))
+    }
+    if (selectedSuggestion.predictions) {
+      selectedSuggestion.predictions.forEach(p => ids.add(p.id))
+    }
+    return ids
+  }
+
+  const matchingIds = getMatchingIds()
 
   return (
     <div className={styles.row}>
       {cells.map((cell, i) => {
-        const isHighlighted = isOverlayActive &&
+        const hoverIsHighlighted = isHoverActive &&
           hoverState.dayOfWeek === i &&
           (hoverState.hour === null || hoverState.hour === hourIndex)
-        const dimClass = isOverlayActive && !isHighlighted ? styles.cellDimmed : ''
+
+        const selectionIsHighlighted = isSelectionActive && cell?.entry?.id && matchingIds.has(cell.entry.id)
+
+        const isHighlighted = hoverIsHighlighted || selectionIsHighlighted
+        const dimClass = (isHoverActive || isSelectionActive) && !isHighlighted ? styles.cellDimmed : ''
         const enterHandler = () => setHoverState({ dayOfWeek: i, hour: hourIndex })
 
         if (!cell || !cell.entry) {

@@ -154,56 +154,55 @@ test('updatePredictions: learns a schedule scenario and writes per-window foreca
   const rows2 = await entities.timeWindowPrediction.find({ where: { applicationId: { eq: appId } }, limit: 10000 })
   assert.equal(rows2.length, SLOTS_PER_DAY * PREDICTION_DAYS, 'upsert does not duplicate rows')
 
-  // Side-effect: the same run cached reviewable floor suggestions, served over the GET endpoint.
+  // Side-effect: the same run cached the per-window suggestions (new format — no dedup/grouping).
   const sres = await server.inject({ method: 'GET', url: `/applications/${appId}/suggestions` })
   assert.equal(sres.statusCode, 200)
   const cached = sres.json()
-  assert.ok(Array.isArray(cached.groups) && cached.groups.length > 0, 'grouped suggestions cached')
-  assert.equal(cached.suggestions, undefined, 'flat suggestions are not stored')
+  assert.ok(Array.isArray(cached.suggestions) && cached.suggestions.length > 0, 'per-window suggestions cached')
+  assert.equal(cached.groups, undefined, 'no grouped/deduped shape anymore')
   assert.ok(Number.isFinite(cached.computedAt))
 
-  // Each grouped suggestion is the slim dashboard shape: human `when`, the time-of-day `slots`, and
-  // the parseable schedule.
-  const g = cached.groups[0]
-  assert.deepEqual(Object.keys(g).sort(), ['confidence', 'dtend', 'dtstart', 'id', 'pods', 'rrule', 'since', 'slots', 'when'])
-  assert.equal(typeof g.when, 'string')
-  assert.equal(typeof g.confidence, 'number')
-  assert.ok(Array.isArray(g.slots) && g.slots.length >= 1, 'slots is a list')
-  assert.ok(g.slots.every((s, i) => i === 0 || s === g.slots[i - 1] + 1), 'slots are the full contiguous index list')
-  assert.match(g.rrule, /^FREQ=/)
-  assert.ok(!Number.isNaN(Date.parse(g.dtstart)) && !Number.isNaN(Date.parse(g.dtend)))
-  assert.ok(Date.parse(g.dtend) > Date.parse(g.dtstart), 'window has positive duration')
+  // Each suggestion: identity (slotOfDay/scopeKeys) + value at top; display fields under `details`
+  // (same shape as an accepted suggestion) + history/predictions rows.
+  const s = cached.suggestions[0]
+  assert.deepEqual(Object.keys(s).sort(), ['details', 'history', 'predictions', 'scopeKeys', 'slotOfDay', 'value'])
+  assert.equal(typeof s.details.when, 'string')
+  assert.ok(Array.isArray(s.details.effects) && Array.isArray(s.history) && Array.isArray(s.predictions))
 
-  // `since` = the regime start: a real date for pattern groups, null for the baseline.
-  const weekly = cached.groups.find((x) => x.rrule && x.rrule.startsWith('FREQ=WEEKLY'))
-  assert.ok(weekly && !Number.isNaN(Date.parse(weekly.since)), 'a pattern group carries a start date')
-  const baseline = cached.groups.find((x) => x.rrule === 'FREQ=DAILY')
-  assert.equal(baseline.since, null, 'the baseline has no regime start')
+  // The baseline suggestion has no INCLUDED effect and confidence 1 (certain); an effect suggestion
+  // carries at least one included effect. value/confidence derive from the included subset.
+  const included = (x) => x.details.effects.filter((e) => e.included)
+  const baseline = cached.suggestions.find((x) => x.details.when.startsWith('Every day'))
+  assert.ok(baseline && included(baseline).length === 0 && baseline.details.confidence === 1)
+  const effect = cached.suggestions.find((x) => included(x).length > 0)
+  assert.ok(effect, 'the weekday/weekend scenario yields at least one effect suggestion')
+  assert.equal(effect.details.confidence, Math.min(...included(effect).map((e) => e.confidence)))
+  assert.equal(effect.value, effect.details.baseline + included(effect).reduce((a, e) => a + e.delta, 0))
+  // Every effect has a stable id; history rows reference effects by that id.
+  assert.ok(effect.details.effects.every((e) => typeof e.id === 'string' && typeof e.included === 'boolean'))
 
-  // A pattern's concrete windows (observed + 60-day forecast) are retrievable by its id.
-  const wres = await server.inject({ method: 'GET', url: `/applications/${appId}/suggestions/${weekly.id}/windows` })
-  assert.equal(wres.statusCode, 200)
-  const wins = wres.json().windows
-  assert.ok(Array.isArray(wins) && wins.length > 0)
-  assert.ok(wins.some((w) => w.predicted) && wins.some((w) => !w.predicted), 'has forecast + observed windows')
-  for (const w of wins.slice(0, 5)) {
-    assert.ok(!Number.isNaN(Date.parse(w.slotStart)) && !Number.isNaN(Date.parse(w.slotEnd)))
-    assert.equal(typeof w.pods, 'number')
+  // History rows link back to a DB id, carry the baseline, and reference effects by id + delta only
+  // (date/value are resolved client-side from the id — the response no longer returns them).
+  const ids = new Set(effect.details.effects.map((e) => e.id))
+  for (const row of effect.history.slice(0, 5)) {
+    assert.equal(typeof row.baseline, 'number')
+    assert.ok(row.effects.every((e) => ids.has(e.id) && typeof e.delta === 'number'))
   }
-  // The baseline enumerates nothing (it's the whole grid, not a pattern) → empty list, still 200.
-  const bwres = await server.inject({ method: 'GET', url: `/applications/${appId}/suggestions/${baseline.id}/windows` })
-  assert.equal(bwres.statusCode, 200)
-  assert.deepEqual(bwres.json().windows, [])
-  // Unknown pattern id → 404.
-  const wmiss = await server.inject({ method: 'GET', url: `/applications/${appId}/suggestions/${randomUUID()}/windows` })
-  assert.equal(wmiss.statusCode, 404)
+
+  // Prediction rows carry ONLY their DB id — a persisted time_window_predictions uuid, never null
+  // (we surface only future days that actually have a stored forecast), no decomposition.
+  for (const s of cached.suggestions) {
+    for (const row of s.predictions) {
+      assert.deepEqual(Object.keys(row), ['id'])
+      assert.ok(typeof row.id === 'string' && row.id.length > 0, 'prediction row carries its DB id')
+    }
+  }
 
   // An application with no generated predictions yet has no suggestions.
   const miss = await server.inject({ method: 'GET', url: `/applications/${randomUUID()}/suggestions` })
   assert.equal(miss.statusCode, 404)
 
   await server.store.clearSuggestions(appId)
-  await server.store.clearSuggestionWindows(appId)
 
   // Cleanup while the DB pool is still alive (t.after runs after the server is torn down).
   await db.query(sql`DELETE FROM time_window_predictions WHERE application_id = ${appId}`)

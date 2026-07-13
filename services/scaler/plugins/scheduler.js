@@ -78,13 +78,24 @@ module.exports = fp(async function (app) {
   })
 
   // ---- Reconcile (store wiring around the pure computeSoftLimits) ----
+  // Merges two floor sources: manual schedules and accepted suggestions. MANUAL WINS — a suggestion
+  // only supplies minPods where no manual schedule sets one. Suggestions resolve LIVE (the suggestions
+  // plugin owns the set-inclusion resolver); the materialized horizon is UI-only.
   app.decorate('reconcileScheduleApplication', async (applicationId, now, schedules) => {
     const all = schedules ?? await app.listSchedules(applicationId)
     const soft = await computeSoftLimits({ applicationId, schedules: all, now, resolver })
-    if (soft) {
-      await app.store.saveSoftLimits(applicationId, soft, softLimitTtlSeconds)
-    } else {
+
+    let min = soft?.min ?? null
+    const max = soft?.max ?? null
+    if (min == null && app.resolveSuggestionNow) {
+      const sug = await app.resolveSuggestionNow(applicationId, now)
+      if (sug) min = sug.value
+    }
+
+    if (min == null && max == null) {
       await app.store.clearSoftLimits(applicationId)
+    } else {
+      await app.store.saveSoftLimits(applicationId, { min, max, scheduleIds: soft?.scheduleIds ?? [] }, softLimitTtlSeconds)
     }
   })
 
@@ -95,6 +106,10 @@ module.exports = fp(async function (app) {
       if (!byApp.has(r.applicationId)) byApp.set(r.applicationId, [])
       byApp.get(r.applicationId).push(r)
     }
+    // Suggestion-only apps have no manual schedule row — include them so their floor is enforced.
+    if (app.listSuggestionApps) {
+      for (const appId of await app.listSuggestionApps()) if (!byApp.has(appId)) byApp.set(appId, [])
+    }
     // Each application is independent (separate Valkey keys) → reconcile in parallel.
     await Promise.all([...byApp].map(async ([applicationId, schedules]) => {
       try {
@@ -103,6 +118,27 @@ module.exports = fp(async function (app) {
         app.log.error({ err, applicationId }, 'scheduler: reconcile failed for application')
       }
     }))
+  })
+
+  // Once-per-UTC-day maintenance: flip expired suggestions, then roll the materialized horizon forward
+  // (it's anchored at build time, so it needs a daily rebuild as new days enter / old ones age out).
+  const MS_PER_DAY = 24 * 60 * 60 * 1000
+  let lastMaintenanceDay = null
+  app.decorate('maintainSuggestions', async (now) => {
+    if (!app.expireDueSuggestions) return
+    const today = Math.floor(now / MS_PER_DAY)
+    if (today === lastMaintenanceDay) return
+    lastMaintenanceDay = today
+    await app.expireDueSuggestions(now)
+    if (app.listSuggestionApps) {
+      for (const appId of await app.listSuggestionApps()) {
+        try {
+          await app.rebuildScheduledSlots(appId, now)
+        } catch (err) {
+          app.log.error({ err, applicationId: appId }, 'scheduler: horizon rebuild failed')
+        }
+      }
+    }
   })
 
   // ---- Tick (leader-gated; started by the leader plugin) ----
@@ -116,6 +152,11 @@ module.exports = fp(async function (app) {
         await sleep(nextBoundaryDelayMs(Date.now(), intervalMs), null, { signal })
       } catch {
         return // aborted while waiting for the next boundary
+      }
+      try {
+        await app.maintainSuggestions(Date.now())
+      } catch (err) {
+        app.log.error({ err }, 'scheduler: suggestion maintenance failed')
       }
       try {
         await app.reconcileSchedules(Date.now())

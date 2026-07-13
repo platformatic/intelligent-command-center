@@ -1,0 +1,67 @@
+.suggestionCard {
+  @apply bg-rich-black rounded border border-white/30 p-4 space-y-3 cursor-pointer transition-all hover:border-white/50;
+}
+
+.suggestionCardSelected {
+  @apply bg-[#1A1E23] shadow-md;
+}
+
+.suggestionTitleRow {
+  @apply flex items-start justify-between gap-4;
+}
+
+.suggestionTitleWithBar {
+  @apply flex gap-2 flex-1;
+}
+
+.suggestionTitle {
+  @apply flex items-center gap-2;
+}
+
+.suggestionIndicator {
+  @apply w-1 h-6 rounded-full flex-shrink-0;
+}
+
+.suggestionTitleText {
+  @apply text-white font-semibold text-[14px] leading-tight;
+}
+
+.confidenceBar {
+  @apply flex items-center;
+}
+
+.acceptButton {
+  @apply px-4 py-2 border border-white border-opacity-30 text-white text-xs font-medium rounded hover:bg-white hover:bg-opacity-10 transition-colors flex-shrink-0;
+}
+
+.suggestionDetails {
+  @apply space-y-2;
+}
+
+.detailRow {
+  @apply flex gap-2 text-[12px] items-start;
+}
+
+.detailLabel {
+  @apply text-white text-opacity-70 min-w-fit;
+}
+
+.detailValue {
+  @apply text-white;
+}
+
+.acceptedState {
+  @apply flex flex-col items-center justify-center gap-1 p-2;
+}
+
+.checkmarkIcon {
+  @apply text-main-green flex items-center justify-center;
+}
+
+.acceptedTitle {
+  @apply text-white font-semibold text-base text-center;
+}
+
+.acceptedSummary {
+  @apply text-white text-opacity-70 text-sm text-center;
+}

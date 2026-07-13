@@ -1,12 +1,17 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const { randomUUID } = require('node:crypto')
 const { buildModel, predict } = require('../lib/pattern-predictor/model')
-const { generateSuggestions, groupSuggestions, toSchedule, patternWindows } = require('../lib/pattern-predictor/suggestions')
+const { buildWindowSuggestions } = require('../lib/pattern-predictor/suggestions')
 
 const MINUTES_PER_DAY = 24 * 60
 const MS_PER_DAY = MINUTES_PER_DAY * 60 * 1000
+
+// Every read is bounded to a recent window and an explicit LIMIT. The predictor is strictly PER
+// SLOT (each slot_of_day is its own daily series), so nothing ever fetches across slots or the whole
+// history — at 5-min windows that would be 288 slots × a year of rows. HISTORY_DAYS caps how far
+// back a single slot's series reaches; it's a whole number of rows per slot, never the whole table.
+const HISTORY_DAYS = 365
 
 module.exports = fp(async function (app) {
   const sql = app.platformatic.sql
@@ -14,6 +19,7 @@ module.exports = fp(async function (app) {
   const windowsPerDay = MS_PER_DAY / windowMs
   const percentile = app.env.PLT_SCALER_PATTERN_PERCENTILE // recorded on each prediction row
   const predictionDays = Number(app.env.PLT_SCALER_PATTERN_PREDICTION_DAYS)
+  const dayMidnightOf = (t) => Math.floor(new Date(t).getTime() / MS_PER_DAY) * MS_PER_DAY
 
   // Forecast and persist, per time window, the next PLT_SCALER_PATTERN_PREDICTION_DAYS days
   // starting at the slot immediately after the last observed history row — so the forecast joins
@@ -28,22 +34,15 @@ module.exports = fp(async function (app) {
     const lastSlotEnd = await fetchLastSlotEnd(applicationId)
     if (lastSlotEnd == null) return 0
     const horizonEnd = lastSlotEnd + predictionDays * MS_PER_DAY
+    const now = Date.now()
+    const historyFromMs = dayMidnightOf(now) - HISTORY_DAYS * MS_PER_DAY
 
-    // Reshape the same rows into a per-DAY grid as we go (day midnight → slot values), so the
-    // suggestion layer below reuses the fetch instead of re-scanning time_window_stats.
-    const byDay = new Map()
-
+    const suggestions = []
     let written = 0
     for (let windowNumber = 1; windowNumber <= windowsPerDay; windowNumber++) {
-      const rows = await fetchWindowAcrossDays(applicationId, windowNumber)
+      // ONE slot's recent daily series — bounded window + explicit LIMIT, never all slots at once.
+      const rows = await fetchWindowAcrossDays(applicationId, windowNumber, historyFromMs)
       if (rows.length === 0) continue
-
-      for (const row of rows) {
-        const dayMs = Math.floor(new Date(row.slotStart).getTime() / MS_PER_DAY) * MS_PER_DAY
-        let slots = byDay.get(dayMs)
-        if (!slots) { slots = new Array(windowsPerDay).fill(null); byDay.set(dayMs, slots) }
-        slots[windowNumber - 1] = row.pods
-      }
 
       const series = rows.map((row) => ({ date: new Date(row.slotStart), value: row.pods }))
       const model = buildModel(series)
@@ -66,65 +65,44 @@ module.exports = fp(async function (app) {
           predictedPods: predict(model, new Date(dayMs))
         })
       }
-      if (predictions.length === 0) continue
+      if (predictions.length) {
+        await upsertPredictions(predictions)
+        written += predictions.length
+      }
 
-      await upsertPredictions(predictions)
-      written += predictions.length
+      // Per-slot suggestions (baseline + one per effect) — reads ONLY this slot's rows for the
+      // predicted-vs-actual `id`s. No cross-slot grouping; no whole-grid fetch.
+      if (app.store) {
+        const statsIds = new Map(rows.map((r) => [dayMidnightOf(r.slotStart), r.id]))
+        const predRows = await fetchSlotPredictions(applicationId, windowNumber, historyFromMs)
+        const predIds = new Map(predRows.map((r) => [dayMidnightOf(r.slot_start), r.id]))
+        suggestions.push(...buildWindowSuggestions(model, {
+          slot: windowNumber - 1,
+          slotCount: windowsPerDay,
+          anchor: new Date(rows[0].slotStart).getTime(),
+          now,
+          futureDays: predictionDays,
+          statsIds,
+          predIds
+        }))
+      }
     }
 
-    // Color the freshly written forecasts on the same history-derived bands as the time windows,
-    // so a predicted N pods gets the same category a historical N-pod window would.
+    // Color the freshly written forecasts on the same history-derived bands as the time windows.
     if (written > 0) await app.updateWindowCategories(applicationId)
 
-    await storeSuggestions(applicationId, byDay)
+    // Cache the per-window suggestions for the dashboard — a side-effect that never fails the
+    // forecast (predictions are already written).
+    if (app.store) {
+      try {
+        await app.store.saveSuggestions(applicationId, { suggestions })
+        app.log.debug({ applicationId, suggestions: suggestions.length }, 'stored window suggestions')
+      } catch (err) {
+        app.log.error({ err, applicationId }, 'Failed to store window suggestions')
+      }
+    }
     return written
   })
-
-  // Derive the reviewable floor suggestions from the same history and cache them in Valkey for the
-  // dashboard. A side-effect of updatePredictions — never fails it (predictions are already
-  // written); store guard keeps the predictor testable without the store subsystem.
-  async function storeSuggestions (applicationId, byDay) {
-    if (!app.store) return
-    try {
-      const history = [...byDay.keys()].sort((a, b) => a - b)
-        .map((dayMs) => ({ date: new Date(dayMs), slots: byDay.get(dayMs) }))
-      const suggestions = generateSuggestions(history)
-      // anchor = the first history day, matching the predictor's series-relative phase origin.
-      const anchor = history.length ? history[0].date.getTime() : Date.now()
-      const now = Date.now()
-      // The stored/served unit is the GROUP, slimmed to what the dashboard needs: a human "when", its
-      // confidence, the floor to set, the predictor's time-of-day `slots` (the full list of 0-based
-      // slot indices the window covers — groups are contiguous, so [start..end] inclusive), and the
-      // machine-parseable schedule (rrule + dtstart/dtend, the exact scaler_schedules fields).
-      // Each group gets a uuid; alongside the slim metadata we enumerate its observed + 60-day
-      // forecast windows and cache them under that id. Both the metadata blob and the windows blob
-      // are overwritten wholesale each run (SET), so the fresh ids replace the prior run's — no leak.
-      const windowsById = {}
-      const groups = groupSuggestions(suggestions).map((g) => {
-        const id = randomUUID()
-        const schedule = toSchedule(g, anchor, now)
-        const slots = []
-        for (let i = g.slots[0]; i <= g.slots[1]; i++) slots.push(i)
-        windowsById[id] = patternWindows(g, { observed: byDay, anchor, now, futureDays: predictionDays, windowMs })
-        return {
-          id,
-          when: g.when,
-          confidence: g.confidence,
-          pods: g.value,
-          slots,
-          since: g.since, // when the pattern's current regime started (null for the baseline)
-          rrule: schedule ? schedule.rrule : null,
-          dtstart: schedule ? schedule.dtstart : null,
-          dtend: schedule ? schedule.dtend : null
-        }
-      })
-      await app.store.saveSuggestions(applicationId, { groups })
-      await app.store.saveSuggestionWindows(applicationId, windowsById)
-      app.log.debug({ applicationId, groups: groups.length }, 'stored floor suggestions')
-    } catch (err) {
-      app.log.error({ err, applicationId }, 'Failed to compute or store floor suggestions')
-    }
-  }
 
   // Upsert one window's batch of daily predictions, keyed on (application_id, slot_start) so a
   // re-run overwrites each slot's forecast in place rather than duplicating it.
@@ -145,15 +123,33 @@ module.exports = fp(async function (app) {
     `)
   }
 
-  // All time-window rows for one window number (UTC slot_of_day), across every day.
-  function fetchWindowAcrossDays (applicationId, windowNumber) {
+  // The frozen predictions for ONE slot (slot_of_day) over the recent window — the predicted-vs-actual
+  // `id`s for that slot's suggestion rows. Raw SQL so it isn't capped by the sql-mapper 1000 limit,
+  // but it stays one slot bounded to HISTORY_DAYS of past + the forecast horizon, with an explicit
+  // ORDER BY + LIMIT so it can never fetch the whole table (5-min windows × a year would be huge).
+  async function fetchSlotPredictions (applicationId, windowNumber, fromMs) {
+    const cap = HISTORY_DAYS + predictionDays + 2
+    const res = await app.platformatic.db.query(sql`
+      SELECT id, slot_start FROM time_window_predictions
+      WHERE application_id = ${applicationId} AND slot_of_day = ${windowNumber} AND slot_start >= ${new Date(fromMs)}
+      ORDER BY slot_start ASC
+      LIMIT ${cap}
+    `)
+    return res.rows || res || []
+  }
+
+  // ONE slot's (slot_of_day) recent daily series, oldest→newest. Bounded to HISTORY_DAYS with an
+  // explicit LIMIT so it's never the whole history and never rides an implicit default.
+  function fetchWindowAcrossDays (applicationId, windowNumber, fromMs) {
     return app.platformatic.entities.timeWindowStat.find({
-      fields: ['slotStart', 'pods'],
+      fields: ['id', 'slotStart', 'pods'],
       where: {
         applicationId: { eq: applicationId },
-        slotOfDay: { eq: windowNumber }
+        slotOfDay: { eq: windowNumber },
+        slotStart: { gte: new Date(fromMs) }
       },
-      orderBy: [{ field: 'slotStart', direction: 'asc' }]
+      orderBy: [{ field: 'slotStart', direction: 'asc' }],
+      limit: HISTORY_DAYS + 2
     })
   }
 
