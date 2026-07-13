@@ -9,7 +9,8 @@ module.exports = async function (app) {
       { env: 'PLT_FEATURE_CACHE_RECOMMENDATIONS', name: 'Cache Recommendations', slug: 'cache-recommendations' },
       { env: 'PLT_FEATURE_RISK_SERVICE_DUMP', name: 'Risk Service Dump', slug: 'risk-service-dump' },
       { env: 'PLT_FEATURE_FFC', name: 'Fusion, Fission & Cascade', slug: 'fusion-fission-cascade' },
-      { env: 'PLT_FEATURE_SKEW_PROTECTION', name: 'Skew Protection', slug: 'skew-protection' }
+      { env: 'PLT_FEATURE_SKEW_PROTECTION', name: 'Skew Protection', slug: 'skew-protection' },
+      { env: 'PLT_FEATURE_INVITE_USERS', name: 'Invite Users', slug: 'invite-users' }
     ]
 
     const output = {}

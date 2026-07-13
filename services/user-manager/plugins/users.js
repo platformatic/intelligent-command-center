@@ -1,8 +1,16 @@
 /// <reference path="../global.d.ts" />
 'use strict'
 
+const { initializeResend, sendInviteEmail } = require('../lib/email')
+
 /** @param {import('fastify').FastifyInstance} fastify */
 module.exports = async function (fastify, opts) {
+  const enableInviteEmails = fastify.config.PLT_USER_MANAGER_SEND_INVITE_EMAILS === 'true'
+  const resendApiKey = fastify.config.PLT_RESEND_API_KEY
+
+  if (enableInviteEmails && resendApiKey) {
+    initializeResend(resendApiKey)
+  }
   fastify.platformatic.addEntityHooks('user', {
     save: async (save, opts) => {
       if (opts.input.id) {
@@ -58,6 +66,15 @@ module.exports = async function (fastify, opts) {
         }
       } else {
         // create new user
+        if (opts.input.email) {
+          const existing = await fastify.platformatic.entities.user.find({
+            where: { email: { eq: opts.input.email } }
+          })
+          if (existing.length > 0) {
+            throw new Error(`User with email ${opts.input.email} already exists`)
+          }
+        }
+
         const newUser = await save({
           input: {
             joined: false,
@@ -67,6 +84,10 @@ module.exports = async function (fastify, opts) {
             role: 'user'
           }
         })
+
+        if (enableInviteEmails && opts.input.email) {
+          await sendInviteEmail(opts.input.email, opts.input.inviterName || 'Admin')
+        }
 
         return newUser
       }

@@ -17,23 +17,29 @@ function InviteUser ({
   const [validations, setValidations] = useState({ inviteEmail: false, formErrors: { inviteEmail: '' } })
   const [emailPlaceHolder, setEmailPlaceHolder] = useState('example@gmail.com')
 
+  function resetForm () {
+    setForm({ inviteEmail: '' })
+    setEmails([])
+    setValidations({ inviteEmail: false, formErrors: { inviteEmail: '' } })
+    setValidForm(false)
+    setInviteSending(false)
+    setEmailPlaceHolder('example@gmail.com')
+  }
+
   async function handleSubmit (event) {
     event.preventDefault()
-    onClickConfirm([form.inviteEmail, ...emails].filter(email => email !== ''))
     setInviteSending(true)
+    await onClickConfirm([form.inviteEmail, ...emails].filter(email => email !== ''))
+    resetForm()
   }
 
   async function onClickAddUser () {
-    onClickConfirm([form.inviteEmail, ...emails].filter(email => email !== ''))
     setInviteSending(true)
+    await onClickConfirm([form.inviteEmail, ...emails].filter(email => email !== ''))
+    resetForm()
   }
 
-  function validateForm (validations, callback = () => {}) {
-    setValidForm(validations.inviteEmail)
-    return callback
-  }
-
-  function validateField (fieldName, fieldValue, callback = () => {}) {
+  function validateField (fieldName, fieldValue) {
     let inviteEmail = validations.inviteEmail
     const formErrors = { ...validations.formErrors }
     switch (fieldName) {
@@ -46,13 +52,14 @@ function InviteUser ({
     }
     const nextValidation = { ...validations, inviteEmail, formErrors }
     setValidations(nextValidation)
-    validateForm(nextValidation, callback())
+    setValidForm(inviteEmail)
   }
 
   function handleChangeEmail ({ value, chunks }) {
+    setForm(form => ({ ...form, inviteEmail: value }))
     setEmails(() => [...chunks])
     setEmailPlaceHolder(() => chunks.length > 0 ? '' : 'example@gmail.com')
-    validateField('inviteEmail', value, setForm(form => ({ ...form, inviteEmail: value })))
+    validateField('inviteEmail', value)
   }
 
   return (

@@ -21,7 +21,7 @@ import { isSuperAdmin } from '../../../utils'
 
 function Users () {
   const globalState = useICCStore()
-  const { showSplashScreen, user: loggedUser } = globalState
+  const { showSplashScreen, user: loggedUser, config } = globalState
   const [users, setUsers] = useState([])
   const [filteredUsers, setFilteredUsers] = useState([])
   const [showOnlyJoinedUsers, setShowOnlyJoinedUsers] = useState(false)
@@ -202,7 +202,7 @@ function Users () {
                 size={SMALL}
               />
             </div>
-            {isSuperAdmin(loggedUser) && (
+            {isSuperAdmin(loggedUser) && config['invite-users'] && (
               <Button
                 label='Add new User'
                 onClick={() => handleOnClickAddUser()}

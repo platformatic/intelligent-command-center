@@ -47,16 +47,29 @@ module.exports = async function (app, opts) {
     const { token } = await app.githubOAuth2.getAccessTokenFromAuthorizationCodeFlow(req)
     let primaryEmail = null
     const githubUser = await callGHEndpoint({ path: 'user', accessToken: token.access_token, method: 'GET', body: {} })
-    if (githubUser.email) {
-      primaryEmail = githubUser.email
-    } else {
-      const emails = await callGHEndpoint({ path: 'user/emails', accessToken: token.access_token, method: 'GET', body: {} })
-      const filtered = emails.find((em) => em.primary === true)
-      primaryEmail = filtered.email
-    }
+
     if (!githubUser.id) {
       throw new Error(`Error while calling GitHub API: ${githubUser.message}`)
     }
+
+    if (githubUser.email) {
+      primaryEmail = githubUser.email
+    } else {
+      try {
+        const emails = await callGHEndpoint({ path: 'user/emails', accessToken: token.access_token, method: 'GET', body: {} })
+        if (Array.isArray(emails) && emails.length > 0) {
+          const filtered = emails.find((em) => em.primary === true)
+          primaryEmail = filtered?.email
+        }
+      } catch (error) {
+        app.log.warn(`Failed to fetch GitHub emails: ${error.message}`)
+      }
+    }
+
+    if (!primaryEmail) {
+      return res.redirect(`${app.config.PLT_FRONTEND_URL || ''}/?error=github_email_failed`)
+    }
+
     const externalId = `gh|${githubUser.id}`
     const user = {
       username: githubUser.login,

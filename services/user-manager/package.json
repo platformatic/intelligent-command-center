@@ -15,7 +15,8 @@
     "@fastify/cookie": "^11.0.0",
     "@fastify/env": "^5.0.1",
     "@fastify/error": "^4.0.0",
-    "fastify-plugin": "^5.0.1"
+    "fastify-plugin": "^5.0.1",
+    "resend": "^3.0.0"
   },
   "engines": {
     "node": "^18.8.0 || >=20.6.0"

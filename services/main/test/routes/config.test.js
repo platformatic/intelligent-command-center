@@ -37,6 +37,7 @@ test('should return the config', async (t) => {
     'risk-service-dump': true,
     'fusion-fission-cascade': true,
     'skew-protection': false,
+    'invite-users': false,
     'scaler-algorithm-version': 'v1',
     workflow: false
   })
