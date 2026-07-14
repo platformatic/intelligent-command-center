@@ -112,7 +112,16 @@ function buildDeployment ({
       ...(minReplicas ? { replicas: minReplicas } : {}),
       selector: { matchLabels: { 'app.kubernetes.io/instance': name } },
       template: {
-        metadata: { labels: podLabels },
+        // Annotations mark the pod for annotation-based Prometheus discovery
+        // (kubernetes_sd_configs keep on prometheus.io/scrape); the label above
+        // covers PodMonitor-based setups. Both point at the metrics port.
+        metadata: {
+          labels: podLabels,
+          annotations: {
+            'prometheus.io/scrape': 'true',
+            'prometheus.io/port': String(METRICS_PORT)
+          }
+        },
         spec: {
           ...(pullSecret ? { imagePullSecrets: [{ name: pullSecretName(appName, version, image) }] } : {}),
           containers: [
