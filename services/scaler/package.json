@@ -1,5 +1,5 @@
 {
-  "version": "3.12.0",
+  "version": "3.13.0",
   "scripts": {
     "start": "platformatic start",
     "test": "npm run lint && DOTENV_CONFIG_QUIET=true borp --concurrency 1 --timeout=60000 --ignore 'test/pattern-predictor/*.test.js' --ignore 'test/pattern-predictor/complex/**' --ignore 'test/pattern-predictor/schedule/**'",
