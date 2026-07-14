@@ -75,10 +75,20 @@ function buildPullSecret ({ appName, version, image, pullSecret }) {
   }
 }
 
+// Merge a partial resources override over the defaults so a caller can set just
+// one field (e.g. limits.memory) without dropping the others.
+function resolveResources (override) {
+  if (!override) return DEFAULT_RESOURCES
+  return {
+    requests: { ...DEFAULT_RESOURCES.requests, ...(override.requests || {}) },
+    limits: { ...DEFAULT_RESOURCES.limits, ...(override.limits || {}) }
+  }
+}
+
 function buildDeployment ({
   appName, image, version, hostname = null, port = APP_PORT,
   envVars = {}, isWorkflow = false, minReplicas = null, maxReplicas = null,
-  pullSecret = null
+  pullSecret = null, resources = null
 }) {
   const name = resourceName(appName, version, image)
   const labels = buildLabels({ appName, instance: name, version, isWorkflow, minReplicas, maxReplicas })
@@ -153,7 +163,7 @@ function buildDeployment ({
                 failureThreshold: 15
               },
               env,
-              resources: DEFAULT_RESOURCES
+              resources: resolveResources(resources)
             }
           ]
         }

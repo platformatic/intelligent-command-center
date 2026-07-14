@@ -38,6 +38,26 @@ module.exports = async function (app) {
         },
         required: ['registry', 'username', 'password'],
         additionalProperties: false
+      },
+      // Optional per-deploy container resources (k8s quantity strings, e.g.
+      // "2Gi", "500m"). Merged over the defaults, so a caller can set just
+      // limits.memory. Heavy Watt runtimes (many service workers) need more than
+      // the default limit; a light app can ask for less.
+      resources: {
+        type: ['object', 'null'],
+        properties: {
+          requests: {
+            type: 'object',
+            properties: { cpu: { type: 'string' }, memory: { type: 'string' } },
+            additionalProperties: false
+          },
+          limits: {
+            type: 'object',
+            properties: { cpu: { type: 'string' }, memory: { type: 'string' } },
+            additionalProperties: false
+          }
+        },
+        additionalProperties: false
       }
     },
     required: ['image'],
@@ -76,7 +96,8 @@ module.exports = async function (app) {
       minReplicas: body.minReplicas ?? null,
       maxReplicas: body.maxReplicas ?? null,
       envVars: body.env ?? {},
-      pullSecret: body.pullSecret ?? null
+      pullSecret: body.pullSecret ?? null,
+      resources: body.resources ?? null
     }
   }
 

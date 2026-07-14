@@ -41,6 +41,11 @@ test('buildDeployment stamps skew labels, ports, probes and env', () => {
   assert.strictEqual(pod['plt.dev/hostname'], 'leads.example.com')
   assert.strictEqual(pod['plt.dev/path'], undefined)
 
+  // Annotation-based Prometheus discovery scrapes the pod on the metrics port.
+  const ann = dep.spec.template.metadata.annotations
+  assert.strictEqual(ann['prometheus.io/scrape'], 'true')
+  assert.strictEqual(ann['prometheus.io/port'], '9090')
+
   const c = dep.spec.template.spec.containers[0]
   assert.strictEqual(c.image, 'reg/leads-demo:abc')
   assert.deepStrictEqual(c.ports.map(p => p.containerPort), [3042, 9090])
@@ -52,6 +57,25 @@ test('buildDeployment stamps skew labels, ports, probes and env', () => {
   assert.strictEqual(instanceId.valueFrom.fieldRef.fieldPath, 'metadata.name')
   const depVersion = c.env.find(e => e.name === 'PLT_DEPLOYMENT_VERSION')
   assert.strictEqual(depVersion.value, 'v3')
+})
+
+test('buildDeployment defaults resources, and merges a partial override', () => {
+  const base = buildDeployment({ appName: 'leads-demo', image: 'reg/leads-demo:abc', version: 'v3' })
+  const r = base.spec.template.spec.containers[0].resources
+  assert.strictEqual(r.limits.memory, '1Gi')
+  assert.strictEqual(r.requests.memory, '512Mi')
+
+  // Partial override: bump only the memory limit; other fields keep defaults.
+  const over = buildDeployment({
+    appName: 'leads-demo',
+    image: 'reg/leads-demo:abc',
+    version: 'v3',
+    resources: { limits: { memory: '2Gi' } }
+  })
+  const ro = over.spec.template.spec.containers[0].resources
+  assert.strictEqual(ro.limits.memory, '2Gi')
+  assert.strictEqual(ro.limits.cpu, '750m')
+  assert.strictEqual(ro.requests.memory, '512Mi')
 })
 
 test('buildDeployment omits replicas + scaler labels when unset; adds workflow env', () => {
