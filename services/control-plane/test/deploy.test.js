@@ -12,6 +12,9 @@ function buildApp (opts = {}) {
   const calls = { applyWorkload: [], planWorkload: [], getDesiredRouting: [], planHTTPRoute: [], recordAdviseVersion: [] }
 
   app.register(fp(async (app) => {
+    // Mirror the env plugin: routes read the cluster apps domain off app.env to
+    // derive an application's public hostname on deploy.
+    app.decorate('env', opts.env ?? {})
     // Mimic auth-context-plugin: the gateway injects the resolved principal as
     // x-user, and control-plane exposes it as req.user. Token-scoped routes read
     // the application from it.
@@ -71,6 +74,69 @@ test('deploy creates the workload (Deployment + Service)', async (t) => {
   assert.strictEqual(body.controllerName, 'leads-demo-v3')
   assert.strictEqual(calls.applyWorkload.length, 1)
   assert.strictEqual(calls.planWorkload.length, 0)
+})
+
+// ── hostname/pathPrefix derivation: CI calls /deploy with neither, ICC derives
+//    the public hostname from the app name and always serves at '/' ──
+
+test('derives {app-name}.<PLT_APPS_DOMAIN> hostname and a "/" path prefix', async (t) => {
+  const { app, calls } = buildApp({
+    applications: apps,
+    latestDeployment: { namespace: 'platformatic' },
+    env: { PLT_APPS_DOMAIN: 'apps.platformatic.run' }
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  const res = await deploy(app, { image: 'reg/leads-demo:abc', version: 'v3' })
+  assert.strictEqual(res.statusCode, 200)
+  assert.strictEqual(calls.applyWorkload.length, 1)
+  assert.strictEqual(calls.applyWorkload[0].hostname, 'leads-demo.apps.platformatic.run')
+  assert.strictEqual(calls.applyWorkload[0].pathPrefix, '/')
+})
+
+test('deploy/plan routes the derived hostname at "/" in the HTTPRoute step', async (t) => {
+  const { app, calls } = buildApp({
+    applications: apps,
+    mode: 'advise',
+    latestDeployment: { namespace: 'platformatic' },
+    env: { PLT_APPS_DOMAIN: 'apps.platformatic.run' }
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  const res = await app.inject({
+    method: 'POST',
+    url: `/applications/${APP_ID}/deploy/plan`,
+    payload: { image: 'reg/leads-demo:abc', version: 'v3' }
+  })
+  assert.strictEqual(res.statusCode, 200)
+  assert.strictEqual(calls.planHTTPRoute.length, 1)
+  assert.strictEqual(calls.planHTTPRoute[0].hostname, 'leads-demo.apps.platformatic.run')
+  assert.strictEqual(calls.planHTTPRoute[0].pathPrefix, '/')
+})
+
+test('an explicit body.hostname overrides the derived one', async (t) => {
+  const { app, calls } = buildApp({
+    applications: apps,
+    latestDeployment: { namespace: 'platformatic' },
+    env: { PLT_APPS_DOMAIN: 'apps.platformatic.run' }
+  })
+  await app.ready()
+  t.after(() => app.close())
+
+  await deploy(app, { image: 'reg/leads-demo:abc', version: 'v3', hostname: 'custom.example.com' })
+  assert.strictEqual(calls.applyWorkload[0].hostname, 'custom.example.com')
+})
+
+test('no PLT_APPS_DOMAIN: no hostname, but still serves at "/"', async (t) => {
+  const { app, calls } = buildApp({ applications: apps, latestDeployment: { namespace: 'platformatic' } })
+  await app.ready()
+  t.after(() => app.close())
+
+  await deploy(app, { image: 'reg/leads-demo:abc', version: 'v3' })
+  assert.strictEqual(calls.applyWorkload[0].hostname, null)
+  assert.strictEqual(calls.applyWorkload[0].pathPrefix, '/')
 })
 
 test('deploy applies regardless of actuation mode (observe and advise both deploy)', async (t) => {

@@ -53,13 +53,21 @@ module.exports = async function (app) {
       namespace = latest?.namespace || 'platformatic'
     }
     const appLabel = application.name
+    // Cluster-derived public hostname: `{app-name}.${PLT_APPS_DOMAIN}` (e.g.
+    // leads-demo.apps.platformatic.run). This lets CI keep calling /deploy with
+    // no hostname/pathPrefix; an explicit body value still wins. Without a
+    // configured apps domain there is no hostname (path-based routing).
+    const appsDomain = app.env?.PLT_APPS_DOMAIN ?? null
+    const hostname = body.hostname ?? (appsDomain ? `${appLabel}.${appsDomain}` : null)
     return {
       appName: appLabel,
       image: body.image,
       version: body.version || deriveVersion(body.image),
       namespace,
-      hostname: body.hostname ?? null,
-      pathPrefix: body.pathPrefix ?? `/${appLabel}`,
+      hostname,
+      // A hostname owns the whole host, so the app serves at the root. The
+      // reactive registration path derives the same '/' from the hostname label.
+      pathPrefix: body.pathPrefix ?? '/',
       expirePolicy: body.expirePolicy ?? null,
       // The app's HTTP port. ICC has no running pod to learn it from in advise
       // mode, so it comes from the request; default to the Watt convention (3042).

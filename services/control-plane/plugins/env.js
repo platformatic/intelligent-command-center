@@ -64,7 +64,11 @@ const schema = {
     PLT_SKEW_COOKIE_MAX_AGE: { type: 'number', default: 43200 },
     PLT_SKEW_AUTO_CLEANUP: { type: 'boolean', default: false },
     PLT_METRICS_URL: { type: 'string', default: 'http://metrics.plt.local' },
-    PLT_SCALER_URL: { type: 'string', default: 'http://scaler.plt.local' }
+    PLT_SCALER_URL: { type: 'string', default: 'http://scaler.plt.local' },
+    // Cluster-wide apps subdomain used to derive an application's public
+    // hostname on deploy: `{app-name}.${PLT_APPS_DOMAIN}` (e.g.
+    // leads-demo.apps.platformatic.run). Unset on clusters that route by path.
+    PLT_APPS_DOMAIN: { type: 'string' }
   }
 }
 
