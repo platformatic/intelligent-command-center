@@ -11,8 +11,8 @@ const { deriveVersion } = require('./version')
 // real values from, so it seeds the manifest it hands the customer to apply. Only
 // starting points -- the customer owns the applied workload and can change them.
 const DEFAULT_RESOURCES = {
-  requests: { memory: '1Gi', cpu: '1000m' },
-  limits: { memory: '2Gi', cpu: '1500m' }
+  requests: { memory: '512Mi', cpu: '500m' },
+  limits: { memory: '1Gi', cpu: '750m' }
 }
 
 // The app's HTTP port defaults to the Watt convention; the deploy request can
