@@ -41,6 +41,7 @@ module.exports = fp(async function (app) {
     for (const [appLabel, appVersions] of appMap) {
       try {
         let productionVersion = null
+        let activeVersion = null
         const drainingVersions = []
         const stagedVersions = []
 
@@ -52,6 +53,7 @@ module.exports = fp(async function (app) {
           }
           if (v.status === 'active') {
             productionVersion = versionRef
+            activeVersion = v
           } else if (v.status === 'staged') {
             stagedVersions.push(versionRef)
           } else {
@@ -65,7 +67,12 @@ module.exports = fp(async function (app) {
           continue
         }
 
-        const ref = appVersions[0]
+        // Routing metadata (namespace, pathPrefix, hostname) must come from the
+        // ACTIVE version, not an arbitrary appVersions[0]: versions can disagree
+        // (e.g. an old path-based version still draining alongside a new
+        // hostname-based one), and only the active version reflects how the app
+        // is currently served.
+        const ref = activeVersion
 
         // Advise mode: ICC actuates no routing, so it must not rebuild the route
         // on failover. The external actor owns cluster routing state.

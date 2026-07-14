@@ -141,6 +141,50 @@ test('single app with active + draining - calls applyHTTPRoute once', async (t) 
   assert.strictEqual(calls[0].drainingVersions[0].versionId, 'v1')
 })
 
+test('route uses the ACTIVE version routing, not appVersions[0] (mixed path/hostname)', async (t) => {
+  // v1 (draining) is path-based and comes first, so it is appVersions[0]; v2
+  // (active) is hostname-based. The route must reflect the active version.
+  const versions = [
+    {
+      id: '1',
+      applicationId: 'app-1',
+      appLabel: 'my-app',
+      versionLabel: 'v1',
+      controllerName: 'my-app-v1',
+      serviceName: 'my-app-v1-svc',
+      servicePort: 3042,
+      namespace: 'platformatic',
+      pathPrefix: '/my-app',
+      hostname: null,
+      status: 'draining'
+    },
+    {
+      id: '2',
+      applicationId: 'app-1',
+      appLabel: 'my-app',
+      versionLabel: 'v2',
+      controllerName: 'my-app-v2',
+      serviceName: 'my-app-v2-svc',
+      servicePort: 3042,
+      namespace: 'platformatic',
+      pathPrefix: '/',
+      hostname: 'my-app.apps.example.com',
+      status: 'active'
+    }
+  ]
+
+  const { app, triggerLeader, applyHTTPRouteCalls } = buildApp({ versions })
+  await app.ready()
+  t.after(() => app.close())
+
+  await triggerLeader()
+  const calls = applyHTTPRouteCalls()
+  assert.strictEqual(calls.length, 1)
+  assert.strictEqual(calls[0].hostname, 'my-app.apps.example.com')
+  assert.strictEqual(calls[0].pathPrefix, '/')
+  assert.strictEqual(calls[0].productionVersion.versionId, 'v2')
+})
+
 test('multiple apps - calls applyHTTPRoute once per app', async (t) => {
   const versions = [
     ...makeVersions(),
