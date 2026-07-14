@@ -47,6 +47,10 @@ function AppNameBox ({
   // is 'object', so short-circuit before comparing.
   const shouldShowWarning = !!latestCompatibleVersion && semver.compare(application.pltVersion, latestCompatibleVersion) < 0
 
+  const appsDomain = globalState.config?.['apps-domain']
+  const appHostname = appsDomain && application.name ? `${application.name}.${appsDomain}` : ''
+  const appUrl = appHostname ? `https://${appHostname}` : ''
+
   return (
     <BorderedBox classes={`${styles.borderexBoxContainer} ${gridClassName}`} backgroundColor={BLACK_RUSSIAN} color={TRANSPARENT}>
       <div className={`${commonStyles.smallFlexBlock} ${commonStyles.fullWidth}`}>
@@ -64,6 +68,14 @@ function AppNameBox ({
           </div>
         </div>
         <div className={`${commonStyles.tinyFlexBlock} ${commonStyles.fullWidth}`}>
+          {appUrl && (
+            <div className={styles.rowContainer}>
+              <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
+                <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>URL:</span>
+                <a href={appUrl} target='_blank' rel='noopener noreferrer' className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`}>{appHostname}</a>
+              </div>
+            </div>
+          )}
           <div className={styles.rowContainer}>
             <div className={`${commonStyles.tinyFlexRow} ${commonStyles.itemsCenter}`}>
               <span className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite} ${typographyStyles.opacity70}`}>Last Update:</span>

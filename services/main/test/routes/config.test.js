@@ -9,7 +9,8 @@ test('should return the config', async (t) => {
     PLT_FEATURE_CACHE: true,
     PLT_FEATURE_CACHE_RECOMMENDATIONS: true,
     PLT_FEATURE_RISK_SERVICE_DUMP: true,
-    PLT_FEATURE_FFC: true
+    PLT_FEATURE_FFC: true,
+    PLT_APPS_DOMAIN: 'apps.plt.local'
   })
 
   mockAuthorizeEndpoint(null, (method, path, cookie) => {
@@ -33,6 +34,7 @@ test('should return the config', async (t) => {
   assert.equal(headers['content-type'], 'application/json; charset=utf-8')
   assert.deepEqual(JSON.parse(body), {
     cache: true,
+    'apps-domain': 'apps.plt.local',
     'cache-recommendations': true,
     'risk-service-dump': true,
     'fusion-fission-cascade': true,

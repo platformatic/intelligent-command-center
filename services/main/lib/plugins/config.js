@@ -28,7 +28,8 @@ const schema = {
     PLT_FEATURE_FFC: { type: 'boolean', default: false },
     PLT_FEATURE_SKEW_PROTECTION: { type: 'boolean', default: false },
     PLT_SCALER_ALGORITHM_VERSION: { type: 'string', default: 'v1' },
-    PLT_WORKFLOW_URL: { type: 'string', default: '' }
+    PLT_WORKFLOW_URL: { type: 'string', default: '' },
+    PLT_APPS_DOMAIN: { type: 'string', default: '' }
   }
 }
 
