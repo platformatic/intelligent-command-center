@@ -21,7 +21,7 @@ module.exports = async function (app) {
       namespace: { type: 'string' },
       hostname: { type: ['string', 'null'] },
       pathPrefix: { type: ['string', 'null'] },
-      expirePolicy: { type: 'string' },
+      expirePolicy: { type: 'string', enum: ['http-traffic', 'workflow'] },
       port: { type: ['integer', 'null'], minimum: 1, maximum: 65535 },
       minReplicas: { type: ['integer', 'null'], minimum: 1 },
       maxReplicas: { type: ['integer', 'null'], minimum: 1 },

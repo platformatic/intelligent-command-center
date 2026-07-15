@@ -78,15 +78,57 @@ test('buildDeployment defaults resources, and merges a partial override', () => 
   assert.strictEqual(ro.requests.memory, '512Mi')
 })
 
-test('buildDeployment omits replicas + scaler labels when unset; adds workflow env', () => {
-  const dep = buildDeployment({ appName: 'wf', image: 'reg/wf:1', version: 'v1', isWorkflow: true })
+test('buildDeployment omits replicas + scaler labels when unset; adds canonical workflow env', () => {
+  const dep = buildDeployment({ appName: 'orders-api', image: 'reg/orders-api:1', version: 'v1', isWorkflow: true })
   assert.strictEqual(dep.spec.replicas, undefined)
   assert.strictEqual(dep.metadata.labels['icc.platformatic.dev/scaler-min'], undefined)
   assert.strictEqual(dep.metadata.labels['plt.dev/workflow'], 'true')
-  const wfEnv = dep.spec.template.spec.containers[0].env.find(e => e.name === 'PLT_WORLD_DEPLOYMENT_VERSION')
-  assert.strictEqual(wfEnv.value, 'v1')
-  const depEnv = dep.spec.template.spec.containers[0].env.find(e => e.name === 'PLT_DEPLOYMENT_VERSION')
+  const env = dep.spec.template.spec.containers[0].env
+  const appIdEnv = env.find(e => e.name === 'PLT_WORLD_APP_ID')
+  assert.strictEqual(appIdEnv.value, 'orders-api')
+  assert.strictEqual(appIdEnv.value, dep.metadata.labels['app.kubernetes.io/name'])
+  assert.notStrictEqual(appIdEnv.value, dep.metadata.name)
+  const worldVersionEnv = env.find(e => e.name === 'PLT_WORLD_DEPLOYMENT_VERSION')
+  assert.strictEqual(worldVersionEnv.value, 'v1')
+  const depEnv = env.find(e => e.name === 'PLT_DEPLOYMENT_VERSION')
   assert.strictEqual(depEnv.value, 'v1')
+})
+
+test('buildDeployment protects generated env and only emits World env for workflows', () => {
+  const reserved = {
+    PLT_INSTANCE_ID: 'body-instance',
+    PLT_DEPLOYMENT_VERSION: 'body-version',
+    PLT_WORLD_APP_ID: 'body-app',
+    PLT_WORLD_DEPLOYMENT_VERSION: 'body-world-version'
+  }
+  const workflow = buildDeployment({
+    appName: 'orders-api',
+    image: 'reg/orders-api:1',
+    version: 'v1',
+    isWorkflow: true,
+    envVars: { ...reserved, FOO: 'bar' }
+  })
+  const workflowEnv = workflow.spec.template.spec.containers[0].env
+
+  for (const name of Object.keys(reserved)) {
+    assert.strictEqual(workflowEnv.filter(env => env.name === name).length, 1)
+  }
+  assert.strictEqual(workflowEnv.find(env => env.name === 'PLT_WORLD_APP_ID').value, 'orders-api')
+  assert.strictEqual(workflowEnv.find(env => env.name === 'PLT_WORLD_DEPLOYMENT_VERSION').value, 'v1')
+  assert.strictEqual(workflowEnv.find(env => env.name === 'PLT_DEPLOYMENT_VERSION').value, 'v1')
+  assert.strictEqual(workflowEnv.find(env => env.name === 'FOO').value, 'bar')
+
+  const standard = buildDeployment({
+    appName: 'orders-api',
+    image: 'reg/orders-api:1',
+    version: 'v1',
+    envVars: reserved
+  })
+  const standardEnv = standard.spec.template.spec.containers[0].env
+  assert.strictEqual(standardEnv.some(env => env.name === 'PLT_WORLD_APP_ID'), false)
+  assert.strictEqual(standardEnv.some(env => env.name === 'PLT_WORLD_DEPLOYMENT_VERSION'), false)
+  assert.strictEqual(standardEnv.filter(env => env.name === 'PLT_INSTANCE_ID').length, 1)
+  assert.strictEqual(standardEnv.filter(env => env.name === 'PLT_DEPLOYMENT_VERSION').length, 1)
 })
 
 test('buildDeployment mints PLT_DEPLOYMENT_VERSION (plt_ id) from the image when version is omitted', () => {

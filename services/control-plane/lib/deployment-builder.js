@@ -19,6 +19,12 @@ const DEFAULT_RESOURCES = {
 // override it (buildDeployment/buildService take a `port`).
 const APP_PORT = 3042
 const METRICS_PORT = 9090
+const RESERVED_ENV_VARS = new Set([
+  'PLT_INSTANCE_ID',
+  'PLT_DEPLOYMENT_VERSION',
+  'PLT_WORLD_APP_ID',
+  'PLT_WORLD_DEPLOYMENT_VERSION'
+])
 
 // A k8s-safe name segment, unique per version: an explicit --version verbatim when
 // it is already a valid RFC1123 label, else the image tag (unique per build). A
@@ -106,11 +112,16 @@ function buildDeployment ({
   // Platformatic World, which also reads PLT_DEPLOYMENT_VERSION now.
   const deploymentVersion = version || deriveVersion(image)
   const env = [
-    ...Object.entries(envVars).map(([k, value]) => ({ name: k, value: String(value) })),
+    ...Object.entries(envVars)
+      .filter(([name]) => !RESERVED_ENV_VARS.has(name))
+      .map(([name, value]) => ({ name, value: String(value) })),
     { name: 'PLT_INSTANCE_ID', valueFrom: { fieldRef: { fieldPath: 'metadata.name' } } },
     { name: 'PLT_DEPLOYMENT_VERSION', value: deploymentVersion },
     ...(isWorkflow
-      ? [{ name: 'PLT_WORLD_DEPLOYMENT_VERSION', value: deploymentVersion }]
+      ? [
+          { name: 'PLT_WORLD_APP_ID', value: appName },
+          { name: 'PLT_WORLD_DEPLOYMENT_VERSION', value: deploymentVersion }
+        ]
       : [])
   ]
 

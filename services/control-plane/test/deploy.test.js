@@ -5,6 +5,7 @@ const { test } = require('node:test')
 const fastify = require('fastify')
 const fp = require('fastify-plugin')
 const deployRoute = require('../routes/deploy')
+const { buildDeployment } = require('../lib/deployment-builder')
 const { deriveVersion } = require('../lib/version')
 
 function buildApp (opts = {}) {
@@ -33,7 +34,7 @@ function buildApp (opts = {}) {
     })
     app.decorate('planWorkload', (o) => {
       calls.planWorkload.push(o)
-      return [{ kind: 'Deployment', action: 'apply', manifest: { metadata: { name: `${o.appName}-${o.version}` } }, command: 'kubectl apply' }]
+      return [{ kind: 'Deployment', action: 'apply', manifest: buildDeployment(o), command: 'kubectl apply' }]
     })
     // Routing helpers are skew-only: when skew protection is off they are not
     // decorated, and the deploy plan must degrade to workload-only.
@@ -74,6 +75,61 @@ test('deploy creates the workload (Deployment + Service)', async (t) => {
   assert.strictEqual(body.controllerName, 'leads-demo-v3')
   assert.strictEqual(calls.applyWorkload.length, 1)
   assert.strictEqual(calls.planWorkload.length, 0)
+})
+
+test('workflow deploy uses the canonical application identity', async (t) => {
+  const { app, calls } = buildApp({ applications: apps, latestDeployment: { namespace: 'platformatic' } })
+  await app.ready()
+  t.after(() => app.close())
+
+  const res = await deploy(app, {
+    image: 'reg/leads-demo:abc',
+    version: 'v3',
+    expirePolicy: 'workflow'
+  })
+  assert.strictEqual(res.statusCode, 200)
+  assert.strictEqual(calls.applyWorkload[0].appName, 'leads-demo')
+  assert.strictEqual(calls.applyWorkload[0].isWorkflow, true)
+})
+
+test('workflow deploy plan protects generated World metadata', async (t) => {
+  const { app } = buildApp({ applications: apps, latestDeployment: { namespace: 'platformatic' } })
+  await app.ready()
+  t.after(() => app.close())
+
+  const res = await app.inject({
+    method: 'POST',
+    url: `/applications/${APP_ID}/deploy/plan`,
+    payload: {
+      image: 'reg/leads-demo:abc',
+      version: 'v3',
+      expirePolicy: 'workflow',
+      env: {
+        PLT_INSTANCE_ID: 'body-instance',
+        PLT_DEPLOYMENT_VERSION: 'body-version',
+        PLT_WORLD_APP_ID: APP_ID,
+        PLT_WORLD_DEPLOYMENT_VERSION: 'body-world-version'
+      }
+    }
+  })
+  assert.strictEqual(res.statusCode, 200)
+  const manifest = JSON.parse(res.body).plan.find(step => step.kind === 'Deployment').manifest
+  const env = manifest.spec.template.spec.containers[0].env
+  assert.strictEqual(manifest.metadata.labels['app.kubernetes.io/name'], 'leads-demo')
+  assert.strictEqual(env.find(item => item.name === 'PLT_WORLD_APP_ID').value, 'leads-demo')
+  assert.strictEqual(env.find(item => item.name === 'PLT_WORLD_DEPLOYMENT_VERSION').value, 'v3')
+  for (const name of ['PLT_INSTANCE_ID', 'PLT_DEPLOYMENT_VERSION', 'PLT_WORLD_APP_ID', 'PLT_WORLD_DEPLOYMENT_VERSION']) {
+    assert.strictEqual(env.filter(item => item.name === name).length, 1)
+  }
+})
+
+test('deploy rejects unknown expiry policies', async (t) => {
+  const { app } = buildApp({ applications: apps, latestDeployment: { namespace: 'platformatic' } })
+  await app.ready()
+  t.after(() => app.close())
+
+  const res = await deploy(app, { image: 'reg/leads-demo:abc', expirePolicy: 'unknown' })
+  assert.strictEqual(res.statusCode, 400)
 })
 
 // ── hostname/pathPrefix derivation: CI calls /deploy with neither, ICC derives
