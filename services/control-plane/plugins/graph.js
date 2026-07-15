@@ -35,20 +35,22 @@ module.exports = fp(async function (app) {
           (service) => service.entrypoint === true
         )
 
-        links.push({
-          source: {
-            applicationId: null,
-            serviceId: null,
-            telemetryId: 'X'
-          },
-          target: {
-            applicationId: application.id,
-            serviceId: entrypoint.id,
-            telemetryId: `${application.name}-${entrypoint.id}`
-          },
-          requestsAmount: 'no_requests',
-          responseTime: 'no_requests'
-        })
+        if (entrypoint) {
+          links.push({
+            source: {
+              applicationId: null,
+              serviceId: null,
+              telemetryId: 'X'
+            },
+            target: {
+              applicationId: application.id,
+              serviceId: entrypoint.id,
+              telemetryId: `${application.name}-${entrypoint.id}`
+            },
+            requestsAmount: 'no_requests',
+            responseTime: 'no_requests'
+          })
+        }
       }
 
       applications.push({
@@ -108,9 +110,12 @@ module.exports = fp(async function (app) {
           service: targetService
         } = findServiceByTelemetryId(targetTelemetryId)
 
+        if (!sourceApplication || !targetApplication) {
+          // Skip links from/to applications not in the current generation
+          continue
+        }
+
         if (
-          sourceApplication &&
-          targetApplication &&
           targetService.entrypoint !== true &&
           sourceApplication.id !== targetApplication.id
         ) {
@@ -124,13 +129,13 @@ module.exports = fp(async function (app) {
 
         const link = {
           source: {
-            applicationId: sourceApplication?.id ?? null,
-            serviceId: sourceService?.id ?? null,
+            applicationId: sourceApplication.id,
+            serviceId: sourceService.id,
             telemetryId: sourceTelemetryId
           },
           target: {
-            applicationId: targetApplication?.id ?? null,
-            serviceId: targetService?.id ?? null,
+            applicationId: targetApplication.id,
+            serviceId: targetService.id,
             telemetryId: targetTelemetryId
           },
           requestsAmount: 'no_requests',
@@ -139,8 +144,8 @@ module.exports = fp(async function (app) {
 
         if (sourceService) {
           sourceService.dependencies.push({
-            applicationId: targetApplication?.id,
-            serviceId: targetService?.id
+            applicationId: targetApplication.id,
+            serviceId: targetService.id
           })
         }
 
