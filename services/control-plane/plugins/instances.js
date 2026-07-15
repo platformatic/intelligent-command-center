@@ -6,7 +6,7 @@ const { setTimeout: sleep } = require('node:timers/promises')
 const { request } = require('undici')
 const fp = require('fastify-plugin')
 const errors = require('./errors')
-const { getK8sToken, k8sAuthHeaders } = require('../lib/k8s-auth')
+const { getK8sTokenAsync, k8sAuthHeadersAsync } = require('../lib/k8s-auth')
 const { resolveActuation } = require('../lib/actuation')
 const { deriveVersion, combineImageRef } = require('../lib/version')
 
@@ -43,11 +43,15 @@ async function resolveMachineVersion (machine, refetch, logger) {
 }
 
 async function registerWorkflowApp (appName, namespace, { workflowUrl, log, machineId, deploymentVersion, serviceName, servicePort }) {
-  if (!workflowUrl || !getK8sToken()) return
+  if (!workflowUrl) return
 
+  const token = await getK8sTokenAsync()
+  if (!token) return
+
+  const authHeaders = await k8sAuthHeadersAsync()
   const headers = {
     'content-type': 'application/json',
-    ...k8sAuthHeaders()
+    ...authHeaders
   }
 
   // Create the application (idempotent: 201 if new, 200 if exists)

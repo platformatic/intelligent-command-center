@@ -84,6 +84,10 @@ function buildHTTPRoute ({
   cookieMaxAge = DEFAULT_COOKIE_MAX_AGE,
   cookieName = COOKIE_NAME
 }) {
+  if (pathPrefix == null && hostname) {
+    pathPrefix = '/'
+  }
+
   const pathMatch = { path: { type: 'PathPrefix', value: pathPrefix } }
   const rules = []
 

@@ -1,7 +1,7 @@
 'use strict'
 
 const { request } = require('undici')
-const { k8sAuthHeaders } = require('../k8s-auth')
+const { k8sAuthHeadersAsync } = require('../k8s-auth')
 
 async function shouldExpire (version, { getVersionRPS, log, workflowUrl }) {
   if (!workflowUrl) {
@@ -52,7 +52,8 @@ async function forceExpire (version, { log, workflowUrl }) {
   // ICC appLabel → workflow API :appId, ICC versionLabel → workflow API :deploymentId
   const url = `${workflowUrl}/api/v1/apps/${encodeURIComponent(version.appLabel)}/versions/${encodeURIComponent(version.versionLabel)}/expire`
   try {
-    const { statusCode, body } = await request(url, { method: 'POST', headers: k8sAuthHeaders() })
+    const headers = await k8sAuthHeadersAsync()
+    const { statusCode, body } = await request(url, { method: 'POST', headers })
     if (statusCode !== 200) {
       const error = await body.text()
       log.warn({
@@ -75,7 +76,8 @@ async function getWorkflowDrainingStatus (version, { log, workflowUrl }) {
   // ICC appLabel → workflow API :appId, ICC versionLabel → workflow API :deploymentId
   const url = `${workflowUrl}/api/v1/apps/${encodeURIComponent(version.appLabel)}/versions/${encodeURIComponent(version.versionLabel)}/status`
   try {
-    const { statusCode, body } = await request(url, { headers: k8sAuthHeaders() })
+    const headers = await k8sAuthHeadersAsync()
+    const { statusCode, body } = await request(url, { headers })
     if (statusCode !== 200) {
       const error = await body.text()
       log.warn({

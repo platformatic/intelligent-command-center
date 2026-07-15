@@ -366,6 +366,29 @@ test('staged rules precede draining rules and the default rule', async () => {
   assert.strictEqual(route.spec.rules[4].backendRefs[0].name, 'myapp-v2.0.0')
 })
 
+test('should default pathPrefix to / when hostname is provided but pathPrefix is not', async () => {
+  const route = buildHTTPRoute({
+    appName: 'myapp',
+    namespace: 'myapp-ns',
+    hostname: 'myapp.example.com',
+    gateway: { name: 'platform-gateway', namespace: 'platformatic' },
+    productionVersion: {
+      versionId: 'v2.0.0-prod',
+      serviceName: 'myapp-v2.0.0',
+      port: 3042
+    },
+    drainingVersions: []
+  })
+
+  assert.deepStrictEqual(route.spec.hostnames, ['myapp.example.com'])
+  assert.deepStrictEqual(route.spec.rules[0].matches, [{
+    path: { type: 'PathPrefix', value: '/' }
+  }])
+
+  const setCookie = route.spec.rules[0].filters[1].responseHeaderModifier.add[0]
+  assert.ok(setCookie.value.includes('Path=/'))
+})
+
 test('should use custom pathPrefix on all rules', async () => {
   const route = buildHTTPRoute({
     ...defaultParams,
