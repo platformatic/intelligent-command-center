@@ -126,9 +126,13 @@ export async function getPodSignals (applicationId, podId) {
   }
 }
 
+// Only what the calendar actually draws. Without `fields` these auto-generated entity routes return
+// every column (slotEnd, slotOfDay, localSlotOfDay, applicationId, createdAt, …) — 1000 rows apiece,
+// twice, on every planner load.
 export async function getPlannerHistory (appId, from, to) {
   try {
     const query = new URLSearchParams()
+    query.set('fields', 'id,slotStart,pods,category')
     query.set('where.applicationId.eq', appId)
     query.set('where.slotStart.gte', from)
     query.set('where.slotStart.lte', to)
@@ -143,6 +147,7 @@ export async function getPlannerHistory (appId, from, to) {
 export async function getPlannerPredictions (appId, from, to) {
   try {
     const query = new URLSearchParams()
+    query.set('fields', 'id,slotStart,predictedPods,category')
     query.set('where.applicationId.eq', appId)
     query.set('where.slotStart.gte', from)
     query.set('where.slotStart.lte', to)
@@ -150,6 +155,48 @@ export async function getPlannerPredictions (appId, from, to) {
     query.set('where.percentile.eq', 'p50')
     query.set('limit', 1000)
     const result = await callApi('scaler', `/timeWindowPredictions?${query.toString()}`)
+    return Array.isArray(result) ? result : []
+  } catch {
+    return []
+  }
+}
+
+// Floor suggestions — candidates AND accepted ones in one list, told apart by `status`
+// ('suggested' | 'active'). Never carries the bulky per-day `distribution`; see getSuggestionDetails.
+export async function getSuggestions (appId) {
+  try {
+    const result = await callApi('scaler', `/applications/${appId}/suggestions`)
+    return Array.isArray(result) ? result : []
+  } catch {
+    return []
+  }
+}
+
+// The drill-in for one suggestion: `occurrences` are the ids of the calendar rows it covers
+// (time_window_stats in the past, time_window_predictions in the future), plus the per-day
+// `distribution`. The ids are derived server-side, so they stay correct after accepting.
+export async function getSuggestionDetails (appId, id) {
+  try {
+    return await callApi('scaler', `/applications/${appId}/suggestions/${id}/details`)
+  } catch {
+    return null
+  }
+}
+
+// `until` is optional (null = recurs forever).
+export async function acceptSuggestion (appId, id, until = null) {
+  return callApi('scaler', `/applications/${appId}/suggestions/${id}/accept`, 'POST', { until })
+}
+
+export async function cancelSuggestion (appId, id) {
+  return callApi('scaler', `/applications/${appId}/suggestions/${id}/cancel`, 'POST', {})
+}
+
+// The floor actually in force per slot over the horizon, after most-specific-wins resolution across
+// every accepted suggestion — not derivable from any single suggestion.
+export async function getScheduledSlots (appId) {
+  try {
+    const result = await callApi('scaler', `/applications/${appId}/scheduled`)
     return Array.isArray(result) ? result : []
   } catch {
     return []

@@ -42,6 +42,9 @@ const schema = {
     PLT_SCALER_TIME_WINDOW_MINUTES: { type: 'number', default: 60 },
     PLT_SCALER_PATTERN_PERCENTILE: { type: 'string', default: 'p50', enum: ['min', 'max', 'p50', 'p75', 'p90', 'p95', 'p99'] },
     PLT_SCALER_PATTERN_PREDICTION_DAYS: { type: 'number', default: 60 },
+    // How many PAST occurrences a suggestion surfaces (its distribution, and the calendar highlight).
+    // The future side needs no limit — it is already bounded by the forecast horizon above.
+    PLT_SCALER_SUGGESTION_OCCURRENCES_LIMIT: { type: 'number', default: 14 },
     PLT_SCALER_WINDOW_CATEGORIES: { type: 'number', default: 5 },
     PLT_SCALER_WINDOW_MIN_PODS: { type: 'number', default: 3 },
     PLT_SCALER_WINDOW_MIN_FRACTION: { type: 'number', default: 0.1 },

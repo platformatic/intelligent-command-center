@@ -31,7 +31,7 @@
 }
 
 .acceptButton {
-  @apply px-4 py-2 border border-white border-opacity-30 text-white text-xs font-medium rounded hover:bg-white hover:bg-opacity-10 transition-colors flex-shrink-0;
+  @apply px-4 py-2 border border-white border-opacity-30 text-white text-xs font-medium rounded hover:bg-white hover:bg-opacity-10 transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .suggestionDetails {
@@ -50,12 +50,12 @@
   @apply text-white;
 }
 
-.acceptedState {
-  @apply flex flex-col items-center justify-center gap-1 p-2;
+.checkmarkIcon {
+  @apply text-main-green flex items-center justify-center flex-shrink-0;
 }
 
-.checkmarkIcon {
-  @apply text-main-green flex items-center justify-center;
+.acceptedState {
+  @apply flex flex-col items-center justify-center gap-1 p-2;
 }
 
 .acceptedTitle {
@@ -64,4 +64,12 @@
 
 .acceptedSummary {
   @apply text-white text-opacity-70 text-sm text-center;
+}
+
+.acceptedHint {
+  @apply text-white text-opacity-50 text-xs text-center;
+}
+
+.cancelButton {
+  @apply px-4 py-2 border border-white border-opacity-30 text-white text-xs font-medium rounded hover:bg-white hover:bg-opacity-10 transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed;
 }

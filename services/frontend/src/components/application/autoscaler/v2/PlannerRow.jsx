@@ -28,23 +28,12 @@ function darkenColor (hexColor, factor = 0.6) {
 }
 
 // cells: array of { entry, isFuture } | null  (one slot per day, null = day outside range)
-export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverState, categoryConfig, selectedSuggestion, showDualValues }) {
+// occurrenceIds: Set of the calendar row ids the selected suggestion covers (GET /suggestions/:id/details),
+// or null when nothing is selected. They are the time_window_stats / time_window_predictions row ids —
+// the server derives them from the suggestion's calendar rule, so they match these cells directly.
+export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverState, categoryConfig, occurrenceIds, showDualValues }) {
   const isHoverActive = hoverState !== null
-  const isSelectionActive = selectedSuggestion !== null
-
-  const getMatchingIds = () => {
-    if (!selectedSuggestion) return new Set()
-    const ids = new Set()
-    if (selectedSuggestion.history) {
-      selectedSuggestion.history.forEach(h => ids.add(h.id))
-    }
-    if (selectedSuggestion.predictions) {
-      selectedSuggestion.predictions.forEach(p => ids.add(p.id))
-    }
-    return ids
-  }
-
-  const matchingIds = getMatchingIds()
+  const isSelectionActive = occurrenceIds !== null
 
   return (
     <div className={styles.row}>
@@ -54,8 +43,8 @@ export default function PlannerRow ({ cells, hourIndex, hoverState, setHoverStat
           (hoverState.hour === null || hoverState.hour === hourIndex)
 
         const selectionIsHighlighted = isSelectionActive && (
-          (cell?.entry?.history?.id && matchingIds.has(cell.entry.history.id)) ||
-          (cell?.entry?.predictions?.id && matchingIds.has(cell.entry.predictions.id))
+          (cell?.entry?.history?.id && occurrenceIds.has(cell.entry.history.id)) ||
+          (cell?.entry?.predictions?.id && occurrenceIds.has(cell.entry.predictions.id))
         )
 
         const isHighlighted = hoverIsHighlighted || selectionIsHighlighted

@@ -8,9 +8,7 @@ const {
   CLUSTERS_PREFIX,
   LAST_SCALING_PREFIX,
   SOFT_LIMITS_PREFIX,
-  BUCKET_PREFIX,
-  SUGGESTIONS_PREFIX,
-  SUGGESTION_WINDOWS_PREFIX
+  BUCKET_PREFIX
 } = require('./store-constants')
 
 class Store {
@@ -229,65 +227,6 @@ class Store {
       await this.valkey.del(`${SOFT_LIMITS_PREFIX}${applicationId}`)
     } catch (err) {
       this.log.error({ err, applicationId }, 'Failed to clear soft limits')
-    }
-  }
-
-  // The pattern-predictor's reviewable floor suggestions (flat list + grouped runs), refreshed on
-  // every updatePredictions run and read by the dashboard. One JSON blob per application.
-  async saveSuggestions (applicationId, payload) {
-    try {
-      const key = `${SUGGESTIONS_PREFIX}${applicationId}`
-      await this.valkey.set(key, JSON.stringify({ ...payload, computedAt: Date.now() }))
-    } catch (err) {
-      this.log.error({ err, applicationId }, 'Failed to save suggestions')
-    }
-  }
-
-  async getSuggestions (applicationId) {
-    try {
-      const str = await this.valkey.get(`${SUGGESTIONS_PREFIX}${applicationId}`)
-      return str ? JSON.parse(str) : null
-    } catch (err) {
-      this.log.error({ err, applicationId }, 'Failed to get suggestions')
-      return null
-    }
-  }
-
-  async clearSuggestions (applicationId) {
-    try {
-      await this.valkey.del(`${SUGGESTIONS_PREFIX}${applicationId}`)
-    } catch (err) {
-      this.log.error({ err, applicationId }, 'Failed to clear suggestions')
-    }
-  }
-
-  // Per-pattern time windows (observed + forecast), one JSON blob per application keyed by pattern
-  // id: { [patternId]: [{ slotStart, slotEnd, pods, predicted }] }. A plain SET overwrites the whole
-  // blob every updatePredictions run, so stale pattern ids from a prior run can never leak.
-  async saveSuggestionWindows (applicationId, byPatternId) {
-    try {
-      const key = `${SUGGESTION_WINDOWS_PREFIX}${applicationId}`
-      await this.valkey.set(key, JSON.stringify(byPatternId))
-    } catch (err) {
-      this.log.error({ err, applicationId }, 'Failed to save suggestion windows')
-    }
-  }
-
-  async getSuggestionWindows (applicationId) {
-    try {
-      const str = await this.valkey.get(`${SUGGESTION_WINDOWS_PREFIX}${applicationId}`)
-      return str ? JSON.parse(str) : null
-    } catch (err) {
-      this.log.error({ err, applicationId }, 'Failed to get suggestion windows')
-      return null
-    }
-  }
-
-  async clearSuggestionWindows (applicationId) {
-    try {
-      await this.valkey.del(`${SUGGESTION_WINDOWS_PREFIX}${applicationId}`)
-    } catch (err) {
-      this.log.error({ err, applicationId }, 'Failed to clear suggestion windows')
     }
   }
 

@@ -3,6 +3,7 @@
 const fp = require('fastify-plugin')
 const { timeWeightedPercentiles } = require('../lib/time-slot-stats/stats')
 const { averageStats } = require('../lib/time-slot-stats/aggregate')
+const { slotId } = require('../lib/ids')
 const {
   assertValidSlotMinutes,
   assertValidWindowMinutes,
@@ -40,6 +41,8 @@ module.exports = fp(async function (app) {
     try {
       await app.platformatic.entities.timeSlotStat.save({
         input: {
+          // Derived from (application_id, slot_start) — see lib/ids.js. The DB has no id default.
+          id: slotId('slot', applicationId, slotStart),
           applicationId,
           slotStart: new Date(slotStart),
           slotEnd: new Date(slotEnd),
@@ -76,6 +79,8 @@ module.exports = fp(async function (app) {
     try {
       await app.platformatic.entities.timeWindowStat.save({
         input: {
+          // Derived from (application_id, slot_start) — see lib/ids.js. The DB has no id default.
+          id: slotId('stats', applicationId, windowStart),
           applicationId,
           slotStart: new Date(windowStart),
           slotEnd: new Date(windowEnd),
@@ -94,17 +99,11 @@ module.exports = fp(async function (app) {
       app.log.error({ err, applicationId }, '[time-slot-stats] failed to categorize windows')
     }
 
-    // The window we just persisted is now the newest observed row, so regenerating here refreshes
-    // the future forecast grid AND freezes this window's own prediction in place: the next run will
-    // start its horizon after this window, never touching its slot_start again. Running on every
-    // window close is what gives each historical window a 1:1 prediction (the last one made before
-    // it became current). Guarded + swallowed: the predictor is optional and must never break
-    // ingestion. `POST /predictions` remains as the manual trigger.
-    try {
-      if (app.updatePredictions) await app.updatePredictions(applicationId)
-    } catch (err) {
-      app.log.error({ err, applicationId }, '[time-slot-stats] failed to regenerate predictions')
-    }
+    // NOTE: the forecast is deliberately NOT regenerated here. A closing window appends one point to
+    // ONE slot's series (slot_of_day), so every other slot's model is provably unchanged — re-modelling
+    // all of them on every window close was 288× wasted work a day at 5-min windows. Regeneration runs
+    // once per UTC day from the leader (see plugins/scheduler.js → updateAllPredictions), which also
+    // gives every slot the same complete-days as-of. `POST /predictions` remains the manual trigger.
   }
 
   async function ingestTarget (applicationId, value, now) {

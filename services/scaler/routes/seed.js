@@ -2,6 +2,7 @@
 
 const fp = require('fastify-plugin')
 const { request } = require('undici')
+const { slotId } = require('../lib/ids')
 
 const bodySchema = {
   type: 'object',
@@ -62,6 +63,8 @@ module.exports = fp(async function (app) {
         await db.query(sql`DELETE FROM time_window_predictions WHERE application_id = ${applicationId}`)
       }
       const inputs = windows.map((w) => ({
+        // id is derived from (application_id, slot_start) — see lib/ids.js. The DB has no id default.
+        id: slotId('stats', applicationId, new Date(w.slotStart)),
         applicationId,
         slotStart: new Date(w.slotStart),
         slotEnd: new Date(w.slotEnd),
@@ -80,6 +83,8 @@ module.exports = fp(async function (app) {
       const predInputs = windows
         .filter((w) => w.prediction != null)
         .map((w) => ({
+          // id is derived from (application_id, slot_start) — see lib/ids.js. The DB has no id default.
+          id: slotId('pred', applicationId, new Date(w.slotStart)),
           applicationId,
           slotStart: new Date(w.slotStart),
           slotEnd: new Date(w.slotEnd),

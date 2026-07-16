@@ -8,6 +8,7 @@ const { buildServerWithPlugins } = require('../helper')
 const envPlugin = require('../../plugins/env')
 const patternConfigPlugin = require('../../plugins/pattern-config')
 const windowCategoryPlugin = require('../../plugins/window-category')
+const { slotId } = require('../../lib/ids')
 
 const WINDOW_MS = 15 * 60 * 1000 // default PLT_SCALER_TIME_WINDOW_MINUTES
 
@@ -17,6 +18,7 @@ async function seed (entities, appId, podsLevels) {
   const inputs = podsLevels.map((pods, i) => {
     const slotStart = now - (i + 1) * WINDOW_MS
     return {
+      id: slotId('stats', appId, slotStart),
       applicationId: appId,
       slotStart: new Date(slotStart),
       slotEnd: new Date(slotStart + WINDOW_MS),

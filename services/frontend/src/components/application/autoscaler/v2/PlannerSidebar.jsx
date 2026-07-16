@@ -1,111 +1,114 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import typographyStyles from '~/styles/Typography.module.css'
 import { PlatformaticIcon, LoadingSpinnerV2 } from '@platformatic/ui-components'
 import { SMALL, WHITE } from '@platformatic/ui-components/src/components/constants'
-import callApi from '~/api/common'
+import { getSuggestions, acceptSuggestion, cancelSuggestion } from '~/api/autoscaler'
 import SuggestionCard from './SuggestionCard'
 import styles from './PlannerSidebar.module.css'
 
-const getSuggestionKey = (suggestion) => {
-  const scopeKeysStr = suggestion.scopeKeys?.join(',') || ''
-  return `${suggestion.slotOfDay}|${scopeKeysStr}`
+function Spinner ({ text }) {
+  return (
+    <LoadingSpinnerV2
+      loading
+      spinnerProps={{ size: 30, thickness: 2 }}
+      applySentences={{
+        containerClassName: `${styles.loadingSpinner}`,
+        sentences: [{
+          style: `${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`,
+          text
+        }]
+      }}
+    />
+  )
 }
 
-function SuggestionsTab ({ appId, suggestionsCount, selectedSuggestion, onSelectSuggestion }) {
-  const [suggestions, setSuggestions] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [acceptedSuggestions, setAcceptedSuggestions] = useState(new Set())
-
-  useEffect(() => {
-    setLoading(true)
-    callApi('scaler', `/applications/${appId}/suggestions`)
-      .then(result => {
-        const suggestions = result?.suggestions || []
-        setSuggestions(Array.isArray(suggestions) ? suggestions : [])
-        setLoading(false)
-      })
-      .catch(() => {
-        setSuggestions([])
-        setLoading(false)
-      })
-  }, [appId])
-
+// Both tabs are the same list of cards over the same rows — SUGGESTIONS holds the candidates
+// (status 'suggested'), SCHEDULED holds the ones you accepted (status 'active'). The card renders
+// itself from `status`, so accepting a suggestion moves it from one tab to the other.
+function SuggestionList ({ suggestions, loading, busyId, confirmingId, emptyText, loadingText, selectedSuggestion, onSelectSuggestion, onAccept, onCancel }) {
   if (loading) {
     return (
       <div className={styles.suggestionsContainer}>
-        <LoadingSpinnerV2
-          loading
-          spinnerProps={{ size: 30, thickness: 2 }}
-          applySentences={{
-            containerClassName: `${styles.loadingSpinner}`,
-            sentences: [{
-              style: `${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite}`,
-              text: 'Loading suggestions...'
-            }]
-          }}
-        />
+        <Spinner text={loadingText} />
       </div>
     )
   }
 
-  const handleAcceptSuggestion = (suggestion) => {
-    const key = getSuggestionKey(suggestion)
-    setAcceptedSuggestions(prev => new Set(prev).add(key))
-  }
-
   return (
     <div className={styles.suggestionsContainer}>
-      {suggestions.map((suggestion, index) => {
-        const key = getSuggestionKey(suggestion)
-        const suggestionWithAccepted = {
-          ...suggestion,
-          accepted: acceptedSuggestions.has(key)
-        }
-        const isSelected = selectedSuggestion && getSuggestionKey(selectedSuggestion) === key
-
-        return (
-          <SuggestionCard
-            key={key || index}
-            suggestion={suggestionWithAccepted}
-            index={index}
-            isSelected={isSelected}
-            onSelect={onSelectSuggestion}
-            onAccept={handleAcceptSuggestion}
-          />
-        )
-      })}
-      {!loading && suggestions.length === 0 && (
-        <p className={styles.emptyState}>No suggestions available</p>
+      {suggestions.map((suggestion, index) => (
+        <SuggestionCard
+          key={suggestion.id}
+          suggestion={suggestion}
+          index={index}
+          isSelected={selectedSuggestion?.id === suggestion.id}
+          busy={busyId === suggestion.id}
+          confirmation={confirmingId === suggestion.id}
+          onSelect={onSelectSuggestion}
+          onAccept={onAccept}
+          onCancel={onCancel}
+        />
+      ))}
+      {suggestions.length === 0 && (
+        <p className={styles.emptyState}>{emptyText}</p>
       )}
     </div>
   )
 }
 
-function ScheduledTab () {
-  return (
-    <div className={styles.scheduledContainer}>
-      <p className={`${typographyStyles.desktopBodySmall} ${typographyStyles.textWhite70}`}>
-        Scheduled events will appear here
-      </p>
-    </div>
-  )
-}
-
-export default function PlannerSidebar ({ appId, isOpen, onClose, selectedSuggestion, onSelectSuggestion }) {
+export default function PlannerSidebar ({ appId, isOpen, onClose, selectedSuggestion, onSelectSuggestion, onChange }) {
   const [activeTab, setActiveTab] = useState('suggestions')
-  const [suggestionsCount, setSuggestionsCount] = useState(0)
+  const [suggestions, setSuggestions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState(null)
+  const [confirmingId, setConfirmingId] = useState(null)
+
+  // One list holds both: candidates and accepted rows come back together, told apart by `status`.
+  //
+  // `quiet` skips the spinner: the refetch after accept/cancel would otherwise blank the whole list and
+  // flash a loading label in the middle of the sidebar. The button's own busy state is feedback enough.
+  const reload = useCallback(async ({ quiet = false } = {}) => {
+    if (!appId) return
+    if (!quiet) setLoading(true)
+    setSuggestions(await getSuggestions(appId))
+    if (!quiet) setLoading(false)
+  }, [appId])
 
   useEffect(() => {
-    if (!appId || !isOpen) return
-    callApi('scaler', `/applications/${appId}/suggestions`)
-      .then(result => {
-        const suggestions = result?.suggestions || []
-        setSuggestionsCount(Array.isArray(suggestions) ? suggestions.length : 0)
-      })
-      .catch(() => setSuggestionsCount(0))
-  }, [appId, isOpen])
+    if (!isOpen) return
+    reload()
+  }, [isOpen, reload])
+
+  // The confirmation is transient — it holds the just-accepted card in place for a beat, then the card
+  // settles into the SCHEDULED tab where it lives from then on.
+  useEffect(() => {
+    if (!confirmingId) return
+    const timer = setTimeout(() => setConfirmingId(null), 2500)
+    return () => clearTimeout(timer)
+  }, [confirmingId])
+
+  const mutate = async (suggestion, action, { confirm = false } = {}) => {
+    setBusyId(suggestion.id)
+    try {
+      // Accept COPIES the candidate into a new active row and returns IT — so the row to confirm on is
+      // the one the server hands back, not the candidate we clicked (which the list now hides).
+      const accepted = await action(appId, suggestion.id)
+      await reload({ quiet: true })
+      if (confirm) setConfirmingId(accepted.id)
+      onChange?.()
+    } catch (error) {
+      console.error('Failed to update suggestion', error)
+    } finally {
+      setBusyId(null)
+    }
+  }
 
   if (!isOpen) return null
+
+  // The just-accepted row is 'active' now, but it stays in the SUGGESTIONS list until its confirmation
+  // clears — otherwise it would vanish the instant you clicked, with no feedback at all.
+  const candidates = suggestions.filter(s => s.status === 'suggested' || s.id === confirmingId)
+  const accepted = suggestions.filter(s => s.status === 'active' && s.id !== confirmingId)
 
   return (
     <div className={styles.sidebar}>
@@ -132,7 +135,7 @@ export default function PlannerSidebar ({ appId, isOpen, onClose, selectedSugges
           onClick={() => setActiveTab('suggestions')}
         >
           <span className={typographyStyles.desktopOtherOverlineSmall}>
-            SUGGESTIONS ({suggestionsCount})
+            SUGGESTIONS ({candidates.length})
           </span>
         </button>
         <button
@@ -141,22 +144,25 @@ export default function PlannerSidebar ({ appId, isOpen, onClose, selectedSugges
           onClick={() => setActiveTab('scheduled')}
         >
           <span className={typographyStyles.desktopOtherOverlineSmall}>
-            SCHEDULED (0)
+            SCHEDULED ({accepted.length})
           </span>
         </button>
       </div>
 
       {/* Tab content */}
       <div className={styles.tabContent}>
-        {activeTab === 'suggestions' && (
-          <SuggestionsTab
-            appId={appId}
-            suggestionsCount={suggestionsCount}
-            selectedSuggestion={selectedSuggestion}
-            onSelectSuggestion={onSelectSuggestion}
-          />
-        )}
-        {activeTab === 'scheduled' && <ScheduledTab />}
+        <SuggestionList
+          suggestions={activeTab === 'suggestions' ? candidates : accepted}
+          loading={loading}
+          busyId={busyId}
+          confirmingId={confirmingId}
+          loadingText={activeTab === 'suggestions' ? 'Loading suggestions...' : 'Loading scheduled events...'}
+          emptyText={activeTab === 'suggestions' ? 'No suggestions available' : 'No accepted suggestions yet'}
+          selectedSuggestion={selectedSuggestion}
+          onSelectSuggestion={onSelectSuggestion}
+          onAccept={(suggestion) => mutate(suggestion, acceptSuggestion, { confirm: true })}
+          onCancel={(suggestion) => mutate(suggestion, cancelSuggestion)}
+        />
       </div>
     </div>
   )

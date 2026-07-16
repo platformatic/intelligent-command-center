@@ -57,9 +57,8 @@ module.exports = {
   SUGGESTION_NOT_FOUND: createError(
     `${ERROR_PREFIX}_SUGGESTION_NOT_FOUND`, 'Suggestion not found: "%s"', 404
   ),
-  SUGGESTION_CANDIDATE_NOT_FOUND: createError(
-    `${ERROR_PREFIX}_SUGGESTION_CANDIDATE_NOT_FOUND`,
-    'No current suggestion for slot %s with the given scopes', 404
+  SUGGESTION_ALREADY_ACCEPTED: createError(
+    `${ERROR_PREFIX}_SUGGESTION_ALREADY_ACCEPTED`, 'Suggestion already accepted: "%s"', 409
   ),
   INVALID_TIME_SLOT: createError(
     `${ERROR_PREFIX}_INVALID_TIME_SLOT`,

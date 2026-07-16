@@ -97,6 +97,12 @@ module.exports = fp(async function (app) {
     } else {
       await app.store.saveSoftLimits(applicationId, { min, max, scheduleIds: soft?.scheduleIds ?? [] }, softLimitTtlSeconds)
     }
+
+    // Writing the floor is not enough — the algorithms only apply limits as a CLAMP on a decision they
+    // are already making, and v2 only decides when pods stream signals. An idle application would sit
+    // below a scheduled floor forever. So actuate it, exactly as saveScaleConfig does for hard limits.
+    // Idempotent: it only touches the controller when the replica count is outside the window.
+    await app.enforceScalingLimits(applicationId)
   })
 
   app.decorate('reconcileSchedules', async (now) => {
@@ -125,11 +131,22 @@ module.exports = fp(async function (app) {
   const MS_PER_DAY = 24 * 60 * 60 * 1000
   let lastMaintenanceDay = null
   app.decorate('maintainSuggestions', async (now) => {
-    if (!app.expireDueSuggestions) return
     const today = Math.floor(now / MS_PER_DAY)
     if (today === lastMaintenanceDay) return
     lastMaintenanceDay = today
-    await app.expireDueSuggestions(now)
+
+    // 1. The nightly run: re-model every slot and replace the candidate suggestions. Not done on
+    //    window close — a closing window only changes its own slot's series (see time-slot-stats.js).
+    if (app.updateAllPredictions) {
+      try {
+        await app.updateAllPredictions()
+      } catch (err) {
+        app.log.error({ err }, 'scheduler: nightly regeneration failed')
+      }
+    }
+    // 2. Retire accepted suggestions that have passed their `until`.
+    if (app.expireDueSuggestions) await app.expireDueSuggestions(now)
+    // 3. Roll the materialized horizon forward (it is anchored at build time).
     if (app.listSuggestionApps) {
       for (const appId of await app.listSuggestionApps()) {
         try {
@@ -187,5 +204,5 @@ module.exports = fp(async function (app) {
   })
 }, {
   name: 'scheduler',
-  dependencies: ['env', 'store']
+  dependencies: ['env', 'store', 'scale-config']
 })

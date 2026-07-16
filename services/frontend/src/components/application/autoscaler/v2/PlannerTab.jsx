@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import typographyStyles from '~/styles/Typography.module.css'
-import { getPlannerHistory, getPlannerPredictions, getApplicationPatternConfigs } from '~/api/autoscaler'
+import { getPlannerHistory, getPlannerPredictions, getApplicationPatternConfigs, getSuggestionDetails, getScheduledSlots } from '~/api/autoscaler'
 import PlannerLegend from './PlannerLegend'
 import PlannerColumn from './PlannerColumn'
 import PlannerSidebar from './PlannerSidebar'
@@ -13,7 +13,9 @@ export default function PlannerTab ({ appId }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [categoryConfig, setCategoryConfig] = useState(null)
   const [selectedSuggestion, setSelectedSuggestion] = useState(null)
+  const [occurrenceIds, setOccurrenceIds] = useState(null)
   const [showDualValues, setShowDualValues] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
 
   const today = useMemo(() => {
     const d = new Date()
@@ -33,12 +35,37 @@ export default function PlannerTab ({ appId }) {
     Promise.all([
       getPlannerHistory(appId, twoWeeksAgo.toISOString(), now.toISOString()),
       getPlannerPredictions(appId, twoWeeksAgo.toISOString(), rangeEnd.toISOString()),
-      getApplicationPatternConfigs(appId)
-    ]).then(([history, predictions, config]) => {
-      setData(groupTimeWindowStats([...history, ...predictions]))
+      getApplicationPatternConfigs(appId),
+      // The resolved floor per slot from the accepted suggestions — future slots it covers are drawn
+      // as SCHEDULED rather than as a forecast. Refetched on accept/cancel via `reloadKey`.
+      getScheduledSlots(appId)
+    ]).then(([history, predictions, config, scheduled]) => {
+      setData(groupTimeWindowStats([...history, ...predictions], scheduled))
       setCategoryConfig(config)
     })
-  }, [appId, rangeEnd])
+  }, [appId, rangeEnd, reloadKey])
+
+  // The calendar rows a suggestion covers. The server DERIVES these ids from the suggestion's calendar
+  // rule, so they arrive without it having to store them — and they stay correct after accepting.
+  useEffect(() => {
+    if (!appId || !selectedSuggestion) {
+      setOccurrenceIds(null)
+      return
+    }
+    let stale = false
+    getSuggestionDetails(appId, selectedSuggestion.id).then(details => {
+      if (!stale) setOccurrenceIds(new Set(details?.occurrences ?? []))
+    })
+    return () => { stale = true }
+  }, [appId, selectedSuggestion])
+
+  // Escape clears the selection too — the same affordance as clicking away from the card.
+  useEffect(() => {
+    if (!selectedSuggestion) return
+    const onKeyDown = (e) => { if (e.key === 'Escape') setSelectedSuggestion(null) }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [selectedSuggestion])
 
   const dataByDate = useMemo(
     () => Object.fromEntries(data.map(d => [d.date, d])),
@@ -48,7 +75,9 @@ export default function PlannerTab ({ appId }) {
   const weeks = useMemo(() => buildWeeks(rangeStart, rangeEnd), [rangeStart, rangeEnd])
 
   return (
-    <div className={styles.container}>
+    // Clicking anywhere that is not a suggestion card clears the selection — the calendar, the header,
+    // the sidebar chrome, the background. Cards stop their own clicks from reaching this.
+    <div className={styles.container} onClick={() => setSelectedSuggestion(null)}>
       {/* ── Left side: Header and Calendar ── */}
       <div className={styles.leftContent}>
         {/* ── Top bar ── */}
@@ -105,7 +134,7 @@ export default function PlannerTab ({ appId }) {
                   hoverState={hoverState}
                   setHoverState={setHoverState}
                   categoryConfig={categoryConfig}
-                  selectedSuggestion={selectedSuggestion}
+                  occurrenceIds={occurrenceIds}
                   showDualValues={showDualValues}
                 />
               ))}
@@ -122,6 +151,7 @@ export default function PlannerTab ({ appId }) {
           onClose={() => setSidebarOpen(false)}
           selectedSuggestion={selectedSuggestion}
           onSelectSuggestion={setSelectedSuggestion}
+          onChange={() => setReloadKey(k => k + 1)}
         />
       )}
     </div>
