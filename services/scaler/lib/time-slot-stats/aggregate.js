@@ -1,6 +1,9 @@
 'use strict'
 
-const STAT_KEYS = ['minPods', 'maxPods', 'p50Pods', 'p75Pods', 'p90Pods', 'p95Pods', 'p99Pods']
+const STAT_KEYS = [
+  'minPods', 'maxPods', 'p50Pods', 'p75Pods', 'p90Pods', 'p95Pods', 'p99Pods',
+  'actualMinPods', 'actualMaxPods', 'actualP50Pods', 'actualP75Pods', 'actualP90Pods', 'actualP95Pods', 'actualP99Pods'
+]
 
 // Rounded average of each stat column across the given base rows (entity rows, camelCase
 // columns). Returns null for an empty input.

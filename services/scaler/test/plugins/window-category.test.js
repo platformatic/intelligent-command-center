@@ -13,9 +13,12 @@ const { slotId } = require('../../lib/ids')
 const WINDOW_MS = 15 * 60 * 1000 // default PLT_SCALER_TIME_WINDOW_MINUTES
 
 // Seed one application's window pods (all within the last year) so updateWindowCategories sees them.
-async function seed (entities, appId, podsLevels) {
+// A level is a number (actual == pods) or { pods, actual } when the two series differ.
+async function seed (entities, appId, levels) {
   const now = Date.now()
-  const inputs = podsLevels.map((pods, i) => {
+  const inputs = levels.map((lvl, i) => {
+    const pods = typeof lvl === 'number' ? lvl : lvl.pods
+    const actual = typeof lvl === 'number' ? lvl : lvl.actual
     const slotStart = now - (i + 1) * WINDOW_MS
     return {
       id: slotId('stats', appId, slotStart),
@@ -24,7 +27,8 @@ async function seed (entities, appId, podsLevels) {
       slotEnd: new Date(slotStart + WINDOW_MS),
       slotOfDay: (i % 96) + 1,
       localSlotOfDay: (i % 96) + 1,
-      pods
+      pods,
+      actualPods: actual
     }
   })
   for (let i = 0; i < inputs.length; i += 500) {
@@ -146,6 +150,26 @@ test('window-category — black box through updateWindowCategories (N=5, minPods
     await db.query(sql`DELETE FROM time_window_stats WHERE application_id = ${id}`)
     await db.query(sql`DELETE FROM application_pattern_configs WHERE application_id = ${id}`)
   }
+})
+
+test('window-category — time_window_stats.category tracks actual_pods, not the unclamped pods', async (t) => {
+  const server = await buildServerWithPlugins(t, {}, [envPlugin, patternConfigPlugin, windowCategoryPlugin])
+  const { entities, db, sql } = server.platformatic
+  const appId = randomUUID()
+  // Desired (pods) spikes to 40, but only 2 pods actually ran. Bands still come from the pods
+  // distribution; the row's category must reflect actual (2 → cool), not the desired 40 (warm).
+  await seed(entities, appId, [
+    ...Array(100).fill({ pods: 10, actual: 10 }),
+    ...Array(20).fill({ pods: 2, actual: 2 }),
+    ...Array(30).fill({ pods: 40, actual: 2 })
+  ])
+  await server.updateWindowCategories(appId)
+  const baseline = await categoryOf(entities, appId, 10) // pods 10, actual 10
+  const spike = await categoryOf(entities, appId, 40) // pods 40, actual 2
+  assert.equal(baseline, 3, 'resting level is baseline')
+  assert.ok(spike < baseline, `desired-40 / actual-2 window is cool by actual, got ${spike}`)
+  await db.query(sql`DELETE FROM time_window_stats WHERE application_id = ${appId}`)
+  await db.query(sql`DELETE FROM application_pattern_configs WHERE application_id = ${appId}`)
 })
 
 test('window-category — a bigger minPods keeps a modest-variance app all baseline', async (t) => {

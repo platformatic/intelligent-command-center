@@ -18,7 +18,7 @@ function categoryColor (category) {
   return CATEGORIES[category - 1]?.color ?? CATEGORIES[2].color
 }
 
-function darkenColor (hexColor, factor = 0.6) {
+function darkenColor (hexColor, factor = 0.8) {
   const color = hexColor.replace('#', '')
   const num = parseInt(color, 16)
   const r = Math.floor((num >> 16) * factor)

@@ -18,20 +18,23 @@ test('bucket open / append / read / clear round-trip', async (t) => {
   assert.equal(await store.readBucket(appId), null)
 
   await store.openBucket({ applicationId: appId, slotStart: 1000, isFirst: true, seed: null, ttlSeconds: 60 })
-  await store.appendBucketTarget({ applicationId: appId, ts: 1500, value: 7, ttlSeconds: 60 })
-  await store.appendBucketTarget({ applicationId: appId, ts: 2500, value: 9, ttlSeconds: 60 })
+  await store.appendBucketTarget({ applicationId: appId, ts: 1500, unclamped: 7, actual: 3, ttlSeconds: 60 })
+  await store.appendBucketTarget({ applicationId: appId, ts: 2500, unclamped: 9, actual: 5, ttlSeconds: 60 })
 
   const b = await store.readBucket(appId)
   assert.equal(b.slotStart, 1000)
   assert.equal(b.isFirst, true)
-  assert.deepEqual(b.targets, [{ ts: 1500, value: 7 }, { ts: 2500, value: 9 }])
+  assert.deepEqual(b.targets, [
+    { ts: 1500, unclamped: 7, actual: 3 },
+    { ts: 2500, unclamped: 9, actual: 5 }
+  ])
 
-  // open a new (non-first) bucket with a seed
-  await store.openBucket({ applicationId: appId, slotStart: 4000, isFirst: false, seed: { ts: 4000, value: 9 }, ttlSeconds: 60 })
+  // open a new (non-first) bucket with a seed carrying both values
+  await store.openBucket({ applicationId: appId, slotStart: 4000, isFirst: false, seed: { ts: 4000, unclamped: 9, actual: 5 }, ttlSeconds: 60 })
   const b2 = await store.readBucket(appId)
   assert.equal(b2.slotStart, 4000)
   assert.equal(b2.isFirst, false)
-  assert.deepEqual(b2.targets, [{ ts: 4000, value: 9 }])
+  assert.deepEqual(b2.targets, [{ ts: 4000, unclamped: 9, actual: 5 }])
 
   await store.clearBucket(appId)
   assert.equal(await store.readBucket(appId), null)

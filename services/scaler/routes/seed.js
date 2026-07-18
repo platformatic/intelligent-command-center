@@ -62,6 +62,15 @@ module.exports = fp(async function (app) {
         await db.query(sql`DELETE FROM time_window_stats WHERE application_id = ${applicationId}`)
         await db.query(sql`DELETE FROM time_window_predictions WHERE application_id = ${applicationId}`)
       }
+      // Seeded/demo history has no real "actual" run count, so derive one from the desired `pods`
+      // clamped to the app's configured limits — a null bound leaves that side unclamped. This makes
+      // actual diverge from desired at the extremes, as real scaling would.
+      const { minPods, maxPods } = await app.getScalingLimits(applicationId)
+      const actualFor = (pods) => {
+        if (minPods != null && pods < minPods) return minPods
+        if (maxPods != null && pods > maxPods) return maxPods
+        return pods
+      }
       const inputs = windows.map((w) => ({
         // id is derived from (application_id, slot_start) — see lib/ids.js. The DB has no id default.
         id: slotId('stats', applicationId, new Date(w.slotStart)),
@@ -70,7 +79,8 @@ module.exports = fp(async function (app) {
         slotEnd: new Date(w.slotEnd),
         slotOfDay: w.slotOfDay,
         localSlotOfDay: w.localSlotOfDay ?? w.slotOfDay,
-        pods: w.pods
+        pods: w.pods,
+        actualPods: w.actualPods ?? actualFor(w.pods)
       }))
       for (let i = 0; i < inputs.length; i += 500) {
         await entities.timeWindowStat.insert({ inputs: inputs.slice(i, i + 500) })
@@ -104,4 +114,4 @@ module.exports = fp(async function (app) {
       return { applicationId, inserted: inputs.length, predictionsSeeded: predInputs.length, thresholds, predictionsWritten }
     }
   })
-}, { name: 'seed-routes', dependencies: ['window-category', 'pattern-predictor'] })
+}, { name: 'seed-routes', dependencies: ['window-category', 'pattern-predictor', 'scale-config'] })

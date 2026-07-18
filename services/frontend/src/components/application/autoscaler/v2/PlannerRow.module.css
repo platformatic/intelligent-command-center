@@ -20,11 +20,18 @@
   padding: 1px;
 }
 
-/** Predictions part */
+/** Predictions part — the bottom-right triangle. Full opacity so its category color reads on its
+    own; if it were translucent it would blend with the history color painted underneath and both
+    halves would look the same. The diagonal split + a slightly darker shade mark it as the forecast. */
 .cellDualBottom {
-  @apply absolute top-0 left-0 w-full h-full flex items-end justify-end opacity-50 bg-[red];
+  @apply absolute top-0 left-0 w-full h-full flex items-end justify-end;
   clip-path: polygon(0 100%, 100% 0, 100% 100%);
   padding: 1px;
+}
+
+/* Fade only the forecast digit (not the triangle color) so it reads as the secondary "predicted" value. */
+.cellDualBottom .cellNum {
+  @apply text-white/70;
 }
 
 .cellDimmed {

@@ -245,8 +245,8 @@ class Store {
       const { slotStart, isFirst } = JSON.parse(pointerStr)
       const raw = await this.valkey.lrange(targets, 0, -1)
       const parsed = raw.map((s) => {
-        const i = s.indexOf(':')
-        return { ts: Number(s.slice(0, i)), value: Number(s.slice(i + 1)) }
+        const [ts, unclamped, actual] = s.split(':')
+        return { ts: Number(ts), unclamped: Number(unclamped), actual: Number(actual) }
       })
       return { slotStart, isFirst, targets: parsed }
     } catch (err) {
@@ -262,7 +262,7 @@ class Store {
       pipeline.set(pointer, JSON.stringify({ slotStart, isFirst }), 'EX', ttlSeconds)
       pipeline.del(targets)
       if (seed) {
-        pipeline.rpush(targets, `${seed.ts}:${seed.value}`)
+        pipeline.rpush(targets, `${seed.ts}:${seed.unclamped}:${seed.actual}`)
         pipeline.expire(targets, ttlSeconds)
       }
       await pipeline.exec()
@@ -271,11 +271,11 @@ class Store {
     }
   }
 
-  async appendBucketTarget ({ applicationId, ts, value, ttlSeconds }) {
+  async appendBucketTarget ({ applicationId, ts, unclamped, actual, ttlSeconds }) {
     try {
       const { pointer, targets } = this.#bucketKeys(applicationId)
       const pipeline = this.valkey.pipeline()
-      pipeline.rpush(targets, `${ts}:${value}`)
+      pipeline.rpush(targets, `${ts}:${unclamped}:${actual}`)
       pipeline.expire(targets, ttlSeconds)
       pipeline.expire(pointer, ttlSeconds)
       await pipeline.exec()

@@ -341,8 +341,8 @@ class SignalScalerExecutor {
       return true
     }
 
-    const onTarget = (value, now) =>
-      Promise.resolve(this.app.recordTarget ? this.app.recordTarget(appId, value, now) : null)
+    const onTarget = (target, now) =>
+      Promise.resolve(this.app.recordTarget ? this.app.recordTarget(appId, target, now) : null)
         .catch(err => this.app.log.error({ err, appId }, '[time-slot-stats] record failed'))
 
     const processed = await this.predictor.checkForPendingBatches(appId, controllerId, targetPodsCount, scale, onTarget)

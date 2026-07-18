@@ -64,8 +64,10 @@ export function groupTimeWindowStats (stats, scheduled = []) {
     const cell = cellFor(key)
 
     if (stat.pods !== undefined) {
-      cell.history = { pods: stat.pods, category: stat.category, id: stat.id }
-      cell.instances = stat.pods
+      // The calendar shows the ACTUAL pods that ran; `category` is already actual-derived on the
+      // backend. `pods` (unclamped desired) is only the history-vs-prediction discriminator here.
+      cell.history = { pods: stat.actualPods, category: stat.category, id: stat.id }
+      cell.instances = stat.actualPods
     } else {
       cell.predictions = { pods: stat.predictedPods, category: stat.category, id: stat.id }
       if (!cell.instances) cell.instances = stat.predictedPods

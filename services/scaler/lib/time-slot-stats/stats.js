@@ -2,11 +2,12 @@
 
 const PERCENTILES = [50, 75, 90, 95, 99]
 
-// Time-weighted percentiles over a step function. `targets` = [{ ts, value }] covering
-// [slotStart, slotEnd): value vi holds [ti, ti+1); the last value holds [tn, slotEnd).
-// Non-interpolated: every result is a real value present in the data. Returns null when
-// there is no positive-duration coverage.
-function timeWeightedPercentiles (targets, slotStart, slotEnd) {
+// Time-weighted percentiles over a step function. `targets` covers [slotStart, slotEnd): the value
+// vi (read via `valueOf`, default `.value`) holds [ti, ti+1); the last value holds [tn, slotEnd).
+// `valueOf` lets one target array carry several series (e.g. unclamped + actual pods) that are each
+// weighted independently. Non-interpolated: every result is a real value present in the data. Returns
+// null when there is no positive-duration coverage.
+function timeWeightedPercentiles (targets, slotStart, slotEnd, valueOf = (t) => t.value) {
   if (!targets || targets.length === 0) return null
   const sorted = [...targets].sort((a, b) => a.ts - b.ts)
 
@@ -18,7 +19,7 @@ function timeWeightedPercentiles (targets, slotStart, slotEnd) {
     const end = Math.min(rawEnd, slotEnd)
     const dur = end - start
     if (dur <= 0) continue
-    const v = sorted[i].value
+    const v = valueOf(sorted[i])
     durationByValue.set(v, (durationByValue.get(v) ?? 0) + dur)
     total += dur
   }

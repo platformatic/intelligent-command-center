@@ -115,3 +115,25 @@ test('carries the last value to the slot end (tail extension)', () => {
   assert.equal(r.p50, 7)
   assert.equal(r.p99, 7)
 })
+
+test('valueOf accessor selects an alternate field on each target', () => {
+  // one array carrying two independent series; the accessor picks which to weight
+  const targets = [
+    { ts: 0, unclamped: 12, actual: 4 },
+    { ts: 150000, unclamped: 12, actual: 8 }
+  ]
+  const unclamped = timeWeightedPercentiles(targets, 0, 300000, (t) => t.unclamped)
+  const actual = timeWeightedPercentiles(targets, 0, 300000, (t) => t.actual)
+  assert.deepEqual(unclamped, { min: 12, max: 12, p50: 12, p75: 12, p90: 12, p95: 12, p99: 12 })
+  // actual: 4 holds [0,150s), 8 holds [150s,300s) → 50% boundary picks the lower (4)
+  assert.equal(actual.min, 4)
+  assert.equal(actual.max, 8)
+  assert.equal(actual.p50, 4)
+  assert.equal(actual.p75, 8)
+})
+
+test('defaults the accessor to the .value field (back-compat)', () => {
+  const r = timeWeightedPercentiles([{ ts: 0, value: 7 }], 0, 300000)
+  assert.equal(r.min, 7)
+  assert.equal(r.max, 7)
+})

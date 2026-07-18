@@ -45,7 +45,7 @@ module.exports = fp(async function (app) {
   const minFraction = app.env.PLT_SCALER_WINDOW_MIN_FRACTION
 
   // The guarded category CASE over the thresholds, for a given pod-count column, so both the
-  // history (time_window_stats.pods) and the forecast (time_window_predictions.predicted_pods)
+  // history (time_window_stats.actual_pods) and the forecast (time_window_predictions.predicted_pods)
   // are colored on the exact same bands. Guarded so only rows that actually change are rewritten.
   const categoryCase = (thresholds, column) => sql`(CASE ${sql.join(
     thresholds.map((t, i) => sql`WHEN ${sql.ident(column)} < ${t}::numeric THEN ${i + 1}`), sql` `
@@ -72,11 +72,14 @@ module.exports = fp(async function (app) {
       { categoriesCount, minPods, minFraction }
     )
 
-    const statsCategory = categoryCase(thresholds, 'pods')
+    // History windows are colored by the ACTUAL pods that ran (actual_pods), not the unclamped
+    // desired count — the desired count still drives thresholds and everything else. Rows with no
+    // actual_pods yet (pre-migration/legacy) are left untouched rather than mis-binned to the top.
+    const statsCategory = categoryCase(thresholds, 'actual_pods')
     await db.query(sql`
       UPDATE time_window_stats
       SET category = ${statsCategory}
-      WHERE ${scope} AND category IS DISTINCT FROM ${statsCategory}
+      WHERE ${scope} AND actual_pods IS NOT NULL AND category IS DISTINCT FROM ${statsCategory}
     `)
 
     // Color the forecast on the same history-derived bands. Predictions are future rows for this

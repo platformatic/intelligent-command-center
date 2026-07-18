@@ -132,7 +132,9 @@ export async function getPodSignals (applicationId, podId) {
 export async function getPlannerHistory (appId, from, to) {
   try {
     const query = new URLSearchParams()
-    query.set('fields', 'id,slotStart,pods,category')
+    // `category` is derived from actualPods; `pods` (unclamped) is kept only to distinguish a
+    // history row from a prediction row in groupTimeWindowStats. The calendar shows actualPods.
+    query.set('fields', 'id,slotStart,pods,actualPods,category')
     query.set('where.applicationId.eq', appId)
     query.set('where.slotStart.gte', from)
     query.set('where.slotStart.lte', to)

@@ -31,11 +31,16 @@ module.exports = fp(async function (app) {
   // time_window_stats keeps only the single pod count used for scaling calculations — the
   // configured percentile (min → minPods, p90 → p90Pods, …). time_slot_stats still keeps all.
   const podColumn = app.env.PLT_SCALER_PATTERN_PERCENTILE + 'Pods'
+  // The matching actual-pods column, e.g. p90Pods → actualP90Pods.
+  const actualPodColumn = 'actual' + podColumn[0].toUpperCase() + podColumn.slice(1)
 
   async function persistTimeSlotStats (applicationId, bucket) {
     const slotStart = bucket.slotStart
     const slotEnd = slotStart + slotMs
-    const stats = timeWeightedPercentiles(bucket.targets, slotStart, slotEnd)
+    // Two independent series over the same targets: the unclamped desired count and the actual
+    // running pod count. Weighted separately, both stored (actual_* mirrors the unclamped columns).
+    const stats = timeWeightedPercentiles(bucket.targets, slotStart, slotEnd, (t) => t.unclamped)
+    const actual = timeWeightedPercentiles(bucket.targets, slotStart, slotEnd, (t) => t.actual)
     if (!stats) return
 
     try {
@@ -54,7 +59,14 @@ module.exports = fp(async function (app) {
           p75Pods: stats.p75,
           p90Pods: stats.p90,
           p95Pods: stats.p95,
-          p99Pods: stats.p99
+          p99Pods: stats.p99,
+          actualMinPods: actual.min,
+          actualMaxPods: actual.max,
+          actualP50Pods: actual.p50,
+          actualP75Pods: actual.p75,
+          actualP90Pods: actual.p90,
+          actualP95Pods: actual.p95,
+          actualP99Pods: actual.p99
         }
       })
     } catch (err) {
@@ -86,7 +98,8 @@ module.exports = fp(async function (app) {
           slotEnd: new Date(windowEnd),
           slotOfDay: slotOfDay(windowStart, windowMs),
           localSlotOfDay: localSlotOfDay(windowStart, windowMs, timezone),
-          pods: stats[podColumn]
+          pods: stats[podColumn],
+          actualPods: stats[actualPodColumn]
         }
       })
     } catch (err) {
@@ -106,7 +119,8 @@ module.exports = fp(async function (app) {
     // gives every slot the same complete-days as-of. `POST /predictions` remains the manual trigger.
   }
 
-  async function ingestTarget (applicationId, value, now) {
+  async function ingestTarget (applicationId, target, now) {
+    const { unclamped, actual } = target
     const slotStart = slotStartFor(now, slotMs)
     const bucket = await app.store.readBucket(applicationId)
     const transition = classifyTransition(bucket ? bucket.slotStart : null, slotStart, slotMs)
@@ -114,13 +128,13 @@ module.exports = fp(async function (app) {
     if (transition === 'stale') return
 
     if (transition === 'append') {
-      await app.store.appendBucketTarget({ applicationId, ts: now, value, ttlSeconds })
+      await app.store.appendBucketTarget({ applicationId, ts: now, unclamped, actual, ttlSeconds })
       return
     }
 
     if (transition === 'first' || transition === 'gap') {
       await app.store.openBucket({ applicationId, slotStart, isFirst: true, seed: null, ttlSeconds })
-      await app.store.appendBucketTarget({ applicationId, ts: now, value, ttlSeconds })
+      await app.store.appendBucketTarget({ applicationId, ts: now, unclamped, actual, ttlSeconds })
       return
     }
 
@@ -132,21 +146,20 @@ module.exports = fp(async function (app) {
         await persistTimeWindowStats(applicationId, baseSlotEnd - windowMs)
       }
     }
-    const lastValue = bucket.targets.length
-      ? bucket.targets[bucket.targets.length - 1].value
-      : value
+    // Carry both series forward so the new slot's leading segment continues the last observation.
+    const last = bucket.targets.length ? bucket.targets[bucket.targets.length - 1] : { unclamped, actual }
 
-    await app.store.openBucket({ applicationId, slotStart, isFirst: false, seed: { ts: slotStart, value: lastValue }, ttlSeconds })
-    await app.store.appendBucketTarget({ applicationId, ts: now, value, ttlSeconds })
+    await app.store.openBucket({ applicationId, slotStart, isFirst: false, seed: { ts: slotStart, unclamped: last.unclamped, actual: last.actual }, ttlSeconds })
+    await app.store.appendBucketTarget({ applicationId, ts: now, unclamped, actual, ttlSeconds })
   }
 
   // Serialize per application so concurrent controllers can't race the read-close-reset.
   const chains = new Map()
 
-  app.decorate('recordTarget', (applicationId, value, now) => {
+  app.decorate('recordTarget', (applicationId, target, now) => {
     const prev = chains.get(applicationId) ?? Promise.resolve()
     const next = prev
-      .then(() => ingestTarget(applicationId, value, now))
+      .then(() => ingestTarget(applicationId, target, now))
       .catch((err) => app.log.error({ err, applicationId }, '[time-slot-stats] recordTarget failed'))
 
     chains.set(applicationId, next)
