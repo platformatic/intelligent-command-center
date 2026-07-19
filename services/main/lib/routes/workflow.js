@@ -1,24 +1,7 @@
 /// <reference path="../../global.d.ts" />
 'use strict'
 
-const { readFileSync } = require('node:fs')
 const { request } = require('undici')
-
-const K8S_TOKEN_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/token'
-
-let k8sToken = null
-try {
-  k8sToken = readFileSync(K8S_TOKEN_PATH, 'utf8').trim()
-} catch {
-  // Not running in K8s
-}
-
-function authHeaders () {
-  if (k8sToken) {
-    return { authorization: `Bearer ${k8sToken}` }
-  }
-  return {}
-}
 
 /** @param {import('fastify').FastifyInstance} app */
 module.exports = async function (app) {
@@ -29,6 +12,13 @@ module.exports = async function (app) {
     return
   }
 
+  // getK8SJWTToken reloads the projected SA token when it expires; a token
+  // cached once at startup expires within a day and the workflow service 401s.
+  async function authHeaders () {
+    const token = await app.getK8SJWTToken()
+    return token ? { authorization: `Bearer ${token}` } : {}
+  }
+
   app.get('/workflow/apps/:appId/runs', {
     handler: async (req, reply) => {
       const { appId } = req.params
@@ -36,7 +26,7 @@ module.exports = async function (app) {
       const { statusCode, body } = await request(target, {
         method: 'GET',
         query: req.query,
-        headers: authHeaders()
+        headers: await authHeaders()
       })
 
       reply.code(statusCode)
@@ -51,7 +41,7 @@ module.exports = async function (app) {
       const { statusCode, body } = await request(target, {
         method: 'GET',
         query: req.query,
-        headers: authHeaders()
+        headers: await authHeaders()
       })
 
       reply.code(statusCode)
@@ -66,7 +56,7 @@ module.exports = async function (app) {
       const { statusCode, body } = await request(target, {
         method: 'GET',
         query: req.query,
-        headers: authHeaders()
+        headers: await authHeaders()
       })
 
       reply.code(statusCode)
@@ -81,7 +71,7 @@ module.exports = async function (app) {
       const { statusCode, body } = await request(target, {
         method: 'GET',
         query: req.query,
-        headers: authHeaders()
+        headers: await authHeaders()
       })
 
       reply.code(statusCode)
@@ -96,7 +86,7 @@ module.exports = async function (app) {
       const { statusCode, body } = await request(target, {
         method: 'GET',
         query: req.query,
-        headers: authHeaders()
+        headers: await authHeaders()
       })
 
       reply.code(statusCode)
@@ -112,7 +102,7 @@ module.exports = async function (app) {
       const { statusCode, body } = await request(target, {
         method: 'GET',
         query: rest,
-        headers: authHeaders()
+        headers: await authHeaders()
       })
 
       reply.code(statusCode)
@@ -127,7 +117,7 @@ module.exports = async function (app) {
       const target = `${workflowUrl}/api/v1/apps/${encodeURIComponent(appId)}/runs/${encodeURIComponent(runId)}/streams`
       const { statusCode, body } = await request(target, {
         method: 'GET',
-        headers: authHeaders()
+        headers: await authHeaders()
       })
 
       reply.code(statusCode)
@@ -142,7 +132,7 @@ module.exports = async function (app) {
       const target = `${workflowUrl}/api/v1/apps/${encodeURIComponent(appId)}/streams/${encodeURIComponent(name)}`
       const { statusCode, body, headers } = await request(target, {
         method: 'GET',
-        headers: authHeaders()
+        headers: await authHeaders()
       })
 
       reply.code(statusCode)
@@ -159,7 +149,7 @@ module.exports = async function (app) {
         const target = `${workflowUrl}/api/v1/apps/${encodeURIComponent(appId)}/runs/${encodeURIComponent(runId)}/${action}`
         const { statusCode, body } = await request(target, {
           method: 'POST',
-          headers: { ...authHeaders(), 'content-type': 'application/json' },
+          headers: { ...(await authHeaders()), 'content-type': 'application/json' },
           body: JSON.stringify(req.body || {})
         })
 
